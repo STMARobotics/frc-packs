@@ -458,6 +458,9 @@ body.signed-out .app > :not(.top):not(.auth), body.signed-out .top .tools { disp
 .input:focus, .auth-form input:focus, .pwform input:focus { outline: 2px solid var(--tide); outline-offset: 1px; border-color: transparent; }
 .auth-form input[name="code"] { font-variant-numeric: tabular-nums; letter-spacing: .08em; text-transform: uppercase; }
 .auth-form .cta { margin-top: 4px; }
+.beta-note { font-size: 14px; color: var(--ink); }
+.beta-list { margin: 0; padding-left: 18px; display: grid; gap: 10px; font-size: 14px; line-height: 1.5; color: var(--ink); }
+.beta-list b { color: var(--foam); }
 .auth-alt, .auth-note { margin: 0; font-size: 12px; line-height: 1.5; color: var(--ink-dim); }
 .auth-note { color: #ffd27a; }
 .textbtn { background: none; border: 0; padding: 0; color: var(--tide); font: inherit; font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
@@ -897,7 +900,14 @@ body.signed-out .tabbar { display: none; }
 .tipwrap { position: relative; display: inline-flex; vertical-align: middle; margin-left: 8px; }
 .info { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--line); background: var(--panel); color: var(--ink-dim); font: 400 12px/1 var(--display); cursor: pointer; padding: 0; }
 .tippop { position: absolute; right: 0; top: calc(100% + 8px); width: min(250px, 70vw); background: #102f3a; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; font-size: 12.5px; line-height: 1.45; opacity: 0; pointer-events: none; transition: opacity .15s; z-index: 30; }
-@media (hover: hover) { .tipwrap:hover .tippop, .tipwrap.show .tippop, .tipwrap:focus-within .tippop { opacity: 1; } }
+.tipwrap.show .tippop { opacity: 1; }
+@media (hover: hover) { .tipwrap:hover .tippop, .tipwrap:focus-within .tippop { opacity: 1; } }
+/* On a touch screen the (i) opens a card pinned above the tab bar (tap it again, or anywhere else, to close), so it
+   can't run off the edge of the screen or hide under a finger. */
+@media (hover: none) {
+  .info { width: 30px; height: 30px; font-size: 14px; }
+  .tippop { position: fixed; left: 16px; right: 16px; top: auto; bottom: calc(86px + env(safe-area-inset-bottom)); width: auto; max-width: 460px; margin: 0 auto; font-size: 14px; padding: 14px 16px; z-index: 200; box-shadow: 0 12px 40px rgba(0,0,0,.5); }
+}
 .card .ft .sn { font-family: var(--display); font-size: 1.15em; letter-spacing: .04em; }
 .card .ft .sn.low { color: #ffd34d; text-shadow: 0 0 8px rgba(255,211,77,.7); }
 .slot.locked .art, .slot.locked .fphoto, .slot.locked .fwrap { filter: brightness(0) saturate(0) contrast(.4); opacity: .35; }
@@ -1076,8 +1086,9 @@ body.tr-sheet { overflow: hidden; }
 .tr-slot .mc { position: absolute !important; inset: 0; width: 100%; height: 100%; }
 .tr-slot .tr-x { top: -6px; right: -6px; }
 @media (min-width: 700px) {
-  .tr-browse { top: 7vh; max-width: 720px; border-radius: 24px; bottom: 4vh; border-bottom: 1px solid var(--line); }
-  .tr-browse .tr-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  /* Centered on the screen (it used to hug the left edge) and the robot grid fills whatever width it has. */
+  .tr-browse { top: 7vh; width: min(760px, calc(100vw - 48px)); margin: 0 auto; border-radius: 24px; bottom: 4vh; border-bottom: 1px solid var(--line); }
+  .tr-browse .tr-grid { grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); }
   .tr-browse.open { transform: none; }
   .modal-in { max-width: 460px; }
   .soc-row { max-width: 640px; }
@@ -1208,6 +1219,27 @@ body.settings-open { overflow: hidden; }
 .modal.card-view .modal-in > .cta-row:last-child .cta { padding: 12px 14px; font-size: 16px; }
 @media (min-width: 700px) { .modal.card-view .modal-in { --cw: min(320px, calc((100svh - var(--tabh) - 250px) / 1.4)); } }
 .modal.card-view .modal-in { overflow: hidden; max-height: 100%; height: 100%; }
+/* One card view everywhere: Close top right, Pin / Keep (or wishlist) top left, the main action and Details along the
+   bottom, and the card centered between them. */
+.modal.card-view .modal-in { padding-top: 64px; --cw: min(76vw, calc((100svh - var(--tabh) - 270px) / 1.4)); }
+.modal.card-view .cv-top { position: absolute; top: calc(10px + env(safe-area-inset-top)); left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: center; z-index: 8; pointer-events: none; }
+.modal.card-view .cv-left { display: flex; gap: 8px; }
+.modal.card-view .cv-ic { pointer-events: auto; width: 44px; height: 44px; flex: none; padding: 0; border-radius: 50%; display: grid; place-items: center; font-size: 0; line-height: 0; background: rgba(5,20,26,.78); border: 1px solid var(--line); color: var(--foam); box-shadow: 0 4px 14px rgba(0,0,0,.4); }
+.modal.card-view .cv-ic::before { font-size: 22px; line-height: 1; font-family: var(--body); }
+.modal.card-view .cv-ic.on, .modal.card-view .cv-ic[aria-pressed="true"] { border-color: var(--tide); color: var(--tide); }
+.modal.card-view .cv-x::before { content: "×"; font-size: 30px; }
+.modal.card-view .cv-back::before { content: "‹"; font-size: 32px; }
+.modal.card-view .cv-star::before { content: "☆"; }
+.modal.card-view .cv-star[aria-pressed="true"]::before { content: "★"; }
+.modal.card-view .cv-heart::before { content: "♡"; }
+.modal.card-view .cv-heart[aria-pressed="true"]::before { content: "♥"; }
+.modal.card-view .cv-ic:disabled { opacity: .6; }
+.modal.card-view .cv-bottom { margin-top: auto; width: 100%; display: grid; gap: 8px; padding-bottom: 10px; }
+.modal.card-view .cv-bottom .cta-row { display: flex; gap: 8px; width: 100%; padding: 0; background: transparent; position: static; flex-wrap: wrap; }
+.modal.card-view .cv-bottom .cta-row .cta { flex: 1 1 0; min-width: 0; padding: 13px 10px; font-size: 16px; }
+.modal.card-view .cv-bottom .cta-row .cta.wide { flex: 2 1 0; }
+.modal.card-view .cv-bottom .ws-note { margin: 0; text-align: center; }
+.modal.card-view.facts-on .modal-in > .card-facts { top: 64px; bottom: 80px; }
 .modal.card-view .modal-in > .cta-row:last-child { gap: 8px; flex-wrap: wrap; }
 .modal.card-view .modal-in > .cta-row:last-child .cta { flex: 1 1 0; min-width: 0; padding: 11px 8px; font-size: 15px; white-space: nowrap; }
 .modal.card-view .modal-in > .cta-row:last-child .cta.wide { flex-basis: 100%; }

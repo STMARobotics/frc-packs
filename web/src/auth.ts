@@ -19,14 +19,21 @@ export function signIn(guest: boolean): Promise<State> {
   const auth = el("#auth");
   const inTab = el("#authInTab"), joinTab = el("#authJoinTab");
   const inForm = el<HTMLFormElement>("#signInForm"), joinForm = el<HTMLFormElement>("#joinForm");
+  const terms = el("#betaTerms");
   const msg = el("#authMsg");
+  // New players read and agree to the beta-tester terms once before the join form (remembered for this tab).
+  let agreed = false;
+  try { agreed = sessionStorage.getItem("frcpacks.betaTerms") === "1"; } catch { /* storage can be off */ }
 
   function tab(join: boolean) {
     inTab.setAttribute("aria-selected", String(!join));
     joinTab.setAttribute("aria-selected", String(join));
+    const readTerms = join && !agreed;
     inForm.hidden = join;
-    joinForm.hidden = !join;
+    terms.hidden = !readTerms;
+    joinForm.hidden = !join || readTerms;
     msg.hidden = true;
+    if (readTerms) return el("#betaAgree").focus({ preventScroll: true });
     const first = join ? field(joinForm, field(joinForm, "code").value ? "username" : "code") : field(inForm, "username");
     first.focus({ preventScroll: true });
   }
@@ -44,6 +51,12 @@ export function signIn(guest: boolean): Promise<State> {
   inTab.onclick = () => tab(false);
   joinTab.onclick = () => tab(true);
   el("#toJoin").onclick = () => tab(true);
+  el("#betaBack").onclick = () => tab(false);
+  el("#betaAgree").onclick = () => {
+    agreed = true;
+    try { sessionStorage.setItem("frcpacks.betaTerms", "1"); } catch { /* storage can be off */ }
+    tab(true);
+  };
 
   return new Promise((resolve) => {
     function handle(form: HTMLFormElement, check: () => string | null, run: () => Promise<State>) {
