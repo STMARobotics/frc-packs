@@ -8,7 +8,7 @@
     "test": "ts-node test/stacks.test.ts"
   },
   "devDependencies": {
-    "@types/node": "^22.19.0",
+    "@types/node": "^26.6.5",
     "aws-cdk": "^2.1033.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
