@@ -47,6 +47,6 @@ jobs:
       - name: Deploy Certificate Stack
         run: npm exec -w cdk -- cdk deploy packs-certificate --require-approval never
       - name: Deploy Frontend Stack
-        run: npm exec -w cdk -- cdk deploy packs-frontend --require-approval never
+        run: npm exec -w cdk -- cdk deploy packs-frontend --exclusively --require-approval never
       - name: Deploy Backend Stack
         run: npm exec -w cdk -- cdk deploy packs-backend --require-approval never
