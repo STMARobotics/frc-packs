@@ -1316,7 +1316,7 @@ export function start(RECIPE) {
     var focus = mstack[mstack.length - 1]();
     modal.hidden = false; document.body.classList.add("modal-open");
     modal.classList.toggle("card-view", !!modalIn.querySelector(".slot") && !modalIn.querySelector(".profile"));
-    if (dir !== "") modal.scrollTop = 0;
+    if (dir !== "") { modal.scrollTop = 0; modalIn.scrollTop = 0; } // a profile scrolled down must not leave the next card shifted up
     modalIn.classList.remove("m-push", "m-pop", "m-in");
     if (dir) { void modalIn.offsetWidth; modalIn.classList.add("m-" + dir); }
     if (focus && focus.focus) focus.focus({ preventScroll: true });
@@ -1403,30 +1403,22 @@ export function start(RECIPE) {
     fx.innerHTML = "<dl><dt>Team</dt><dd>" + t.num + " · " + esc(t.name) + "</dd><dt>Division</dt><dd>" + esc(t.div) + "</dd>" + (t.loc ? "<dt>From</dt><dd>" + esc(t.loc) + "</dd>" : "") +
       "<dt>EPA</dt><dd>" + (t.epa == null ? "–" : Math.round(t.epa)) + " · #" + t.rank + " at Champs</dd><dt>Record</dt><dd>" + esc(t.wl) + "</dd></dl>";
     modalIn.appendChild(fx);
-    var row = document.createElement("div"); row.className = "cta-row";
-    var close = closeButton(); row.appendChild(close);
-    row.appendChild(pinButton(t.num));
-    row.insertBefore(detailsButton(), row.children[1] || null);
-    if (serials.length) row.insertBefore(keepButton(t.num), row.children[2] || null);
-    modalIn.appendChild(row); cardPos();
-    if (serials.length) {
-      var offer = document.createElement("button"); offer.type = "button"; offer.className = "cta ghost wide"; offer.textContent = "Offer it in a trade";
-      offer.onclick = function () { closeAll(function () { offerFromBinder(t.num); }); };
-      modalIn.appendChild(offer);
-    }
+    var extra = [];
     var hc = heldCopies(), free = serials.filter(function (x) { return !hc[t.num + ":" + x]; }).length;
     if (serials.length > 1 && free < 2 && !NOSCRAP[t.tier]) {
       var wait = document.createElement("p"); wait.className = "ws-note ws-held";
       wait.textContent = "Your extra copies are in the pack you're opening or a trade offer, so they can't be scrapped yet.";
-      modalIn.appendChild(wait);
+      extra.push(wait);
     }
     if (free > 1 && !NOSCRAP[t.tier]) {
       var each = S.scrapParts[t.tier] || 0, more = free - 1, srow = document.createElement("div"); srow.className = "cta-row";
       var one = document.createElement("button"); one.type = "button"; one.className = "chip"; one.textContent = "Scrap 1 extra · +" + each + " parts";
       one.onclick = function () { scrapOne(t, 1, one); }; srow.appendChild(one);
       if (more > 1) { var all = document.createElement("button"); all.type = "button"; all.className = "chip"; all.textContent = "Scrap all " + more + " extras · +" + each * more; all.onclick = function () { scrapOne(t, more, all); }; srow.appendChild(all); }
-      modalIn.appendChild(srow);
+      extra.push(srow);
     }
+    var close = cardChrome(t.num, !!serials.length, serials.length ? { label: "Offer it in a trade", run: function () { closeAll(function () { offerFromBinder(t.num); }); } } : null, extra);
+    cardPos();
     return close;
   }
   /* The first copy (the lowest serial you got first) is always kept. */
@@ -1451,6 +1443,34 @@ export function start(RECIPE) {
     if (!cardNav || cardNav.length < 2) return; var i = cardNav.indexOf(+modalIn.dataset.num); if (i < 0) return;
     var p = document.createElement("div"); p.className = "card-pos"; p.textContent = (i + 1) + " of " + cardNav.length;
     modalIn.insertBefore(p, modalIn.firstChild);
+  }
+  /* The controls every card view shares, so the card looks and behaves the same wherever it was opened from (binder,
+     profile, trade, pack): Close (or Back) top right, Pin and Keep, or Add to wishlist, top left, and the main action
+     plus Details anchored along the bottom. `extra` are any other bottom controls (scrap, notes). Returns Close. */
+  function cardChrome(num, owned, action, extra) {
+    var icon = function (b, kind) {
+      b.classList.add("cv-ic", "cv-" + kind);
+      b.setAttribute("aria-label", b.getAttribute("aria-label") || b.textContent.replace(/^[^A-Za-z]+/, "").replace(/^On your profile$/, "Pin to profile").replace(/^Kept$/, "Keep"));
+      return b;
+    };
+    var top = document.createElement("div"); top.className = "cv-top";
+    var left = document.createElement("div"); left.className = "cv-left";
+    left.appendChild(icon(owned ? pinButton(num) : wishButton(num), owned ? "star" : "heart"));
+    if (owned) left.appendChild(icon(keepButton(num), "heart"));
+    var close = closeButton(); icon(close, mstack.length > 1 ? "back" : "x");
+    top.appendChild(left); top.appendChild(close);
+    modalIn.insertBefore(top, modalIn.firstChild);
+    var bottom = document.createElement("div"); bottom.className = "cv-bottom";
+    var row = document.createElement("div"); row.className = "cta-row";
+    if (action) {
+      var go = document.createElement("button"); go.type = "button"; go.className = "cta wide"; go.textContent = action.label;
+      go.onclick = action.run; row.appendChild(go);
+    }
+    row.appendChild(detailsButton());
+    bottom.appendChild(row);
+    (extra || []).forEach(function (x) { bottom.appendChild(x); });
+    modalIn.appendChild(bottom);
+    return close;
   }
   function detailsButton() {
     var b = document.createElement("button"); b.type = "button"; b.className = "cta ghost dtl"; b.textContent = "Details";
@@ -1483,17 +1503,8 @@ export function start(RECIPE) {
       (o.serial ? '<dt>Serial</dt><dd>No. ' + esc(o.serial) + '</dd>' : '') +
       '</dl><p>' + (o.from ? o.from + " " : "") + (mine ? "You own " + (mine === 1 ? "1 copy" : mine + " copies") + "." : "You don't have this one yet.") + '</p>';
     modalIn.appendChild(facts);
-    var row = document.createElement("div"); row.className = "cta-row";
-    var close = closeButton(); row.appendChild(close);
-    row.appendChild(mine ? pinButton(num) : wishButton(num));
-    if (o.action) {
-      var go = document.createElement("button"); go.type = "button"; go.className = "cta wide"; go.textContent = o.action.label;
-      go.onclick = function () { closeAll(o.action.run); };
-      row.insertBefore(go, row.firstChild);
-    }
-    row.insertBefore(detailsButton(), row.children[1] || null);
-    if (mine) row.insertBefore(keepButton(num), row.children[2] || null);
-    modalIn.appendChild(row); cardPos();
+    var close = cardChrome(num, !!mine, o.action && { label: o.action.label, run: function () { closeAll(o.action.run); } });
+    cardPos();
     return close;
   }
   /* ---------- wishlist, showcase and profiles ---------- */
@@ -2258,6 +2269,44 @@ export function start(RECIPE) {
   function closeSheet() { $("#trBrowse").classList.remove("open"); document.body.classList.remove("tr-sheet"); }
   Array.prototype.forEach.call(document.querySelectorAll(".tr-add"), function (b) { b.onclick = function () { openSheet(b.dataset.side, "cards"); }; });
   $("#trSheetX").onclick = closeSheet; $("#trScrim").onclick = closeSheet;
+  /* Swipe down to close a sheet or full-screen panel on a touch screen. The drag starts from the top of the panel, or
+     from anywhere once its list is scrolled to the top, and it follows the finger; past about 110px (or a quick flick)
+     it closes, otherwise it springs back. Controls that have their own drag (cards you tilt, the showcase order,
+     sliders, text fields) are left alone. */
+  function swipeToClose(panel, scroller, topZone, close) {
+    var y0 = 0, t0 = 0, dy = 0, live = false, armed = false;
+    var own = ".slot, input, select, textarea, .pf-show, .tr-slot, [draggable=true]";
+    panel.addEventListener("touchstart", function (e) {
+      armed = false; live = false; dy = 0;
+      if (e.touches.length !== 1 || e.target.closest(own)) return;
+      var y = e.touches[0].clientY;
+      var atTop = !scroller() || scroller().scrollTop <= 0;
+      armed = atTop || y - panel.getBoundingClientRect().top < topZone;
+      y0 = y; t0 = Date.now();
+    }, { passive: true });
+    panel.addEventListener("touchmove", function (e) {
+      if (!armed) return;
+      dy = e.touches[0].clientY - y0;
+      if (!live) {
+        if (dy < 10) { if (dy < -10) armed = false; return; }
+        live = true; panel.style.transition = "none";
+      }
+      e.preventDefault();
+      panel.style.transform = "translateY(" + Math.max(0, dy) + "px)";
+    }, { passive: false });
+    function end() {
+      if (!live) return;
+      live = false; armed = false;
+      var quick = dy > 40 && Date.now() - t0 < 250;
+      panel.style.transition = "transform .2s ease-out";
+      if (dy > 110 || quick) { close(); setTimeout(function () { panel.style.transition = ""; panel.style.transform = ""; }, 300); }
+      else { panel.style.transform = ""; setTimeout(function () { panel.style.transition = ""; }, 220); }
+    }
+    panel.addEventListener("touchend", end);
+    panel.addEventListener("touchcancel", end);
+  }
+  swipeToClose($("#trBrowse"), function () { return $("#trGrid"); }, 120, closeSheet);
+  swipeToClose($("#modalIn"), function () { return $("#modalIn"); }, 90, function () { closeModal(); });
   addEventListener("keydown", function (e) { if (e.key === "Escape" && $("#trBrowse").classList.contains("open")) closeSheet(); });
   $("#trKindCards").onclick = function () { trKind = "cards"; paintGrid(); };
   $("#trKindGoods").onclick = function () { trKind = "goods"; paintGrid(); };
@@ -2395,14 +2444,15 @@ export function start(RECIPE) {
       feed.appendChild(d);
     });
   }
-  /* Activity: big pulls, finished sets and trades, newest first. */
+  /* Activity: Mythic and Legendary pulls and trades, newest first. */
   function paintActivity() {
     var box = $("#socAct"); if (!box || !SOCIAL) return;
     var ev = (SOCIAL.activity || []).slice();
     (SOCIAL.recent || []).forEach(function (t) { ev.push({ kind: "trade", who: t.from, other: t.to, at: t.at, gave: t.gave, got: t.got }); });
+    ev = ev.filter(function (e) { return e.kind === "trade" || (e.kind === "pull" && (e.tier === "mythic" || e.tier === "legendary")); });
     ev.sort(function (a, b) { return b.at - a.at; });
     var first = !seenEv, now = {};
-    box.innerHTML = ev.length ? "" : '<p class="soc-none">Nothing yet. Open a pack!</p>';
+    box.innerHTML = ev.length ? "" : '<p class="soc-none">Nothing yet. Mythic and Legendary pulls and trades show up here.</p>';
     ev.slice(0, 30).forEach(function (e) {
       var d = document.createElement("div"); d.className = "soc-ev"; var html = "";
       if (e.kind === "pull" && BY_NUM[e.team]) {
