@@ -5,7 +5,6 @@ import * as cloudwatch from "aws-cdk-lib/aws-cloudwatch";
 import * as cloudwatchActions from "aws-cdk-lib/aws-cloudwatch-actions";
 import * as events from "aws-cdk-lib/aws-events";
 import * as eventTargets from "aws-cdk-lib/aws-events-targets";
-import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 import * as sns from "aws-cdk-lib/aws-sns";
 import * as subscriptions from "aws-cdk-lib/aws-sns-subscriptions";
 import * as integrations from "aws-cdk-lib/aws-apigatewayv2-integrations";
@@ -22,8 +21,6 @@ export interface PacksBackendStackProps extends cdk.StackProps {}
 
 export class PacksBackendStack extends cdk.Stack {
   readonly api: apigatewayv2.HttpApi;
-  /** Shared with CloudFront, which sends it to the API; the server refuses requests without it. */
-  readonly originSecret: secretsmanager.Secret;
 
   constructor(scope: Construct, id: string, props: PacksBackendStackProps) {
     super(scope, id, props);
@@ -50,11 +47,6 @@ export class PacksBackendStack extends cdk.Stack {
       projectionType: dynamodb.ProjectionType.ALL,
     });
 
-    this.originSecret = new secretsmanager.Secret(this, "OriginSecret", {
-      description: "Sent by CloudFront to the API in X-Origin-Secret; the server refuses requests without it.",
-      generateSecretString: { excludePunctuation: true, passwordLength: 40 },
-    });
-    const originSecret = this.originSecret.secretValue.unsafeUnwrap();
     const code = lambda.Code.fromAsset(path.join(BUILD_DIR, "lambda"));
 
     const server = new lambda.Function(this, "ServerFunction", {
@@ -69,7 +61,6 @@ export class PacksBackendStack extends cdk.Stack {
         DATA_DIR: "/var/task/data",
         TABLE_NAME: table.tableName,
         ADMIN_ONLY: config.lambda.adminOnly ? "1" : "0",
-        ORIGIN_SECRET: originSecret,
       },
       logGroup: new logs.LogGroup(this, "ServerLogs", {
         retention: logs.RetentionDays.ONE_WEEK,
