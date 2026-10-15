@@ -16,8 +16,6 @@ const BUILD_DIR = path.resolve(__dirname, "../.build");
 export interface PacksFrontendStackProps extends cdk.StackProps {
   certificate: acm.ICertificate;
   api: apigatewayv2.HttpApi;
-  /** Sent to the API with every request so it can tell they came through this distribution. */
-  originSecret: string;
 }
 
 export class PacksFrontendStack extends cdk.Stack {
@@ -37,7 +35,6 @@ export class PacksFrontendStack extends cdk.Stack {
       `${props.api.apiId}.execute-api.${this.region}.${cdk.Aws.URL_SUFFIX}`,
       {
         protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY,
-        customHeaders: { "X-Origin-Secret": props.originSecret },
       },
     );
     // Not "all viewer headers": that policy also passes the browser's Host header, which API Gateway rejects, and

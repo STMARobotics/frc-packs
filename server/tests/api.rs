@@ -26,11 +26,7 @@ async fn table(name: &str) -> Option<Db> {
 
 fn router(db: &Db, dev_tools: bool, admin_only: bool) -> Router {
     let data_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../data");
-    app(
-        db.clone(),
-        Config { data_dir, web_dir: None, dev_tools, cookie_secure: false, admin_only, origin_secret: None },
-    )
-    .unwrap()
+    app(db.clone(), Config { data_dir, web_dir: None, dev_tools, cookie_secure: false, admin_only }).unwrap()
 }
 
 /// A table of the test's own (for checks that other tests running at the same time would upset), dropped by `drop_table`.
@@ -491,14 +487,7 @@ async fn cache_headers_suit_a_cdn() {
     let data_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../data");
     let app = app(
         db,
-        Config {
-            data_dir,
-            web_dir: Some(web.clone()),
-            dev_tools: false,
-            cookie_secure: true,
-            admin_only: false,
-            origin_secret: None,
-        },
+        Config { data_dir, web_dir: Some(web.clone()), dev_tools: false, cookie_secure: true, admin_only: false },
     )
     .unwrap();
     let cache = |path: &'static str| {

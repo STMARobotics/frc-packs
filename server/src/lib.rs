@@ -41,9 +41,6 @@ pub struct Config {
     pub cookie_secure: bool,
     /// Only admin accounts can sign in or use the game (for testing on the real domain before opening it up).
     pub admin_only: bool,
-    /// When set, a request must carry this value in `X-Origin-Secret` (CloudFront adds it), so the API can't be reached
-    /// except through the site's front door. Off when not set (local development and tests).
-    pub origin_secret: Option<String>,
 }
 
 pub struct AppState {
@@ -60,7 +57,6 @@ pub type Shared = Arc<AppState>;
 pub fn app(db: Db, cfg: Config) -> anyhow::Result<Router> {
     let catalog = packs::Catalog::load(&cfg.data_dir.join("packs"))?;
     let https = cfg.cookie_secure;
-    let origin_secret = cfg.origin_secret.clone();
     let state = Arc::new(AppState {
         db,
         catalog,
@@ -94,7 +90,6 @@ pub fn app(db: Db, cfg: Config) -> anyhow::Result<Router> {
     }
     Ok(router
         .layer(middleware::from_fn_with_state(https, security_headers))
-        .layer(middleware::from_fn_with_state(origin_secret, origin_guard))
         .layer(middleware::from_fn(json_only_writes))
         .layer(middleware::from_fn(cache_headers))
         .layer(TraceLayer::new_for_http())
@@ -110,21 +105,6 @@ pub const CONTENT_SECURITY_POLICY: &str = concat!(
     "img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self'; manifest-src 'self'; ",
     "worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
 );
-
-/// Refuses requests that didn't come through CloudFront (they lack the shared secret CloudFront adds). This keeps the
-/// client address CloudFront reports trustworthy and keeps anyone from skipping the front door's protections.
-async fn origin_guard(State(secret): State<Option<String>>, req: Request<Body>, next: Next) -> Response {
-    if let Some(secret) = secret {
-        let given = req.headers().get("x-origin-secret").map_or(&[][..], |v| v.as_bytes());
-        // Compare every byte so the time taken doesn't reveal how much matched.
-        let same =
-            given.len() == secret.len() && given.iter().zip(secret.as_bytes()).fold(0u8, |a, (x, y)| a | (x ^ y)) == 0;
-        if !same {
-            return (StatusCode::FORBIDDEN, "not through the front door").into_response();
-        }
-    }
-    next.run(req).await
-}
 
 /// Adds the standard protective headers to every response (HSTS only when the site is on HTTPS).
 async fn security_headers(State(https): State<bool>, req: Request<Body>, next: Next) -> Response {
@@ -191,25 +171,6 @@ mod tests {
     use tower::ServiceExt;
 
     use super::*;
-
-    #[tokio::test]
-    async fn the_origin_secret_is_required_when_set() {
-        let call = |secret: Option<&str>, header: Option<&str>| {
-            let app = Router::new()
-                .route("/", get(|| async { "hi" }))
-                .layer(middleware::from_fn_with_state(secret.map(String::from), origin_guard));
-            let mut req = Request::builder().uri("/");
-            if let Some(h) = header {
-                req = req.header("x-origin-secret", h);
-            }
-            async move { app.oneshot(req.body(Body::empty()).unwrap()).await.unwrap().status() }
-        };
-        assert_eq!(call(None, None).await, StatusCode::OK, "no secret configured: open");
-        assert_eq!(call(Some("s3cret"), Some("s3cret")).await, StatusCode::OK);
-        assert_eq!(call(Some("s3cret"), None).await, StatusCode::FORBIDDEN);
-        assert_eq!(call(Some("s3cret"), Some("s3creT")).await, StatusCode::FORBIDDEN);
-        assert_eq!(call(Some("s3cret"), Some("s3cret!")).await, StatusCode::FORBIDDEN);
-    }
 
     #[tokio::test]
     async fn every_response_carries_the_security_headers() {

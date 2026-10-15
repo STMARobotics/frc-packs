@@ -22,7 +22,6 @@ const frontendStack = new PacksFrontendStack(app, config.stackNames.frontend, {
   crossRegionReferences: true,
   certificate: certificateStack.certificate,
   api: backendStack.api,
-  originSecret: backendStack.originSecret.secretValue.unsafeUnwrap(),
 });
 
 assert.equal(certificateStack.stackName, "packs-certificate");
@@ -55,7 +54,7 @@ backendTemplate.hasResourceProperties("AWS::Events::Rule", {
 });
 backendTemplate.resourceCountIs("AWS::CloudWatch::Alarm", config.alertEmail ? 4 : 0);
 backendTemplate.resourceCountIs("AWS::Budgets::Budget", config.alertEmail ? 1 : 0);
-backendTemplate.resourceCountIs("AWS::SecretsManager::Secret", 1);
+backendTemplate.resourceCountIs("AWS::SecretsManager::Secret", 0);
 backendTemplate.hasResourceProperties("AWS::ApiGatewayV2::Stage", {
   DefaultRouteSettings: {
     ThrottlingRateLimit: config.apiThrottle.rate,
@@ -76,7 +75,7 @@ assert.equal(environment.DATA_DIR, "/var/task/data");
 assert.deepEqual(environment.TABLE_NAME, { Ref: backendTemplate.getResourceId("AWS::DynamoDB::Table") });
 assert.equal(environment.ADMIN_ONLY, "0");
 assert.equal("DATABASE_URL" in environment, false);
-assert.ok(environment.ORIGIN_SECRET, "the API only answers requests that carry CloudFront's secret");
+assert.equal("ORIGIN_SECRET" in environment, false);
 assert.equal("LAMBDA_TASK" in environment, false);
 backendTemplate.hasResourceProperties("AWS::DynamoDB::Table", {
   BillingMode: "PAY_PER_REQUEST",
@@ -160,7 +159,7 @@ frontendTemplate.hasResourceProperties("AWS::CloudFront::OriginRequestPolicy", {
     CookiesConfig: { CookieBehavior: "all" },
   },
 });
-// Every behavior sends the security headers, and the API origin carries the shared secret.
+// Every behavior sends the security headers.
 const securityHeadersId = Object.entries(frontendResources).find(([, r]) => r.Type === "AWS::CloudFront::ResponseHeadersPolicy")?.[0];
 assert.ok(securityHeadersId);
 for (const behavior of [distributionConfig.DefaultCacheBehavior, ...distributionConfig.CacheBehaviors]) {
@@ -175,7 +174,7 @@ frontendTemplate.hasResourceProperties("AWS::CloudFront::ResponseHeadersPolicy",
     },
   },
 });
-assert.match(JSON.stringify(distribution.Properties), /X-Origin-Secret/);
+assert.doesNotMatch(JSON.stringify(distribution.Properties), /X-Origin-Secret/);
 // The server sends the same CSP for pages it serves itself; the two must not drift apart.
 const serverSource = fs.readFileSync(path.resolve(__dirname, "../../server/src/lib.rs"), "utf8");
 const rustBlock = /CONTENT_SECURITY_POLICY: &str = concat!\(([^)]*)\);/.exec(serverSource)?.[1];

@@ -72,11 +72,10 @@ changes, and `npm run cdk:test` to run the CDK synthesis checks.
 
 ## What protects the site
 
-- **Front door.** CloudFront sends every request to the API with a secret header (`X-Origin-Secret`, generated in AWS
-  Secrets Manager by the backend stack), and the server refuses requests without it, so the API can't be used by calling
-  API Gateway directly. This is checked by the server only when `ORIGIN_SECRET` is set, which the stack does.
-- **Who is asking.** The server counts failed sign-ins per visitor using the `CloudFront-Viewer-Address` header, which
-  CloudFront sets itself. `cf-connecting-ip` and `X-Forwarded-For` are ignored because visitors can send anything in them.
+- **API access.** API Gateway is directly reachable as well as through CloudFront. API Gateway throttles total traffic;
+  the server also counts failed sign-ins per visitor using `CloudFront-Viewer-Address` when requests come through
+  CloudFront. Direct callers can set that header themselves, so the per-visitor count is not trustworthy for those
+  requests. `cf-connecting-ip` and `X-Forwarded-For` are ignored because callers can send anything in them.
 - **Headers.** CloudFront adds a content security policy, HSTS, `nosniff`, frame blocking and a referrer policy to
   everything; the server adds the same to its own responses. The policy text lives in `cdk/lib/config.ts` and
   `server/src/lib.rs` and a CDK test fails if they differ.

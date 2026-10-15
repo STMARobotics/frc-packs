@@ -94,7 +94,6 @@ async fn serve(db: frc_packs_server::db::Db, data_dir: PathBuf) -> anyhow::Resul
         dev_tools: flag("DEV_TOOLS"),
         cookie_secure: flag("COOKIE_SECURE"),
         admin_only: flag("ADMIN_ONLY"),
-        origin_secret: std::env::var("ORIGIN_SECRET").ok().filter(|s| !s.is_empty()),
     };
     if cfg.dev_tools {
         tracing::warn!("DEV_TOOLS is on: anyone can give themselves packs and demo luck");

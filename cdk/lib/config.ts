@@ -22,7 +22,7 @@ export const config = {
   // How often the "free pack ready" notifications are checked.
   readyCheckMinutes: 5,
   // Where alarms and the budget warning are emailed. Leave empty to skip them (set it and redeploy to turn them on;
-  // AWS sends a confirmation email to this address first).
+  // AWS sends a confirmation email to this address first). NOTE: Alarms have AWS cost implications
   alertEmail: "",
   monthlyBudgetUsd: 25,
 } as const;
