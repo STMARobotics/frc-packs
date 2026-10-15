@@ -167,5 +167,10 @@ export class PacksBackendStack extends cdk.Stack {
 
     new cdk.CfnOutput(this, "ApiEndpoint", { value: this.api.apiEndpoint });
     new cdk.CfnOutput(this, "TableName", { value: table.tableName });
+
+    new cdk.CfnOutput(this, "OriginSecretExport", {
+      value: this.originSecret.secretArn,
+      exportName: "packs-backend-OriginSecret",
+    });
   }
 }
