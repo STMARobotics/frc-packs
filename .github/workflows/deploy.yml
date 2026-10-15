@@ -44,9 +44,5 @@ jobs:
         run: npm run build
       - name: Verify CDK templates
         run: npm run cdk:test
-      - name: Deploy Certificate Stack
-        run: npm exec -w cdk -- cdk deploy packs-certificate --require-approval never
-      - name: Deploy Frontend Stack
-        run: npm exec -w cdk -- cdk deploy packs-frontend --exclusively --require-approval never
-      - name: Deploy Backend Stack
-        run: npm exec -w cdk -- cdk deploy packs-backend --require-approval never
+      - name: Deploy CDK stacks
+        run: npm exec -w cdk -- cdk deploy --all --require-approval never
