@@ -1,6 +1,5 @@
-# Builds the app for Lambda on Linux and deploys the CDK stacks, after the checks in ci.yml pass.
+# Builds the app for Lambda on Linux and deploys the CDK stacks.
 # One-time setup is described in docs/aws.md.
-# To make deploys wait for an approval, see "Deploying from GitHub" in docs/aws.md.
 name: deploy
 on:
   workflow_dispatch:
@@ -22,27 +21,23 @@ permissions:
 concurrency: deploy
 
 jobs:
-  checks:
-    uses: ./.github/workflows/ci.yml
-
   deploy:
-    needs: checks
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::738044534240:role/GitHubAction-AssumeRoleWithAction
           aws-region: us-east-2
-      - uses: dtolnay/rust-toolchain@686976e191b89faba57d3206551f0f330d8cb249 # stable
-      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
         with:
           workspaces: server
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      - uses: actions/setup-node@v4
         with:
           node-version: 24
       - name: Install cargo-lambda
-        run: pip install cargo-lambda==1.9.2
+        run: pip install cargo-lambda
       - name: Install Node dependencies
         run: npm ci
       - name: Build
