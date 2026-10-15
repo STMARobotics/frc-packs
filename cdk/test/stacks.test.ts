@@ -54,7 +54,7 @@ backendTemplate.hasResourceProperties("AWS::Events::Rule", {
 });
 backendTemplate.resourceCountIs("AWS::CloudWatch::Alarm", config.alertEmail ? 4 : 0);
 backendTemplate.resourceCountIs("AWS::Budgets::Budget", config.alertEmail ? 1 : 0);
-backendTemplate.resourceCountIs("AWS::SecretsManager::Secret", 0);
+backendTemplate.resourceCountIs("AWS::SecretsManager::Secret", 1);
 backendTemplate.hasResourceProperties("AWS::ApiGatewayV2::Stage", {
   DefaultRouteSettings: {
     ThrottlingRateLimit: config.apiThrottle.rate,
