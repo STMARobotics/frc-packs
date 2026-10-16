@@ -22,8 +22,8 @@ pub const VERSION: i32 = 1;
 /// Parts for each player who lost a Mythic in the change.
 pub const COMPENSATION: i64 = 1000;
 /// What those players see the next time they open the game.
-pub const NOTICE: &str = "Mythics have changed: only 12 teams are Mythic now. Your former Mythic cards are Legendary, \
-    and nothing else changed. Sorry about that! Here are 1,000 parts to make up for it.";
+pub const NOTICE: &str = "Mythics have changed: only 12 teams are Mythic now. Your former Mythic cards are Legendary \
+    now. Sorry about that! Here are 1,000 parts to make up for it.";
 
 /// Card rarity updates per transaction (DynamoDB allows 100 items, and the last one also saves the player).
 const BATCH: usize = 80;
