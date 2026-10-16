@@ -101,6 +101,7 @@ pub fn routes() -> Router<Shared> {
         .route("/account/username", post(change_username))
         .route("/account/name", post(change_first_name))
         .route("/state", get(state))
+        .route("/notice/seen", post(notice_seen))
         .route("/claim", post(claim))
         .route("/hand", post(hand))
         .route("/open", post(open))
@@ -237,6 +238,8 @@ pub struct StateOut {
     showcase: Vec<i32>,
     /// Teams that are never scrapped.
     favorites: Vec<i32>,
+    /// A note to show once (then the site calls /notice/seen).
+    notice: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -432,6 +435,7 @@ pub async fn load_state(s: &Shared, user: Uuid) -> ApiResult<StateOut> {
         wishlist,
         favorites,
         showcase: p.showcase.clone(),
+        notice: p.notice.clone(),
     })
 }
 
@@ -444,7 +448,10 @@ async fn state_json(s: &Shared, user: Uuid) -> ApiResult<Json<StateOut>> {
 /// The signed-in account's state. Without one: 401 `sign_in`.
 async fn session(State(s): State<Shared>, headers: HeaderMap) -> ApiResult<Json<StateOut>> {
     match auth::session(&s.db, &headers).await? {
-        Some(u) if !u.disabled && (!s.admin_only || u.is_admin) => Ok(Json(load_state(&s, u.id).await?)),
+        Some(u) if !u.disabled && (!s.admin_only || u.is_admin) => {
+            crate::retier::ensure(&s, u.id).await?;
+            Ok(Json(load_state(&s, u.id).await?))
+        }
         Some(u) if !u.disabled => Err(err(StatusCode::FORBIDDEN, "admin_only")),
         _ => Err(err(StatusCode::UNAUTHORIZED, "sign_in")),
     }
@@ -599,6 +606,7 @@ async fn login(
     let mut tx = Tx::new();
     let token = accounts::new_session(&mut tx, p.id);
     tx.commit(&s.db).await?;
+    crate::retier::ensure(&s, p.id).await?;
     let state = load_state(&s, p.id).await?;
     Ok(signed_in(&s, &token, state))
 }
@@ -730,7 +738,24 @@ async fn change_first_name(
 }
 
 async fn state(State(s): State<Shared>, user: User) -> ApiResult<Json<StateOut>> {
+    crate::retier::ensure(&s, user.id).await?;
     state_json(&s, user.id).await
+}
+
+/// The player has read their note; don't show it again.
+async fn notice_seen(State(s): State<Shared>, user: User) -> ApiResult<StatusCode> {
+    retry!(async {
+        let mut p = me(&s.db, user.id).await?;
+        if p.notice.is_none() {
+            return Ok(());
+        }
+        p.notice = None;
+        let parts = p.parts;
+        let mut tx = Tx::new();
+        model::save_user(&mut tx, &mut p, parts, "notice");
+        tx.commit(&s.db).await.map_err(ApiError::from)
+    })?;
+    Ok(StatusCode::NO_CONTENT)
 }
 
 // ---------- free packs ----------

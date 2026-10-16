@@ -434,6 +434,20 @@ function history(u: AdminUser): HTMLElement {
   return box;
 }
 
+$("#retierBtn").addEventListener("click", async () => {
+  const out = $("#retierOut"), b = $<HTMLButtonElement>("#retierBtn");
+  b.disabled = true;
+  try {
+    const r = await api.admin.retier();
+    out.replaceChildren(h("p", { class: "good" }, `Checked ${plural(r.players, "player")}. ${plural(r.compensated, "player")} got 1,000 parts and the note this time.`));
+    out.hidden = false;
+  } catch (e) {
+    fail(e);
+  } finally {
+    b.disabled = false;
+  }
+});
+
 $("#auditBtn").addEventListener("click", async () => {
   const out = $("#auditOut"), b = $<HTMLButtonElement>("#auditBtn");
   b.disabled = true;

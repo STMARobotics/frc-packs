@@ -37,6 +37,7 @@ pub fn routes() -> Router<Shared> {
         .route("/users/{id}/ledger", get(ledger))
         .route("/test-pack", post(test_pack))
         .route("/audit", get(audit))
+        .route("/retier", post(retier_all))
 }
 
 fn err(status: StatusCode, code: &'static str) -> ApiError {
@@ -109,6 +110,12 @@ struct AuditOut {
     bad_serials: i64,
     /// Open offers for cards their maker no longer has.
     stale_offers: i64,
+}
+
+/// Brings every player's cards up to the current rarities now, instead of when each next opens the game.
+async fn retier_all(State(s): State<Shared>, _admin: Admin) -> ApiResult<Json<Value>> {
+    let (checked, paid) = crate::retier::ensure_all(&s).await?;
+    Ok(Json(serde_json::json!({ "players": checked, "compensated": paid })))
 }
 
 /// Checks the whole game adds up: every player's packs, parts and cards against their ledger, and every serial number.

@@ -106,7 +106,7 @@
    "loc": "MI, USA",
    "photo": true,
    "rank": 6,
-   "tier": "mythic"
+   "tier": "legendary"
   },
   {
    "num": 1114,
@@ -130,7 +130,7 @@
    "loc": "IL, USA",
    "photo": true,
    "rank": 8,
-   "tier": "mythic"
+   "tier": "legendary"
   },
   {
    "num": 1678,
@@ -166,7 +166,7 @@
    "loc": "WA, USA",
    "photo": true,
    "rank": 11,
-   "tier": "mythic"
+   "tier": "legendary"
   },
   {
    "num": 2910,
@@ -190,7 +190,7 @@
    "loc": "TX, USA",
    "photo": true,
    "rank": 13,
-   "tier": "mythic"
+   "tier": "legendary"
   },
   {
    "num": 6329,
@@ -202,7 +202,7 @@
    "loc": "ME, USA",
    "photo": true,
    "rank": 14,
-   "tier": "mythic"
+   "tier": "legendary"
   },
   {
    "num": 3467,
@@ -214,7 +214,7 @@
    "loc": "NH, USA",
    "photo": true,
    "rank": 15,
-   "tier": "mythic"
+   "tier": "legendary"
   },
   {
    "num": 1796,
@@ -226,7 +226,7 @@
    "loc": "NY, USA",
    "photo": true,
    "rank": 16,
-   "tier": "mythic"
+   "tier": "legendary"
   },
   {
    "num": 1690,
@@ -250,7 +250,7 @@
    "loc": "ON, Canada",
    "photo": true,
    "rank": 18,
-   "tier": "mythic"
+   "tier": "legendary"
   },
   {
    "num": 1768,
@@ -262,7 +262,7 @@
    "loc": "MA, USA",
    "photo": true,
    "rank": 19,
-   "tier": "mythic"
+   "tier": "legendary"
   },
   {
    "num": 5460,
@@ -274,7 +274,7 @@
    "loc": "MI, USA",
    "photo": true,
    "rank": 20,
-   "tier": "mythic"
+   "tier": "legendary"
   },
   {
    "num": 6800,
@@ -286,7 +286,7 @@
    "loc": "TX, USA",
    "photo": true,
    "rank": 21,
-   "tier": "mythic"
+   "tier": "legendary"
   },
   {
    "num": 1987,
@@ -298,7 +298,7 @@
    "loc": "MO, USA",
    "photo": true,
    "rank": 22,
-   "tier": "mythic"
+   "tier": "legendary"
   },
   {
    "num": 1706,
@@ -310,7 +310,7 @@
    "loc": "MO, USA",
    "photo": true,
    "rank": 23,
-   "tier": "mythic"
+   "tier": "legendary"
   },
   {
    "num": 581,
@@ -322,7 +322,7 @@
    "loc": "CA, USA",
    "photo": true,
    "rank": 24,
-   "tier": "mythic"
+   "tier": "legendary"
   },
   {
    "num": 1325,
@@ -334,7 +334,7 @@
    "loc": "ON, Canada",
    "photo": true,
    "rank": 25,
-   "tier": "mythic"
+   "tier": "legendary"
   },
   {
    "num": 8044,
@@ -346,7 +346,7 @@
    "loc": "LA, USA",
    "photo": true,
    "rank": 26,
-   "tier": "mythic"
+   "tier": "legendary"
   },
   {
    "num": 694,
@@ -358,7 +358,7 @@
    "loc": "NY, USA",
    "photo": true,
    "rank": 27,
-   "tier": "mythic"
+   "tier": "legendary"
   },
   {
    "num": 1833,
@@ -370,7 +370,7 @@
    "loc": "GA, USA",
    "photo": true,
    "rank": 28,
-   "tier": "mythic"
+   "tier": "legendary"
   },
   {
    "num": 5736,
@@ -382,7 +382,7 @@
    "loc": "NY, USA",
    "photo": true,
    "rank": 29,
-   "tier": "mythic"
+   "tier": "legendary"
   },
   {
    "num": 498,
@@ -394,7 +394,7 @@
    "loc": "AZ, USA",
    "photo": true,
    "rank": 30,
-   "tier": "mythic"
+   "tier": "legendary"
   },
   {
    "num": 4946,
@@ -406,7 +406,7 @@
    "loc": "ON, Canada",
    "photo": true,
    "rank": 31,
-   "tier": "legendary"
+   "tier": "mythic"
   },
   {
    "num": 4522,
@@ -418,7 +418,7 @@
    "loc": "MO, USA",
    "photo": true,
    "rank": 32,
-   "tier": "mythic"
+   "tier": "legendary"
   },
   {
    "num": 359,
@@ -430,7 +430,7 @@
    "loc": "HI, USA",
    "photo": true,
    "rank": 33,
-   "tier": "mythic"
+   "tier": "legendary"
   },
   {
    "num": 973,
@@ -442,7 +442,7 @@
    "loc": "CA, USA",
    "photo": true,
    "rank": 34,
-   "tier": "mythic"
+   "tier": "legendary"
   },
   {
    "num": 316,
@@ -466,7 +466,7 @@
    "loc": "ON, Canada",
    "photo": true,
    "rank": 36,
-   "tier": "mythic"
+   "tier": "legendary"
   },
   {
    "num": 3476,
@@ -490,7 +490,7 @@
    "loc": "CO, USA",
    "photo": true,
    "rank": 38,
-   "tier": "mythic"
+   "tier": "legendary"
   },
   {
    "num": 6328,
@@ -514,7 +514,7 @@
    "loc": "MI, USA",
    "photo": true,
    "rank": 40,
-   "tier": "mythic"
+   "tier": "legendary"
   },
   {
    "num": 6459,
@@ -538,7 +538,7 @@
    "loc": "ON, Canada",
    "photo": true,
    "rank": 42,
-   "tier": "mythic"
+   "tier": "legendary"
   },
   {
    "num": 5940,
@@ -562,7 +562,7 @@
    "loc": "MA, USA",
    "photo": true,
    "rank": 44,
-   "tier": "mythic"
+   "tier": "legendary"
   },
   {
    "num": 1156,
@@ -586,7 +586,7 @@
    "loc": "CA, USA",
    "photo": true,
    "rank": 46,
-   "tier": "mythic"
+   "tier": "legendary"
   },
   {
    "num": 6090,
@@ -622,7 +622,7 @@
    "loc": "ID, USA",
    "photo": true,
    "rank": 49,
-   "tier": "mythic"
+   "tier": "legendary"
   },
   {
    "num": 6002,
@@ -694,7 +694,7 @@
    "loc": "China",
    "photo": true,
    "rank": 55,
-   "tier": "mythic"
+   "tier": "legendary"
   },
   {
    "num": 6036,
@@ -718,7 +718,7 @@
    "loc": "ON, Canada",
    "photo": true,
    "rank": 57,
-   "tier": "mythic"
+   "tier": "legendary"
   },
   {
    "num": 4469,
@@ -730,7 +730,7 @@
    "loc": "WA, USA",
    "photo": true,
    "rank": 58,
-   "tier": "mythic"
+   "tier": "legendary"
   },
   {
    "num": 1732,
@@ -1834,7 +1834,7 @@
    "loc": "MN, USA",
    "photo": true,
    "rank": 150,
-   "tier": "rare"
+   "tier": "mythic"
   },
   {
    "num": 971,
@@ -1870,7 +1870,7 @@
    "loc": "MN, USA",
    "photo": true,
    "rank": 153,
-   "tier": "rare"
+   "tier": "legendary"
   },
   {
    "num": 4143,
@@ -6214,7 +6214,7 @@
    "loc": "Türkiye",
    "photo": true,
    "rank": 515,
-   "tier": "mythic"
+   "tier": "legendary"
   }
  ]
 }

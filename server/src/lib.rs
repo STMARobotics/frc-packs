@@ -13,6 +13,7 @@ pub mod packs;
 pub mod profiles;
 pub mod push;
 pub mod reports;
+pub mod retier;
 pub mod roll;
 pub mod specials;
 pub mod testkit;

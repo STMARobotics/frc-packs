@@ -52,6 +52,12 @@ pub struct Profile {
     pub pack_ping_at: Option<i64>,
     /// The opening still being revealed, if any.
     pub pending_open: Option<i64>,
+    /// The rarity version this player's cards are up to (see `retier`).
+    #[serde(default)]
+    pub retier: i32,
+    /// A note for the player, shown once the next time they open the game (then cleared).
+    #[serde(default)]
+    pub notice: Option<String>,
     /// Packs and parts taken in through trades lately (the last 24 hours count against the daily limit).
     #[serde(default)]
     pub intake: Vec<Intake>,

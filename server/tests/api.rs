@@ -449,6 +449,42 @@ async fn a_tampered_hand_is_rerolled() {
 }
 
 #[tokio::test]
+async fn mythic_change_retiers_cards_and_pays_once() {
+    let (app, db) = need_db!(setup(true));
+    // 7769 was Mythic and is Legendary now; 4946 was Legendary and is Mythic now.
+    let (c, _) = player(&app, &db).await;
+    let me = kit::user_by_cookie(&db, &c).await;
+    kit::give_card(&db, me, PACK, 7769, "mythic").await;
+    kit::give_card(&db, me, PACK, 4946, "legendary").await;
+    kit::change(&db, me, |p, _| p.retier = 0).await;
+    let before = kit::parts(&db, me).await;
+
+    let r = call(&app, "GET", "/api/state", Some(&c), None).await;
+    assert_eq!(r.status, StatusCode::OK);
+    assert!(r.body["notice"].as_str().is_some_and(|n| n.contains("Mythics have changed")));
+    assert_eq!(kit::parts(&db, me).await, before + 1000, "one lost Mythic, one payment");
+    let tiers: Vec<(i32, String)> = kit::all_cards(&db, me, PACK).await.into_iter().map(|c| (c.team, c.tier)).collect();
+    assert!(tiers.contains(&(7769, "legendary".into())) && tiers.contains(&(4946, "mythic".into())), "{tiers:?}");
+
+    // Loading again (or signing in elsewhere) pays nothing more; the note goes once it's seen.
+    call(&app, "GET", "/api/state", Some(&c), None).await;
+    assert_eq!(kit::parts(&db, me).await, before + 1000);
+    assert_eq!(call(&app, "POST", "/api/notice/seen", Some(&c), Some(json!({}))).await.status, StatusCode::NO_CONTENT);
+    assert!(call(&app, "GET", "/api/state", Some(&c), None).await.body["notice"].is_null());
+
+    // A player who never had a Mythic is brought up to date without parts or a note; new accounts start up to date.
+    let (c2, state2) = player(&app, &db).await;
+    assert!(state2["notice"].is_null());
+    let other = kit::user_by_cookie(&db, &c2).await;
+    kit::give_card(&db, other, PACK, 4946, "legendary").await;
+    kit::change(&db, other, |p, _| p.retier = 0).await;
+    let p2 = kit::parts(&db, other).await;
+    assert!(call(&app, "GET", "/api/state", Some(&c2), None).await.body["notice"].is_null());
+    assert_eq!(kit::parts(&db, other).await, p2);
+    assert_eq!(kit::all_cards(&db, other, PACK).await[0].tier, "mythic");
+}
+
+#[tokio::test]
 async fn writes_must_be_json() {
     let (app, db) = need_db!(setup(true));
     let (c, _) = player(&app, &db).await;
