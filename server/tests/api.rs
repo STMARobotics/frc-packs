@@ -482,6 +482,20 @@ async fn mythic_change_retiers_cards_and_pays_once() {
     assert!(call(&app, "GET", "/api/state", Some(&c2), None).await.body["notice"].is_null());
     assert_eq!(kit::parts(&db, other).await, p2);
     assert_eq!(kit::all_cards(&db, other, PACK).await[0].tier, "mythic");
+
+    // A player already updated once (version 1) who holds 2491 as Mythic, from the typo: it quietly goes back to Rare,
+    // and 2481 becomes Mythic, with no second payment.
+    let (c3, _) = player(&app, &db).await;
+    let third = kit::user_by_cookie(&db, &c3).await;
+    kit::give_card(&db, third, PACK, 2491, "mythic").await;
+    kit::give_card(&db, third, PACK, 2481, "legendary").await;
+    kit::change(&db, third, |p, _| p.retier = 1).await;
+    let p3 = kit::parts(&db, third).await;
+    assert!(call(&app, "GET", "/api/state", Some(&c3), None).await.body["notice"].is_null());
+    assert_eq!(kit::parts(&db, third).await, p3);
+    let tiers: Vec<(i32, String)> =
+        kit::all_cards(&db, third, PACK).await.into_iter().map(|c| (c.team, c.tier)).collect();
+    assert!(tiers.contains(&(2491, "rare".into())) && tiers.contains(&(2481, "mythic".into())), "{tiers:?}");
 }
 
 #[tokio::test]

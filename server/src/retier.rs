@@ -18,7 +18,11 @@ use crate::packs::Tier;
 use crate::retry;
 
 /// Bump this whenever a recipe changes a team's rarity, so everyone is brought up to date again.
-pub const VERSION: i32 = 1;
+/// 1: only 12 teams Mythic (October 2026). 2: the Mythic list said 2491 where it meant 2481 (Roboteers); fixed.
+pub const VERSION: i32 = 2;
+/// Parts (and the note) are for the October 2026 change only: players updated before version 1 who lost a Mythic.
+/// Later corrections just move cards quietly, so the 2491/2481 typo fix doesn't pay anyone a second time.
+const PAID_UP_TO: i32 = 1;
 /// Parts for each player who lost a Mythic in the change.
 pub const COMPENSATION: i64 = 1000;
 /// What those players see the next time they open the game.
@@ -93,13 +97,14 @@ pub async fn ensure(st: &Shared, user: Uuid) -> ApiResult<bool> {
             tx.delete_if("", &upk(user), sk, None);
         }
         let parts = p.parts;
-        if lost_mythic {
+        let pay = lost_mythic && p.retier < PAID_UP_TO;
+        if pay {
             p.parts += COMPENSATION;
             p.notice = Some(NOTICE.to_string());
         }
         p.retier = VERSION;
         model::save_user(&mut tx, &mut p, parts, "mythic change");
-        tx.commit(db).await.map(|_| lost_mythic).map_err(ApiError::from)
+        tx.commit(db).await.map(|_| pay).map_err(ApiError::from)
     });
     let paid = paid?;
     if paid {

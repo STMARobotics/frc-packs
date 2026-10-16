@@ -65,7 +65,7 @@ def champs_teams(path):
 
 # The only Mythic teams (chosen by hand, October 2026). Changing this changes cards people already own: the server
 # re-tiers them (server/src/retier.rs), so bump its VERSION too.
-MYTHICS = {4414, 254, 2910, 1690, 1678, 1323, 4946, 2491, 2056, 1114, 125, 27}
+MYTHICS = {4414, 254, 2910, 1690, 1678, 1323, 4946, 2481, 2056, 1114, 125, 27}
 # Teams made Legendary by hand, whatever their EPA rank (7028 is the home team).
 LEGENDARIES = {7028}
 
