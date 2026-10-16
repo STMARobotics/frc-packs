@@ -84,7 +84,14 @@ export function start(RECIPE) {
   /* Robot photos are fetched and decoded as soon as a pack's cards are known. Face-down cards sit in a flipped 3D layer, and
      phones (iOS especially) can skip loading images there until it's too late, which left some cards without a picture. */
   var photoCache = {};
-  function preloadPhotos(nums) { nums.forEach(function (n) { if (photoCache[n] || !BY_NUM[n] || !BY_NUM[n].photo) return; var im = new Image(); im.decoding = "async"; im.src = "/photos/" + n + ".webp"; photoCache[n] = im; if (im.decode) im.decode().catch(function () {}); }); }
+  function preloadPhotos(nums) { nums.forEach(function (n) { if (photoCache[n] || !BY_NUM[n] || !BY_NUM[n].photo) return; var im = new Image(); im.decoding = "async"; im.src = "/photos/" + n + ".webp"; photoCache[n] = im; im._ready = im.decode ? im.decode().catch(function () {}) : Promise.resolve(); }); }
+  /* Resolves once these robots' photos are downloaded and decoded (or after `ms`, whichever is first), so the cards
+     can be drawn without the phone stalling to decode five photos in the same frame as the tear. */
+  function photosReady(nums, ms) {
+    preloadPhotos(nums);
+    var all = Promise.all(nums.map(function (n) { return photoCache[n] && photoCache[n]._ready || Promise.resolve(); }));
+    return Promise.race([all, new Promise(function (r) { setTimeout(r, ms); })]);
+  }
   function pendingFrom(o) {
     if (!o || o.pack !== PACK_ID || o.cards.length !== 5 || !o.cards.every(function (c) { return BY_NUM[c.num] && TIERS[c.tier]; })) return null;
     preloadPhotos(o.cards.map(function (c) { return c.num; }));
@@ -813,7 +820,7 @@ export function start(RECIPE) {
       if (res.streakReward) setTimeout(function () { sfx.promote(); say(S.streak.days + "-day streak! A boosted pack is yours", 4000); }, 2600);
       else if (!was.today && S.streak && S.streak.today && S.streak.days > 1) setTimeout(function () { say(S.streak.days + "-day streak! Keep it going tomorrow", 3000); }, 2600);
       if (!S.pending) return lostPack(); // a card this page doesn't know (an older tab after an update)
-      ripOpen();
+      photosReady(S.pending.cards.map(function (c) { return c.num; }), 450).then(function () { if (state === "cutting") ripOpen(); });
     }, function (e) {
       openReq = null;
       if (e && e.code === "no_packs") { paintHome(); say("Out of packs", 2000); sync(true); return; }
@@ -1804,7 +1811,8 @@ export function start(RECIPE) {
     setTimeout(coach, 0);
     if (b) { paintBinder(); loadSpecials(); loadTrades().then(function () { if (!vBinder.hidden) paintWorkshop(); }); }
     if (tr) { enterTrade(); paintTrades(); loadTrades(); loadSocial(); loadSpecials(); }
-    if (so) loadSocial();
+    // Paint what we already have at once (it may have been loaded from another tab), then check for news.
+    if (so) { if (SOCIAL) { paintSocial(); paintActivity(); } loadSocial(); }
     try { history.replaceState(history.state, "", "#" + (b ? "binder" : tr ? "trade" : so ? "social" : "open")); } catch (e) {}
     if (!b && vBinder._was) { S.unseen = {}; save(); } // new marks last one binder visit
     vBinder._was = b; paintTabDot();
@@ -1950,7 +1958,14 @@ export function start(RECIPE) {
   var trSerials = { give: {}, get: {} }, theirSer = {};
   var trGive = [], trGet = [], theirInv = null, theirName = "", whoTimer = 0, theirsReq = 0;
   var trPane = "new", trSide = "mine", trTier = "all", trFresh = {};
-  function loadTrades() { return api.trades().then(function (t) { TR = t; paintTradeDot(); if (!vTrade.hidden) paintTrades(); }, function () {}); }
+  /* Repaints only when something changed, so opening the tab doesn't draw (and animate) the same offers twice. */
+  var trSig = "";
+  function loadTrades() {
+    return api.trades().then(function (t) {
+      var sig = JSON.stringify(t), changed = sig !== trSig; trSig = sig; TR = t; paintTradeDot();
+      if (changed && !vTrade.hidden) paintTrades();
+    }, function () {});
+  }
   function paintTradeDot() {
     var n = TR.incoming.length, dot = $("#tradeDot"), inN = $("#trInN");
     dot.hidden = inN.hidden = !n; dot.textContent = inN.textContent = n;
@@ -2278,7 +2293,32 @@ export function start(RECIPE) {
     if (list.length > 80) { var more = document.createElement("p"); more.className = "tr-more"; more.textContent = "Showing 80 of " + list.length + ". Search to find the rest."; trGrid.appendChild(more); }
   }
   /* The picker is a sheet that slides up over the offer. */
-  function openSheet(side, kind) { trSide = side; if (kind) trKind = kind; $("#trBrowse").classList.add("open"); document.body.classList.add("tr-sheet"); paintGrid(); }
+  function openSheet(side, kind) { trSide = side; if (kind) trKind = kind; $("#trBrowse").classList.add("open"); document.body.classList.add("tr-sheet"); paintGrid(); refreshShelves(); }
+  /* While trading, both shelves stay current: a card may have been traded or scrapped since they were loaded. Cards
+     that left are taken off the table with a note, instead of the offer failing later. */
+  var shelfSig = { mine: "", theirs: "" };
+  function refreshShelves() {
+    if (vTrade.hidden || document.hidden) return;
+    api.collection(PACK_ID).then(function (c) {
+      var sig = JSON.stringify(c); if (sig === shelfSig.mine) return; shelfSig.mine = sig; // nothing changed: leave the grid alone
+      applyCollection(c);
+      var keep = trGive.filter(function (n) { return (S.inv[n] || []).length; });
+      if (keep.length !== trGive.length) { trGive = keep; say("A card you put on the table isn't in your binder any more, so it came off.", 3200); }
+      paintTable(); paintGrid();
+    }, function () {});
+    if (!theirName) return;
+    var name = theirName;
+    api.playerCollection(name, PACK_ID).then(function (col) {
+      var sig = name + JSON.stringify(col);
+      if (theirName !== name || sig === shelfSig.theirs) return; shelfSig.theirs = sig;
+      theirInv = {}; theirSer = {};
+      col.cards.forEach(function (c) { if (BY_NUM[c.num]) { theirInv[c.num] = c.serials.length; theirSer[c.num] = c.serials.slice(); } });
+      var keep = trGet.filter(function (n) { return theirInv[n]; });
+      if (keep.length !== trGet.length) { trGet = keep; say(name + " doesn't have one of those cards any more, so it came off the table.", 3200); }
+      paintTable(); paintGrid();
+    }, function () {});
+  }
+  setInterval(refreshShelves, 15000);
   function closeSheet() { $("#trBrowse").classList.remove("open"); document.body.classList.remove("tr-sheet"); }
   Array.prototype.forEach.call(document.querySelectorAll(".tr-add"), function (b) { b.onclick = function () { openSheet(b.dataset.side, "cards"); }; });
   $("#trSheetX").onclick = closeSheet; $("#trScrim").onclick = closeSheet;
