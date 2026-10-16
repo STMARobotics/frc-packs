@@ -1200,9 +1200,27 @@ body.settings-open { overflow: hidden; }
 .set-form input { background: var(--bg); border: 1px solid var(--line); color: var(--ink); border-radius: 12px; padding: 11px 12px; font: 400 15px var(--body); text-transform: none; letter-spacing: 0; }
 #setMsg { font-size: 13px; color: var(--tide); }
 #setMsg.bad { color: #ff8a8a; }
-#settings:not([hidden]) .line { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
-#settings:not([hidden]) .line small:not(#acctTxt):not(#installTxt) { display: block !important; }
-#settings .pwform { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+/* Settings: four short groups instead of one long list. Rows share a card with thin dividers, the explanations are one
+   dim line, and the name forms stay folded away until you want them. */
+.set-group { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px 4px; display: grid; gap: 0; }
+.set-group:not(:has(.line:not([hidden]))) { display: none; }
+.set-group h3 { margin: 0 0 2px; font: 700 11px var(--body); letter-spacing: .14em; text-transform: uppercase; color: var(--ink-dim); }
+#settings:not([hidden]) .set-group .line { background: none; border: 0; border-radius: 0; padding: 11px 0; border-top: 1px solid var(--line); }
+#settings:not([hidden]) .set-group h3 + .line { border-top: 0; }
+.set-group .line { flex-wrap: nowrap; }
+.set-group .line > span { flex: 1; min-width: 0; }
+.set-group .line .chip, .set-group .line .btns { flex: none; }
+.set-group .line:has(.btns) { flex-wrap: wrap; }
+#settings:not([hidden]) .line small:not(#acctTxt):not(#installTxt) { display: block !important; max-width: 38ch; }
+#settings .set-group .pwform { background: none; border: 0; border-top: 1px solid var(--line); border-radius: 0; padding: 11px 0 14px; }
+.set-edit { padding: 0; gap: 0; }
+.set-edit > summary { list-style: none; cursor: pointer; padding: 14px; font: 700 13px var(--body); color: var(--ink); display: flex; justify-content: space-between; align-items: center; }
+.set-edit > summary::-webkit-details-marker { display: none; }
+.set-edit > summary::after { content: "›"; font-size: 22px; line-height: 1; color: var(--ink-dim); transition: transform .15s; }
+.set-edit[open] > summary::after { transform: rotate(90deg); }
+.set-edit[open] > summary { border-bottom: 1px solid var(--line); }
+.set-edit > form, .set-edit > .msg { margin: 12px 14px 0; }
+.set-edit[open] { padding-bottom: 14px; }
 .top .gear-hidden { display: none !important; }
 .set-bar { background: #06161d; }
 

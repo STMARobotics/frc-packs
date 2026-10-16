@@ -81,36 +81,44 @@
   <div class="settings" id="settings" hidden>
     <div class="set-bar"><button type="button" class="back" id="setBack" aria-label="Back">‹ Back</button><h2>Settings</h2></div>
     <section class="set-card set-acct"><span id="setAv"></span><div><b id="setName"></b><span id="setTag"></span><small id="setUser"></small></div></section>
-    <section class="set-card">
-      <h3>Your name</h3>
+    <details class="set-card set-edit">
+      <summary>Edit your name or username</summary>
       <form class="set-form" id="nameForm" novalidate><label>First name<input name="firstName" id="nameIn" autocomplete="given-name" maxlength="30"></label><button type="submit" class="cta small">Save</button></form>
       <form class="set-form" id="userForm" novalidate><label>Username<input name="username" id="userIn" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="20"></label>
         <label>Current password<input name="password" type="password" autocomplete="current-password" maxlength="128"></label><button type="submit" class="cta small" id="userBtn">Change username</button></form>
       <div class="msg" id="setMsg" role="status" hidden></div>
-    </section>
-    <div class="line"><span>Account<small id="acctTxt">Signed in.</small></span><button type="button" class="chip" id="signOut">Sign out</button></div>
-    <div class="line"><span>Password<small>Change it here. Your other devices get signed out.</small></span><button type="button" class="chip" id="pwBtn" aria-expanded="false" aria-controls="pwForm">Change</button></div>
+    </details>
+    <section class="set-group"><h3>Account</h3>
+      <div class="line"><span>Account<small id="acctTxt">Signed in.</small></span><button type="button" class="chip" id="signOut">Sign out</button></div>
+      <div class="line"><span>Password<small>Signs your other devices out.</small></span><button type="button" class="chip" id="pwBtn" aria-expanded="false" aria-controls="pwForm">Change</button></div>
+      <div class="line"><span>My profile<small>Your showcase, stats and wishlist.</small></span><button type="button" class="chip" id="myProfile">View</button></div>
+      <div class="line"><span>Google account<small>Coming soon.</small></span><button type="button" class="chip" id="linkGoogle" disabled>Link</button></div>
     <form class="pwform" id="pwForm" hidden novalidate>
       <input name="current" type="password" autocomplete="current-password" placeholder="Current password" aria-label="Current password" maxlength="128">
       <input name="next" type="password" autocomplete="new-password" placeholder="New password" aria-label="New password, at least 8 characters" maxlength="128">
       <button type="submit" class="cta small">Save</button>
       <div class="msg" id="pwMsg" role="status" hidden></div>
     </form>
-    <div class="line" id="installLine" hidden><span>Install the app<small id="installTxt"></small></span><button type="button" class="chip" id="installBtn" hidden>Install</button></div>
-    <div class="line" id="donateLine" hidden><span>Support FRC Packs<small>FRC Packs is free and run by volunteers. A donation helps keep it online.</small></span><a class="chip" id="donateBtn" href="#" target="_blank" rel="noopener">Donate</a></div>
-    <div class="line"><span>Feedback<small>Found a bug, or have an idea? Tell us. We read everything.</small></span><button type="button" class="chip" id="feedbackBtn">Send feedback</button></div>
-    <div class="line"><span>My profile<small>What other players see: your showcase, stats and wishlist.</small></span><button type="button" class="chip" id="myProfile">View</button></div>
-    <div class="line"><span>Notifications<small id="pushTxt">Pack ready, trade offers and accepted trades.</small></span><button type="button" class="chip" id="pushBtn" aria-pressed="false">Off</button></div>
-    <div class="line"><span>Google account<small>Sign in with Google instead of a password. Coming soon.</small></span><button type="button" class="chip" id="linkGoogle" disabled>Link</button></div>
-    <div class="line" id="v2Line" hidden><span>New layout (testing)<small>Simpler Collection page. Admin only for now.</small></span><button type="button" class="chip" id="v2Btn" aria-pressed="false">Off</button></div>
-    <div class="line" id="adminLine" hidden><span>Admin<small>Make invite codes and manage accounts.</small></span><a class="chip" href="/admin">Open panel</a></div>
-    <div class="line"><span>Sound<small>Chimes, rip and reveal stings.</small></span><button type="button" class="chip" id="mute" aria-pressed="false">On</button></div>
-    <div class="line"><span>Demo luck<small>Boosts Mythic to roughly 1 pack in 5 so you can feel the big moment. Real odds are 1 in 400, and the Mythic meter guarantees one by pack 200.</small></span><button type="button" class="chip" id="demoLuck" aria-pressed="true">On</button></div>
-    <div class="line"><span>Extra packs<small>Developer tools. Real packs come from the free-pack timer.</small></span><div class="btns"><button type="button" class="cta small ghost" id="demoPack">+1 demo pack</button><button type="button" class="cta small ghost" id="skipTimer">Skip timer</button></div></div>
-    <div class="line"><span>App version<small id="verTxt">Tap Check to see if you are up to date.</small></span><button type="button" class="chip" id="verBtn">Check</button></div>
-    <div class="line"><span>Pack wheel every time<small>Pick from the wheel of 10 packs each time you open another pack.</small></span><button type="button" class="chip" id="wheelAgain" aria-pressed="true">On</button></div>
-    <div class="line"><span>My team<small id="myTeamTxt">Not picked yet.</small></span><button type="button" class="chip" id="changeTeam">Change</button></div>
-    <div class="line"><span>Start over<small>Developer tools. Deletes this account's cards and packs.</small></span><button type="button" class="chip" id="reset">Reset collection</button></div>
+    </section>
+    <section class="set-group"><h3>Game</h3>
+      <div class="line"><span>Notifications<small id="pushTxt">Pack ready, trade offers and accepted trades.</small></span><button type="button" class="chip" id="pushBtn" aria-pressed="false">Off</button></div>
+      <div class="line"><span>Sound<small>Chimes, rip and reveal stings.</small></span><button type="button" class="chip" id="mute" aria-pressed="false">On</button></div>
+      <div class="line"><span>Pack wheel every time<small>Pick from the wheel of 10 packs each time you open another pack.</small></span><button type="button" class="chip" id="wheelAgain" aria-pressed="true">On</button></div>
+      <div class="line"><span>My team<small id="myTeamTxt">Not picked yet.</small></span><button type="button" class="chip" id="changeTeam">Change</button></div>
+    </section>
+    <section class="set-group"><h3>About</h3>
+      <div class="line"><span>Feedback<small>Found a bug, or have an idea? Tell us. We read everything.</small></span><button type="button" class="chip" id="feedbackBtn">Send feedback</button></div>
+      <div class="line" id="installLine" hidden><span>Install the app<small id="installTxt"></small></span><button type="button" class="chip" id="installBtn" hidden>Install</button></div>
+      <div class="line" id="donateLine" hidden><span>Support FRC Packs<small>FRC Packs is free and run by volunteers. A donation helps keep it online.</small></span><a class="chip" id="donateBtn" href="#" target="_blank" rel="noopener">Donate</a></div>
+      <div class="line"><span>App version<small id="verTxt">Tap Check to see if you are up to date.</small></span><button type="button" class="chip" id="verBtn">Check</button></div>
+    </section>
+    <section class="set-group"><h3>Admin and testing</h3>
+      <div class="line" id="adminLine" hidden><span>Admin<small>Make invite codes and manage accounts.</small></span><a class="chip" href="/admin">Open panel</a></div>
+      <div class="line" id="v2Line" hidden><span>New layout (testing)<small>Simpler Collection page. Admin only for now.</small></span><button type="button" class="chip" id="v2Btn" aria-pressed="false">Off</button></div>
+      <div class="line"><span>Demo luck<small>Boosts Mythic to roughly 1 pack in 5 so you can feel the big moment. Real odds are 1 in 400, and the Mythic meter guarantees one by pack 200.</small></span><button type="button" class="chip" id="demoLuck" aria-pressed="true">On</button></div>
+      <div class="line"><span>Extra packs<small>Developer tools. Real packs come from the free-pack timer.</small></span><div class="btns"><button type="button" class="cta small ghost" id="demoPack">+1 demo pack</button><button type="button" class="cta small ghost" id="skipTimer">Skip timer</button></div></div>
+      <div class="line"><span>Start over<small>Developer tools. Deletes this account's cards and packs.</small></span><button type="button" class="chip" id="reset">Reset collection</button></div>
+    </section>
   </div>
 
   <div class="status" id="status">
