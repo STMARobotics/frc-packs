@@ -63,7 +63,7 @@ async fn test_pack(
     _admin: Admin,
     Json(req): Json<TestPackReq>,
 ) -> ApiResult<Json<TestPackOut>> {
-    let pack = api::pack(&s, &req.pack)?;
+    let pack = api::pack(&s, &req.pack).await?;
     // One sample team of every rarity, so the whole range can be seen in one pack (best last).
     let mut rng = rand::rng();
     let mut cards: Vec<crate::roll::Rolled> = crate::packs::Tier::ORDER
@@ -436,7 +436,7 @@ async fn users(State(s): State<Shared>, _admin: Admin) -> ApiResult<Json<Vec<Use
         let Ok(p) = from_item::<Profile>(it) else { continue };
         let rows = model::packs(db, p.id).await?;
         let mut cards = 0;
-        for pk in &s.catalog.packs {
+        for pk in &s.catalog().await.packs {
             cards += model::stats(db, p.id, pk.id()).await?.cards;
         }
         let last = db.query_desc(&upk(p.id), "OPEN#", 1).await?.first().and_then(|o| get_n(o, "opened_at"));
@@ -504,7 +504,8 @@ async fn give_packs(
     if !(1..=100).contains(&req.count) {
         return Err(err(StatusCode::BAD_REQUEST, "bad_request"));
     }
-    let free = s.catalog.claimable().id();
+    let free_id = s.catalog().await.claimable().id().to_string();
+    let free = free_id.as_str();
     let db = &s.db;
     retry!(async {
         let mut p = model::profile(db, id).await?.ok_or(err(StatusCode::NOT_FOUND, "not_found"))?;

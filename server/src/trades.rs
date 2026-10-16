@@ -172,9 +172,9 @@ async fn player_collection(
     _user: User,
     Path((name, pack)): Path<(String, String)>,
 ) -> ApiResult<Json<CollectionOut>> {
-    let pack = api::pack(&s, &pack)?;
+    let pack = api::pack(&s, &pack).await?;
     let p = player(&s.db, &name).await?;
-    Ok(Json(api::load_collection(&s.db, p.id, pack).await?))
+    Ok(Json(api::load_collection(&s.db, p.id, &pack).await?))
 }
 
 // ---------- offering ----------
@@ -290,7 +290,7 @@ async fn pick_copies(
 }
 
 async fn offer(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Json<OfferReq>) -> ApiResult<Response> {
-    let pack = api::pack(&s, &req.pack)?;
+    let pack = api::pack(&s, &req.pack).await?;
     let goods = 0..=MAX_PACKS;
     let parts = 0..=MAX_PARTS;
     let side_ok = |cards: &[i32], packs: i32, boosted: i32, pts: i32, sp: &[i64]| {
@@ -321,8 +321,8 @@ async fn offer(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Jso
         if open_trades_of(db, user.id).await?.iter().filter(|t| t.from_user == user.id).count() >= MAX_OPEN {
             return Err(err(StatusCode::CONFLICT, "too_many_offers"));
         }
-        let give = pick_copies(db, &p, pack, &req.give, &req.give_serials, true).await?;
-        let want = pick_copies(db, &to, pack, &req.want, &req.want_serials, false).await?;
+        let give = pick_copies(db, &p, &pack, &req.give, &req.give_serials, true).await?;
+        let want = pick_copies(db, &to, &pack, &req.want, &req.want_serials, false).await?;
         if crate::specials::owned_count(db, &req.give_specials, user.id).await? != req.give_specials.len()
             || crate::specials::owned_count(db, &req.want_specials, to.id).await? != req.want_specials.len()
         {
@@ -619,7 +619,7 @@ async fn accept(State(s): State<Shared>, user: User, Path(id): Path<i64>) -> Api
         if t.to_user != user.id {
             return Err(err(StatusCode::FORBIDDEN, "not_your_trade"));
         }
-        let pack = api::pack(&s, &t.pack)?;
+        let pack = api::pack(&s, &t.pack).await?;
         let (from_p, to_p) = tokio::try_join!(api::me(db, t.from_user), api::me(db, t.to_user))?;
         if over_daily(&to_p, t.give_packs + t.give_boosted, t.give_parts) {
             return Err(err(StatusCode::CONFLICT, "trade_limit"));
@@ -684,7 +684,7 @@ async fn accept(State(s): State<Shared>, user: User, Path(id): Path<i64>) -> Api
             row: from_row,
             cards: model::cards(db, t.from_user, pack.id()).await?,
             stats: fs,
-            pack,
+            pack: &pack,
         };
         let mut to = Side {
             parts_before: to_p.parts,
@@ -693,7 +693,7 @@ async fn accept(State(s): State<Shared>, user: User, Path(id): Path<i64>) -> Api
             row: to_row,
             cards: model::cards(db, t.to_user, pack.id()).await?,
             stats: ts,
-            pack,
+            pack: &pack,
         };
         let reason = format!("trade {id}");
         let now = now_ms();
@@ -710,7 +710,7 @@ async fn accept(State(s): State<Shared>, user: User, Path(id): Path<i64>) -> Api
             let owned: HashSet<i32> = side.cards.iter().map(|c| c.team).collect();
             let done = api::sets_done(db, side.p.id, pack.id()).await?;
             let teams: Vec<i32> = got.iter().map(|c| c.team).collect();
-            let sets = api::finished_sets(pack, &owned, &done, &teams);
+            let sets = api::finished_sets(&pack, &owned, &done, &teams);
             for d in &sets {
                 api::record_set(&mut tx, side.p.id, pack.id(), d);
                 model::feed(
@@ -791,7 +791,7 @@ async fn accept(State(s): State<Shared>, user: User, Path(id): Path<i64>) -> Api
             close(db, o.id, "failed").await?;
         }
     }
-    let pack = api::pack(&s, &t.pack)?;
+    let pack = api::pack(&s, &t.pack).await?;
     push::notify(
         db,
         t.from_user,
@@ -812,7 +812,7 @@ async fn accept(State(s): State<Shared>, user: User, Path(id): Path<i64>) -> Api
     )
     .await;
     let state = api::load_state(&s, user.id).await?;
-    let collection = api::load_collection(db, user.id, pack).await?;
+    let collection = api::load_collection(db, user.id, &pack).await?;
     let trades = list_in(db, user.id).await?;
     Ok(Json(AcceptOut { sets: mine, state, collection, trades }))
 }
@@ -924,7 +924,7 @@ struct SocialOut {
 
 /// Every player with a few stats, and the latest finished trades, so anyone can see who has what.
 async fn social(State(s): State<Shared>, _user: User, Path(pack): Path<String>) -> ApiResult<Json<SocialOut>> {
-    let pack = api::pack(&s, &pack)?;
+    let pack = api::pack(&s, &pack).await?;
     let db = &s.db;
     let people = all_players(db).await?;
     let keys: Vec<Item> = people.iter().map(|p| key(upk(p.id), format!("STATS#{}", pack.id()))).collect();

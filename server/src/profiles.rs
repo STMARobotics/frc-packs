@@ -71,7 +71,7 @@ async fn profile(
     user: User,
     Path((name, pack)): Path<(String, String)>,
 ) -> ApiResult<Json<ProfileOut>> {
-    let pack = api::pack(&s, &pack)?;
+    let pack = api::pack(&s, &pack).await?;
     let db = &s.db;
     let Some(p) = accounts::by_name(db, &name).await?.filter(|p| !p.disabled) else {
         return Err(err(StatusCode::NOT_FOUND, "unknown_player"));
@@ -164,7 +164,7 @@ async fn set_mark(db: &Db, user: Uuid, kind: &str, pack: &str, team: i32, on: bo
 
 /// Adds a team to the wishlist, or takes it off. At most 50.
 async fn set_wish(State(s): State<Shared>, user: User, Json(req): Json<WishReq>) -> ApiResult<Json<Vec<i32>>> {
-    let pack = api::pack(&s, &req.pack)?;
+    let pack = api::pack(&s, &req.pack).await?;
     if !pack.team_tier.contains_key(&req.team) {
         return Err(err(StatusCode::NOT_FOUND, "unknown_team"));
     }
@@ -187,7 +187,7 @@ struct ShowcaseReq {
 
 /// Pins up to 3 teams you own to your profile, in order.
 async fn set_showcase(State(s): State<Shared>, user: User, Json(req): Json<ShowcaseReq>) -> ApiResult<Json<Vec<i32>>> {
-    let pack = api::pack(&s, &req.pack)?;
+    let pack = api::pack(&s, &req.pack).await?;
     if req.teams.len() > SHOWCASE || req.teams.iter().enumerate().any(|(i, t)| req.teams[..i].contains(t)) {
         return Err(err(StatusCode::BAD_REQUEST, "bad_request"));
     }
@@ -220,7 +220,7 @@ pub async fn favorites(db: &Db, user: Uuid, pack: &str) -> ApiResult<Vec<i32>> {
 
 /// Marks a team you own as a favorite (never scrapped), or unmarks it.
 async fn set_favorite(State(s): State<Shared>, user: User, Json(req): Json<FavReq>) -> ApiResult<Json<Vec<i32>>> {
-    let pack = api::pack(&s, &req.pack)?;
+    let pack = api::pack(&s, &req.pack).await?;
     if req.on && model::team_cards(&s.db, user.id, pack.id(), req.team).await?.is_empty() {
         return Err(err(StatusCode::CONFLICT, "not_owned"));
     }

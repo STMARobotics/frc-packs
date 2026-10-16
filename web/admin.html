@@ -23,6 +23,41 @@
   <div class="gate" id="gate" hidden></div>
 
   <main class="panel" id="panel" hidden>
+    <nav class="admin-tabs" role="tablist" aria-label="Admin sections">
+      <button type="button" role="tab" id="tabPeople" aria-selected="true">People and feedback</button>
+      <button type="button" role="tab" id="tabConfig" aria-selected="false">Configuration</button>
+    </nav>
+    <p class="hint-txt desk-note">Game settings, rarities and health checks are on the computer version of this page.</p>
+    <div class="agroup" id="groupPeople">
+    <section class="card" aria-labelledby="invTitle">
+      <div class="card-head"><h2 id="invTitle">Invite codes</h2><span class="count" id="invCount"></span></div>
+      <p class="hint-txt">Each code makes accounts for the number of people you choose. Send the code or the link; after joining, people sign in with their username and password.</p>
+      <form class="inv-form" id="inviteForm" novalidate>
+        <label class="field note-f">Note<small>Who it's for, so you remember</small><input class="input" name="note" maxlength="80" placeholder="Alex, or Build team"></label>
+        <label class="field">People per code<input class="input" name="uses" type="number" inputmode="numeric" min="1" max="500" value="1"></label>
+        <label class="field">How many codes<input class="input" name="count" type="number" inputmode="numeric" min="1" max="50" value="1"></label>
+        <button class="cta small" type="submit">Make codes</button>
+      </form>
+      <div class="msg" id="inviteMsg" role="status" hidden></div>
+      <div class="list" id="invites"></div>
+    </section>
+    <section class="card" aria-labelledby="userTitle">
+      <div class="card-head"><h2 id="userTitle">Accounts</h2><span class="count" id="userCount"></span></div>
+      <input class="input search" id="userFilter" type="search" placeholder="Search by username or note" aria-label="Search accounts">
+      <div class="list" id="users"></div>
+    </section>
+    <section class="card" aria-labelledby="repTitle" id="repCard" hidden>
+      <div class="card-head"><h2 id="repTitle">Reports</h2><span class="count" id="repCount"></span></div>
+      <div class="list" id="reports"></div>
+    </section>
+    <section class="card" aria-labelledby="fbTitle">
+      <div class="card-head"><h2 id="fbTitle">Feedback</h2><span class="count" id="fbCount"></span></div>
+      <p class="hint-txt">Bug reports and ideas from beta testers, newest first. Set a status and a short note; the sender sees both in the game.</p>
+      <div class="filters" id="fbFilter" role="group" aria-label="Show"></div>
+      <div class="list" id="feedback"></div>
+    </section>
+    </div>
+    <div class="agroup desk" id="groupConfig" hidden>
     <section class="card" aria-labelledby="rulesTitle">
       <div class="card-head"><h2 id="rulesTitle">Free packs</h2></div>
       <p class="hint-txt">How often everyone gets free packs, and how many. Changes count from each person's next claim; a shorter timer starts right away.</p>
@@ -38,32 +73,28 @@
       <p class="hint-txt" id="rulesSum"></p>
       <div class="msg" id="rulesMsg" role="status" hidden></div>
     </section>
-
-    <section class="card" aria-labelledby="invTitle">
-      <div class="card-head"><h2 id="invTitle">Invite codes</h2><span class="count" id="invCount"></span></div>
-      <p class="hint-txt">Each code makes accounts for the number of people you choose. Send the code or the link; after joining, people sign in with their username and password.</p>
-      <form class="inv-form" id="inviteForm" novalidate>
-        <label class="field note-f">Note<small>Who it's for, so you remember</small><input class="input" name="note" maxlength="80" placeholder="Alex, or Build team"></label>
-        <label class="field">People per code<input class="input" name="uses" type="number" inputmode="numeric" min="1" max="500" value="1"></label>
-        <label class="field">How many codes<input class="input" name="count" type="number" inputmode="numeric" min="1" max="50" value="1"></label>
-        <button class="cta small" type="submit">Make codes</button>
-      </form>
-      <div class="msg" id="inviteMsg" role="status" hidden></div>
-      <div class="list" id="invites"></div>
+    <section class="card" aria-labelledby="tierTitle">
+      <div class="card-head"><h2 id="tierTitle">Rarities</h2><span class="count" id="tierCounts"></span></div>
+      <p class="hint-txt">Who is Mythic, Legendary and so on. Changes apply to everyone without a deploy: new packs use them at once, and each player's cards move the next time they open the game. Nothing is saved until you press Apply.</p>
+      <div class="tier-tools">
+        <input class="input" id="tierQ" type="search" placeholder="Search team number or name" aria-label="Search teams">
+        <select class="input" id="tierF" aria-label="Show only"></select>
+      </div>
+      <div class="list tier-list" id="tierList"></div>
+      <details class="tier-bulk">
+        <summary>Paste a whole Mythic list</summary>
+        <p class="hint-txt">Team numbers separated by commas or spaces. These become Mythic; any team that is Mythic now and isn't listed becomes Legendary.</p>
+        <textarea class="input" id="tierBulk" rows="2" aria-label="Mythic team numbers"></textarea>
+        <div class="mrow"><button type="button" class="chip" id="tierBulkBtn">Use this list</button><button type="button" class="chip" id="tierFill">Fill with the current Mythics</button></div>
+      </details>
+      <div class="tier-apply">
+        <h3>What this will do</h3>
+        <div id="tierPreview" class="tier-preview"></div>
+        <div class="mrow"><label>Parts for players who lose a Mythic <input class="input num" id="tierParts" type="number" inputmode="numeric" min="0" max="100000" value="0"></label></div>
+        <label class="field">Note they see in the game<small>Shown once, the next time they open it. Leave empty for none.</small><input class="input" id="tierNote" maxlength="300"></label>
+        <div class="mrow"><button type="button" class="cta small" id="tierApply" disabled>Apply to everyone</button><button type="button" class="chip" id="tierReset">Discard changes</button></div>
+      </div>
     </section>
-
-    <section class="card" aria-labelledby="fbTitle">
-      <div class="card-head"><h2 id="fbTitle">Feedback</h2><span class="count" id="fbCount"></span></div>
-      <p class="hint-txt">Bug reports and ideas from beta testers, newest first. Set a status and a short note; the sender sees both in the game.</p>
-      <div class="filters" id="fbFilter" role="group" aria-label="Show"></div>
-      <div class="list" id="feedback"></div>
-    </section>
-
-    <section class="card" aria-labelledby="repTitle" id="repCard" hidden>
-      <div class="card-head"><h2 id="repTitle">Reports</h2><span class="count" id="repCount"></span></div>
-      <div class="list" id="reports"></div>
-    </section>
-
     <section class="card" aria-labelledby="auditTitle">
       <div class="card-head"><h2 id="auditTitle">Health check</h2></div>
       <p class="meta">Checks that every player's packs, parts and cards match the ledger of everything that changed them, and that no serial number appears twice.</p>
@@ -73,12 +104,7 @@
       <div class="mrow"><button type="button" class="cta small" id="retierBtn">Update everyone's rarities</button></div>
       <div class="result" id="retierOut" hidden></div>
     </section>
-
-    <section class="card" aria-labelledby="userTitle">
-      <div class="card-head"><h2 id="userTitle">Accounts</h2><span class="count" id="userCount"></span></div>
-      <input class="input search" id="userFilter" type="search" placeholder="Search by username or note" aria-label="Search accounts">
-      <div class="list" id="users"></div>
-    </section>
+    </div>
   </main>
 </div>
 

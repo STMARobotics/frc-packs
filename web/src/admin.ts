@@ -3,6 +3,7 @@
 
 import "./style.css";
 import "./admin.css";
+import { setupRarities } from "./rarities";
 import { api, ApiError, explain, type AdminUser, type Feedback, type FeedbackStatus, type Invite, type Report, type Rules } from "./api";
 
 type Kid = Node | string | null | undefined | false;
@@ -642,6 +643,29 @@ function paintFeedback() {
 
 // ---------- start ----------
 
+/** Computers get two tabs: people and feedback, and configuration (rules, rarities, health). Phones get only the first. */
+function setupTabs() {
+  const people = $("#groupPeople"), config = $("#groupConfig");
+  const tabP = $("#tabPeople"), tabC = $("#tabConfig");
+  let loaded = false;
+  const show = (cfg: boolean) => {
+    people.hidden = cfg;
+    config.hidden = !cfg;
+    tabP.setAttribute("aria-selected", String(!cfg));
+    tabC.setAttribute("aria-selected", String(cfg));
+    try { sessionStorage.setItem("adminTab", cfg ? "config" : "people"); } catch { /* storage can be off */ }
+    if (cfg && !loaded) {
+      loaded = true;
+      setupRarities(say);
+    }
+  };
+  tabP.onclick = () => show(false);
+  tabC.onclick = () => show(true);
+  let saved: string | null = null;
+  try { saved = sessionStorage.getItem("adminTab"); } catch { /* storage can be off */ }
+  show(saved === "config" && window.matchMedia("(min-width: 900px)").matches);
+}
+
 async function boot() {
   try {
     const [st, inv, us, rules, reps, fb] = await Promise.all([api.state(), api.admin.invites(), api.admin.users(), api.admin.settings(), api.admin.reports(), api.admin.feedback()]);
@@ -654,6 +678,7 @@ async function boot() {
     paintReports();
     paintFeedback();
     $("#panel").hidden = false;
+    setupTabs();
     paintInvites();
     paintUsers();
   } catch (e) {

@@ -499,6 +499,67 @@ async fn mythic_change_retiers_cards_and_pays_once() {
 }
 
 #[tokio::test]
+async fn admin_changes_rarities_without_a_deploy() {
+    let (app, db) = need_db!(own_setup(false));
+    let admin = make_admin(&app, &db).await;
+    let (a, _) = player(&app, &db).await;
+    let (b, _) = player(&app, &db).await;
+    let (a_id, b_id) = (user_id(&db, &a).await, user_id(&db, &b).await);
+    kit::give_card(&db, a_id, PACK, 1114, "mythic").await; // Mythic in the recipe file
+    kit::give_card(&db, b_id, PACK, 7028, "legendary").await;
+    let before = (kit::parts(&db, a_id).await, kit::parts(&db, b_id).await);
+
+    let ov = call(&app, "GET", "/api/admin/tiers", Some(&admin), None).await;
+    assert_eq!(ov.status, StatusCode::OK);
+    assert_eq!(ov.body["teams"].as_array().unwrap().len(), 515);
+    assert!(call(&app, "GET", "/api/admin/tiers", Some(&a), None).await.status.is_client_error(), "admins only");
+
+    // Preview: 1114 goes from Mythic to Legendary, 7028 up to Mythic; nothing is saved yet.
+    let want = json!({ "tiers": { "1114": "legendary", "7028": "mythic" } });
+    let pv = call(&app, "POST", "/api/admin/tiers/preview", Some(&admin), Some(want.clone())).await;
+    assert_eq!(pv.body["changes"].as_array().unwrap().len(), 2, "{}", pv.body);
+    assert_eq!(pv.body["mythicCopiesLost"], 1);
+    assert!(pv.body["problem"].is_null());
+    assert!(call(&app, "GET", "/api/state", Some(&a), None).await.body["tiers"].as_object().unwrap().is_empty());
+
+    // Too few Mythics left is refused, with nothing saved.
+    let few = call(&app, "POST", "/api/admin/tiers/apply", Some(&admin), Some(json!({ "tiers": { "4414": "legendary", "254": "legendary", "2910": "legendary", "1690": "legendary", "1678": "legendary", "1323": "legendary", "4946": "legendary", "2481": "legendary", "2056": "legendary", "1114": "legendary" }, "parts": 0, "note": "" }))).await;
+    assert_eq!(few.status, StatusCode::BAD_REQUEST);
+
+    // Apply with 500 parts and a note.
+    let mut body = want.clone();
+    body["parts"] = json!(500);
+    body["note"] = json!("Rarities moved. Sorry!");
+    assert_eq!(call(&app, "POST", "/api/admin/tiers/apply", Some(&admin), Some(body)).await.status, StatusCode::OK);
+
+    // The player who lost a Mythic gets the parts and the note once; the one who gained one gets nothing.
+    let sa = call(&app, "GET", "/api/state", Some(&a), None).await.body;
+    assert_eq!(sa["notice"], "Rarities moved. Sorry!");
+    assert_eq!(sa["tiers"]["1114"], "legendary");
+    assert_eq!(sa["tiers"]["7028"], "mythic");
+    assert_eq!(kit::parts(&db, a_id).await, before.0 + 500);
+    assert!(call(&app, "GET", "/api/state", Some(&b), None).await.body["notice"].is_null());
+    assert_eq!(kit::parts(&db, b_id).await, before.1);
+    call(&app, "GET", "/api/state", Some(&a), None).await;
+    assert_eq!(kit::parts(&db, a_id).await, before.0 + 500, "paid once");
+    assert_eq!(kit::all_cards(&db, a_id, PACK).await[0].tier, "legendary");
+    assert_eq!(kit::all_cards(&db, b_id, PACK).await[0].tier, "mythic");
+
+    // Putting it back needs no payment (parts 0) and the overrides empty out.
+    let back = call(
+        &app,
+        "POST",
+        "/api/admin/tiers/apply",
+        Some(&admin),
+        Some(json!({ "tiers": {}, "parts": 0, "note": "" })),
+    )
+    .await;
+    assert_eq!(back.status, StatusCode::OK);
+    assert!(call(&app, "GET", "/api/state", Some(&a), None).await.body["tiers"].as_object().unwrap().is_empty());
+    drop_table(&db).await;
+}
+
+#[tokio::test]
 async fn writes_must_be_json() {
     let (app, db) = need_db!(setup(true));
     let (c, _) = player(&app, &db).await;

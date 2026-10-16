@@ -240,6 +240,8 @@ pub struct StateOut {
     favorites: Vec<i32>,
     /// A note to show once (then the site calls /notice/seen).
     notice: Option<String>,
+    /// Teams whose rarity differs from the pack recipe file the site loaded (the admin changed them), by team number.
+    tiers: std::collections::BTreeMap<String, Tier>,
 }
 
 #[derive(Serialize)]
@@ -321,8 +323,8 @@ fn pack_kind(up: &PackRow, asked: Option<bool>) -> ApiResult<bool> {
 
 // ---------- helpers ----------
 
-pub(crate) fn pack<'a>(s: &'a Shared, id: &str) -> ApiResult<&'a Pack> {
-    s.catalog.get(id).ok_or(err(StatusCode::NOT_FOUND, "unknown_pack"))
+pub(crate) async fn pack(s: &Shared, id: &str) -> ApiResult<crate::packs::PackRef> {
+    crate::packs::PackRef::new(s.catalog().await, id).ok_or(err(StatusCode::NOT_FOUND, "unknown_pack"))
 }
 
 async fn roll_for(
@@ -371,7 +373,8 @@ async fn load_opening(db: &Db, user: Uuid, o: &Opening) -> ApiResult<OpeningOut>
 
 pub async fn load_state(s: &Shared, user: Uuid) -> ApiResult<StateOut> {
     let db = &s.db;
-    let free = s.catalog.claimable().id();
+    let free_id = s.catalog().await.claimable().id().to_string();
+    let free = free_id.as_str();
     let (p, rows, r, day, level, wishlist, favorites) = tokio::try_join!(
         me(db, user),
         async { Ok::<_, ApiError>(model::packs(db, user).await?) },
@@ -381,8 +384,8 @@ pub async fn load_state(s: &Shared, user: Uuid) -> ApiResult<StateOut> {
         crate::profiles::wishlist(db, user, free),
         crate::profiles::favorites(db, user, free),
     )?;
-    let packs = s
-        .catalog
+    let (cat, _, overrides) = s.live.get(db).await;
+    let packs = cat
         .packs
         .iter()
         .map(|pk| {
@@ -436,6 +439,7 @@ pub async fn load_state(s: &Shared, user: Uuid) -> ApiResult<StateOut> {
         favorites,
         showcase: p.showcase.clone(),
         notice: p.notice.clone(),
+        tiers: overrides.iter().map(|(k, v)| (k.to_string(), *v)).collect(),
     })
 }
 
@@ -530,7 +534,7 @@ async fn signup(
     let mut tx = Tx::new();
     let mut p = accounts::new_profile(username, &password_hash, Some(&code), false);
     p.first_name = Some(first_name.to_string());
-    accounts::create(&mut tx, &mut p, s.catalog.claimable().id(), start);
+    accounts::create(&mut tx, &mut p, s.catalog().await.claimable().id(), start);
     // The invite's last use can only be taken once.
     tx.update(
         "invite",
@@ -765,7 +769,8 @@ const TIMER_BOOSTED_CHANCE: f64 = 0.05;
 
 async fn claim(State(s): State<Shared>, user: User) -> ApiResult<Json<StateOut>> {
     let r = rules(&s.db).await?;
-    let free = s.catalog.claimable().id();
+    let free_id = s.catalog().await.claimable().id().to_string();
+    let free = free_id.as_str();
     retry!(async {
         let mut p = me(&s.db, user.id).await?;
         let now = now_ms();
@@ -814,7 +819,7 @@ fn hand_sk(pack: &str, boosted: bool) -> String {
 /// Picks up a pack. Its cards are decided now and kept if you put it back; only the best rarity is revealed, to
 /// color the glow while you tear it open.
 async fn hand(State(s): State<Shared>, user: User, Json(req): Json<PackReq>) -> ApiResult<Json<HandOut>> {
-    let pack = pack(&s, &req.pack)?;
+    let pack = pack(&s, &req.pack).await?;
     let up = model::pack_row(&s.db, user.id, pack.id()).await?;
     if req.mythic {
         // A Mythic pack's best card is always a Mythic; nothing to keep in hand.
@@ -832,7 +837,7 @@ async fn hand(State(s): State<Shared>, user: User, Json(req): Json<PackReq>) -> 
         }
     }
     let p = me(&s.db, user.id).await?;
-    let cards = roll_for(&s.db, &p, pack, &up, kind, false).await?;
+    let cards = roll_for(&s.db, &p, &pack, &up, kind, false).await?;
     let mut it = crate::db::key(upk(user.id), &sk);
     it.insert("cards".into(), sv(serde_json::to_string(&cards).unwrap()));
     let mut tx = Tx::new();
@@ -934,7 +939,7 @@ async fn take_serials(db: &Db, tx: &mut Tx, pack: &str, nums: &[i32]) -> ApiResu
 /// Opens one sealed pack: the pack in hand if there is one, otherwise a fresh roll. Mints serial numbers, updates the
 /// pity meter, and awards a bonus pack for each division set this pack completes.
 async fn open(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Json<PackReq>) -> ApiResult<Response> {
-    let pack = pack(&s, &req.pack)?;
+    let pack = pack(&s, &req.pack).await?;
     if let Some(done) = idem_begin(&s.db, user.id, &key, "open").await? {
         return Ok(done);
     }
@@ -962,7 +967,7 @@ async fn open(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Json
         };
         let mut cards = match &held {
             Some(c) if valid(c) => c.clone(),
-            _ => roll_for(db, &p, pack, &before, kind, mythic).await?,
+            _ => roll_for(db, &p, &pack, &before, kind, mythic).await?,
         };
         roll::sort_best_last(&mut cards);
 
@@ -1047,7 +1052,7 @@ async fn open(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Json
         // Division sets this pack completed.
         let done = sets_done(db, user.id, pack.id()).await?;
         let owned: HashSet<i32> = copies.iter().filter(|(_, v)| **v > 0).map(|(k, _)| *k).collect();
-        let sets = finished_sets(pack, &owned, &done, &nums);
+        let sets = finished_sets(&pack, &owned, &done, &nums);
         for d in &sets {
             record_set(&mut tx, user.id, pack.id(), d);
             model::feed(
@@ -1191,8 +1196,8 @@ pub(crate) async fn load_collection(db: &Db, user: Uuid, pack: &Pack) -> ApiResu
 }
 
 async fn collection(State(s): State<Shared>, user: User, Path(id): Path<String>) -> ApiResult<Json<CollectionOut>> {
-    let pack = pack(&s, &id)?;
-    Ok(Json(load_collection(&s.db, user.id, pack).await?))
+    let pack = pack(&s, &id).await?;
+    Ok(Json(load_collection(&s.db, user.id, &pack).await?))
 }
 
 // ---------- scrapping and crafting ----------
@@ -1362,7 +1367,7 @@ async fn scrapped(
 
 /// Scraps extra copies of one team.
 async fn scrap(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Json<ScrapReq>) -> ApiResult<Response> {
-    let pack = pack(&s, &req.pack)?;
+    let pack = pack(&s, &req.pack).await?;
     let tier = *pack.team_tier.get(&req.num).ok_or(err(StatusCode::NOT_FOUND, "unknown_team"))?;
     if req.count < 1 {
         return Err(err(StatusCode::BAD_REQUEST, "bad_request"));
@@ -1370,14 +1375,15 @@ async fn scrap(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Jso
     if let Some(done) = idem_begin(&s.db, user.id, &key, "scrap").await? {
         return Ok(done);
     }
-    let Some(r) = scrap_copies(&s, user.id, pack, Some(&[req.num]), &[tier], req.count as usize, &key, "scrap").await?
+    let Some(r) =
+        scrap_copies(&s, user.id, &pack, Some(&[req.num]), &[tier], req.count as usize, &key, "scrap").await?
     else {
         return idem_lost(&s.db, user.id, &key, "scrap").await;
     };
     if r.1 == 0 {
         return Err(err(StatusCode::CONFLICT, if r.2 > 0 { "extras_held" } else { "no_extras" }));
     }
-    scrapped(&s, user.id, pack, r, &key, "scrap").await
+    scrapped(&s, user.id, &pack, r, &key, "scrap").await
 }
 
 /// Scraps every extra copy of the chosen tiers.
@@ -1387,17 +1393,17 @@ async fn scrap_extras(
     key: IdemKey,
     Json(req): Json<ScrapExtrasReq>,
 ) -> ApiResult<Response> {
-    let pack = pack(&s, &req.pack)?;
+    let pack = pack(&s, &req.pack).await?;
     if req.tiers.is_empty() {
         return Err(err(StatusCode::BAD_REQUEST, "bad_request"));
     }
     if let Some(done) = idem_begin(&s.db, user.id, &key, "scrap_extras").await? {
         return Ok(done);
     }
-    let Some(r) = scrap_copies(&s, user.id, pack, None, &req.tiers, usize::MAX, &key, "scrap_extras").await? else {
+    let Some(r) = scrap_copies(&s, user.id, &pack, None, &req.tiers, usize::MAX, &key, "scrap_extras").await? else {
         return idem_lost(&s.db, user.id, &key, "scrap_extras").await;
     };
-    scrapped(&s, user.id, pack, r, &key, "scrap_extras").await
+    scrapped(&s, user.id, &pack, r, &key, "scrap_extras").await
 }
 
 /// Spends parts on a pack of the free pack: a boosted one (`mythic` false) or a Mythic pack.
@@ -1412,7 +1418,8 @@ async fn spend_parts(
     if let Some(done) = idem_begin(&s.db, user, key, kind).await? {
         return Ok(done);
     }
-    let free = s.catalog.claimable().id();
+    let free_id = s.catalog().await.claimable().id().to_string();
+    let free = free_id.as_str();
     let r = retry!(async {
         let db = &s.db;
         let mut p = me(db, user).await?;
@@ -1498,7 +1505,7 @@ async fn dev_demo(State(s): State<Shared>, user: User, Json(req): Json<DemoReq>)
 
 async fn dev_pack(State(s): State<Shared>, user: User, Json(req): Json<PackReq>) -> ApiResult<Json<StateOut>> {
     dev(&s)?;
-    let pack = pack(&s, &req.pack)?;
+    let pack = pack(&s, &req.pack).await?;
     retry!(async {
         let mut p = me(&s.db, user.id).await?;
         let before = model::pack_row(&s.db, user.id, pack.id()).await?;
@@ -1531,7 +1538,8 @@ async fn dev_skip_timer(State(s): State<Shared>, user: User) -> ApiResult<Json<S
 async fn dev_reset(State(s): State<Shared>, user: User) -> ApiResult<Json<StateOut>> {
     dev(&s)?;
     let start = rules(&s.db).await?.start_packs;
-    let free = s.catalog.claimable().id();
+    let free_id = s.catalog().await.claimable().id().to_string();
+    let free = free_id.as_str();
     let pk = upk(user.id);
     // Cards first, in batches, then the rest in one go with the player.
     loop {

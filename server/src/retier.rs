@@ -11,7 +11,7 @@ use std::collections::HashSet;
 use uuid::Uuid;
 
 use crate::Shared;
-use crate::db::{Cond, DbError, Tx, get_s, s};
+use crate::db::{Cond, DbError, Tx, get_n, get_s, s};
 use crate::error::{ApiError, ApiResult};
 use crate::model::{self, upk};
 use crate::packs::Tier;
@@ -37,14 +37,21 @@ const BATCH: usize = 80;
 pub async fn ensure(st: &Shared, user: Uuid) -> ApiResult<bool> {
     let db = &st.db;
     let Some(p) = model::profile(db, user).await? else { return Ok(false) };
-    if p.retier >= VERSION {
+    let (catalog, tiers_ver, _) = st.live.get(db).await;
+    let want = VERSION + tiers_ver as i32;
+    if p.retier >= want {
         return Ok(false);
     }
+    // What the admin chose to pay for the latest change, if anything (the parts and the note).
+    let settings = model::settings_item(db).await?;
+    let comp_ver = get_n(&settings, "comp_ver").unwrap_or(0) as i32;
+    let comp_parts = get_n(&settings, "comp_parts").unwrap_or(0);
+    let comp_note = get_s(&settings, "comp_note").unwrap_or_default();
     // Cards whose stored rarity differs from the recipe; and whether any of them was a Mythic that no longer is.
     let mut stale: Vec<(String, String)> = Vec::new();
     let mut lost_mythic = false;
     let mut new_stats: Vec<(String, model::Stats)> = Vec::new();
-    for pack in &st.catalog.packs {
+    for pack in &catalog.packs {
         let cards = model::cards(db, user, pack.id()).await?;
         if cards.is_empty() {
             continue;
@@ -84,10 +91,10 @@ pub async fn ensure(st: &Shared, user: Uuid) -> ApiResult<bool> {
     }
     // Then the player: stats, packs in hand rolled again, and the parts and note, on their version.
     let hands: Vec<String> = db.query(&upk(user), "HAND#").await?.iter().filter_map(|it| get_s(it, "sk")).collect();
-    let paid: ApiResult<bool> = retry!(async {
-        let Some(mut p) = model::profile(db, user).await? else { return Ok(false) };
-        if p.retier >= VERSION {
-            return Ok(false);
+    let paid: ApiResult<Option<i64>> = retry!(async {
+        let Some(mut p) = model::profile(db, user).await? else { return Ok(None) };
+        if p.retier >= want {
+            return Ok(None);
         }
         let mut tx = Tx::new();
         for (pack, stats) in &new_stats {
@@ -97,23 +104,32 @@ pub async fn ensure(st: &Shared, user: Uuid) -> ApiResult<bool> {
             tx.delete_if("", &upk(user), sk, None);
         }
         let parts = p.parts;
-        let pay = lost_mythic && p.retier < PAID_UP_TO;
-        if pay {
-            p.parts += COMPENSATION;
-            p.notice = Some(NOTICE.to_string());
+        // The October 2026 change (version 1) paid everyone who lost a Mythic; after that, only what the admin chose.
+        let reward = if !lost_mythic {
+            None
+        } else if p.retier < PAID_UP_TO {
+            Some((COMPENSATION, NOTICE.to_string()))
+        } else if comp_ver > 0 && comp_parts > 0 && p.retier < VERSION + comp_ver {
+            Some((comp_parts, comp_note.clone()))
+        } else {
+            None
+        };
+        if let Some((amount, note)) = &reward {
+            p.parts += amount;
+            p.notice = Some(note.clone()).filter(|n| !n.is_empty());
         }
-        p.retier = VERSION;
-        model::save_user(&mut tx, &mut p, parts, "mythic change");
-        tx.commit(db).await.map(|_| pay).map_err(ApiError::from)
+        p.retier = want;
+        model::save_user(&mut tx, &mut p, parts, "rarity change");
+        tx.commit(db).await.map(|_| reward.map(|r| r.0)).map_err(ApiError::from)
     });
-    let paid = paid?;
+    let paid = paid?.is_some();
     if paid {
         crate::push::notify(
             db,
             user,
             crate::push::Note {
-                title: "Mythics have changed".into(),
-                body: "Your former Mythics are Legendary now. Sorry! 1,000 parts are waiting for you.".into(),
+                title: "Rarities have changed".into(),
+                body: "A card you owned changed rarity. Parts are waiting for you as an apology.".into(),
                 url: "/#binder".into(),
                 tag: "mythic-change".into(),
             },

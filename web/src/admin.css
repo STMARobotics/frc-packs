@@ -70,3 +70,39 @@ a.cta { text-decoration: none; display: inline-block; }
 .filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
 .fb-details { white-space: pre-wrap; color: var(--ink); font-size: 13px; }
 .fb-ctx { font-size: 11px; opacity: .75; overflow-wrap: anywhere; }
+
+/* Two tabs on a computer: people and feedback, and configuration. A phone only gets the first (invites, accounts,
+   reports, feedback); the game settings are for a bigger screen. */
+.admin-tabs { display: none; gap: 8px; }
+.admin-tabs button { background: var(--panel); border: 1px solid var(--line); color: var(--ink-dim); border-radius: 99px; padding: 9px 16px; font: 700 13px var(--body); cursor: pointer; }
+.admin-tabs button[aria-selected="true"] { color: #02211d; background: var(--tide); border-color: var(--tide); }
+.agroup { display: grid; gap: 14px; }
+.agroup[hidden] { display: none; }
+@media (min-width: 900px) {
+  .admin-tabs { display: flex; }
+  .desk-note { display: none; }
+  .adminpage .app { max-width: 1040px; }
+}
+@media (max-width: 899px) { .agroup.desk { display: none !important; } }
+.tier-tools { display: flex; gap: 8px; flex-wrap: wrap; }
+.tier-tools .input:first-child { flex: 1 1 240px; max-width: 360px; }
+#tierCounts { display: flex; gap: 6px; flex-wrap: wrap; }
+.tcount { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; border: 1px solid var(--line); border-radius: 99px; padding: 3px 8px; }
+.t-mythic { color: #3cffdc; } .t-legendary { color: #c79bff; } .t-rare { color: #ffcf5a; } .t-uncommon { color: #7fd1ff; } .t-common { color: var(--ink-dim); }
+.tier-list { max-height: 460px; overflow-y: auto; padding-right: 4px; }
+.trow { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto auto auto 130px; gap: 4px 10px; align-items: center; padding: 6px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
+.trow.changed { border-color: var(--tide); }
+.trow b { font-variant-numeric: tabular-nums; color: var(--foam); }
+.tname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.trow small { color: var(--ink-dim); }
+.tchg { font-size: 12px; color: #ffcf5a; }
+.tbase { font-size: 11px; color: var(--ink-dim); }
+.tsel { padding: 6px 8px; }
+.tier-bulk { display: grid; gap: 8px; }
+.tier-bulk summary { cursor: pointer; font-size: 13px; color: var(--ink-dim); }
+.tier-bulk textarea { width: 100%; box-sizing: border-box; }
+.tier-apply { display: grid; gap: 10px; border-top: 1px solid var(--line); padding-top: 12px; }
+.tier-apply h3 { margin: 0; font: 700 11px var(--body); letter-spacing: .14em; text-transform: uppercase; color: var(--ink-dim); }
+.tier-preview { display: grid; gap: 6px; }
+.tpv { font-size: 13px; border-left: 3px solid #ffcf5a; padding-left: 10px; }
+.tpv small { color: var(--ink-dim); }

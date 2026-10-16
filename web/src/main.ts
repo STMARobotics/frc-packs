@@ -22,7 +22,10 @@ async function main() {
     document.body.classList.remove("signed-out");
     accountSettings(state.account);
     setupPwa();
-    start(await recipe);
+    // Rarities the admin changed since the recipe file was built.
+    const r = await recipe;
+    for (const t of r.teams) if (state.tiers?.[t.num]) t.tier = state.tiers[t.num];
+    start(r);
   } catch (e) {
     const offline = e instanceof ApiError && e.status === 0;
     document.body.insertAdjacentHTML(

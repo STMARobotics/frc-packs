@@ -17,6 +17,7 @@ pub mod retier;
 pub mod roll;
 pub mod specials;
 pub mod testkit;
+pub mod tiers;
 pub mod trades;
 
 use std::path::PathBuf;
@@ -46,11 +47,24 @@ pub struct Config {
 
 pub struct AppState {
     pub db: Db,
-    pub catalog: packs::Catalog,
+    /// The packs: the recipe files plus the admin's rarity changes (use [`AppState::catalog`]).
+    pub live: packs::Live,
     pub dev_tools: bool,
     pub cookie_secure: bool,
     pub admin_only: bool,
     pub limiter: accounts::Limiter,
+}
+
+impl AppState {
+    /// The packs as they are right now. A request should call this once and keep the answer.
+    pub async fn catalog(&self) -> Arc<packs::Catalog> {
+        self.live.get(&self.db).await.0
+    }
+
+    /// The rarity changes' version: it goes up each time the admin applies a change.
+    pub async fn tiers_version(&self) -> i64 {
+        self.live.get(&self.db).await.1
+    }
 }
 
 pub type Shared = Arc<AppState>;
@@ -60,14 +74,14 @@ pub fn app(db: Db, cfg: Config) -> anyhow::Result<Router> {
     let https = cfg.cookie_secure;
     let state = Arc::new(AppState {
         db,
-        catalog,
+        live: packs::Live::new(catalog),
         dev_tools: cfg.dev_tools,
         cookie_secure: cfg.cookie_secure,
         admin_only: cfg.admin_only,
         limiter: accounts::Limiter::default(),
     });
     let mut router = Router::new()
-        .nest("/api/admin", admin::routes().merge(feedback::admin_routes()))
+        .nest("/api/admin", admin::routes().merge(feedback::admin_routes()).merge(tiers::routes()))
         .nest(
             "/api",
             api::routes()

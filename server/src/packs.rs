@@ -2,10 +2,15 @@
 //! Adding a pack means adding a recipe, not code.
 
 use std::collections::{BTreeMap, HashMap};
+use std::ops::Deref;
 use std::path::Path;
+use std::sync::{Arc, RwLock};
+use std::time::{Duration, Instant};
 
 use anyhow::{Context, bail};
 use serde::{Deserialize, Serialize};
+
+use crate::db::{Db, get_n, get_s};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -52,7 +57,7 @@ impl Tier {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Odds {
     /// Per card in slots 1 to 4.
@@ -73,7 +78,7 @@ pub struct Odds {
 
 /// Odds for a boosted pack: better slots, a better last card, and a multiplied Mythic chance. The pity meters still
 /// count and still guarantee as usual.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Boost {
     pub slots: HashMap<Tier, f64>,
@@ -96,7 +101,7 @@ impl Default for Boost {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Team {
     pub num: i32,
     pub name: String,
@@ -104,7 +109,7 @@ pub struct Team {
     pub tier: Tier,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Recipe {
     pub id: String,
     pub name: String,
@@ -193,6 +198,22 @@ impl Catalog {
         Ok(Catalog { packs })
     }
 
+    /// The same catalog with some teams' rarities changed (team number to rarity, for the first pack that lists the
+    /// team). Fails when the result doesn't leave every rarity enough teams to fill a pack.
+    pub fn with_overrides(&self, overrides: &Overrides) -> anyhow::Result<Catalog> {
+        let mut packs = Vec::new();
+        for p in &self.packs {
+            let mut recipe = p.recipe.clone();
+            for t in &mut recipe.teams {
+                if let Some(tier) = overrides.get(&t.num) {
+                    t.tier = *tier;
+                }
+            }
+            packs.push(Pack::new(recipe)?);
+        }
+        Ok(Catalog { packs })
+    }
+
     pub fn get(&self, id: &str) -> Option<&Pack> {
         self.packs.iter().find(|p| p.id() == id)
     }
@@ -200,5 +221,103 @@ impl Catalog {
     /// The pack that free claims and new accounts receive.
     pub fn claimable(&self) -> &Pack {
         self.packs.iter().find(|p| p.recipe.claimable).unwrap()
+    }
+}
+
+/// Rarity changes the admin made on top of the recipe files: team number to rarity.
+pub type Overrides = BTreeMap<i32, Tier>;
+
+/// The rarity changes and their version, as saved in the settings item.
+pub fn read_overrides(settings: &crate::db::Item) -> (Overrides, i64) {
+    let map: BTreeMap<String, Tier> =
+        get_s(settings, "tier_overrides").and_then(|j| serde_json::from_str(&j).ok()).unwrap_or_default();
+    (
+        map.into_iter().filter_map(|(k, v)| k.parse().ok().map(|n| (n, v))).collect(),
+        get_n(settings, "tiers_ver").unwrap_or(0),
+    )
+}
+
+/// A pack looked up in the catalog that was current when asked. It keeps that catalog alive, so a request sees one
+/// consistent set of rarities even if the admin changes them partway through.
+pub struct PackRef {
+    cat: Arc<Catalog>,
+    idx: usize,
+}
+
+impl Deref for PackRef {
+    type Target = Pack;
+    fn deref(&self) -> &Pack {
+        &self.cat.packs[self.idx]
+    }
+}
+
+impl PackRef {
+    pub fn new(cat: Arc<Catalog>, id: &str) -> Option<PackRef> {
+        let idx = cat.packs.iter().position(|p| p.id() == id)?;
+        Some(PackRef { cat, idx })
+    }
+}
+
+struct Current {
+    cat: Arc<Catalog>,
+    ver: i64,
+    overrides: Overrides,
+    checked: Instant,
+}
+
+/// The catalog the game runs on: the recipe files plus the admin's rarity changes. Every server instance re-reads the
+/// saved changes at most every few seconds, so a change shows up everywhere almost at once without a deploy.
+pub struct Live {
+    base: Catalog,
+    cur: RwLock<Current>,
+}
+
+const REFRESH: Duration = Duration::from_secs(3);
+
+impl Live {
+    pub fn new(base: Catalog) -> Live {
+        let cat = Arc::new(base.with_overrides(&Overrides::new()).expect("the recipe files are valid"));
+        Live {
+            base,
+            cur: RwLock::new(Current { cat, ver: 0, overrides: Overrides::new(), checked: Instant::now() - REFRESH }),
+        }
+    }
+
+    /// The recipe files alone, before any admin changes.
+    pub fn base(&self) -> &Catalog {
+        &self.base
+    }
+
+    /// The current catalog, its version and the changes it holds.
+    pub async fn get(&self, db: &Db) -> (Arc<Catalog>, i64, Overrides) {
+        let due = {
+            let c = self.cur.read().unwrap();
+            c.checked.elapsed() >= REFRESH
+        };
+        if due {
+            match crate::model::settings_item(db).await {
+                Ok(item) => self.adopt(read_overrides(&item)),
+                Err(e) => tracing::warn!("couldn't check for rarity changes: {e}"),
+            }
+        }
+        let c = self.cur.read().unwrap();
+        (c.cat.clone(), c.ver, c.overrides.clone())
+    }
+
+    /// Switches to these changes right away (the admin just saved them, or they were read from the database).
+    pub fn adopt(&self, (overrides, ver): (Overrides, i64)) {
+        let mut c = self.cur.write().unwrap();
+        c.checked = Instant::now();
+        if ver == c.ver && overrides == c.overrides {
+            return;
+        }
+        match self.base.with_overrides(&overrides) {
+            Ok(cat) => {
+                c.cat = Arc::new(cat);
+                c.ver = ver;
+                c.overrides = overrides;
+            }
+            Err(e) => tracing::error!("saved rarity changes don't fit the packs, ignoring them: {e:#}"),
+        }
     }
 }

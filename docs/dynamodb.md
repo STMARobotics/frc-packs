@@ -58,7 +58,7 @@ add up.
 | `FEED#<pack>` | `<time>#…` | the Social feed: big pulls, finished sets, finished trades (expires after 30 days) |
 | `REPORT#<id>` | `REPORT` | a report. GSI1 `REPORTS` while unresolved; GSI2 `RB#<reporter>` for the daily limit. |
 | `SP#<id>` | `SPECIAL` | a special edition copy. GSI2 `U#<owner>`, GSI1 `SPE#<edition>`. |
-| `SETTINGS` | `SETTINGS` | the free-pack rules and the push signing key |
+| `SETTINGS` | `SETTINGS` | the free-pack rules, the push signing key, and the admin's rarity changes (`tier_overrides`, `tiers_ver`, and the parts and note chosen for the last change) |
 | `PUSH#<endpoint hash>` | `PUSH` | a device's push subscription. GSI2 `U#<id>`. |
 | `CTR` | `CTR` | counters for card, opening, trade, report and special ids |
 

@@ -75,8 +75,25 @@ export interface Account {
   renameAt?: number | null;
 }
 
+export type TierName = "mythic" | "legendary" | "rare" | "uncommon" | "common";
+/** Every team's rarity, as the admin sees it: now, and in the recipe file. */
+export interface TierOverview {
+  pack: string;
+  version: number;
+  teams: { num: number; name: string; div: string; tier: TierName; base: TierName }[];
+  parts: number;
+  note: string;
+}
+export interface TierPreview {
+  changes: { num: number; name: string; from: TierName; to: TierName; copies: number }[];
+  mythicCopiesLost: number;
+  problem: string | null;
+}
+
 export interface State {
   account: Account;
+  /** Teams whose rarity the admin changed from the recipe file (team number to rarity). */
+  tiers?: Record<string, TierName>;
   /** A note to show once; call api.noticeSeen() after showing it. */
   notice?: string | null;
   favorites?: number[];
@@ -453,6 +470,9 @@ export const api = {
     ledger: (id: string) => call<LedgerEntry[]>("GET", `/api/admin/users/${id}/ledger`),
     audit: () => call<Audit>("GET", "/api/admin/audit"),
     retier: () => call<{ players: number; compensated: number }>("POST", "/api/admin/retier", {}),
+    tiers: () => call<TierOverview>("GET", "/api/admin/tiers"),
+    previewTiers: (w: { tiers: Record<string, TierName> }) => call<TierPreview>("POST", "/api/admin/tiers/preview", w),
+    applyTiers: (w: { tiers: Record<string, TierName>; parts: number; note: string }) => call<TierOverview>("POST", "/api/admin/tiers/apply", w),
   },
 };
 

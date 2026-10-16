@@ -233,7 +233,8 @@ pub async fn level(db: &Db, user: Uuid, pack: &str) -> ApiResult<LevelOut> {
 
 /// Collects the parts for every level reached since the last collect.
 async fn claim_level(State(s): State<Shared>, user: User) -> ApiResult<Json<StateOut>> {
-    let free = s.catalog.claimable().id();
+    let free_id = s.catalog().await.claimable().id().to_string();
+    let free = free_id.as_str();
     retry!(async {
         let mut p = api::me(&s.db, user.id).await?;
         let l = level_of(model::stats(&s.db, user.id, free).await?.teams, p.level_claimed);
