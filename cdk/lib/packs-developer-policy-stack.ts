@@ -26,50 +26,84 @@ export class PacksDeveloperPolicyStack extends cdk.Stack {
       ? (props.backendStack.node.findChild('Table') as any).tableArn 
       : undefined;
 
-    // DynamoDB Permissions
+    // DynamoDB Permissions (Includes account-level ListTables for console visibility)
     if (tableArn) {
-      this.developerManagedPolicy.addStatements(new iam.PolicyStatement({
-        sid: 'DeveloperDynamoDBAccess',
-        effect: iam.Effect.ALLOW,
-        actions: [
-          'dynamodb:GetItem', 'dynamodb:PutItem', 'dynamodb:UpdateItem', 'dynamodb:DeleteItem',
-          'dynamodb:Query', 'dynamodb:Scan', 'dynamodb:BatchGetItem', 'dynamodb:BatchWriteItem',
-          'dynamodb:TransactWriteItems', 'dynamodb:DescribeTable'
-        ],
-        resources: [tableArn, `${tableArn}/index/*`],
-      }));
+      this.developerManagedPolicy.addStatements(
+        new iam.PolicyStatement({
+          sid: 'DeveloperDynamoDBAccess',
+          effect: iam.Effect.ALLOW,
+          actions: [
+            'dynamodb:GetItem', 'dynamodb:PutItem', 'dynamodb:UpdateItem', 'dynamodb:DeleteItem',
+            'dynamodb:Query', 'dynamodb:Scan', 'dynamodb:BatchGetItem', 'dynamodb:BatchWriteItem',
+            'dynamodb:TransactWriteItems', 'dynamodb:DescribeTable'
+          ],
+          resources: [tableArn, `${tableArn}/index/*`],
+        }),
+        new iam.PolicyStatement({
+          sid: 'DeveloperDynamoDBList',
+          effect: iam.Effect.ALLOW,
+          actions: ['dynamodb:ListTables'],
+          resources: ['*'],
+        })
+      );
     }
 
-    // Lambda Code Updates & Invocation
-    this.developerManagedPolicy.addStatements(new iam.PolicyStatement({
-      sid: 'DeveloperLambdaManagement',
-      effect: iam.Effect.ALLOW,
-      actions: [
-        'lambda:UpdateFunctionCode', 'lambda:UpdateFunctionConfiguration',
-        'lambda:GetFunction', 'lambda:GetFunctionConfiguration',
-        'lambda:ListFunctions', 'lambda:InvokeFunction'
-      ],
-      resources: [`arn:aws:lambda:${this.region}:${this.account}:function:PacksBackendStack*`],
-    }));
+    // Lambda Code Updates, Invocation, & Console Listing
+    this.developerManagedPolicy.addStatements(
+      new iam.PolicyStatement({
+        sid: 'DeveloperLambdaManagement',
+        effect: iam.Effect.ALLOW,
+        actions: [
+          'lambda:UpdateFunctionCode', 'lambda:UpdateFunctionConfiguration',
+          'lambda:GetFunction', 'lambda:GetFunctionConfiguration',
+          'lambda:InvokeFunction'
+        ],
+        resources: [`arn:aws:lambda:${this.region}:${this.account}:function:PacksBackendStack*`],
+      }),
+      new iam.PolicyStatement({
+        sid: 'DeveloperLambdaList',
+        effect: iam.Effect.ALLOW,
+        actions: ['lambda:ListFunctions'],
+        resources: ['*'],
+      })
+    );
 
     // S3 Frontend Site Bucket Access
     const siteBucketName = props.frontendStack.node.tryFindChild('SiteBucket') instanceof cdk.aws_s3.Bucket
       ? (props.frontendStack.node.tryFindChild('SiteBucket') as cdk.aws_s3.Bucket).bucketName
       : '*';
 
-    this.developerManagedPolicy.addStatements(new iam.PolicyStatement({
-      sid: 'DeveloperS3AssetDeployment',
-      effect: iam.Effect.ALLOW,
-      actions: ['s3:GetObject', 's3:PutObject', 's3:AbortMultipartUpload', 's3:ListBucket', 's3:DeleteObject'],
-      resources: [`arn:aws:s3:::${siteBucketName}`, `arn:aws:s3:::${siteBucketName}/*`],
-    }));
+    this.developerManagedPolicy.addStatements(
+      new iam.PolicyStatement({
+        sid: 'DeveloperS3AssetDeployment',
+        effect: iam.Effect.ALLOW,
+        actions: [
+          's3:GetObject', 's3:PutObject', 's3:AbortMultipartUpload', 
+          's3:ListBucket', 's3:DeleteObject'
+        ],
+        resources: [`arn:aws:s3:::${siteBucketName}`, `arn:aws:s3:::${siteBucketName}/*`],
+      }),
+      new iam.PolicyStatement({
+        sid: 'DeveloperS3ListBuckets',
+        effect: iam.Effect.ALLOW,
+        actions: ['s3:ListAllMyBuckets'],
+        resources: ['*'],
+      })
+    );
 
     // CloudWatch Logs & Debugging
     this.developerManagedPolicy.addStatements(new iam.PolicyStatement({
       sid: 'DeveloperCloudWatchLogs',
       effect: iam.Effect.ALLOW,
-      actions: ['logs:GetLogEvents', 'logs:FilterLogEvents', 'logs:DescribeLogStreams', 'logs:DescribeLogGroups', 'cloudwatch:GetMetricData', 'cloudwatch:DescribeAlarms'],
-      resources: [`arn:aws:logs:${this.region}:${this.account}:log-group:PacksBackendStack*`, `arn:aws:cloudwatch:${this.region}:${this.account}:alarm:*`],
+      actions: [
+        'logs:GetLogEvents', 'logs:FilterLogEvents', 
+        'logs:DescribeLogStreams', 'logs:DescribeLogGroups', 
+        'cloudwatch:GetMetricData', 'cloudwatch:DescribeAlarms'
+      ],
+      resources: [
+        `arn:aws:logs:${this.region}:${this.account}:log-group:PacksBackendStack*`, 
+        `arn:aws:cloudwatch:${this.region}:${this.account}:alarm:*`
+      ],
     }));
 
     // CloudFront Cache Invalidation & Inspection
