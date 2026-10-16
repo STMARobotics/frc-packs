@@ -45,7 +45,8 @@ def champs_teams(path):
             # Robot photo at /photos/<num>.webp (from The Blue Alliance); teams without one get a drawing.
             "photo": (data / "photos" / f"{num}.webp").exists(),
         })
-    # Rarity: the season's top 50 who came are Mythic; everyone else is ranked by EPA at the event.
+    # Rarity: the season's top 50 who came were Mythic at launch; everyone else is ranked by EPA at the event. Since
+    # October 2026 only the teams in MYTHICS are Mythic: other former Mythics are Legendary, and the rest keep their tier.
     teams.sort(key=lambda t: (-(t["epa"] if t["epa"] is not None else -1), t["num"]))
     below = 0
     for i, t in enumerate(teams):
@@ -55,7 +56,16 @@ def champs_teams(path):
         else:
             below += 1
             t["tier"] = "legendary" if below <= 50 else "rare" if below <= 170 else "uncommon" if below <= 320 else "common"
+    for t in teams:
+        if t["num"] in MYTHICS:
+            t["tier"] = "mythic"
+        elif t["tier"] == "mythic":
+            t["tier"] = "legendary"
     return teams
+
+# The only Mythic teams (chosen by hand, October 2026). Changing this changes cards people already own: the server
+# re-tiers them (server/src/retier.rs), so bump its VERSION too.
+MYTHICS = {4414, 254, 2910, 1690, 1678, 1323, 4946, 2491, 2056, 1114, 125, 27}
 
 ODDS = {
     # Slots 1 to 4, per card. The last slot is always Rare or better.
@@ -82,7 +92,7 @@ out = data / "packs"
 out.mkdir(exist_ok=True)
 for pack in PACKS:
     path = out / (pack["id"] + ".json")
-    path.write_text(json.dumps(pack, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    path.write_text(json.dumps(pack, ensure_ascii=False, indent=1) + "\n", encoding="utf-8", newline="\n")
     tiers = {}
     for t in pack["teams"]:
         tiers[t["tier"]] = tiers.get(t["tier"], 0) + 1

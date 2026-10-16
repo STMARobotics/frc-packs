@@ -62,6 +62,7 @@ export function start(RECIPE) {
   var stamp = 0; // bumped by everything that changes the account, so a sync started earlier can't undo it
   function applyState(st, fromSync) {
     if (!fromSync) stamp++;
+    if (st.notice && !noticeShown) { noticeShown = true; var note = st.notice; setTimeout(function () { showNotice(note); }, 600); }
     if (st.account && st.account.username) ME = st.account.username;
     S.account = st.account || null;
     var skew = st.now - Date.now(); CLAIM_MS = st.claimMs; BANK = st.bank; PER = st.claimPacks || 1;
@@ -1697,6 +1698,18 @@ export function start(RECIPE) {
   if (!tourOn) setTimeout(function () { betaWelcome(); }, 3000);
   /* Shown once to a new player after the first-pack tips: what the beta is and how to tell us what's broken. */
   var BETA_KEY = "frcpacks.beta";
+  /* A one-time note from the game (for example, "Mythics have changed"), shown once and then marked read. */
+  var noticeShown; // set by applyState, which can run before this line
+  function showNotice(text) {
+    present(function () {
+      modalIn.innerHTML = '<div class="profile fb-welcome"><div class="pf-sec"><h3>A note from FRC Packs</h3><p id="noticeText"></p></div>' +
+        '<div class="cta-row"><button type="button" class="cta" id="noticeOk">Got it</button></div></div>';
+      $("#noticeText").textContent = text;
+      $("#noticeOk").onclick = closeModal;
+      return $("#noticeOk");
+    });
+    api.noticeSeen().catch(function () {});
+  }
   function betaWelcome() {
     try { if (localStorage.getItem(BETA_KEY)) return; } catch (e) {}
     try { localStorage.setItem(BETA_KEY, "1"); } catch (e) {}
@@ -2449,6 +2462,8 @@ export function start(RECIPE) {
     var box = $("#socAct"); if (!box || !SOCIAL) return;
     var ev = (SOCIAL.activity || []).slice();
     (SOCIAL.recent || []).forEach(function (t) { ev.push({ kind: "trade", who: t.from, other: t.to, at: t.at, gave: t.gave, got: t.got }); });
+    // Pulls show the team's rarity today (rarities changed in October 2026), not the one recorded at the time.
+    ev.forEach(function (e) { if (e.kind === "pull" && BY_NUM[e.team]) e.tier = BY_NUM[e.team].tier; });
     ev = ev.filter(function (e) { return e.kind === "trade" || (e.kind === "pull" && (e.tier === "mythic" || e.tier === "legendary")); });
     ev.sort(function (a, b) { return b.at - a.at; });
     var first = !seenEv, now = {};

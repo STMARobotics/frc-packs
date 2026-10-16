@@ -161,6 +161,8 @@ pub fn new_profile(username: &str, password_hash: &str, invite: Option<&str>, ad
         invite_code: invite.map(String::from),
         next_claim_at: now,
         created_at: now,
+        // A new account's cards are made with the current rarities, so it never needs bringing up to date.
+        retier: crate::retier::VERSION,
         ..Default::default()
     }
 }

@@ -77,6 +77,8 @@ export interface Account {
 
 export interface State {
   account: Account;
+  /** A note to show once; call api.noticeSeen() after showing it. */
+  notice?: string | null;
   favorites?: number[];
   /** Collector level: one per `per` different teams; `claimed` levels have paid out. */
   level?: { teams: number; level: number; claimed: number; per: number; reward: number };
@@ -408,6 +410,7 @@ export const api = {
     call<void>("POST", "/api/feedback", { kind, title, details, context }),
   /** What you've sent and how each is doing. */
   myFeedback: () => call<Feedback[]>("GET", "/api/feedback/mine"),
+  noticeSeen: () => call<void>("POST", "/api/notice/seen", {}),
   /** Report a player to the admin: reason is username, cheating, harassment or other. */
   report: (username: string, reason: string, details: string) => call<void>("POST", "/api/report", { username, reason, details }),
   /** Collect a finished daily mission's parts. */
@@ -449,6 +452,7 @@ export const api = {
       call<{ cards: { num: number; tier: Tier }[] }>("POST", "/api/admin/test-pack", { pack, boosted }),
     ledger: (id: string) => call<LedgerEntry[]>("GET", `/api/admin/users/${id}/ledger`),
     audit: () => call<Audit>("GET", "/api/admin/audit"),
+    retier: () => call<{ players: number; compensated: number }>("POST", "/api/admin/retier", {}),
   },
 };
 
