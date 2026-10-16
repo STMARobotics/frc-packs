@@ -2,6 +2,7 @@ export const config = {
   stackNames: {
     frontend: "packs-frontend",
     backend: "packs-backend",
+    developerPolicy: "packs-developer-policy",
     certificate: "packs-certificate",
   },
   regions: {
