@@ -1403,3 +1403,46 @@ body.has-notice .app > .top { top: calc(36px + env(safe-area-inset-top)); }
 .fb-st.done { color: var(--tide); border-color: rgba(39,211,195,.5); }
 .fb-welcome p { margin: 0; color: var(--ink); line-height: 1.5; font-size: 15px; }
 .fb-welcome ul { margin: 0; padding-left: 20px; color: var(--ink); line-height: 1.6; font-size: 15px; }
+
+/* ---------- Battler card layout (every tier). Prototyped in design/battler/ (battler-card*.css); keep the two in step. ---------- */
+.inner.bt .fwrap { margin: calc(var(--cw) * .05) calc(var(--cw) * .04) 0; }
+.inner.bt .loc.c { left: 50%; right: auto; transform: translateX(-50%); max-width: 80%; }
+.inner.bt .statrow, .inner.bt .rprow { flex: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: calc(var(--cw) * .02); margin: calc(var(--cw) * .02) calc(var(--cw) * .04) 0; }
+.inner.bt .stat { display: grid; justify-items: center; align-content: center; gap: calc(var(--cw) * .002); padding: calc(var(--cw) * .012) 0; background: rgba(4,16,22,.62); border: 1px solid rgba(255,255,255,.18); border-radius: calc(var(--cw) * .03); }
+.inner.bt .stat small { font: 700 calc(var(--cw) * .028) / 1 var(--body); letter-spacing: .14em; color: var(--acc); }
+.inner.bt .stat b { font: 400 calc(var(--cw) * .09) / 1 var(--display); color: #fff; font-variant-numeric: tabular-nums; }
+.inner.bt .rp { display: grid; grid-template-columns: 1fr auto; align-items: center; column-gap: calc(var(--cw) * .01); padding: calc(var(--cw) * .01) calc(var(--cw) * .022); background: rgba(4,16,22,.62); border: 1px solid rgba(255,255,255,.18); border-radius: calc(var(--cw) * .03); }
+.inner.bt .rp small { grid-column: 1 / -1; font: 700 calc(var(--cw) * .022) / 1 var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--acc2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; margin-bottom: calc(var(--cw) * .006); }
+.inner.bt .rp i { font: 700 calc(var(--cw) * .026) / 1 var(--body); font-style: normal; letter-spacing: .06em; color: var(--acc); }
+.inner.bt .rp b { font: 400 calc(var(--cw) * .05) / 1 var(--display); color: #fff; text-align: right; }
+.inner.bt .effect { flex: none; margin: calc(var(--cw) * .02) calc(var(--cw) * .04) calc(var(--cw) * .04); padding: calc(var(--cw) * .014) calc(var(--cw) * .035) calc(var(--cw) * .02); background: rgba(4,16,22,.62); border: 1px solid rgba(255,255,255,.18); border-radius: calc(var(--cw) * .03); text-align: center; height: calc(var(--cw) * .165); display: flex; flex-direction: column; justify-content: center; }
+.inner.bt .effect small { display: block; font: 700 calc(var(--cw) * .026) / 1 var(--body); letter-spacing: .14em; color: var(--acc2); margin-bottom: calc(var(--cw) * .012); }
+.inner.bt .effect p { margin: 0; font: 600 calc(var(--cw) * .04) / 1.25 var(--body); color: #fff; text-wrap: balance; }
+.card .front.btf { padding: calc(var(--cw) * .0215) calc(var(--cw) * .0215) calc(var(--cw) * .088); }
+.inner.b2 .head { flex: none; display: flex; align-items: center; gap: calc(var(--cw) * .035); margin: calc(var(--cw) * .035) calc(var(--cw) * .04) 0; height: calc(var(--cw) * .13); }
+.inner.b2 .avatar { flex: none; width: calc(var(--cw) * .13); height: calc(var(--cw) * .13); border-radius: 50%; position: relative; overflow: hidden;
+  box-shadow: 0 0 0 calc(var(--cw) * .008) var(--ring), 0 0 calc(var(--cw) * .04) var(--glow), 0 2px 4px rgba(0,0,0,.5); background: #0b1a22; }
+.inner.b2 .avatar img { position: absolute; inset: 9%; width: 82%; height: 82%; object-fit: contain; }
+.inner.b2 .tname { flex: 1; min-width: 0; font: 400 calc(var(--cw) * .082 * var(--nl, 1)) / 1.05 var(--display); color: #fff; text-shadow: 0 2px 6px rgba(0,0,0,.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-bottom: .1em; }
+.inner.b2 .fwrap { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; margin: calc(var(--cw) * .03) calc(var(--cw) * .04) 0; position: relative; }
+.inner.b2 .fphoto { flex: 1; border-radius: calc(var(--cw) * .03) calc(var(--cw) * .03) 0 0; border-bottom-width: 0; margin: 0; }
+.card[data-tier="mythic"] .inner.b2 .fphoto { border-bottom: 0; }
+.inner.b2 .idbar { flex: none; box-sizing: border-box; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr) minmax(0, 1fr); align-items: center; height: calc(var(--cw) * .072);
+  background: var(--pill); border: calc(var(--cw) * .014) solid var(--ring); border-top: 0; border-radius: 0 0 calc(var(--cw) * .03) calc(var(--cw) * .03);
+  font: 700 calc(var(--cw) * .034) / 1 var(--body); color: #fff; letter-spacing: .03em; position: relative; z-index: 2; }
+.card[data-tier="mythic"] .inner.b2 .idbar { border-color: #9fe9de; border-top: 0; }
+.inner.b2 .fphoto { box-shadow: none; }
+.inner.b2 .fwrap { filter: drop-shadow(0 0 calc(var(--cw) * .04) var(--glow)); }
+.inner.b2 .idbar span { padding: 0 calc(var(--cw) * .026); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.inner.b2 .idbar span + span { border-left: calc(var(--cw) * .004) solid rgba(255,255,255,.28); }
+.inner.b2 .idbar .num { text-align: left; color: var(--acc2); font-family: var(--display); font-weight: 400; font-size: calc(var(--cw) * .045); }
+.inner.b2 .idbar .loc { border-radius: 0; text-align: center; position: static; display: block; box-shadow: none; background: none; height: auto; padding: 0 calc(var(--cw) * .03); }
+.inner.b2 .idbar .yr { text-align: right; color: var(--acc); font-family: var(--display); font-weight: 400; font-size: calc(var(--cw) * .045); }
+.inner.b2 .statrow { margin-top: calc(var(--cw) * .03); }
+.inner.b2 .effect { height: calc(var(--cw) * .165); }
+.inner.b2 .rp { align-items: center; padding-block: calc(var(--cw) * .018); }
+.inner.b2 .rp i { font-size: calc(var(--cw) * .036); }
+.inner.b2 .rp b { font-size: calc(var(--cw) * .055); }
+.ftb .rar i { font-style: normal; opacity: .22; }
+.inner.b2 .avatar.none { display: grid; place-items: center; font: 400 calc(var(--cw) * .034) / 1 var(--display); color: var(--acc2); }
+.inner.bt .effect p.tbd { color: rgba(255,255,255,.55); font-style: italic; font-weight: 500; }

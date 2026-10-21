@@ -273,9 +273,25 @@ export function start(RECIPE) {
      fills any gap. */
   function photoHTML(num) {
     var src = '/photos/' + num + '.webp';
-    return '<span class="phw"><img class="ph-bg" alt="" draggable="false" decoding="async" src="' + src + '"><img class="ph" alt="" draggable="false" decoding="async" src="' + src + '"></span>';
+    return '<span class="phw"><img class="ph-bg" alt="" draggable="false" decoding="async" src="' + src + '"><img class="ph" alt="" draggable="false" decoding="async" data-num="' + num + '" src="' + src + '"></span>';
   }
+  /* Centers each photo on where its robot is (data/photos/focus.json, made by tools/photo_focus.py): the photo fills its
+     window, and the part that gets cropped is the part least likely to be the robot. */
+  var FOCUS = {};
+  fetch("/photos/focus.json").then(function (r) { return r.ok ? r.json() : {}; }).then(function (f) { FOCUS = f || {}; document.querySelectorAll(".card img.ph[data-num]").forEach(centerPhoto); }).catch(function () {});
+  function centerPhoto(img) {
+    var f = FOCUS[img.dataset.num], w = img.naturalWidth, h = img.naturalHeight, box = img.parentElement.getBoundingClientRect();
+    if (!f || !w || !box.width) return;
+    var scale = Math.max(box.width / w, box.height / h), visW = box.width / (w * scale), visH = box.height / (h * scale);
+    var pos = function (c, vis) { return vis >= 1 ? 50 : Math.min(100, Math.max(0, (c - vis / 2) / (1 - vis) * 100)); };
+    img.style.objectPosition = pos(f[0], visW) + "% " + pos(f[1], visH) + "%";
+  }
+  document.addEventListener("load", function (e) { if (e.target.matches && e.target.matches(".card img.ph[data-num]")) centerPhoto(e.target); }, true);
   function nameScale(n) { var l = n.length; return l <= 20 ? 1 : l <= 25 ? .86 : l <= 30 ? .74 : .64; } // the name has its own line
+  function btNameScale(n) { var l = n.length; return l <= 12 ? 1 : l <= 15 ? .85 : l <= 19 ? .7 : l <= 24 ? .58 : .5; } // shares its line with the ring
+  /* Rarity star scale: one star per step up, in the tier's accent; the steps not reached are dimmed. */
+  var STARS = { common: 1, uncommon: 2, rare: 3, legendary: 4, mythic: 5 };
+  function starScale(tier) { var s = ""; for (var i = 0; i < 5; i++) s += i < STARS[tier] ? "★" : "<i>★</i>"; return s; }
   function attachTilt(slot) {
     var tilt = slot.querySelector(".tilt"), inner = slot.querySelector(".inner");
     slot.addEventListener("pointermove", function (e) {
@@ -337,25 +353,27 @@ export function start(RECIPE) {
     if (myTeam() && c.num === myTeam()) slot.classList.add("mine");
     if (opts.button) { slot.setAttribute("role", "button"); slot.tabIndex = 0; }
     slot.setAttribute("aria-label", t.name + ", team " + t.num + ", " + T.label);
-    // One layout for every tier: team, name and EPA pills on the frame, the robot photo with its location tags, a tier crest,
-    // the champs box, then the stars and serial pills on the bottom of the frame.
+    // The battler card layout for every tier (design/battler/): the team's ring and name, the robot photo over a strip with
+    // the number, division and location, and season; then the battler stats (AUTO / TELE / END, RP1-3, unique effect), or
+    // the champs box for a team without them yet; the star scale and serial sit on the bottom of the frame.
     var epa = t.epa == null ? "–" : Math.round(t.epa * 10) / 10, snCls = (+c.serial > 0 && +c.serial <= 10 ? " low" : "") + (+c.serial === c.num ? " match" : "");
     var pic = t.photo ? photoHTML(t.num) : '<svg class="ph-fallback" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g transform="translate(6 38) scale(1.04)">' + robotSVG(t.num) + '</g></svg>';
+    var bt = t.bt, stats = bt ?
+      '<div class="statrow"><div class="stat"><small>AUTO</small><b>' + bt.auto + '</b></div><div class="stat"><small>TELE</small><b>' + bt.tele + '</b></div><div class="stat"><small>END</small><b>' + bt.end + '</b></div></div>' +
+      '<div class="rprow">' + bt.rp.map(function (p, i) { return '<div class="rp"><i>RP' + (i + 1) + '</i><b>' + p + '%</b></div>'; }).join("") + '</div>' +
+      '<div class="effect"><small>UNIQUE EFFECT</small>' + (bt.effect ? '<p>' + esc(bt.effect) + '</p>' : '<p class="tbd">Effect coming soon</p>') + '</div>' :
+      '<div class="statrow"><div class="stat"><small>EPA</small><b>' + epa + '</b></div><div class="stat"><small>RECORD</small><b>' + esc(t.wl) + '</b></div><div class="stat"><small>RANK</small><b>#' + t.rank + '</b></div></div>' +
+      '<div class="effect"><small>BATTLER STATS</small><p class="tbd">Coming soon</p></div>';
     slot.innerHTML =
       '<div class="shade"></div><div class="float"><div class="tilt rest"><div class="flip card" data-tier="' + c.tier + '">' + EDGES +
       '<div class="face back">' + BACK_SVG + '</div>' +
-      '<div class="face front"><div class="inner v2" style="--nl:' + nameScale(t.name) + '">' +
-      '<div class="fwrap"><div class="fphoto">' + pic +
-        '<span class="loc l">' + esc(t.div) + (t.loc ? ' · ' + esc(t.loc) : '') + '</span><span class="loc r">CMP 2026</span></div>' +
-        '<span class="crest">★ ' + T.label + ' ★</span></div>' +
-      '<div class="fine2">EPA data from Statbotics</div>' +
-      '<div class="moves">' +
-        '<div class="mv"><i></i><span>Champs record</span><b>' + esc(t.wl) + '</b></div>' +
-        '<div class="mv"><i></i><span>Champs EPA rank</span><b>#' + t.rank + '</b></div>' +
-      '</div>' +
+      '<div class="face front btf"><div class="inner v2 bt b2' + (bt ? '' : ' nobt') + '" style="--nl:' + btNameScale(t.name) + '">' +
+      '<div class="head"><span class="avatar none">' + t.num + '</span><span class="tname">' + esc(t.name) + '</span></div>' +
+      '<div class="fwrap"><div class="fphoto">' + pic + '</div>' +
+        '<div class="idbar"><span class="num">#' + t.num + '</span><span class="loc">' + esc(t.div) + (t.loc ? ' · ' + esc(t.loc) : '') + '</span><span class="yr">2026</span></div></div>' +
+      stats +
       '<div class="foil"></div><div class="spark"></div><div class="glare"></div></div>' +
-      '<div class="ttb"><span class="a"><small>TEAM</small>' + t.num + '</span><span class="nmp">' + esc(t.name) + '</span><span class="c"><small>EPA</small>' + epa + '</span></div>' +
-      '<div class="ftb"><span class="rar">' + T.gems + '</span><span class="sn' + snCls + '">No. ' + esc(c.serial || "------") + '</span></div>' +
+      '<div class="ftb"><span class="rar" aria-label="' + STARS[c.tier] + ' of 5 stars">' + starScale(c.tier) + '</span><span class="sn' + snCls + '">No. ' + esc(c.serial || "------") + '</span></div>' +
       '</div></div></div></div></div>';
     if (opts.ribbon) { var r = document.createElement("div"); r.className = "ribbon" + (c.isNew ? "" : " dupe"); r.textContent = c.test ? "TEST" : c.isNew ? "NEW" : "COPY #" + c.copy; r.hidden = true; slot.appendChild(r); slot._ribbon = r; }
     if (opts.count > 1) { var b = document.createElement("div"); b.className = "count-badge"; b.textContent = "×" + opts.count; slot.appendChild(b); }
