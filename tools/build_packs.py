@@ -18,6 +18,18 @@ def place(loc):
         return loc + (", Canada" if loc in CA_PROV else ", USA")
     return loc
 
+def battler_stats(path):
+    """team|auto|tele|end|rp1|rp2|rp3|event from tools/battler_stats.py: the 1v1 battler stats on each card."""
+    out = {}
+    if path.exists():
+        for line in path.read_text(encoding="utf-8").splitlines():
+            p = line.strip().split("|")
+            if len(p) >= 7 and p[0].isdigit():
+                out[int(p[0])] = {"auto": int(p[1]), "tele": int(p[2]), "end": int(p[3]), "rp": [int(x) for x in p[4:7]]}
+    return out
+
+BATTLER = battler_stats(data / "battler-2026.txt")
+
 def champs_teams(path):
     """team|name|champs EPA|champs W-L|division|season EPA rank|location, one line per team."""
     teams, seen = [], set()
@@ -45,6 +57,8 @@ def champs_teams(path):
             # Robot photo at /photos/<num>.webp (from The Blue Alliance); teams without one get a drawing.
             "photo": (data / "photos" / f"{num}.webp").exists(),
         })
+        if num in BATTLER:
+            teams[-1]["bt"] = BATTLER[num]
     # Rarity: the season's top 50 who came were Mythic at launch; everyone else is ranked by EPA at the event. Since
     # October 2026 only the teams in MYTHICS are Mythic: other former Mythics are Legendary, and the rest keep their tier.
     teams.sort(key=lambda t: (-(t["epa"] if t["epa"] is not None else -1), t["num"]))

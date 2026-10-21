@@ -1409,7 +1409,7 @@ export function start(RECIPE) {
     // The same team facts the card view shows everywhere else.
     var fx = document.createElement("div"); fx.className = "serials card-facts";
     fx.innerHTML = "<dl><dt>Team</dt><dd>" + t.num + " · " + esc(t.name) + "</dd><dt>Division</dt><dd>" + esc(t.div) + "</dd>" + (t.loc ? "<dt>From</dt><dd>" + esc(t.loc) + "</dd>" : "") +
-      "<dt>EPA</dt><dd>" + (t.epa == null ? "–" : Math.round(t.epa)) + " · #" + t.rank + " at Champs</dd><dt>Record</dt><dd>" + esc(t.wl) + "</dd></dl>";
+      "<dt>EPA</dt><dd>" + (t.epa == null ? "–" : Math.round(t.epa)) + " · #" + t.rank + " at Champs</dd><dt>Record</dt><dd>" + esc(t.wl) + "</dd></dl>" + battlerFacts(t);
     modalIn.appendChild(fx);
     var extra = [];
     var hc = heldCopies(), free = serials.filter(function (x) { return !hc[t.num + ":" + x]; }).length;
@@ -1486,6 +1486,15 @@ export function start(RECIPE) {
     return b;
   }
   function viewCard(num, o, replace) { present(function () { return cardScreen(num, o || {}); }, replace); }
+  /* The 1v1 battler stats in the card's facts (t.bt, from tools/battler_stats.py): points in each phase, the three RP
+     chances, and the unique effect. Teams without stats yet show nothing. */
+  function battlerFacts(t) {
+    var bt = t.bt; if (!bt) return "";
+    return '<div class="bt-facts" style="--bt:' + TIERS[t.tier].color + '"><h4>Battler</h4><div class="bt-stats">' +
+      [["AUTO", bt.auto], ["TELE", bt.tele], ["END", bt.end]].map(function (s) { return '<div><small>' + s[0] + '</small><b>' + s[1] + '</b></div>'; }).join("") + '</div>' +
+      '<div class="bt-rp">' + bt.rp.map(function (p, i) { return '<div><small>RP' + (i + 1) + '</small><b>' + p + '%</b></div>'; }).join("") + '</div>' +
+      '<div class="bt-effect"><small>Unique effect</small>' + (bt.effect ? '<p>' + esc(bt.effect) + '</p>' : '<p class="tbd">Effect coming soon</p>') + '</div></div>';
+  }
   /* Serial numbers worth bragging about: No. 1, any of the first ten, and a serial that matches the team number. */
   function serialBadges(num, serials) {
     var b = [];
@@ -1509,7 +1518,7 @@ export function start(RECIPE) {
       '<dt>EPA</dt><dd>' + (t.epa == null ? "–" : Math.round(t.epa)) + ' · #' + t.rank + ' at Champs</dd>' +
       '<dt>Record</dt><dd>' + esc(t.wl) + '</dd>' +
       (o.serial ? '<dt>Serial</dt><dd>No. ' + esc(o.serial) + '</dd>' : '') +
-      '</dl><p>' + (o.from ? o.from + " " : "") + (mine ? "You own " + (mine === 1 ? "1 copy" : mine + " copies") + "." : "You don't have this one yet.") + '</p>';
+      '</dl>' + battlerFacts(t) + '<p>' + (o.from ? o.from + " " : "") + (mine ? "You own " + (mine === 1 ? "1 copy" : mine + " copies") + "." : "You don't have this one yet.") + '</p>';
     modalIn.appendChild(facts);
     var close = cardChrome(num, !!mine, o.action && { label: o.action.label, run: function () { closeAll(o.action.run); } });
     cardPos();
