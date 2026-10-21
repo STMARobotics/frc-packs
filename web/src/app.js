@@ -356,21 +356,22 @@ export function start(RECIPE) {
     // The battler card layout for every tier (design/battler/): the team's ring and name, the robot photo over a strip with
     // the number, division and location, and season; then the battler stats (AUTO / TELE / END, RP1-3, unique effect), or
     // the champs box for a team without them yet; the star scale and serial sit on the bottom of the frame.
-    var epa = t.epa == null ? "–" : Math.round(t.epa * 10) / 10, snCls = (+c.serial > 0 && +c.serial <= 10 ? " low" : "") + (+c.serial === c.num ? " match" : "");
+    var snCls = (+c.serial > 0 && +c.serial <= 10 ? " low" : "") + (+c.serial === c.num ? " match" : "");
     var pic = t.photo ? photoHTML(t.num) : '<svg class="ph-fallback" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g transform="translate(6 38) scale(1.04)">' + robotSVG(t.num) + '</g></svg>';
-    var bt = t.bt, stats = bt ?
-      '<div class="statrow"><div class="stat"><small>AUTO</small><b>' + bt.auto + '</b></div><div class="stat"><small>TELE</small><b>' + bt.tele + '</b></div><div class="stat"><small>END</small><b>' + bt.end + '</b></div></div>' +
-      '<div class="rprow">' + bt.rp.map(function (p, i) { return '<div class="rp"><i>RP' + (i + 1) + '</i><b>' + p + '%</b></div>'; }).join("") + '</div>' +
-      '<div class="effect"><small>UNIQUE EFFECT</small>' + (bt.effect ? '<p>' + esc(bt.effect) + '</p>' : '<p class="tbd">Effect coming soon</p>') + '</div>' :
-      '<div class="statrow"><div class="stat"><small>EPA</small><b>' + epa + '</b></div><div class="stat"><small>RECORD</small><b>' + esc(t.wl) + '</b></div><div class="stat"><small>RANK</small><b>#' + t.rank + '</b></div></div>' +
-      '<div class="effect"><small>BATTLER STATS</small><p class="tbd">Coming soon</p></div>';
+    // The game's stats (Battler spec §4): AUTO / TELE / END from normalized season EPA, and the three season bonus-RP
+    // chances. A team whose stats haven't been imported yet shows dashes in the same boxes, not other numbers.
+    var bt = t.bt, dash = '<b class="na">–</b>';
+    var stats =
+      '<div class="statrow">' + [["AUTO", "auto"], ["TELE", "tele"], ["END", "end"]].map(function (k) { return '<div class="stat"><small>' + k[0] + '</small>' + (bt ? '<b>' + bt[k[1]] + '</b>' : dash) + '</div>'; }).join("") + '</div>' +
+      '<div class="rprow">' + [0, 1, 2].map(function (i) { return '<div class="rp"><i>RP' + (i + 1) + '</i>' + (bt ? '<b>' + bt.rp[i] + '%</b>' : dash) + '</div>'; }).join("") + '</div>' +
+      '<div class="effect"><small>UNIQUE EFFECT</small>' + (bt && bt.effect ? '<p>' + esc(bt.effect) + '</p>' : '<p class="tbd">' + (bt ? 'Effect coming soon' : 'Stats and effect coming soon') + '</p>') + '</div>';
     slot.innerHTML =
       '<div class="shade"></div><div class="float"><div class="tilt rest"><div class="flip card" data-tier="' + c.tier + '">' + EDGES +
       '<div class="face back">' + BACK_SVG + '</div>' +
-      '<div class="face front btf"><div class="inner v2 bt b2' + (bt ? '' : ' nobt') + '" style="--nl:' + btNameScale(t.name) + '">' +
+      '<div class="face front btf"><div class="inner v2 bt b2" style="--nl:' + btNameScale(t.name) + '">' +
       '<div class="head"><span class="avatar none">' + t.num + '</span><span class="tname">' + esc(t.name) + '</span></div>' +
       '<div class="fwrap"><div class="fphoto">' + pic + '</div>' +
-        '<div class="idbar"><span class="num">#' + t.num + '</span><span class="loc">' + esc(t.div) + (t.loc ? ' · ' + esc(t.loc) : '') + '</span><span class="yr">2026</span></div></div>' +
+        '<div class="idbar"><span class="num">#' + t.num + '</span><span class="loc">' + esc(t.region || t.loc || t.div) + '</span><span class="yr">2026</span></div></div>' +
       stats +
       '<div class="foil"></div><div class="spark"></div><div class="glare"></div></div>' +
       '<div class="ftb"><span class="rar" aria-label="' + STARS[c.tier] + ' of 5 stars">' + starScale(c.tier) + '</span><span class="sn' + snCls + '">No. ' + esc(c.serial || "------") + '</span></div>' +
@@ -1427,7 +1428,7 @@ export function start(RECIPE) {
     // The same team facts the card view shows everywhere else.
     var fx = document.createElement("div"); fx.className = "serials card-facts";
     fx.innerHTML = "<dl><dt>Team</dt><dd>" + t.num + " · " + esc(t.name) + "</dd><dt>Division</dt><dd>" + esc(t.div) + "</dd>" + (t.loc ? "<dt>From</dt><dd>" + esc(t.loc) + "</dd>" : "") +
-      "<dt>EPA</dt><dd>" + (t.epa == null ? "–" : Math.round(t.epa)) + " · #" + t.rank + " at Champs</dd><dt>Record</dt><dd>" + esc(t.wl) + "</dd></dl>" + battlerFacts(t);
+      "<dt>EPA</dt><dd>" + (t.epa == null ? "–" : Math.round(t.epa)) + " · #" + t.rank + " at Champs</dd><dt>Record</dt><dd>" + esc(t.wl) + "</dd>" + battlerFacts(t) + "</dl>";
     modalIn.appendChild(fx);
     var extra = [];
     var hc = heldCopies(), free = serials.filter(function (x) { return !hc[t.num + ":" + x]; }).length;
@@ -1504,15 +1505,15 @@ export function start(RECIPE) {
     return b;
   }
   function viewCard(num, o, replace) { present(function () { return cardScreen(num, o || {}); }, replace); }
-  /* The 1v1 battler stats in the card's facts (t.bt, from tools/battler_stats.py): points in each phase, the three RP
-     chances, and the unique effect. Teams without stats yet show nothing. */
+  /* What the Battler stats on the card mean, in the card's facts: which bonus RP each RP slot is this season (the same for
+     every card in a season, per the Battler spec), and where the numbers come from. */
+  var RP_NAMES = { 2025: ["Auto", "Coral", "Barge"], 2026: ["Energized", "Supercharged", "Traversal"] };
   function battlerFacts(t) {
-    var bt = t.bt; if (!bt) return "";
-    return '<div class="bt-facts" style="--bt:' + TIERS[t.tier].color + '"><h4>Battler</h4><div class="bt-stats">' +
-      [["AUTO", bt.auto], ["TELE", bt.tele], ["END", bt.end]].map(function (s) { return '<div><small>' + s[0] + '</small><b>' + s[1] + '</b></div>'; }).join("") + '</div>' +
-      '<div class="bt-rp">' + bt.rp.map(function (p, i) { return '<div><small>RP' + (i + 1) + '</small><b>' + p + '%</b></div>'; }).join("") + '</div>' +
-      '<div class="bt-effect"><small>Unique effect</small>' + (bt.effect ? '<p>' + esc(bt.effect) + '</p>' : '<p class="tbd">Effect coming soon</p>') + '</div></div>';
+    var names = RP_NAMES[RECIPE.season] || ["RP1", "RP2", "RP3"];
+    return '<dt>Battler</dt><dd>' + (t.bt ? 'AUTO ' + t.bt.auto + ' · TELE ' + t.bt.tele + ' · END ' + t.bt.end : 'Stats coming soon') + '</dd>' +
+      '<dt>RP slots</dt><dd>' + names.map(function (n, i) { return 'RP' + (i + 1) + ' ' + n; }).join(' · ') + '</dd>';
   }
+
   /* Serial numbers worth bragging about: No. 1, any of the first ten, and a serial that matches the team number. */
   function serialBadges(num, serials) {
     var b = [];
@@ -1536,7 +1537,7 @@ export function start(RECIPE) {
       '<dt>EPA</dt><dd>' + (t.epa == null ? "–" : Math.round(t.epa)) + ' · #' + t.rank + ' at Champs</dd>' +
       '<dt>Record</dt><dd>' + esc(t.wl) + '</dd>' +
       (o.serial ? '<dt>Serial</dt><dd>No. ' + esc(o.serial) + '</dd>' : '') +
-      '</dl>' + battlerFacts(t) + '<p>' + (o.from ? o.from + " " : "") + (mine ? "You own " + (mine === 1 ? "1 copy" : mine + " copies") + "." : "You don't have this one yet.") + '</p>';
+      battlerFacts(t) + '</dl><p>' + (o.from ? o.from + " " : "") + (mine ? "You own " + (mine === 1 ? "1 copy" : mine + " copies") + "." : "You don't have this one yet.") + '</p>';
     modalIn.appendChild(facts);
     var close = cardChrome(num, !!mine, o.action && { label: o.action.label, run: function () { closeAll(o.action.run); } });
     cardPos();

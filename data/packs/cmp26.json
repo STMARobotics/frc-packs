@@ -44,6 +44,7 @@
    "div": "Daly",
    "srank": 1,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 1,
    "tier": "mythic"
@@ -56,6 +57,7 @@
    "div": "Curie",
    "srank": 2,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 2,
    "tier": "mythic"
@@ -68,6 +70,7 @@
    "div": "Daly",
    "srank": 3,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 3,
    "tier": "mythic"
@@ -80,6 +83,7 @@
    "div": "Hopper",
    "srank": 6,
    "loc": "ON, Canada",
+   "region": "Ontario",
    "photo": true,
    "rank": 4,
    "tier": "mythic"
@@ -92,6 +96,7 @@
    "div": "Archimedes",
    "srank": 7,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 5,
    "tier": "mythic"
@@ -104,6 +109,7 @@
    "div": "Galileo",
    "srank": 4,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 6,
    "tier": "legendary"
@@ -116,6 +122,7 @@
    "div": "Archimedes",
    "srank": 9,
    "loc": "ON, Canada",
+   "region": "Ontario",
    "photo": true,
    "rank": 7,
    "tier": "mythic"
@@ -128,6 +135,7 @@
    "div": "Milstein",
    "srank": 8,
    "loc": "IL, USA",
+   "region": "Illinois",
    "photo": true,
    "rank": 8,
    "tier": "mythic"
@@ -140,6 +148,7 @@
    "div": "Milstein",
    "srank": 13,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 9,
    "tier": "mythic"
@@ -152,6 +161,7 @@
    "div": "Curie",
    "srank": 10,
    "loc": "MA, USA",
+   "region": "Massachusetts",
    "photo": true,
    "rank": 10,
    "tier": "mythic"
@@ -164,6 +174,7 @@
    "div": "Newton",
    "srank": 23,
    "loc": "WA, USA",
+   "region": "Washington",
    "photo": true,
    "rank": 11,
    "tier": "legendary"
@@ -176,6 +187,7 @@
    "div": "Newton",
    "srank": 12,
    "loc": "WA, USA",
+   "region": "Washington",
    "photo": true,
    "rank": 12,
    "tier": "mythic"
@@ -188,6 +200,7 @@
    "div": "Curie",
    "srank": 16,
    "loc": "TX, USA",
+   "region": "Texas",
    "photo": true,
    "rank": 13,
    "tier": "legendary"
@@ -200,6 +213,7 @@
    "div": "Hopper",
    "srank": 22,
    "loc": "ME, USA",
+   "region": "Maine",
    "photo": true,
    "rank": 14,
    "tier": "legendary"
@@ -212,6 +226,7 @@
    "div": "Hopper",
    "srank": 18,
    "loc": "NH, USA",
+   "region": "New Hampshire",
    "photo": true,
    "rank": 15,
    "tier": "legendary"
@@ -224,6 +239,7 @@
    "div": "Newton",
    "srank": 20,
    "loc": "NY, USA",
+   "region": "New York",
    "photo": true,
    "rank": 16,
    "tier": "legendary"
@@ -236,6 +252,7 @@
    "div": "Galileo",
    "srank": 5,
    "loc": "Israel",
+   "region": "Israel",
    "photo": true,
    "rank": 17,
    "tier": "mythic"
@@ -248,6 +265,7 @@
    "div": "Johnson",
    "srank": 15,
    "loc": "ON, Canada",
+   "region": "Ontario",
    "photo": true,
    "rank": 18,
    "tier": "legendary"
@@ -260,6 +278,7 @@
    "div": "Galileo",
    "srank": 24,
    "loc": "MA, USA",
+   "region": "Massachusetts",
    "photo": true,
    "rank": 19,
    "tier": "legendary"
@@ -272,6 +291,7 @@
    "div": "Curie",
    "srank": 29,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 20,
    "tier": "legendary"
@@ -284,6 +304,7 @@
    "div": "Curie",
    "srank": 17,
    "loc": "TX, USA",
+   "region": "Texas",
    "photo": true,
    "rank": 21,
    "tier": "legendary"
@@ -296,6 +317,7 @@
    "div": "Curie",
    "srank": 25,
    "loc": "MO, USA",
+   "region": "Missouri",
    "photo": true,
    "rank": 22,
    "tier": "legendary"
@@ -308,6 +330,7 @@
    "div": "Hopper",
    "srank": 27,
    "loc": "MO, USA",
+   "region": "Missouri",
    "photo": true,
    "rank": 23,
    "tier": "legendary"
@@ -320,6 +343,7 @@
    "div": "Hopper",
    "srank": 30,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 24,
    "tier": "legendary"
@@ -332,6 +356,7 @@
    "div": "Daly",
    "srank": 31,
    "loc": "ON, Canada",
+   "region": "Ontario",
    "photo": true,
    "rank": 25,
    "tier": "legendary"
@@ -344,6 +369,7 @@
    "div": "Hopper",
    "srank": 26,
    "loc": "LA, USA",
+   "region": "Louisiana",
    "photo": true,
    "rank": 26,
    "tier": "legendary"
@@ -356,6 +382,7 @@
    "div": "Milstein",
    "srank": 39,
    "loc": "NY, USA",
+   "region": "New York",
    "photo": true,
    "rank": 27,
    "tier": "legendary"
@@ -368,6 +395,7 @@
    "div": "Newton",
    "srank": 36,
    "loc": "GA, USA",
+   "region": "Georgia",
    "photo": true,
    "rank": 28,
    "tier": "legendary"
@@ -380,6 +408,7 @@
    "div": "Newton",
    "srank": 47,
    "loc": "NY, USA",
+   "region": "New York",
    "photo": true,
    "rank": 29,
    "tier": "legendary"
@@ -392,6 +421,7 @@
    "div": "Johnson",
    "srank": 32,
    "loc": "AZ, USA",
+   "region": "Arizona",
    "photo": true,
    "rank": 30,
    "tier": "legendary"
@@ -404,6 +434,7 @@
    "div": "Johnson",
    "srank": 54,
    "loc": "ON, Canada",
+   "region": "Ontario",
    "photo": true,
    "rank": 31,
    "tier": "mythic"
@@ -416,6 +447,7 @@
    "div": "Johnson",
    "srank": 33,
    "loc": "MO, USA",
+   "region": "Missouri",
    "photo": true,
    "rank": 32,
    "tier": "legendary"
@@ -428,6 +460,7 @@
    "div": "Milstein",
    "srank": 35,
    "loc": "HI, USA",
+   "region": "Hawaii",
    "photo": true,
    "rank": 33,
    "tier": "legendary"
@@ -440,6 +473,7 @@
    "div": "Newton",
    "srank": 40,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 34,
    "tier": "legendary"
@@ -452,6 +486,7 @@
    "div": "Daly",
    "srank": 58,
    "loc": "NJ, USA",
+   "region": "New Jersey",
    "photo": true,
    "rank": 35,
    "tier": "legendary"
@@ -464,6 +499,7 @@
    "div": "Milstein",
    "srank": 49,
    "loc": "ON, Canada",
+   "region": "Ontario",
    "photo": true,
    "rank": 36,
    "tier": "legendary"
@@ -476,6 +512,7 @@
    "div": "Archimedes",
    "srank": 61,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 37,
    "tier": "legendary"
@@ -488,6 +525,7 @@
    "div": "Milstein",
    "srank": 37,
    "loc": "CO, USA",
+   "region": "Colorado",
    "photo": true,
    "rank": 38,
    "tier": "legendary"
@@ -500,6 +538,7 @@
    "div": "Hopper",
    "srank": 76,
    "loc": "MA, USA",
+   "region": "Massachusetts",
    "photo": true,
    "rank": 39,
    "tier": "legendary"
@@ -512,6 +551,7 @@
    "div": "Curie",
    "srank": 45,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 40,
    "tier": "legendary"
@@ -524,6 +564,7 @@
    "div": "Archimedes",
    "srank": 67,
    "loc": "Türkiye",
+   "region": "Türkiye",
    "photo": true,
    "rank": 41,
    "tier": "legendary"
@@ -536,6 +577,7 @@
    "div": "Daly",
    "srank": 44,
    "loc": "ON, Canada",
+   "region": "Ontario",
    "photo": true,
    "rank": 42,
    "tier": "legendary"
@@ -548,6 +590,7 @@
    "div": "Archimedes",
    "srank": 81,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 43,
    "tier": "legendary"
@@ -560,6 +603,7 @@
    "div": "Hopper",
    "srank": 34,
    "loc": "MA, USA",
+   "region": "Massachusetts",
    "photo": true,
    "rank": 44,
    "tier": "legendary"
@@ -572,6 +616,7 @@
    "div": "Daly",
    "srank": 87,
    "loc": "Brazil",
+   "region": "Brazil",
    "photo": true,
    "rank": 45,
    "tier": "legendary"
@@ -584,6 +629,7 @@
    "div": "Newton",
    "srank": 46,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 46,
    "tier": "legendary"
@@ -596,6 +642,7 @@
    "div": "Milstein",
    "srank": 65,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 47,
    "tier": "legendary"
@@ -608,6 +655,7 @@
    "div": "Archimedes",
    "srank": 57,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 48,
    "tier": "legendary"
@@ -620,6 +668,7 @@
    "div": "Milstein",
    "srank": 43,
    "loc": "ID, USA",
+   "region": "Idaho",
    "photo": true,
    "rank": 49,
    "tier": "legendary"
@@ -632,6 +681,7 @@
    "div": "Milstein",
    "srank": 62,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 50,
    "tier": "legendary"
@@ -644,6 +694,7 @@
    "div": "Newton",
    "srank": 52,
    "loc": "OH, USA",
+   "region": "Ohio",
    "photo": true,
    "rank": 51,
    "tier": "legendary"
@@ -656,6 +707,7 @@
    "div": "Archimedes",
    "srank": 120,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 52,
    "tier": "legendary"
@@ -668,6 +720,7 @@
    "div": "Archimedes",
    "srank": 116,
    "loc": "OR, USA",
+   "region": "Oregon",
    "photo": true,
    "rank": 53,
    "tier": "legendary"
@@ -680,6 +733,7 @@
    "div": "Milstein",
    "srank": 71,
    "loc": "NV, USA",
+   "region": "Nevada",
    "photo": true,
    "rank": 54,
    "tier": "legendary"
@@ -692,6 +746,7 @@
    "div": "Hopper",
    "srank": 50,
    "loc": "China",
+   "region": "China",
    "photo": true,
    "rank": 55,
    "tier": "legendary"
@@ -704,6 +759,7 @@
    "div": "Newton",
    "srank": 92,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 56,
    "tier": "legendary"
@@ -716,6 +772,7 @@
    "div": "Archimedes",
    "srank": 41,
    "loc": "ON, Canada",
+   "region": "Ontario",
    "photo": true,
    "rank": 57,
    "tier": "legendary"
@@ -728,6 +785,7 @@
    "div": "Galileo",
    "srank": 48,
    "loc": "WA, USA",
+   "region": "Washington",
    "photo": true,
    "rank": 58,
    "tier": "legendary"
@@ -740,6 +798,7 @@
    "div": "Hopper",
    "srank": 59,
    "loc": "WI, USA",
+   "region": "Wisconsin",
    "photo": true,
    "rank": 59,
    "tier": "legendary"
@@ -752,6 +811,7 @@
    "div": "Newton",
    "srank": 66,
    "loc": "OR, USA",
+   "region": "Oregon",
    "photo": true,
    "rank": 60,
    "tier": "legendary"
@@ -764,6 +824,7 @@
    "div": "Hopper",
    "srank": 79,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 61,
    "tier": "legendary"
@@ -776,6 +837,7 @@
    "div": "Newton",
    "srank": 68,
    "loc": "CT, USA",
+   "region": "Connecticut",
    "photo": true,
    "rank": 62,
    "tier": "legendary"
@@ -788,6 +850,7 @@
    "div": "Newton",
    "srank": 64,
    "loc": "Mexico",
+   "region": "Mexico",
    "photo": true,
    "rank": 63,
    "tier": "legendary"
@@ -800,6 +863,7 @@
    "div": "Hopper",
    "srank": 69,
    "loc": "NY, USA",
+   "region": "New York",
    "photo": true,
    "rank": 64,
    "tier": "legendary"
@@ -812,6 +876,7 @@
    "div": "Newton",
    "srank": 94,
    "loc": "FL, USA",
+   "region": "Florida",
    "photo": true,
    "rank": 65,
    "tier": "legendary"
@@ -824,6 +889,7 @@
    "div": "Daly",
    "srank": 75,
    "loc": "OH, USA",
+   "region": "Ohio",
    "photo": true,
    "rank": 66,
    "tier": "legendary"
@@ -836,6 +902,7 @@
    "div": "Milstein",
    "srank": 127,
    "loc": "GA, USA",
+   "region": "Georgia",
    "photo": true,
    "rank": 67,
    "tier": "legendary"
@@ -848,6 +915,7 @@
    "div": "Curie",
    "srank": 53,
    "loc": "WA, USA",
+   "region": "Washington",
    "photo": true,
    "rank": 68,
    "tier": "legendary"
@@ -860,6 +928,7 @@
    "div": "Milstein",
    "srank": 51,
    "loc": "Netherlands",
+   "region": "Netherlands",
    "photo": true,
    "rank": 69,
    "tier": "legendary"
@@ -872,6 +941,7 @@
    "div": "Galileo",
    "srank": 56,
    "loc": "TX, USA",
+   "region": "Texas",
    "photo": true,
    "rank": 70,
    "tier": "legendary"
@@ -884,6 +954,7 @@
    "div": "Archimedes",
    "srank": 86,
    "loc": "VA, USA",
+   "region": "Virginia",
    "photo": true,
    "rank": 71,
    "tier": "legendary"
@@ -896,6 +967,7 @@
    "div": "Milstein",
    "srank": 55,
    "loc": "IN, USA",
+   "region": "Indiana",
    "photo": true,
    "rank": 72,
    "tier": "legendary"
@@ -908,6 +980,7 @@
    "div": "Johnson",
    "srank": 112,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 73,
    "tier": "legendary"
@@ -920,6 +993,7 @@
    "div": "Galileo",
    "srank": 106,
    "loc": "MD, USA",
+   "region": "Maryland",
    "photo": true,
    "rank": 74,
    "tier": "legendary"
@@ -932,6 +1006,7 @@
    "div": "Milstein",
    "srank": 125,
    "loc": "Türkiye",
+   "region": "Türkiye",
    "photo": true,
    "rank": 75,
    "tier": "legendary"
@@ -944,6 +1019,7 @@
    "div": "Daly",
    "srank": 70,
    "loc": "NH, USA",
+   "region": "New Hampshire",
    "photo": true,
    "rank": 76,
    "tier": "legendary"
@@ -956,6 +1032,7 @@
    "div": "Galileo",
    "srank": 88,
    "loc": "NJ, USA",
+   "region": "New Jersey",
    "photo": true,
    "rank": 77,
    "tier": "legendary"
@@ -968,6 +1045,7 @@
    "div": "Hopper",
    "srank": 113,
    "loc": "NH, USA",
+   "region": "New Hampshire",
    "photo": true,
    "rank": 78,
    "tier": "legendary"
@@ -980,6 +1058,7 @@
    "div": "Johnson",
    "srank": 80,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 79,
    "tier": "legendary"
@@ -992,6 +1071,7 @@
    "div": "Daly",
    "srank": 83,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 80,
    "tier": "legendary"
@@ -1004,6 +1084,7 @@
    "div": "Johnson",
    "srank": 77,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 81,
    "tier": "legendary"
@@ -1016,6 +1097,7 @@
    "div": "Archimedes",
    "srank": 100,
    "loc": "PA, USA",
+   "region": "Pennsylvania",
    "photo": true,
    "rank": 82,
    "tier": "legendary"
@@ -1028,6 +1110,7 @@
    "div": "Newton",
    "srank": 104,
    "loc": "Mexico",
+   "region": "Mexico",
    "photo": true,
    "rank": 83,
    "tier": "legendary"
@@ -1040,6 +1123,7 @@
    "div": "Archimedes",
    "srank": 89,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 84,
    "tier": "legendary"
@@ -1052,6 +1136,7 @@
    "div": "Johnson",
    "srank": 144,
    "loc": "MA, USA",
+   "region": "Massachusetts",
    "photo": true,
    "rank": 85,
    "tier": "legendary"
@@ -1064,6 +1149,7 @@
    "div": "Galileo",
    "srank": 72,
    "loc": "Israel",
+   "region": "Israel",
    "photo": true,
    "rank": 86,
    "tier": "legendary"
@@ -1076,6 +1162,7 @@
    "div": "Archimedes",
    "srank": 131,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 87,
    "tier": "legendary"
@@ -1088,6 +1175,7 @@
    "div": "Daly",
    "srank": 146,
    "loc": "ON, Canada",
+   "region": "Ontario",
    "photo": true,
    "rank": 88,
    "tier": "legendary"
@@ -1100,6 +1188,7 @@
    "div": "Galileo",
    "srank": 82,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 89,
    "tier": "legendary"
@@ -1112,6 +1201,7 @@
    "div": "Curie",
    "srank": 99,
    "loc": "NY, USA",
+   "region": "New York",
    "photo": true,
    "rank": 90,
    "tier": "legendary"
@@ -1124,6 +1214,7 @@
    "div": "Newton",
    "srank": 105,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 91,
    "tier": "legendary"
@@ -1136,6 +1227,7 @@
    "div": "Milstein",
    "srank": 110,
    "loc": "ON, Canada",
+   "region": "Ontario",
    "photo": true,
    "rank": 92,
    "tier": "legendary"
@@ -1148,6 +1240,7 @@
    "div": "Newton",
    "srank": 101,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 93,
    "tier": "legendary"
@@ -1160,6 +1253,7 @@
    "div": "Hopper",
    "srank": 63,
    "loc": "NJ, USA",
+   "region": "New Jersey",
    "photo": true,
    "rank": 94,
    "tier": "rare"
@@ -1172,6 +1266,7 @@
    "div": "Hopper",
    "srank": 93,
    "loc": "ON, Canada",
+   "region": "Ontario",
    "photo": true,
    "rank": 95,
    "tier": "rare"
@@ -1184,6 +1279,7 @@
    "div": "Daly",
    "srank": 85,
    "loc": "CT, USA",
+   "region": "Connecticut",
    "photo": true,
    "rank": 96,
    "tier": "rare"
@@ -1196,6 +1292,7 @@
    "div": "Curie",
    "srank": 60,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 97,
    "tier": "rare"
@@ -1208,6 +1305,7 @@
    "div": "Johnson",
    "srank": 138,
    "loc": "TX, USA",
+   "region": "Texas",
    "photo": true,
    "rank": 98,
    "tier": "rare"
@@ -1220,6 +1318,7 @@
    "div": "Johnson",
    "srank": 134,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 99,
    "tier": "rare"
@@ -1232,6 +1331,7 @@
    "div": "Galileo",
    "srank": 114,
    "loc": "PA, USA",
+   "region": "Pennsylvania",
    "photo": true,
    "rank": 100,
    "tier": "rare"
@@ -1244,6 +1344,7 @@
    "div": "Newton",
    "srank": 95,
    "loc": "PA, USA",
+   "region": "Pennsylvania",
    "photo": true,
    "rank": 101,
    "tier": "rare"
@@ -1256,6 +1357,7 @@
    "div": "Archimedes",
    "srank": 168,
    "loc": "CT, USA",
+   "region": "Connecticut",
    "photo": true,
    "rank": 102,
    "tier": "rare"
@@ -1268,6 +1370,7 @@
    "div": "Archimedes",
    "srank": 90,
    "loc": "IA, USA",
+   "region": "Iowa",
    "photo": true,
    "rank": 103,
    "tier": "rare"
@@ -1280,6 +1383,7 @@
    "div": "Archimedes",
    "srank": 157,
    "loc": "UT, USA",
+   "region": "Utah",
    "photo": true,
    "rank": 104,
    "tier": "rare"
@@ -1292,6 +1396,7 @@
    "div": "Archimedes",
    "srank": 132,
    "loc": "NC, USA",
+   "region": "North Carolina",
    "photo": true,
    "rank": 105,
    "tier": "rare"
@@ -1304,6 +1409,7 @@
    "div": "Johnson",
    "srank": 111,
    "loc": "GA, USA",
+   "region": "Georgia",
    "photo": true,
    "rank": 106,
    "tier": "rare"
@@ -1316,6 +1422,7 @@
    "div": "Johnson",
    "srank": 122,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 107,
    "tier": "rare"
@@ -1328,6 +1435,7 @@
    "div": "Newton",
    "srank": 91,
    "loc": "WA, USA",
+   "region": "Washington",
    "photo": true,
    "rank": 108,
    "tier": "rare"
@@ -1340,6 +1448,7 @@
    "div": "Galileo",
    "srank": 136,
    "loc": "AR, USA",
+   "region": "Arkansas",
    "photo": true,
    "rank": 109,
    "tier": "rare"
@@ -1352,6 +1461,7 @@
    "div": "Galileo",
    "srank": 153,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 110,
    "tier": "rare"
@@ -1364,6 +1474,7 @@
    "div": "Milstein",
    "srank": 73,
    "loc": "WA, USA",
+   "region": "Washington",
    "photo": true,
    "rank": 111,
    "tier": "rare"
@@ -1376,6 +1487,7 @@
    "div": "Galileo",
    "srank": 162,
    "loc": "IL, USA",
+   "region": "Illinois",
    "photo": true,
    "rank": 112,
    "tier": "rare"
@@ -1388,6 +1500,7 @@
    "div": "Newton",
    "srank": 190,
    "loc": "CT, USA",
+   "region": "Connecticut",
    "photo": true,
    "rank": 113,
    "tier": "rare"
@@ -1400,6 +1513,7 @@
    "div": "Galileo",
    "srank": 119,
    "loc": "Türkiye",
+   "region": "Türkiye",
    "photo": true,
    "rank": 114,
    "tier": "rare"
@@ -1412,6 +1526,7 @@
    "div": "Curie",
    "srank": 139,
    "loc": "CO, USA",
+   "region": "Colorado",
    "photo": false,
    "rank": 115,
    "tier": "rare"
@@ -1424,6 +1539,7 @@
    "div": "Hopper",
    "srank": 150,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 116,
    "tier": "rare"
@@ -1436,6 +1552,7 @@
    "div": "Curie",
    "srank": 108,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 117,
    "tier": "rare"
@@ -1448,6 +1565,7 @@
    "div": "Johnson",
    "srank": 123,
    "loc": "WA, USA",
+   "region": "Washington",
    "photo": true,
    "rank": 118,
    "tier": "rare"
@@ -1460,6 +1578,7 @@
    "div": "Newton",
    "srank": 133,
    "loc": "TX, USA",
+   "region": "Texas",
    "photo": true,
    "rank": 119,
    "tier": "rare"
@@ -1472,6 +1591,7 @@
    "div": "Archimedes",
    "srank": 166,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 120,
    "tier": "rare"
@@ -1484,6 +1604,7 @@
    "div": "Johnson",
    "srank": 223,
    "loc": "OR, USA",
+   "region": "Oregon",
    "photo": true,
    "rank": 121,
    "tier": "rare"
@@ -1496,6 +1617,7 @@
    "div": "Johnson",
    "srank": 102,
    "loc": "PA, USA",
+   "region": "Pennsylvania",
    "photo": true,
    "rank": 122,
    "tier": "rare"
@@ -1508,6 +1630,7 @@
    "div": "Johnson",
    "srank": 142,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 123,
    "tier": "rare"
@@ -1520,6 +1643,7 @@
    "div": "Newton",
    "srank": 130,
    "loc": "MN, USA",
+   "region": "Minnesota",
    "photo": true,
    "rank": 124,
    "tier": "rare"
@@ -1532,6 +1656,7 @@
    "div": "Milstein",
    "srank": 203,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 125,
    "tier": "rare"
@@ -1544,6 +1669,7 @@
    "div": "Galileo",
    "srank": 167,
    "loc": "TN, USA",
+   "region": "Tennessee",
    "photo": true,
    "rank": 126,
    "tier": "rare"
@@ -1556,6 +1682,7 @@
    "div": "Johnson",
    "srank": 121,
    "loc": "MD, USA",
+   "region": "Maryland",
    "photo": true,
    "rank": 127,
    "tier": "rare"
@@ -1568,6 +1695,7 @@
    "div": "Daly",
    "srank": 177,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 128,
    "tier": "rare"
@@ -1580,6 +1708,7 @@
    "div": "Johnson",
    "srank": 145,
    "loc": "Mexico",
+   "region": "Mexico",
    "photo": true,
    "rank": 129,
    "tier": "rare"
@@ -1592,6 +1721,7 @@
    "div": "Hopper",
    "srank": 103,
    "loc": "TX, USA",
+   "region": "Texas",
    "photo": true,
    "rank": 130,
    "tier": "rare"
@@ -1604,6 +1734,7 @@
    "div": "Hopper",
    "srank": 128,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 131,
    "tier": "rare"
@@ -1616,6 +1747,7 @@
    "div": "Johnson",
    "srank": 174,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 132,
    "tier": "rare"
@@ -1628,6 +1760,7 @@
    "div": "Archimedes",
    "srank": 118,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 133,
    "tier": "rare"
@@ -1640,6 +1773,7 @@
    "div": "Johnson",
    "srank": 124,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 134,
    "tier": "rare"
@@ -1652,6 +1786,7 @@
    "div": "Daly",
    "srank": 159,
    "loc": "Mexico",
+   "region": "Mexico",
    "photo": true,
    "rank": 135,
    "tier": "rare"
@@ -1664,6 +1799,7 @@
    "div": "Curie",
    "srank": 194,
    "loc": "CT, USA",
+   "region": "Connecticut",
    "photo": true,
    "rank": 136,
    "tier": "rare"
@@ -1676,6 +1812,7 @@
    "div": "Daly",
    "srank": 206,
    "loc": "IL, USA",
+   "region": "Illinois",
    "photo": true,
    "rank": 137,
    "tier": "rare"
@@ -1688,6 +1825,7 @@
    "div": "Hopper",
    "srank": 163,
    "loc": "MO, USA",
+   "region": "Missouri",
    "photo": true,
    "rank": 138,
    "tier": "rare"
@@ -1700,6 +1838,7 @@
    "div": "Curie",
    "srank": 140,
    "loc": "LA, USA",
+   "region": "Louisiana",
    "photo": true,
    "rank": 139,
    "tier": "rare"
@@ -1712,6 +1851,7 @@
    "div": "Daly",
    "srank": 295,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 140,
    "tier": "rare"
@@ -1724,6 +1864,7 @@
    "div": "Daly",
    "srank": 255,
    "loc": "IL, USA",
+   "region": "Illinois",
    "photo": true,
    "rank": 141,
    "tier": "rare"
@@ -1736,6 +1877,7 @@
    "div": "Curie",
    "srank": 164,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 142,
    "tier": "rare"
@@ -1748,6 +1890,7 @@
    "div": "Hopper",
    "srank": 143,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 143,
    "tier": "rare"
@@ -1760,6 +1903,7 @@
    "div": "Curie",
    "srank": 135,
    "loc": "WI, USA",
+   "region": "Wisconsin",
    "photo": true,
    "rank": 144,
    "tier": "rare"
@@ -1772,6 +1916,7 @@
    "div": "Johnson",
    "srank": 156,
    "loc": "MA, USA",
+   "region": "Massachusetts",
    "photo": true,
    "rank": 145,
    "tier": "rare"
@@ -1784,6 +1929,7 @@
    "div": "Newton",
    "srank": 191,
    "loc": "CO, USA",
+   "region": "Colorado",
    "photo": true,
    "rank": 146,
    "tier": "rare"
@@ -1796,6 +1942,7 @@
    "div": "Archimedes",
    "srank": 239,
    "loc": "Mexico",
+   "region": "Mexico",
    "photo": true,
    "rank": 147,
    "tier": "rare"
@@ -1808,6 +1955,7 @@
    "div": "Johnson",
    "srank": 169,
    "loc": "MD, USA",
+   "region": "Maryland",
    "photo": true,
    "rank": 148,
    "tier": "rare"
@@ -1820,6 +1968,7 @@
    "div": "Archimedes",
    "srank": 152,
    "loc": "PA, USA",
+   "region": "Pennsylvania",
    "photo": true,
    "rank": 149,
    "tier": "rare"
@@ -1832,6 +1981,7 @@
    "div": "Galileo",
    "srank": 155,
    "loc": "MN, USA",
+   "region": "Minnesota",
    "photo": true,
    "rank": 150,
    "tier": "rare"
@@ -1844,6 +1994,7 @@
    "div": "Archimedes",
    "srank": 98,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 151,
    "tier": "rare"
@@ -1856,6 +2007,7 @@
    "div": "Johnson",
    "srank": 170,
    "loc": "NH, USA",
+   "region": "New Hampshire",
    "photo": true,
    "rank": 152,
    "tier": "rare"
@@ -1868,6 +2020,7 @@
    "div": "Curie",
    "srank": 178,
    "loc": "MN, USA",
+   "region": "Minnesota",
    "photo": true,
    "rank": 153,
    "tier": "legendary"
@@ -1880,6 +2033,7 @@
    "div": "Hopper",
    "srank": 172,
    "loc": "IL, USA",
+   "region": "Illinois",
    "photo": true,
    "rank": 154,
    "tier": "rare"
@@ -1892,6 +2046,7 @@
    "div": "Galileo",
    "srank": 189,
    "loc": "PA, USA",
+   "region": "Pennsylvania",
    "photo": true,
    "rank": 155,
    "tier": "rare"
@@ -1904,6 +2059,7 @@
    "div": "Galileo",
    "srank": 185,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 156,
    "tier": "rare"
@@ -1916,6 +2072,7 @@
    "div": "Daly",
    "srank": 198,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 157,
    "tier": "rare"
@@ -1928,6 +2085,7 @@
    "div": "Galileo",
    "srank": 219,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 158,
    "tier": "rare"
@@ -1940,6 +2098,7 @@
    "div": "Johnson",
    "srank": 297,
    "loc": "NH, USA",
+   "region": "New Hampshire",
    "photo": true,
    "rank": 159,
    "tier": "rare"
@@ -1952,6 +2111,7 @@
    "div": "Milstein",
    "srank": 213,
    "loc": "WA, USA",
+   "region": "Washington",
    "photo": true,
    "rank": 160,
    "tier": "rare"
@@ -1964,6 +2124,7 @@
    "div": "Milstein",
    "srank": 196,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 161,
    "tier": "rare"
@@ -1976,6 +2137,7 @@
    "div": "Daly",
    "srank": 161,
    "loc": "NY, USA",
+   "region": "New York",
    "photo": true,
    "rank": 162,
    "tier": "rare"
@@ -1988,6 +2150,7 @@
    "div": "Curie",
    "srank": 217,
    "loc": "OH, USA",
+   "region": "Ohio",
    "photo": true,
    "rank": 163,
    "tier": "rare"
@@ -2000,6 +2163,7 @@
    "div": "Johnson",
    "srank": 207,
    "loc": "WI, USA",
+   "region": "Wisconsin",
    "photo": true,
    "rank": 164,
    "tier": "rare"
@@ -2012,6 +2176,7 @@
    "div": "Galileo",
    "srank": 210,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 165,
    "tier": "rare"
@@ -2024,6 +2189,7 @@
    "div": "Newton",
    "srank": 137,
    "loc": "NH, USA",
+   "region": "New Hampshire",
    "photo": true,
    "rank": 166,
    "tier": "rare"
@@ -2036,6 +2202,7 @@
    "div": "Archimedes",
    "srank": 182,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 167,
    "tier": "rare"
@@ -2048,6 +2215,7 @@
    "div": "Newton",
    "srank": 261,
    "loc": "KY, USA",
+   "region": "Kentucky",
    "photo": true,
    "rank": 168,
    "tier": "rare"
@@ -2060,6 +2228,7 @@
    "div": "Milstein",
    "srank": 204,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 169,
    "tier": "rare"
@@ -2072,6 +2241,7 @@
    "div": "Hopper",
    "srank": 291,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 170,
    "tier": "rare"
@@ -2084,6 +2254,7 @@
    "div": "Hopper",
    "srank": 483,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 171,
    "tier": "rare"
@@ -2096,6 +2267,7 @@
    "div": "Galileo",
    "srank": 147,
    "loc": "MN, USA",
+   "region": "Minnesota",
    "photo": true,
    "rank": 172,
    "tier": "rare"
@@ -2108,6 +2280,7 @@
    "div": "Johnson",
    "srank": 160,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 173,
    "tier": "rare"
@@ -2120,6 +2293,7 @@
    "div": "Milstein",
    "srank": 245,
    "loc": "GA, USA",
+   "region": "Georgia",
    "photo": true,
    "rank": 174,
    "tier": "rare"
@@ -2132,6 +2306,7 @@
    "div": "Hopper",
    "srank": 117,
    "loc": "MN, USA",
+   "region": "Minnesota",
    "photo": true,
    "rank": 175,
    "tier": "rare"
@@ -2144,6 +2319,7 @@
    "div": "Galileo",
    "srank": 199,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 176,
    "tier": "rare"
@@ -2156,6 +2332,7 @@
    "div": "Galileo",
    "srank": 208,
    "loc": "NV, USA",
+   "region": "Nevada",
    "photo": true,
    "rank": 177,
    "tier": "rare"
@@ -2168,6 +2345,7 @@
    "div": "Galileo",
    "srank": 231,
    "loc": "IL, USA",
+   "region": "Illinois",
    "photo": true,
    "rank": 178,
    "tier": "rare"
@@ -2180,6 +2358,7 @@
    "div": "Daly",
    "srank": 241,
    "loc": "NH, USA",
+   "region": "New Hampshire",
    "photo": true,
    "rank": 179,
    "tier": "rare"
@@ -2192,6 +2371,7 @@
    "div": "Archimedes",
    "srank": 285,
    "loc": "IN, USA",
+   "region": "Indiana",
    "photo": true,
    "rank": 180,
    "tier": "rare"
@@ -2204,6 +2384,7 @@
    "div": "Curie",
    "srank": 229,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 181,
    "tier": "rare"
@@ -2216,6 +2397,7 @@
    "div": "Hopper",
    "srank": 175,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 182,
    "tier": "rare"
@@ -2228,6 +2410,7 @@
    "div": "Curie",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 183,
    "tier": "rare"
@@ -2240,6 +2423,7 @@
    "div": "Hopper",
    "srank": 197,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 184,
    "tier": "rare"
@@ -2252,6 +2436,7 @@
    "div": "Newton",
    "srank": 201,
    "loc": "WI, USA",
+   "region": "Wisconsin",
    "photo": true,
    "rank": 185,
    "tier": "rare"
@@ -2264,6 +2449,7 @@
    "div": "Hopper",
    "srank": 173,
    "loc": "KS, USA",
+   "region": "Kansas",
    "photo": true,
    "rank": 186,
    "tier": "rare"
@@ -2276,6 +2462,7 @@
    "div": "Newton",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 187,
    "tier": "rare"
@@ -2288,6 +2475,7 @@
    "div": "Newton",
    "srank": 180,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 188,
    "tier": "rare"
@@ -2300,6 +2488,7 @@
    "div": "Newton",
    "srank": 220,
    "loc": "TX, USA",
+   "region": "Texas",
    "photo": true,
    "rank": 189,
    "tier": "rare"
@@ -2312,6 +2501,7 @@
    "div": "Galileo",
    "srank": 280,
    "loc": "TX, USA",
+   "region": "Texas",
    "photo": true,
    "rank": 190,
    "tier": "rare"
@@ -2324,6 +2514,7 @@
    "div": "Hopper",
    "srank": 234,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 191,
    "tier": "rare"
@@ -2336,6 +2527,7 @@
    "div": "Hopper",
    "srank": 235,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 192,
    "tier": "rare"
@@ -2348,6 +2540,7 @@
    "div": "Newton",
    "srank": 158,
    "loc": "NH, USA",
+   "region": "New Hampshire",
    "photo": true,
    "rank": 193,
    "tier": "rare"
@@ -2360,6 +2553,7 @@
    "div": "Archimedes",
    "srank": 290,
    "loc": "NH, USA",
+   "region": "New Hampshire",
    "photo": true,
    "rank": 194,
    "tier": "rare"
@@ -2372,6 +2566,7 @@
    "div": "Milstein",
    "srank": 187,
    "loc": "Israel",
+   "region": "Israel",
    "photo": true,
    "rank": 195,
    "tier": "rare"
@@ -2384,6 +2579,7 @@
    "div": "Hopper",
    "srank": 333,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 196,
    "tier": "rare"
@@ -2396,6 +2592,7 @@
    "div": "Daly",
    "srank": 308,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 197,
    "tier": "rare"
@@ -2408,6 +2605,7 @@
    "div": "Daly",
    "srank": 214,
    "loc": "China",
+   "region": "China",
    "photo": true,
    "rank": 198,
    "tier": "rare"
@@ -2420,6 +2618,7 @@
    "div": "Curie",
    "srank": 265,
    "loc": "NH, USA",
+   "region": "New Hampshire",
    "photo": true,
    "rank": 199,
    "tier": "rare"
@@ -2432,6 +2631,7 @@
    "div": "Galileo",
    "srank": 314,
    "loc": "NJ, USA",
+   "region": "New Jersey",
    "photo": true,
    "rank": 200,
    "tier": "rare"
@@ -2444,6 +2644,7 @@
    "div": "Hopper",
    "srank": 192,
    "loc": "OH, USA",
+   "region": "Ohio",
    "photo": true,
    "rank": 201,
    "tier": "rare"
@@ -2456,6 +2657,7 @@
    "div": "Archimedes",
    "srank": 176,
    "loc": "GA, USA",
+   "region": "Georgia",
    "photo": true,
    "rank": 202,
    "tier": "rare"
@@ -2468,6 +2670,7 @@
    "div": "Milstein",
    "srank": 243,
    "loc": "NY, USA",
+   "region": "New York",
    "photo": true,
    "rank": 203,
    "tier": "rare"
@@ -2480,6 +2683,7 @@
    "div": "Hopper",
    "srank": 179,
    "loc": "NY, USA",
+   "region": "New York",
    "photo": true,
    "rank": 204,
    "tier": "rare"
@@ -2492,6 +2696,7 @@
    "div": "Daly",
    "srank": 294,
    "loc": "Mexico",
+   "region": "Mexico",
    "photo": true,
    "rank": 205,
    "tier": "rare"
@@ -2504,6 +2709,7 @@
    "div": "Daly",
    "srank": 268,
    "loc": "PA, USA",
+   "region": "Pennsylvania",
    "photo": true,
    "rank": 206,
    "tier": "rare"
@@ -2516,6 +2722,7 @@
    "div": "Curie",
    "srank": 227,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 207,
    "tier": "rare"
@@ -2528,6 +2735,7 @@
    "div": "Curie",
    "srank": 202,
    "loc": "Israel",
+   "region": "Israel",
    "photo": true,
    "rank": 208,
    "tier": "rare"
@@ -2540,6 +2748,7 @@
    "div": "Galileo",
    "srank": 271,
    "loc": "IL, USA",
+   "region": "Illinois",
    "photo": true,
    "rank": 209,
    "tier": "rare"
@@ -2552,6 +2761,7 @@
    "div": "Newton",
    "srank": 154,
    "loc": "VA, USA",
+   "region": "Virginia",
    "photo": true,
    "rank": 210,
    "tier": "rare"
@@ -2564,6 +2774,7 @@
    "div": "Curie",
    "srank": 211,
    "loc": "NY, USA",
+   "region": "New York",
    "photo": true,
    "rank": 211,
    "tier": "rare"
@@ -2576,6 +2787,7 @@
    "div": "Archimedes",
    "srank": 258,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 212,
    "tier": "rare"
@@ -2588,6 +2800,7 @@
    "div": "Daly",
    "srank": 474,
    "loc": "FL, USA",
+   "region": "Florida",
    "photo": true,
    "rank": 213,
    "tier": "rare"
@@ -2600,6 +2813,7 @@
    "div": "Johnson",
    "srank": 282,
    "loc": "TX, USA",
+   "region": "Texas",
    "photo": true,
    "rank": 214,
    "tier": "uncommon"
@@ -2612,6 +2826,7 @@
    "div": "Archimedes",
    "srank": 330,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 215,
    "tier": "uncommon"
@@ -2624,6 +2839,7 @@
    "div": "Curie",
    "srank": 246,
    "loc": "Chinese Taipei",
+   "region": "Chinese Taipei",
    "photo": true,
    "rank": 216,
    "tier": "uncommon"
@@ -2636,6 +2852,7 @@
    "div": "Johnson",
    "srank": 181,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 217,
    "tier": "uncommon"
@@ -2648,6 +2865,7 @@
    "div": "Daly",
    "srank": 195,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 218,
    "tier": "uncommon"
@@ -2660,6 +2878,7 @@
    "div": "Daly",
    "srank": 254,
    "loc": "WA, USA",
+   "region": "Washington",
    "photo": true,
    "rank": 219,
    "tier": "uncommon"
@@ -2672,6 +2891,7 @@
    "div": "Curie",
    "srank": 252,
    "loc": "WI, USA",
+   "region": "Wisconsin",
    "photo": true,
    "rank": 220,
    "tier": "uncommon"
@@ -2684,6 +2904,7 @@
    "div": "Archimedes",
    "srank": 212,
    "loc": "CO, USA",
+   "region": "Colorado",
    "photo": true,
    "rank": 221,
    "tier": "uncommon"
@@ -2696,6 +2917,7 @@
    "div": "Curie",
    "srank": 288,
    "loc": "IN, USA",
+   "region": "Indiana",
    "photo": true,
    "rank": 222,
    "tier": "uncommon"
@@ -2708,6 +2930,7 @@
    "div": "Newton",
    "srank": 244,
    "loc": "VT, USA",
+   "region": "Vermont",
    "photo": true,
    "rank": 223,
    "tier": "uncommon"
@@ -2720,6 +2943,7 @@
    "div": "Newton",
    "srank": 248,
    "loc": "MA, USA",
+   "region": "Massachusetts",
    "photo": true,
    "rank": 224,
    "tier": "uncommon"
@@ -2732,6 +2956,7 @@
    "div": "Milstein",
    "srank": 263,
    "loc": "IA, USA",
+   "region": "Iowa",
    "photo": true,
    "rank": 225,
    "tier": "uncommon"
@@ -2744,6 +2969,7 @@
    "div": "Galileo",
    "srank": 302,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 226,
    "tier": "uncommon"
@@ -2756,6 +2982,7 @@
    "div": "Newton",
    "srank": 218,
    "loc": "TN, USA",
+   "region": "Tennessee",
    "photo": true,
    "rank": 227,
    "tier": "uncommon"
@@ -2768,6 +2995,7 @@
    "div": "Johnson",
    "srank": 300,
    "loc": "VA, USA",
+   "region": "Virginia",
    "photo": true,
    "rank": 228,
    "tier": "uncommon"
@@ -2780,6 +3008,7 @@
    "div": "Milstein",
    "srank": 277,
    "loc": "MD, USA",
+   "region": "Maryland",
    "photo": true,
    "rank": 229,
    "tier": "uncommon"
@@ -2792,6 +3021,7 @@
    "div": "Newton",
    "srank": 266,
    "loc": "WI, USA",
+   "region": "Wisconsin",
    "photo": true,
    "rank": 230,
    "tier": "uncommon"
@@ -2804,6 +3034,7 @@
    "div": "Curie",
    "srank": 272,
    "loc": "TX, USA",
+   "region": "Texas",
    "photo": false,
    "rank": 231,
    "tier": "uncommon"
@@ -2816,6 +3047,7 @@
    "div": "Johnson",
    "srank": 259,
    "loc": "WI, USA",
+   "region": "Wisconsin",
    "photo": true,
    "rank": 232,
    "tier": "uncommon"
@@ -2828,6 +3060,7 @@
    "div": "Galileo",
    "srank": 310,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 233,
    "tier": "uncommon"
@@ -2840,6 +3073,7 @@
    "div": "Milstein",
    "srank": 400,
    "loc": "Türkiye",
+   "region": "Türkiye",
    "photo": true,
    "rank": 234,
    "tier": "uncommon"
@@ -2852,6 +3086,7 @@
    "div": "Johnson",
    "srank": 309,
    "loc": "VA, USA",
+   "region": "Virginia",
    "photo": true,
    "rank": 235,
    "tier": "uncommon"
@@ -2864,6 +3099,7 @@
    "div": "Archimedes",
    "srank": 371,
    "loc": "IL, USA",
+   "region": "Illinois",
    "photo": true,
    "rank": 236,
    "tier": "uncommon"
@@ -2876,6 +3112,7 @@
    "div": "Daly",
    "srank": 284,
    "loc": "Israel",
+   "region": "Israel",
    "photo": true,
    "rank": 237,
    "tier": "uncommon"
@@ -2888,6 +3125,7 @@
    "div": "Curie",
    "srank": 328,
    "loc": "FL, USA",
+   "region": "Florida",
    "photo": true,
    "rank": 238,
    "tier": "uncommon"
@@ -2900,6 +3138,7 @@
    "div": "Milstein",
    "srank": 334,
    "loc": "ON, Canada",
+   "region": "Ontario",
    "photo": true,
    "rank": 239,
    "tier": "uncommon"
@@ -2912,6 +3151,7 @@
    "div": "Newton",
    "srank": 356,
    "loc": "IN, USA",
+   "region": "Indiana",
    "photo": true,
    "rank": 240,
    "tier": "uncommon"
@@ -2924,6 +3164,7 @@
    "div": "Curie",
    "srank": 315,
    "loc": "India",
+   "region": "India",
    "photo": true,
    "rank": 241,
    "tier": "uncommon"
@@ -2936,6 +3177,7 @@
    "div": "Newton",
    "srank": 247,
    "loc": "VA, USA",
+   "region": "Virginia",
    "photo": true,
    "rank": 242,
    "tier": "uncommon"
@@ -2948,6 +3190,7 @@
    "div": "Johnson",
    "srank": 461,
    "loc": "WA, USA",
+   "region": "Washington",
    "photo": true,
    "rank": 243,
    "tier": "uncommon"
@@ -2960,6 +3203,7 @@
    "div": "Hopper",
    "srank": 301,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 244,
    "tier": "uncommon"
@@ -2972,6 +3216,7 @@
    "div": "Newton",
    "srank": 225,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 245,
    "tier": "uncommon"
@@ -2984,6 +3229,7 @@
    "div": "Johnson",
    "srank": 349,
    "loc": "OH, USA",
+   "region": "Ohio",
    "photo": true,
    "rank": 246,
    "tier": "uncommon"
@@ -2996,6 +3242,7 @@
    "div": "Daly",
    "srank": 250,
    "loc": "GA, USA",
+   "region": "Georgia",
    "photo": true,
    "rank": 247,
    "tier": "uncommon"
@@ -3008,6 +3255,7 @@
    "div": "Hopper",
    "srank": 269,
    "loc": "FL, USA",
+   "region": "Florida",
    "photo": true,
    "rank": 248,
    "tier": "uncommon"
@@ -3020,6 +3268,7 @@
    "div": "Archimedes",
    "srank": 460,
    "loc": "MN, USA",
+   "region": "Minnesota",
    "photo": true,
    "rank": 249,
    "tier": "uncommon"
@@ -3032,6 +3281,7 @@
    "div": "Newton",
    "srank": 293,
    "loc": "MD, USA",
+   "region": "Maryland",
    "photo": true,
    "rank": 250,
    "tier": "uncommon"
@@ -3044,6 +3294,7 @@
    "div": "Archimedes",
    "srank": 493,
    "loc": "MN, USA",
+   "region": "Minnesota",
    "photo": true,
    "rank": 251,
    "tier": "uncommon"
@@ -3056,6 +3307,7 @@
    "div": "Johnson",
    "srank": 264,
    "loc": "SC, USA",
+   "region": "South Carolina",
    "photo": true,
    "rank": 252,
    "tier": "uncommon"
@@ -3068,6 +3320,7 @@
    "div": "Galileo",
    "srank": 304,
    "loc": "NJ, USA",
+   "region": "New Jersey",
    "photo": true,
    "rank": 253,
    "tier": "uncommon"
@@ -3080,6 +3333,7 @@
    "div": "Archimedes",
    "srank": 249,
    "loc": "SD, USA",
+   "region": "South Dakota",
    "photo": true,
    "rank": 254,
    "tier": "uncommon"
@@ -3092,6 +3346,7 @@
    "div": "Milstein",
    "srank": 230,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 255,
    "tier": "uncommon"
@@ -3104,6 +3359,7 @@
    "div": "Curie",
    "srank": 415,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 256,
    "tier": "uncommon"
@@ -3116,6 +3372,7 @@
    "div": "Daly",
    "srank": 287,
    "loc": "NJ, USA",
+   "region": "New Jersey",
    "photo": true,
    "rank": 257,
    "tier": "uncommon"
@@ -3128,6 +3385,7 @@
    "div": "Galileo",
    "srank": 256,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 258,
    "tier": "uncommon"
@@ -3140,6 +3398,7 @@
    "div": "Newton",
    "srank": 273,
    "loc": "NC, USA",
+   "region": "North Carolina",
    "photo": true,
    "rank": 259,
    "tier": "uncommon"
@@ -3152,6 +3411,7 @@
    "div": "Hopper",
    "srank": 320,
    "loc": "IN, USA",
+   "region": "Indiana",
    "photo": false,
    "rank": 260,
    "tier": "uncommon"
@@ -3164,6 +3424,7 @@
    "div": "Daly",
    "srank": 370,
    "loc": "Chinese Taipei",
+   "region": "Chinese Taipei",
    "photo": true,
    "rank": 261,
    "tier": "uncommon"
@@ -3176,6 +3437,7 @@
    "div": "Hopper",
    "srank": 253,
    "loc": "TN, USA",
+   "region": "Tennessee",
    "photo": true,
    "rank": 262,
    "tier": "uncommon"
@@ -3188,6 +3450,7 @@
    "div": "Milstein",
    "srank": 251,
    "loc": "PA, USA",
+   "region": "Pennsylvania",
    "photo": true,
    "rank": 263,
    "tier": "uncommon"
@@ -3200,6 +3463,7 @@
    "div": "Newton",
    "srank": 274,
    "loc": "Türkiye",
+   "region": "Türkiye",
    "photo": true,
    "rank": 264,
    "tier": "uncommon"
@@ -3212,6 +3476,7 @@
    "div": "Curie",
    "srank": 276,
    "loc": "NC, USA",
+   "region": "North Carolina",
    "photo": true,
    "rank": 265,
    "tier": "uncommon"
@@ -3224,6 +3489,7 @@
    "div": "Archimedes",
    "srank": 442,
    "loc": "IN, USA",
+   "region": "Indiana",
    "photo": true,
    "rank": 266,
    "tier": "uncommon"
@@ -3236,6 +3502,7 @@
    "div": "Hopper",
    "srank": 233,
    "loc": "TX, USA",
+   "region": "Texas",
    "photo": true,
    "rank": 267,
    "tier": "uncommon"
@@ -3248,6 +3515,7 @@
    "div": "Johnson",
    "srank": 267,
    "loc": "FL, USA",
+   "region": "Florida",
    "photo": true,
    "rank": 268,
    "tier": "uncommon"
@@ -3260,6 +3528,7 @@
    "div": "Newton",
    "srank": 240,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 269,
    "tier": "uncommon"
@@ -3272,6 +3541,7 @@
    "div": "Newton",
    "srank": 369,
    "loc": "TX, USA",
+   "region": "Texas",
    "photo": true,
    "rank": 270,
    "tier": "uncommon"
@@ -3284,6 +3554,7 @@
    "div": "Curie",
    "srank": 317,
    "loc": "MN, USA",
+   "region": "Minnesota",
    "photo": true,
    "rank": 271,
    "tier": "uncommon"
@@ -3296,6 +3567,7 @@
    "div": "Galileo",
    "srank": 454,
    "loc": "Türkiye",
+   "region": "Türkiye",
    "photo": true,
    "rank": 272,
    "tier": "uncommon"
@@ -3308,6 +3580,7 @@
    "div": "Curie",
    "srank": 362,
    "loc": "Australia",
+   "region": "Australia",
    "photo": true,
    "rank": 273,
    "tier": "uncommon"
@@ -3320,6 +3593,7 @@
    "div": "Curie",
    "srank": 477,
    "loc": "PA, USA",
+   "region": "Pennsylvania",
    "photo": true,
    "rank": 274,
    "tier": "uncommon"
@@ -3332,6 +3606,7 @@
    "div": "Archimedes",
    "srank": 184,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 275,
    "tier": "uncommon"
@@ -3344,6 +3619,7 @@
    "div": "Archimedes",
    "srank": 394,
    "loc": "PA, USA",
+   "region": "Pennsylvania",
    "photo": true,
    "rank": 276,
    "tier": "uncommon"
@@ -3356,6 +3632,7 @@
    "div": "Milstein",
    "srank": 228,
    "loc": "AB, Canada",
+   "region": "Alberta",
    "photo": true,
    "rank": 277,
    "tier": "uncommon"
@@ -3368,6 +3645,7 @@
    "div": "Archimedes",
    "srank": 431,
    "loc": "VA, USA",
+   "region": "Virginia",
    "photo": true,
    "rank": 278,
    "tier": "uncommon"
@@ -3380,6 +3658,7 @@
    "div": "Milstein",
    "srank": 348,
    "loc": "NC, USA",
+   "region": "North Carolina",
    "photo": true,
    "rank": 279,
    "tier": "uncommon"
@@ -3392,6 +3671,7 @@
    "div": "Johnson",
    "srank": 346,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 280,
    "tier": "uncommon"
@@ -3404,6 +3684,7 @@
    "div": "Archimedes",
    "srank": 469,
    "loc": "VA, USA",
+   "region": "Virginia",
    "photo": true,
    "rank": 281,
    "tier": "uncommon"
@@ -3416,6 +3697,7 @@
    "div": "Daly",
    "srank": 377,
    "loc": "GA, USA",
+   "region": "Georgia",
    "photo": true,
    "rank": 282,
    "tier": "uncommon"
@@ -3428,6 +3710,7 @@
    "div": "Newton",
    "srank": 232,
    "loc": "MN, USA",
+   "region": "Minnesota",
    "photo": true,
    "rank": 283,
    "tier": "uncommon"
@@ -3440,6 +3723,7 @@
    "div": "Archimedes",
    "srank": 305,
    "loc": "TX, USA",
+   "region": "Texas",
    "photo": true,
    "rank": 284,
    "tier": "uncommon"
@@ -3452,6 +3736,7 @@
    "div": "Milstein",
    "srank": 382,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 285,
    "tier": "uncommon"
@@ -3464,6 +3749,7 @@
    "div": "Galileo",
    "srank": 379,
    "loc": "WI, USA",
+   "region": "Wisconsin",
    "photo": true,
    "rank": 286,
    "tier": "uncommon"
@@ -3476,6 +3762,7 @@
    "div": "Newton",
    "srank": 358,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 287,
    "tier": "uncommon"
@@ -3488,6 +3775,7 @@
    "div": "Archimedes",
    "srank": 331,
    "loc": "China",
+   "region": "China",
    "photo": true,
    "rank": 288,
    "tier": "uncommon"
@@ -3500,6 +3788,7 @@
    "div": "Archimedes",
    "srank": 325,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 289,
    "tier": "uncommon"
@@ -3512,6 +3801,7 @@
    "div": "Johnson",
    "srank": 499,
    "loc": "VA, USA",
+   "region": "Virginia",
    "photo": true,
    "rank": 290,
    "tier": "uncommon"
@@ -3524,6 +3814,7 @@
    "div": "Archimedes",
    "srank": 392,
    "loc": "TX, USA",
+   "region": "Texas",
    "photo": true,
    "rank": 291,
    "tier": "uncommon"
@@ -3536,6 +3827,7 @@
    "div": "Daly",
    "srank": 417,
    "loc": "MN, USA",
+   "region": "Minnesota",
    "photo": true,
    "rank": 292,
    "tier": "uncommon"
@@ -3548,6 +3840,7 @@
    "div": "Archimedes",
    "srank": 299,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 293,
    "tier": "uncommon"
@@ -3560,6 +3853,7 @@
    "div": "Hopper",
    "srank": 421,
    "loc": "WI, USA",
+   "region": "Wisconsin",
    "photo": true,
    "rank": 294,
    "tier": "uncommon"
@@ -3572,6 +3866,7 @@
    "div": "Daly",
    "srank": 575,
    "loc": "MD, USA",
+   "region": "Maryland",
    "photo": true,
    "rank": 295,
    "tier": "uncommon"
@@ -3584,6 +3879,7 @@
    "div": "Curie",
    "srank": 456,
    "loc": "Chinese Taipei",
+   "region": "Chinese Taipei",
    "photo": true,
    "rank": 296,
    "tier": "uncommon"
@@ -3596,6 +3892,7 @@
    "div": "Galileo",
    "srank": 342,
    "loc": "MO, USA",
+   "region": "Missouri",
    "photo": true,
    "rank": 297,
    "tier": "uncommon"
@@ -3608,6 +3905,7 @@
    "div": "Milstein",
    "srank": 360,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 298,
    "tier": "uncommon"
@@ -3620,6 +3918,7 @@
    "div": "Daly",
    "srank": 443,
    "loc": "IN, USA",
+   "region": "Indiana",
    "photo": true,
    "rank": 299,
    "tier": "uncommon"
@@ -3632,6 +3931,7 @@
    "div": "Newton",
    "srank": 427,
    "loc": "KS, USA",
+   "region": "Kansas",
    "photo": true,
    "rank": 300,
    "tier": "uncommon"
@@ -3644,6 +3944,7 @@
    "div": "Milstein",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 301,
    "tier": "uncommon"
@@ -3656,6 +3957,7 @@
    "div": "Curie",
    "srank": 209,
    "loc": "NV, USA",
+   "region": "Nevada",
    "photo": true,
    "rank": 302,
    "tier": "uncommon"
@@ -3668,6 +3970,7 @@
    "div": "Hopper",
    "srank": 296,
    "loc": "VA, USA",
+   "region": "Virginia",
    "photo": true,
    "rank": 303,
    "tier": "uncommon"
@@ -3680,6 +3983,7 @@
    "div": "Galileo",
    "srank": 396,
    "loc": "MN, USA",
+   "region": "Minnesota",
    "photo": true,
    "rank": 304,
    "tier": "uncommon"
@@ -3692,6 +3996,7 @@
    "div": "Daly",
    "srank": 350,
    "loc": "NJ, USA",
+   "region": "New Jersey",
    "photo": true,
    "rank": 305,
    "tier": "uncommon"
@@ -3704,6 +4009,7 @@
    "div": "Archimedes",
    "srank": 403,
    "loc": "Canada",
+   "region": "Canada",
    "photo": true,
    "rank": 306,
    "tier": "uncommon"
@@ -3716,6 +4022,7 @@
    "div": "Daly",
    "srank": 404,
    "loc": "NJ, USA",
+   "region": "New Jersey",
    "photo": true,
    "rank": 307,
    "tier": "uncommon"
@@ -3728,6 +4035,7 @@
    "div": "Galileo",
    "srank": 307,
    "loc": "OK, USA",
+   "region": "Oklahoma",
    "photo": true,
    "rank": 308,
    "tier": "uncommon"
@@ -3740,6 +4048,7 @@
    "div": "Daly",
    "srank": 343,
    "loc": "OR, USA",
+   "region": "Oregon",
    "photo": true,
    "rank": 309,
    "tier": "uncommon"
@@ -3752,6 +4061,7 @@
    "div": "Archimedes",
    "srank": 279,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 310,
    "tier": "uncommon"
@@ -3764,6 +4074,7 @@
    "div": "Archimedes",
    "srank": 336,
    "loc": "IN, USA",
+   "region": "Indiana",
    "photo": true,
    "rank": 311,
    "tier": "uncommon"
@@ -3776,6 +4087,7 @@
    "div": "Curie",
    "srank": 354,
    "loc": "TX, USA",
+   "region": "Texas",
    "photo": true,
    "rank": 312,
    "tier": "uncommon"
@@ -3788,6 +4100,7 @@
    "div": "Archimedes",
    "srank": 340,
    "loc": "IN, USA",
+   "region": "Indiana",
    "photo": true,
    "rank": 313,
    "tier": "uncommon"
@@ -3800,6 +4113,7 @@
    "div": "Curie",
    "srank": 390,
    "loc": "Mexico",
+   "region": "Mexico",
    "photo": true,
    "rank": 314,
    "tier": "uncommon"
@@ -3812,6 +4126,7 @@
    "div": "Newton",
    "srank": 278,
    "loc": "Israel",
+   "region": "Israel",
    "photo": true,
    "rank": 315,
    "tier": "uncommon"
@@ -3824,6 +4139,7 @@
    "div": "Johnson",
    "srank": 388,
    "loc": "IL, USA",
+   "region": "Illinois",
    "photo": true,
    "rank": 316,
    "tier": "uncommon"
@@ -3836,6 +4152,7 @@
    "div": "Newton",
    "srank": 586,
    "loc": "FL, USA",
+   "region": "Florida",
    "photo": true,
    "rank": 317,
    "tier": "uncommon"
@@ -3848,6 +4165,7 @@
    "div": "Milstein",
    "srank": 426,
    "loc": "CA, USA",
+   "region": "California",
    "photo": true,
    "rank": 318,
    "tier": "uncommon"
@@ -3860,6 +4178,7 @@
    "div": "Johnson",
    "srank": 424,
    "loc": "NY, USA",
+   "region": "New York",
    "photo": true,
    "rank": 319,
    "tier": "uncommon"
@@ -3872,6 +4191,7 @@
    "div": "Curie",
    "srank": 355,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 320,
    "tier": "uncommon"
@@ -3884,6 +4204,7 @@
    "div": "Hopper",
    "srank": 378,
    "loc": "NV, USA",
+   "region": "Nevada",
    "photo": true,
    "rank": 321,
    "tier": "uncommon"
@@ -3896,6 +4217,7 @@
    "div": "Hopper",
    "srank": 367,
    "loc": "IL, USA",
+   "region": "Illinois",
    "photo": true,
    "rank": 322,
    "tier": "uncommon"
@@ -3908,6 +4230,7 @@
    "div": "Newton",
    "srank": 395,
    "loc": "NY, USA",
+   "region": "New York",
    "photo": true,
    "rank": 323,
    "tier": "uncommon"
@@ -3920,6 +4243,7 @@
    "div": "Daly",
    "srank": 391,
    "loc": "MN, USA",
+   "region": "Minnesota",
    "photo": true,
    "rank": 324,
    "tier": "uncommon"
@@ -3932,6 +4256,7 @@
    "div": "Galileo",
    "srank": 515,
    "loc": "LA, USA",
+   "region": "Louisiana",
    "photo": true,
    "rank": 325,
    "tier": "uncommon"
@@ -3944,6 +4269,7 @@
    "div": "Daly",
    "srank": 432,
    "loc": "OH, USA",
+   "region": "Ohio",
    "photo": true,
    "rank": 326,
    "tier": "uncommon"
@@ -3956,6 +4282,7 @@
    "div": "Galileo",
    "srank": 412,
    "loc": "FL, USA",
+   "region": "Florida",
    "photo": true,
    "rank": 327,
    "tier": "uncommon"
@@ -3968,6 +4295,7 @@
    "div": "Curie",
    "srank": 364,
    "loc": "WA, USA",
+   "region": "Washington",
    "photo": true,
    "rank": 328,
    "tier": "uncommon"
@@ -3980,6 +4308,7 @@
    "div": "Daly",
    "srank": 324,
    "loc": "MN, USA",
+   "region": "Minnesota",
    "photo": true,
    "rank": 329,
    "tier": "uncommon"
@@ -3992,6 +4321,7 @@
    "div": "Newton",
    "srank": 393,
    "loc": "Mexico",
+   "region": "Mexico",
    "photo": true,
    "rank": 330,
    "tier": "uncommon"
@@ -4004,6 +4334,7 @@
    "div": "Johnson",
    "srank": 363,
    "loc": "OH, USA",
+   "region": "Ohio",
    "photo": true,
    "rank": 331,
    "tier": "uncommon"
@@ -4016,6 +4347,7 @@
    "div": "Galileo",
    "srank": 316,
    "loc": "WA, USA",
+   "region": "Washington",
    "photo": true,
    "rank": 332,
    "tier": "uncommon"
@@ -4028,6 +4360,7 @@
    "div": "Galileo",
    "srank": 439,
    "loc": "MN, USA",
+   "region": "Minnesota",
    "photo": true,
    "rank": 333,
    "tier": "uncommon"
@@ -4040,6 +4373,7 @@
    "div": "Galileo",
    "srank": 503,
    "loc": "MS, USA",
+   "region": "Mississippi",
    "photo": true,
    "rank": 334,
    "tier": "uncommon"
@@ -4052,6 +4386,7 @@
    "div": "Daly",
    "srank": 352,
    "loc": "GA, USA",
+   "region": "Georgia",
    "photo": true,
    "rank": 335,
    "tier": "uncommon"
@@ -4064,6 +4399,7 @@
    "div": "Archimedes",
    "srank": 260,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 336,
    "tier": "uncommon"
@@ -4076,6 +4412,7 @@
    "div": "Daly",
    "srank": 541,
    "loc": "QC, Canada",
+   "region": "Quebec",
    "photo": true,
    "rank": 337,
    "tier": "uncommon"
@@ -4088,6 +4425,7 @@
    "div": "Daly",
    "srank": 549,
    "loc": "MD, USA",
+   "region": "Maryland",
    "photo": true,
    "rank": 338,
    "tier": "uncommon"
@@ -4100,6 +4438,7 @@
    "div": "Curie",
    "srank": 347,
    "loc": "SC, USA",
+   "region": "South Carolina",
    "photo": true,
    "rank": 339,
    "tier": "uncommon"
@@ -4112,6 +4451,7 @@
    "div": "Hopper",
    "srank": 468,
    "loc": "MN, USA",
+   "region": "Minnesota",
    "photo": true,
    "rank": 340,
    "tier": "uncommon"
@@ -4124,6 +4464,7 @@
    "div": "Hopper",
    "srank": 579,
    "loc": "NC, USA",
+   "region": "North Carolina",
    "photo": true,
    "rank": 341,
    "tier": "uncommon"
@@ -4136,6 +4477,7 @@
    "div": "Newton",
    "srank": 490,
    "loc": "FL, USA",
+   "region": "Florida",
    "photo": true,
    "rank": 342,
    "tier": "uncommon"
@@ -4148,6 +4490,7 @@
    "div": "Galileo",
    "srank": 351,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 343,
    "tier": "uncommon"
@@ -4160,6 +4503,7 @@
    "div": "Johnson",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 344,
    "tier": "uncommon"
@@ -4172,6 +4516,7 @@
    "div": "Archimedes",
    "srank": 313,
    "loc": "IA, USA",
+   "region": "Iowa",
    "photo": true,
    "rank": 345,
    "tier": "uncommon"
@@ -4184,6 +4529,7 @@
    "div": "Milstein",
    "srank": 480,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 346,
    "tier": "uncommon"
@@ -4196,6 +4542,7 @@
    "div": "Galileo",
    "srank": 441,
    "loc": "UT, USA",
+   "region": "Utah",
    "photo": true,
    "rank": 347,
    "tier": "uncommon"
@@ -4208,6 +4555,7 @@
    "div": "Milstein",
    "srank": 467,
    "loc": "NJ, USA",
+   "region": "New Jersey",
    "photo": true,
    "rank": 348,
    "tier": "uncommon"
@@ -4220,6 +4568,7 @@
    "div": "Milstein",
    "srank": 535,
    "loc": "NC, USA",
+   "region": "North Carolina",
    "photo": true,
    "rank": 349,
    "tier": "uncommon"
@@ -4232,6 +4581,7 @@
    "div": "Hopper",
    "srank": 389,
    "loc": "Canada",
+   "region": "Canada",
    "photo": true,
    "rank": 350,
    "tier": "uncommon"
@@ -4244,6 +4594,7 @@
    "div": "Curie",
    "srank": 419,
    "loc": "Switzerland",
+   "region": "Switzerland",
    "photo": false,
    "rank": 351,
    "tier": "uncommon"
@@ -4256,6 +4607,7 @@
    "div": "Curie",
    "srank": 510,
    "loc": "TX, USA",
+   "region": "Texas",
    "photo": true,
    "rank": 352,
    "tier": "uncommon"
@@ -4268,6 +4620,7 @@
    "div": "Newton",
    "srank": 402,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 353,
    "tier": "uncommon"
@@ -4280,6 +4633,7 @@
    "div": "Curie",
    "srank": 584,
    "loc": "MO, USA",
+   "region": "Missouri",
    "photo": true,
    "rank": 354,
    "tier": "uncommon"
@@ -4292,6 +4646,7 @@
    "div": "Johnson",
    "srank": 495,
    "loc": "China",
+   "region": "China",
    "photo": true,
    "rank": 355,
    "tier": "uncommon"
@@ -4304,6 +4659,7 @@
    "div": "Johnson",
    "srank": 425,
    "loc": "Brazil",
+   "region": "Brazil",
    "photo": true,
    "rank": 356,
    "tier": "uncommon"
@@ -4316,6 +4672,7 @@
    "div": "Curie",
    "srank": 407,
    "loc": "Brazil",
+   "region": "Brazil",
    "photo": true,
    "rank": 357,
    "tier": "uncommon"
@@ -4328,6 +4685,7 @@
    "div": "Hopper",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 358,
    "tier": "uncommon"
@@ -4340,6 +4698,7 @@
    "div": "Galileo",
    "srank": 455,
    "loc": "TN, USA",
+   "region": "Tennessee",
    "photo": true,
    "rank": 359,
    "tier": "uncommon"
@@ -4352,6 +4711,7 @@
    "div": "Newton",
    "srank": 312,
    "loc": "Mexico",
+   "region": "Mexico",
    "photo": true,
    "rank": 360,
    "tier": "uncommon"
@@ -4364,6 +4724,7 @@
    "div": "Newton",
    "srank": 554,
    "loc": "Israel",
+   "region": "Israel",
    "photo": true,
    "rank": 361,
    "tier": "uncommon"
@@ -4376,6 +4737,7 @@
    "div": "Milstein",
    "srank": 447,
    "loc": "HI, USA",
+   "region": "Hawaii",
    "photo": true,
    "rank": 362,
    "tier": "uncommon"
@@ -4388,6 +4750,7 @@
    "div": "Milstein",
    "srank": 375,
    "loc": "NY, USA",
+   "region": "New York",
    "photo": true,
    "rank": 363,
    "tier": "uncommon"
@@ -4400,6 +4763,7 @@
    "div": "Curie",
    "srank": 457,
    "loc": "Australia",
+   "region": "Australia",
    "photo": true,
    "rank": 364,
    "tier": "common"
@@ -4412,6 +4776,7 @@
    "div": "Milstein",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 365,
    "tier": "common"
@@ -4424,6 +4789,7 @@
    "div": "Newton",
    "srank": 361,
    "loc": "NY, USA",
+   "region": "New York",
    "photo": true,
    "rank": 366,
    "tier": "common"
@@ -4436,6 +4802,7 @@
    "div": "Curie",
    "srank": 436,
    "loc": "AZ, USA",
+   "region": "Arizona",
    "photo": true,
    "rank": 367,
    "tier": "common"
@@ -4448,6 +4815,7 @@
    "div": "Daly",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 368,
    "tier": "common"
@@ -4460,6 +4828,7 @@
    "div": "Galileo",
    "srank": 494,
    "loc": "LA, USA",
+   "region": "Louisiana",
    "photo": true,
    "rank": 369,
    "tier": "common"
@@ -4472,6 +4841,7 @@
    "div": "Milstein",
    "srank": 435,
    "loc": "Israel",
+   "region": "Israel",
    "photo": true,
    "rank": 370,
    "tier": "common"
@@ -4484,6 +4854,7 @@
    "div": "Hopper",
    "srank": 399,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 371,
    "tier": "common"
@@ -4496,6 +4867,7 @@
    "div": "Curie",
    "srank": 588,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 372,
    "tier": "common"
@@ -4508,6 +4880,7 @@
    "div": "Galileo",
    "srank": 538,
    "loc": "AR, USA",
+   "region": "Arkansas",
    "photo": true,
    "rank": 373,
    "tier": "common"
@@ -4520,6 +4893,7 @@
    "div": "Galileo",
    "srank": 582,
    "loc": "China",
+   "region": "China",
    "photo": true,
    "rank": 374,
    "tier": "common"
@@ -4532,6 +4906,7 @@
    "div": "Daly",
    "srank": 511,
    "loc": "MO, USA",
+   "region": "Missouri",
    "photo": true,
    "rank": 375,
    "tier": "common"
@@ -4544,6 +4919,7 @@
    "div": "Newton",
    "srank": 359,
    "loc": "Israel",
+   "region": "Israel",
    "photo": true,
    "rank": 376,
    "tier": "common"
@@ -4556,6 +4932,7 @@
    "div": "Curie",
    "srank": 585,
    "loc": "FL, USA",
+   "region": "Florida",
    "photo": true,
    "rank": 377,
    "tier": "common"
@@ -4568,6 +4945,7 @@
    "div": "Johnson",
    "srank": 607,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 378,
    "tier": "common"
@@ -4580,6 +4958,7 @@
    "div": "Galileo",
    "srank": 710,
    "loc": "Türkiye",
+   "region": "Türkiye",
    "photo": true,
    "rank": 379,
    "tier": "common"
@@ -4592,6 +4971,7 @@
    "div": "Curie",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 380,
    "tier": "common"
@@ -4604,6 +4984,7 @@
    "div": "Johnson",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 381,
    "tier": "common"
@@ -4616,6 +4997,7 @@
    "div": "Archimedes",
    "srank": 433,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 382,
    "tier": "common"
@@ -4628,6 +5010,7 @@
    "div": "Galileo",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 383,
    "tier": "common"
@@ -4640,6 +5023,7 @@
    "div": "Johnson",
    "srank": 405,
    "loc": "IL, USA",
+   "region": "Illinois",
    "photo": true,
    "rank": 384,
    "tier": "common"
@@ -4652,6 +5036,7 @@
    "div": "Hopper",
    "srank": 594,
    "loc": "MD, USA",
+   "region": "Maryland",
    "photo": true,
    "rank": 385,
    "tier": "common"
@@ -4664,6 +5049,7 @@
    "div": "Archimedes",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 386,
    "tier": "common"
@@ -4676,6 +5062,7 @@
    "div": "Milstein",
    "srank": 434,
    "loc": "MN, USA",
+   "region": "Minnesota",
    "photo": true,
    "rank": 387,
    "tier": "common"
@@ -4688,6 +5075,7 @@
    "div": "Hopper",
    "srank": 516,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 388,
    "tier": "common"
@@ -4700,6 +5088,7 @@
    "div": "Archimedes",
    "srank": 544,
    "loc": "TX, USA",
+   "region": "Texas",
    "photo": true,
    "rank": 389,
    "tier": "common"
@@ -4712,6 +5101,7 @@
    "div": "Daly",
    "srank": 589,
    "loc": "TX, USA",
+   "region": "Texas",
    "photo": true,
    "rank": 390,
    "tier": "common"
@@ -4724,6 +5114,7 @@
    "div": "Newton",
    "srank": 530,
    "loc": "Türkiye",
+   "region": "Türkiye",
    "photo": true,
    "rank": 391,
    "tier": "common"
@@ -4736,6 +5127,7 @@
    "div": "Hopper",
    "srank": 472,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 392,
    "tier": "common"
@@ -4748,6 +5140,7 @@
    "div": "Johnson",
    "srank": 410,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 393,
    "tier": "common"
@@ -4760,6 +5153,7 @@
    "div": "Archimedes",
    "srank": 481,
    "loc": "NY, USA",
+   "region": "New York",
    "photo": true,
    "rank": 394,
    "tier": "common"
@@ -4772,6 +5166,7 @@
    "div": "Johnson",
    "srank": 609,
    "loc": "GA, USA",
+   "region": "Georgia",
    "photo": true,
    "rank": 395,
    "tier": "common"
@@ -4784,6 +5179,7 @@
    "div": "Daly",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 396,
    "tier": "common"
@@ -4796,6 +5192,7 @@
    "div": "Curie",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 397,
    "tier": "common"
@@ -4808,6 +5205,7 @@
    "div": "Milstein",
    "srank": 724,
    "loc": "AZ, USA",
+   "region": "Arizona",
    "photo": true,
    "rank": 398,
    "tier": "common"
@@ -4820,6 +5218,7 @@
    "div": "Hopper",
    "srank": 420,
    "loc": "AZ, USA",
+   "region": "Arizona",
    "photo": true,
    "rank": 399,
    "tier": "common"
@@ -4832,6 +5231,7 @@
    "div": "Hopper",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 400,
    "tier": "common"
@@ -4844,6 +5244,7 @@
    "div": "Curie",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 401,
    "tier": "common"
@@ -4856,6 +5257,7 @@
    "div": "Milstein",
    "srank": 552,
    "loc": "MN, USA",
+   "region": "Minnesota",
    "photo": true,
    "rank": 402,
    "tier": "common"
@@ -4868,6 +5270,7 @@
    "div": "Hopper",
    "srank": 458,
    "loc": "AR, USA",
+   "region": "Arkansas",
    "photo": true,
    "rank": 403,
    "tier": "common"
@@ -4880,6 +5283,7 @@
    "div": "Galileo",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 404,
    "tier": "common"
@@ -4892,6 +5296,7 @@
    "div": "Galileo",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 405,
    "tier": "common"
@@ -4904,6 +5309,7 @@
    "div": "Curie",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 406,
    "tier": "common"
@@ -4916,6 +5322,7 @@
    "div": "Curie",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 407,
    "tier": "common"
@@ -4928,6 +5335,7 @@
    "div": "Daly",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 408,
    "tier": "common"
@@ -4940,6 +5348,7 @@
    "div": "Curie",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 409,
    "tier": "common"
@@ -4952,6 +5361,7 @@
    "div": "Galileo",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 410,
    "tier": "common"
@@ -4964,6 +5374,7 @@
    "div": "Hopper",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 411,
    "tier": "common"
@@ -4976,6 +5387,7 @@
    "div": "Daly",
    "srank": 572,
    "loc": "MN, USA",
+   "region": "Minnesota",
    "photo": true,
    "rank": 412,
    "tier": "common"
@@ -4988,6 +5400,7 @@
    "div": "Milstein",
    "srank": 612,
    "loc": "NY, USA",
+   "region": "New York",
    "photo": true,
    "rank": 413,
    "tier": "common"
@@ -5000,6 +5413,7 @@
    "div": "Hopper",
    "srank": 604,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 414,
    "tier": "common"
@@ -5012,6 +5426,7 @@
    "div": "Galileo",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 415,
    "tier": "common"
@@ -5024,6 +5439,7 @@
    "div": "Daly",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 416,
    "tier": "common"
@@ -5036,6 +5452,7 @@
    "div": "Johnson",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 417,
    "tier": "common"
@@ -5048,6 +5465,7 @@
    "div": "Archimedes",
    "srank": 729,
    "loc": "FL, USA",
+   "region": "Florida",
    "photo": true,
    "rank": 418,
    "tier": "common"
@@ -5060,6 +5478,7 @@
    "div": "Curie",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 419,
    "tier": "common"
@@ -5072,6 +5491,7 @@
    "div": "Milstein",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 420,
    "tier": "common"
@@ -5084,6 +5504,7 @@
    "div": "Daly",
    "srank": 703,
    "loc": "NY, USA",
+   "region": "New York",
    "photo": true,
    "rank": 421,
    "tier": "common"
@@ -5096,6 +5517,7 @@
    "div": "Johnson",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 422,
    "tier": "common"
@@ -5108,6 +5530,7 @@
    "div": "Milstein",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 423,
    "tier": "common"
@@ -5120,6 +5543,7 @@
    "div": "Newton",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 424,
    "tier": "common"
@@ -5132,6 +5556,7 @@
    "div": "Archimedes",
    "srank": 558,
    "loc": "Romania",
+   "region": "Romania",
    "photo": true,
    "rank": 425,
    "tier": "common"
@@ -5144,6 +5569,7 @@
    "div": "Daly",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 426,
    "tier": "common"
@@ -5156,6 +5582,7 @@
    "div": "Milstein",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 427,
    "tier": "common"
@@ -5168,6 +5595,7 @@
    "div": "Johnson",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 428,
    "tier": "common"
@@ -5180,6 +5608,7 @@
    "div": "Johnson",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 429,
    "tier": "common"
@@ -5192,6 +5621,7 @@
    "div": "Johnson",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 430,
    "tier": "common"
@@ -5204,6 +5634,7 @@
    "div": "Johnson",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 431,
    "tier": "common"
@@ -5216,6 +5647,7 @@
    "div": "Archimedes",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 432,
    "tier": "common"
@@ -5228,6 +5660,7 @@
    "div": "Hopper",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 433,
    "tier": "common"
@@ -5240,6 +5673,7 @@
    "div": "Galileo",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 434,
    "tier": "common"
@@ -5252,6 +5686,7 @@
    "div": "Daly",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 435,
    "tier": "common"
@@ -5264,6 +5699,7 @@
    "div": "Newton",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 436,
    "tier": "common"
@@ -5276,6 +5712,7 @@
    "div": "Curie",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 437,
    "tier": "common"
@@ -5288,6 +5725,7 @@
    "div": "Johnson",
    "srank": 717,
    "loc": "MI, USA",
+   "region": "Michigan",
    "photo": true,
    "rank": 438,
    "tier": "common"
@@ -5300,6 +5738,7 @@
    "div": "Milstein",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 439,
    "tier": "common"
@@ -5312,6 +5751,7 @@
    "div": "Galileo",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 440,
    "tier": "common"
@@ -5324,6 +5764,7 @@
    "div": "Milstein",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 441,
    "tier": "common"
@@ -5336,6 +5777,7 @@
    "div": "Curie",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 442,
    "tier": "common"
@@ -5348,6 +5790,7 @@
    "div": "Hopper",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 443,
    "tier": "common"
@@ -5360,6 +5803,7 @@
    "div": "Curie",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 444,
    "tier": "common"
@@ -5372,6 +5816,7 @@
    "div": "Archimedes",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 445,
    "tier": "common"
@@ -5384,6 +5829,7 @@
    "div": "Milstein",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 446,
    "tier": "common"
@@ -5396,6 +5842,7 @@
    "div": "Newton",
    "srank": 591,
    "loc": "AZ, USA",
+   "region": "Arizona",
    "photo": true,
    "rank": 447,
    "tier": "common"
@@ -5408,6 +5855,7 @@
    "div": "Daly",
    "srank": 545,
    "loc": "ON, Canada",
+   "region": "Ontario",
    "photo": true,
    "rank": 448,
    "tier": "common"
@@ -5420,6 +5868,7 @@
    "div": "Archimedes",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 449,
    "tier": "common"
@@ -5432,6 +5881,7 @@
    "div": "Newton",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 450,
    "tier": "common"
@@ -5444,6 +5894,7 @@
    "div": "Hopper",
    "srank": 721,
    "loc": "OH, USA",
+   "region": "Ohio",
    "photo": true,
    "rank": 451,
    "tier": "common"
@@ -5456,6 +5907,7 @@
    "div": "Daly",
    "srank": 1003,
    "loc": "NJ, USA",
+   "region": "New Jersey",
    "photo": true,
    "rank": 452,
    "tier": "common"
@@ -5468,6 +5920,7 @@
    "div": "Galileo",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 453,
    "tier": "common"
@@ -5480,6 +5933,7 @@
    "div": "Milstein",
    "srank": 1030,
    "loc": "WV, USA",
+   "region": "West Virginia",
    "photo": true,
    "rank": 454,
    "tier": "common"
@@ -5492,6 +5946,7 @@
    "div": "Hopper",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 455,
    "tier": "common"
@@ -5504,6 +5959,7 @@
    "div": "Johnson",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 456,
    "tier": "common"
@@ -5516,6 +5972,7 @@
    "div": "Galileo",
    "srank": 1022,
    "loc": "OR, USA",
+   "region": "Oregon",
    "photo": true,
    "rank": 457,
    "tier": "common"
@@ -5528,6 +5985,7 @@
    "div": "Milstein",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 458,
    "tier": "common"
@@ -5540,6 +5998,7 @@
    "div": "Curie",
    "srank": 1023,
    "loc": "HI, USA",
+   "region": "Hawaii",
    "photo": true,
    "rank": 459,
    "tier": "common"
@@ -5552,6 +6011,7 @@
    "div": "Daly",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 460,
    "tier": "common"
@@ -5564,6 +6024,7 @@
    "div": "Milstein",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 461,
    "tier": "common"
@@ -5576,6 +6037,7 @@
    "div": "Milstein",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 462,
    "tier": "common"
@@ -5588,6 +6050,7 @@
    "div": "Hopper",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": false,
    "rank": 463,
    "tier": "common"
@@ -5600,6 +6063,7 @@
    "div": "Curie",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 464,
    "tier": "common"
@@ -5612,6 +6076,7 @@
    "div": "Hopper",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 465,
    "tier": "common"
@@ -5624,6 +6089,7 @@
    "div": "Archimedes",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 466,
    "tier": "common"
@@ -5636,6 +6102,7 @@
    "div": "Archimedes",
    "srank": 1001,
    "loc": "Türkiye",
+   "region": "Türkiye",
    "photo": true,
    "rank": 467,
    "tier": "common"
@@ -5648,6 +6115,7 @@
    "div": "Archimedes",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 468,
    "tier": "common"
@@ -5660,6 +6128,7 @@
    "div": "Johnson",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 469,
    "tier": "common"
@@ -5672,6 +6141,7 @@
    "div": "Milstein",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 470,
    "tier": "common"
@@ -5684,6 +6154,7 @@
    "div": "Archimedes",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 471,
    "tier": "common"
@@ -5696,6 +6167,7 @@
    "div": "Newton",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 472,
    "tier": "common"
@@ -5708,6 +6180,7 @@
    "div": "Archimedes",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 473,
    "tier": "common"
@@ -5720,6 +6193,7 @@
    "div": "Galileo",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 474,
    "tier": "common"
@@ -5732,6 +6206,7 @@
    "div": "Curie",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 475,
    "tier": "common"
@@ -5744,6 +6219,7 @@
    "div": "Milstein",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 476,
    "tier": "common"
@@ -5756,6 +6232,7 @@
    "div": "Johnson",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 477,
    "tier": "common"
@@ -5768,6 +6245,7 @@
    "div": "Johnson",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 478,
    "tier": "common"
@@ -5780,6 +6258,7 @@
    "div": "Newton",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 479,
    "tier": "common"
@@ -5792,6 +6271,7 @@
    "div": "Galileo",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 480,
    "tier": "common"
@@ -5804,6 +6284,7 @@
    "div": "Daly",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 481,
    "tier": "common"
@@ -5816,6 +6297,7 @@
    "div": "Hopper",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 482,
    "tier": "common"
@@ -5828,6 +6310,7 @@
    "div": "Galileo",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 483,
    "tier": "common"
@@ -5840,6 +6323,7 @@
    "div": "Daly",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 484,
    "tier": "common"
@@ -5852,6 +6336,7 @@
    "div": "Galileo",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 485,
    "tier": "common"
@@ -5864,6 +6349,7 @@
    "div": "Milstein",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 486,
    "tier": "common"
@@ -5876,6 +6362,7 @@
    "div": "Daly",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 487,
    "tier": "common"
@@ -5888,6 +6375,7 @@
    "div": "Daly",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 488,
    "tier": "common"
@@ -5900,6 +6388,7 @@
    "div": "Daly",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 489,
    "tier": "common"
@@ -5912,6 +6401,7 @@
    "div": "Galileo",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 490,
    "tier": "common"
@@ -5924,6 +6414,7 @@
    "div": "Newton",
    "srank": 1414,
    "loc": "United Kingdom",
+   "region": "United Kingdom",
    "photo": true,
    "rank": 491,
    "tier": "common"
@@ -5936,6 +6427,7 @@
    "div": "Johnson",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 492,
    "tier": "common"
@@ -5948,6 +6440,7 @@
    "div": "Milstein",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": false,
    "rank": 493,
    "tier": "common"
@@ -5960,6 +6453,7 @@
    "div": "Galileo",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 494,
    "tier": "common"
@@ -5972,6 +6466,7 @@
    "div": "Daly",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 495,
    "tier": "common"
@@ -5984,6 +6479,7 @@
    "div": "Hopper",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 496,
    "tier": "common"
@@ -5996,6 +6492,7 @@
    "div": "Newton",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 497,
    "tier": "common"
@@ -6008,6 +6505,7 @@
    "div": "Curie",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 498,
    "tier": "common"
@@ -6020,6 +6518,7 @@
    "div": "Milstein",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 499,
    "tier": "common"
@@ -6032,6 +6531,7 @@
    "div": "Archimedes",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 500,
    "tier": "common"
@@ -6044,6 +6544,7 @@
    "div": "Johnson",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": false,
    "rank": 501,
    "tier": "common"
@@ -6056,6 +6557,7 @@
    "div": "Daly",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 502,
    "tier": "common"
@@ -6068,6 +6570,7 @@
    "div": "Johnson",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 503,
    "tier": "common"
@@ -6080,6 +6583,7 @@
    "div": "Curie",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 504,
    "tier": "common"
@@ -6092,6 +6596,7 @@
    "div": "Daly",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 505,
    "tier": "common"
@@ -6104,6 +6609,7 @@
    "div": "Galileo",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 506,
    "tier": "common"
@@ -6116,6 +6622,7 @@
    "div": "Johnson",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": false,
    "rank": 507,
    "tier": "common"
@@ -6128,6 +6635,7 @@
    "div": "Johnson",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 508,
    "tier": "common"
@@ -6140,6 +6648,7 @@
    "div": "Milstein",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": false,
    "rank": 509,
    "tier": "common"
@@ -6152,6 +6661,7 @@
    "div": "Milstein",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 510,
    "tier": "common"
@@ -6164,6 +6674,7 @@
    "div": "Hopper",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": true,
    "rank": 511,
    "tier": "common"
@@ -6176,6 +6687,7 @@
    "div": "Hopper",
    "srank": 0,
    "loc": "",
+   "region": "",
    "photo": false,
    "rank": 512,
    "tier": "common"
@@ -6188,6 +6700,7 @@
    "div": "Galileo",
    "srank": 318,
    "loc": "NV, USA",
+   "region": "Nevada",
    "photo": true,
    "rank": 513,
    "tier": "common"
@@ -6200,6 +6713,7 @@
    "div": "Newton",
    "srank": 725,
    "loc": "AR, USA",
+   "region": "Arkansas",
    "photo": false,
    "rank": 514,
    "tier": "common"
@@ -6212,6 +6726,7 @@
    "div": "Johnson",
    "srank": 21,
    "loc": "Türkiye",
+   "region": "Türkiye",
    "photo": true,
    "rank": 515,
    "tier": "legendary"

@@ -790,19 +790,6 @@ body.playing .daily { display: none; }
 .card-facts dt { color: var(--ink-dim); font-weight: 700; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
 .card-facts dd { margin: 0; color: var(--foam); }
 .card-facts p { margin: 0; }
-/* Battler stats in the card facts: the same three stat boxes, RP boxes and effect box as the battler card, in the tier's color. */
-.bt-facts { margin: 4px 0 10px; text-align: left; }
-.bt-facts h4 { margin: 0 0 6px; color: var(--ink-dim); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
-.bt-stats, .bt-rp { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-bottom: 6px; }
-.bt-stats div, .bt-rp div, .bt-effect { background: rgba(4,16,22,.62); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; }
-.bt-stats div { display: grid; justify-items: center; padding: 6px 0; }
-.bt-stats small, .bt-rp small, .bt-effect small { font: 700 11px / 1 var(--body); letter-spacing: .12em; color: var(--bt); text-transform: uppercase; }
-.bt-stats b { font: 400 26px / 1.1 var(--display); color: #fff; font-variant-numeric: tabular-nums; }
-.bt-rp div { display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; }
-.bt-rp b { font: 400 17px / 1 var(--display); color: #fff; }
-.bt-effect { padding: 8px 12px; text-align: center; }
-.bt-effect p { margin: 4px 0 0; color: #fff; font-weight: 600; }
-.bt-effect p.tbd { color: var(--ink-dim); font-style: italic; font-weight: 500; }
 /* Small mini cards drop the gems and tighten up so the number and serial still fit. */
 .mc { container-type: inline-size; }
 @container (max-width: 74px) { .mc-foot i { display: none; } .mc-name { font-size: 8px; } .mc-num { font-size: 11px; } .mc-foot { justify-content: flex-end; } }
@@ -1446,3 +1433,4 @@ body.has-notice .app > .top { top: calc(36px + env(safe-area-inset-top)); }
 .ftb .rar i { font-style: normal; opacity: .22; }
 .inner.b2 .avatar.none { display: grid; place-items: center; font: 400 calc(var(--cw) * .034) / 1 var(--display); color: var(--acc2); }
 .inner.bt .effect p.tbd { color: rgba(255,255,255,.55); font-style: italic; font-weight: 500; }
+.inner.bt b.na { opacity: .4; }

@@ -13,6 +13,22 @@ data = root / "data"
 
 CA_PROV = {"ON", "QC", "AB", "BC", "MB", "SK", "NS", "NB"}
 
+STATES = {"AL": "Alabama", "AK": "Alaska", "AZ": "Arizona", "AR": "Arkansas", "CA": "California", "CO": "Colorado",
+    "CT": "Connecticut", "DE": "Delaware", "DC": "District of Columbia", "FL": "Florida", "GA": "Georgia", "HI": "Hawaii",
+    "ID": "Idaho", "IL": "Illinois", "IN": "Indiana", "IA": "Iowa", "KS": "Kansas", "KY": "Kentucky", "LA": "Louisiana",
+    "ME": "Maine", "MD": "Maryland", "MA": "Massachusetts", "MI": "Michigan", "MN": "Minnesota", "MS": "Mississippi",
+    "MO": "Missouri", "MT": "Montana", "NE": "Nebraska", "NV": "Nevada", "NH": "New Hampshire", "NJ": "New Jersey",
+    "NM": "New Mexico", "NY": "New York", "NC": "North Carolina", "ND": "North Dakota", "OH": "Ohio", "OK": "Oklahoma",
+    "OR": "Oregon", "PA": "Pennsylvania", "RI": "Rhode Island", "SC": "South Carolina", "SD": "South Dakota",
+    "TN": "Tennessee", "TX": "Texas", "UT": "Utah", "VT": "Vermont", "VA": "Virginia", "WA": "Washington",
+    "WV": "West Virginia", "WI": "Wisconsin", "WY": "Wyoming", "PR": "Puerto Rico",
+    "ON": "Ontario", "QC": "Quebec", "AB": "Alberta", "BC": "British Columbia", "MB": "Manitoba", "SK": "Saskatchewan",
+    "NS": "Nova Scotia", "NB": "New Brunswick"}
+
+def region(loc):
+    """The Battler card's region: the full state or province name where there is one, otherwise the country."""
+    return STATES.get(loc, loc) if re.fullmatch(r"[A-Z]{2}", loc) else loc
+
 def place(loc):
     if re.fullmatch(r"[A-Z]{2}", loc):
         return loc + (", Canada" if loc in CA_PROV else ", USA")
@@ -53,7 +69,7 @@ def champs_teams(path):
         teams.append({
             "num": num, "name": p[1], "epa": epa,
             "wl": p[3] if re.fullmatch(r"\d+-\d+", p[3]) else "–",
-            "div": p[4], "srank": srank, "loc": "" if p[6] == "-" else place(p[6]),
+            "div": p[4], "srank": srank, "loc": "" if p[6] == "-" else place(p[6]), "region": "" if p[6] == "-" else region(p[6]),
             # Robot photo at /photos/<num>.webp (from The Blue Alliance); teams without one get a drawing.
             "photo": (data / "photos" / f"{num}.webp").exists(),
         })

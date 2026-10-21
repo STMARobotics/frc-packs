@@ -6,11 +6,11 @@
    rarity star scale on the frame, and the stats the battler reads (from tools/battler_stats.py, via the pack recipe's
    "bt" field). The numbers below are samples until Statbotics is back up. A card with no effect gets the placeholder. */
 var CARDS = [
-  { num: 3044, name: "Team 0xBE4", loc: "New York, USA", yr: 2026, tier: "common", f: [0.51, 0.53], bt: { auto: 12, tele: 31, end: 6, rp: [22, 14, 8] } },
-  { num: 1714, name: "MORE Robotics", loc: "Wisconsin, USA", yr: 2026, tier: "uncommon", f: [0.54, 0.468], bt: { auto: 16, tele: 40, end: 9, rp: [31, 20, 11] } },
-  { num: 7028, name: "Binary Battalion", loc: "Minnesota, USA", yr: 2026, tier: "rare", avatar: "7028-2026", f: [0.543, 0.476], bt: { auto: 24, tele: 58, end: 14, rp: [48, 35, 12] }, effect: "+5 RP2 chance while in Station 2." },
-  { num: 3476, name: "Code Orange", loc: "California, USA", yr: 2025, tier: "legendary", avatar: "3476-2025", f: [0.457, 0.466], bt: { auto: 21, tele: 49, end: 22, rp: [55, 38, 31] }, effect: "If a VISION part is attached, +10 Auto." },
-  { num: 4414, name: "HighTide", loc: "California, USA", yr: 2026, tier: "mythic", avatar: "4414-2026", f: [0.518, 0.48], bt: { auto: 30, tele: 72, end: 18, rp: [62, 41, 27] }, effect: "+8 Tele for each MECHANICAL part attached." }
+  { num: 3044, name: "Team 0xBE4", loc: "New York", yr: 2026, tier: "common", f: [0.51, 0.53], bt: { auto: 12, tele: 31, end: 6, rp: [22, 14, 8] } },
+  { num: 1714, name: "MORE Robotics", loc: "Wisconsin", yr: 2026, tier: "uncommon", f: [0.54, 0.468], bt: { auto: 16, tele: 40, end: 9, rp: [31, 20, 11] } },
+  { num: 7028, name: "Binary Battalion", loc: "Minnesota", yr: 2026, tier: "rare", avatar: "7028-2026", f: [0.543, 0.476], bt: { auto: 24, tele: 58, end: 14, rp: [48, 35, 12] }, effect: "+5 RP2 chance while in Station 2." },
+  { num: 3476, name: "Code Orange", loc: "California", yr: 2025, tier: "legendary", avatar: "3476-2025", f: [0.457, 0.466], bt: { auto: 21, tele: 49, end: 22, rp: [55, 38, 31] }, effect: "If a VISION part is attached, +10 Auto." },
+  { num: 4414, name: "HighTide", loc: "California", yr: 2026, tier: "mythic", avatar: "4414-2026", f: [0.518, 0.48], bt: { auto: 30, tele: 72, end: 18, rp: [62, 41, 27] }, effect: "+8 Tele for each MECHANICAL part attached." }
 ];
 var STARS = { common: 1, uncommon: 2, rare: 3, legendary: 4, mythic: 5 };
 function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
