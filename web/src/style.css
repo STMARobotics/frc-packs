@@ -1243,7 +1243,7 @@ body.settings-open { overflow: hidden; }
 .modal.card-view { overflow: hidden; }
 .modal.card-view .modal-in { --cw: min(76vw, calc((100svh - var(--tabh) - 250px) / 1.4)); justify-content: center; gap: 10px; position: relative; padding-top: 8px; }
 .modal.card-view .modal-in > .serials:not(.card-facts), .modal.card-view .modal-in > .card-facts { display: none; }
-.modal.card-view.facts-on .modal-in > .card-facts { display: block; position: absolute; left: 6%; right: 6%; top: 30px; bottom: 96px; z-index: 6; overflow-y: auto; background: rgba(5,20,26,.97); border: 1px solid var(--line); border-radius: 18px; padding: 16px; box-shadow: 0 18px 50px rgba(0,0,0,.6); }
+.modal.card-view.facts-on .modal-in > .card-facts { display: block; position: absolute; left: 6%; right: 6%; width: auto; box-sizing: border-box; top: 30px; bottom: 96px; z-index: 6; overflow-y: auto; background: rgba(5,20,26,.97); border: 1px solid var(--line); border-radius: 18px; padding: 16px; box-shadow: 0 18px 50px rgba(0,0,0,.6); }
 .card-pos { font: 700 11px var(--body); letter-spacing: .14em; text-transform: uppercase; color: var(--ink-dim); }
 .modal.card-view .badges { min-height: 24px; }
 .modal.card-view .modal-in > .cta-row:last-child { background: transparent; padding-bottom: 10px; }
