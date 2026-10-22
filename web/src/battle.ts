@@ -57,7 +57,9 @@ class ApiError extends Error {
 async function call<T>(method: string, path: string, body?: unknown): Promise<T> {
   let r: Response;
   try {
-    r = await fetch(path, { method, headers: body === undefined ? {} : { "Content-Type": "application/json" }, body: body === undefined ? undefined : JSON.stringify(body), credentials: "same-origin" });
+    // Every write is JSON, even with nothing to send: the server refuses other writes (a guard against cross-site forms).
+    const write = method !== "GET";
+    r = await fetch(path, { method, headers: write ? { "Content-Type": "application/json" } : {}, body: write ? JSON.stringify(body ?? {}) : undefined, credentials: "same-origin" });
   } catch {
     throw new ApiError(0, "offline");
   }
@@ -145,21 +147,21 @@ function robotCard(r: RobotCard, cw = 260, extra = "") {
 }
 
 /** A compact robot tile: lists, deck builder, the field. */
-function robotTile(r: RobotCard, attrs = "", extra = "") {
+function robotTile(r: RobotCard, attrs = "", extra = "", cls = "") {
   const s = r.stats;
-  return `<div class="bt-tile t-${esc(r.tier)}" ${attrs}>
+  return `<div class="bt-tile t-${esc(r.tier)} ${cls}" ${attrs}>
     <div class="bt-tile-l">${r.photo ? `<img alt="" loading="lazy" src="/photos/${r.team}.webp">` : `<span>#${r.team}</span>`}</div>
     <div class="bt-tile-m">
       <div class="bt-tile-name"><b>${r.team}</b> ${esc(r.name)}</div>
-      <div class="bt-tile-stats"><span>A <b>${s.auto}</b></span><span>T <b>${s.tele}</b></span><span>E <b>${s.end}</b></span><span class="dim">RP ${s.rp.join("/")}</span></div>
+      <div class="bt-tile-stats"><span>A <b>${s.auto}</b></span><span>T <b>${s.tele}</b></span><span>E <b>${s.end}</b></span><span class="bt-dim">RP ${s.rp.join("/")}</span></div>
       ${extra}
     </div>
   </div>`;
 }
 
-function supportCard(c: { kind: "PART" | "LORE"; name: string; tags: string[]; text: string }, attrs = "", extra = "") {
+function supportCard(c: { kind: "PART" | "LORE"; name: string; tags: string[]; text: string }, attrs = "", extra = "", cls = "") {
   const tags = c.kind === "PART" ? c.tags.map((t, i) => `<span class="bt-tag${i ? " sub" : ""}">${esc(t.replace("_", " "))}</span>`).join("") : '<span class="bt-tag lore">FIELD · 1 ROUND</span>';
-  return `<div class="bt-sup k-${c.kind.toLowerCase()}" ${attrs}>
+  return `<div class="bt-sup k-${c.kind.toLowerCase()} ${cls}" ${attrs}>
     <div class="bt-sup-k">${c.kind === "PART" ? "PART" : "LORE"}</div>
     <div class="bt-sup-n">${esc(c.name)}</div>
     <div class="bt-sup-tags">${tags}</div>
@@ -260,7 +262,7 @@ async function renderHome() {
         <li>Lock in. Auto, Tele and End are scored. Winning the round is <b>3 RP</b> (a tie is 1 each), and each robot rolls once for <b>+1 RP</b> at its station's RP chance.</li>
         <li>Most RP after five rounds wins (then most points). Your Elo changes once per game.</li>
       </ol>
-      <p class="dim">Cards you play are only used up for that game. Nothing leaves your FRC Packs collection.</p>
+      <p class="bt-dim">Cards you play are only used up for that game. Nothing leaves your FRC Packs collection.</p>
     </details>`;
 }
 
@@ -333,7 +335,7 @@ function deckRow(d: DeckRow) {
 }
 
 async function renderDeckEditor(id: string) {
-  if (!HOME) await loadHome();
+  if (!HOME || !HOME.decks.some((d) => d.deck.id === id)) await loadHome();
   const row = HOME.decks.find((d) => d.deck.id === id);
   if (!row) { main.innerHTML = '<div class="bt-empty">That deck is gone. <a href="#decks">Back to decks</a></div>'; return; }
   const d: Deck = JSON.parse(JSON.stringify(row.deck));
@@ -377,7 +379,7 @@ async function renderDeckEditor(id: string) {
       const i = HOME.decks.findIndex((x) => x.deck.id === d.id);
       if (i >= 0) HOME.decks[i] = r;
       if (!quiet) toast(r.problems.length ? "Saved (not ready yet)" : "Saved. Ready to play!");
-      draw();
+      if (location.hash === `#deck/${d.id}`) draw(); // a save on the way out mustn't paint over the next screen
     } catch (e) { toast(explain(e), true); }
   };
   const change = () => { dirty = true; draw(); };
@@ -419,7 +421,7 @@ async function renderDeckEditor(id: string) {
         ? list.map((r) => {
             const here = mode === "captain" ? d.captain === r.team : d.robots.includes(r.team);
             const taken = inDeck.has(r.team) && !here;
-            return robotTile(r, `data-pick-team="${r.team}" class="${here ? "sel" : ""} ${taken || (full && !here) ? "off" : ""}"`, `<div class="bt-tile-act">${here ? '<span class="ok">In deck ✓</span>' : taken ? '<span class="dim">Already in deck</span>' : ""}</div>`);
+            return robotTile(r, `data-pick-team="${r.team}"`, `<div class="bt-tile-act">${here ? '<span class="ok">In deck ✓</span>' : taken ? '<span class="bt-dim">Already in deck</span>' : ""}</div>`, `${here ? "sel" : ""} ${taken || (full && !here) ? "off" : ""}`);
           }).join("")
         : '<div class="bt-empty">No owned robots match.</div>';
       $("#pickHead")!.textContent = mode === "captain" ? "Pick your Alliance Captain" : `Robots ${d.robots.length}/${CAT.rules.deck_robots}`;
@@ -459,7 +461,7 @@ async function renderDeckEditor(id: string) {
         .map((c) => {
           const k = counts.get(c.id) ?? 0;
           const max = Math.min(CAT.rules.max_copies, HOME.support_owned[c.id] ?? 0);
-          return supportCard(c, `class="${k ? "sel" : ""}"`, `<div class="bt-stepper"><button data-sp-minus="${c.id}" ${k ? "" : "disabled"} aria-label="One fewer">−</button><b>${k}</b><button data-sp-plus="${c.id}" ${k >= max || d.support.length >= CAT.rules.support_cards ? "disabled" : ""} aria-label="One more">+</button></div>`);
+          return supportCard(c, "", `<div class="bt-stepper"><button data-sp-minus="${c.id}" ${k ? "" : "disabled"} aria-label="One fewer">−</button><b>${k}</b><button data-sp-plus="${c.id}" ${k >= max || d.support.length >= CAT.rules.support_cards ? "disabled" : ""} aria-label="One more">+</button></div>`, k ? "sel" : "");
         })
         .join("");
       $("#sheetIn")!.querySelectorAll<HTMLElement>("[data-kind]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.kind === kind)));
@@ -490,7 +492,7 @@ async function renderLobby() {
     <div class="bt-head"><button class="bt-back" data-go="#home" aria-label="Back">‹</button><h2>Play</h2></div>
     ${ready.length ? '<button class="cta wide" id="host">Create game</button>' : '<div class="bt-empty">You need a ready deck to play. <button class="textbtn" data-go="#decks">Build one</button></div>'}
     <h3 class="bt-h3">Open games</h3>
-    <div id="lobbyList" class="bt-lobby"><p class="dim">Looking…</p></div>`;
+    <div id="lobbyList" class="bt-lobby"><p class="bt-dim">Looking…</p></div>`;
   const host = $("#host");
   if (host) host.onclick = async () => {
     try { const g = await call<GameView>("POST", "/api/battler/games"); go(`#game/${g.id}`); } catch (e) { toast(explain(e), true); }
@@ -503,8 +505,8 @@ async function renderLobby() {
       const list = $("#lobbyList");
       if (!list) return;
       list.innerHTML = r.games.length
-        ? r.games.map((g) => `<div class="bt-lobbyrow"><div><b>${esc(g.host)}</b><span>${g.elo} Elo · ${ago(g.created_at)}</span></div>${g.host === HOME.name ? '<span class="dim">You</span>' : `<button class="cta small" data-join="${g.id}" ${ready.length ? "" : "disabled"}>Join</button>`}</div>`).join("")
-        : '<p class="dim">No open games right now. Create one and share the wait.</p>';
+        ? r.games.map((g) => `<div class="bt-lobbyrow"><div><b>${esc(g.host)}</b><span>${g.elo} Elo · ${ago(g.created_at)}</span></div>${g.host === HOME.name ? '<span class="bt-dim">You</span>' : `<button class="cta small" data-join="${g.id}" ${ready.length ? "" : "disabled"}>Join</button>`}</div>`).join("")
+        : '<p class="bt-dim">No open games right now. Create one and share the wait.</p>';
     } catch { /* keep the old list */ }
   };
   $("#lobbyList")!.onclick = async (e) => {
@@ -564,15 +566,21 @@ function setGame(g: GameView) {
 
 async function act(action: Record<string, unknown>) {
   if (!G) return;
-  try {
-    const g = await call<GameView>("POST", `/api/battler/games/${G.id}/act`, { rev: G.rev, action });
-    setGame(g);
-  } catch (e) {
-    if (e instanceof ApiError && e.code === "stale") {
-      const g = await call<GameView>("GET", `/api/battler/games/${G.id}`).catch(() => null);
-      if (g) setGame(g);
-      toast(explain(e));
-    } else toast(explain(e), true);
+  const status = G.status, round = G.round;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const g = await call<GameView>("POST", `/api/battler/games/${G!.id}/act`, { rev: G!.rev, action });
+      setGame(g);
+      return;
+    } catch (e) {
+      if (!(e instanceof ApiError && e.code === "stale")) return toast(explain(e), true);
+      // The other player changed something (their own pit, usually). Catch up, and if we're still in the same phase of
+      // the same round, send the tap again: the server checks every rule against the fresh game anyway.
+      const g = await call<GameView>("GET", `/api/battler/games/${G!.id}`).catch(() => null);
+      if (!g) return toast(explain(e), true);
+      setGame(g);
+      if (g.status !== status || g.round !== round) return toast(explain(e));
+    }
   }
 }
 
@@ -617,7 +625,7 @@ function drawGame() {
       if (shownResult < g.rounds.length && g.outcome?.reason === "complete") { main.innerHTML = gameHeader(g) + drawResults(g, g.rounds.length - 1, true); break; }
       main.innerHTML = gameHeader(g) + drawFinal(g);
       break;
-    case "CANCELLED": main.innerHTML = `<div class="bt-panel center"><h2>Game called off</h2><p class="dim">It ended before anyone played a round (or both players left), so nobody's rating changed.</p><button class="cta" data-go="#play">Back to Play</button></div>`; break;
+    case "CANCELLED": main.innerHTML = `<div class="bt-panel center"><h2>Game called off</h2><p class="bt-dim">It ended before anyone played a round (or both players left), so nobody's rating changed.</p><button class="cta" data-go="#play">Back to Play</button></div>`; break;
   }
   bindGame();
   tickClock();
@@ -628,7 +636,7 @@ function drawWaiting(g: GameView) {
   return `<div class="bt-panel center bt-wait">
     <div class="bt-spinner" aria-hidden="true"></div>
     <h2>Waiting for an opponent</h2>
-    <p class="dim">Your game is in the lobby. It's called off if nobody joins within 30 minutes.</p>
+    <p class="bt-dim">Your game is in the lobby. It's called off if nobody joins within 30 minutes.</p>
     <button class="cta small ghost" data-act="cancel">Cancel game</button>
     <p class="bt-fair">Fairness code <code>${g.seed_hash.slice(0, 16)}…</code></p>
   </div>`;
@@ -636,9 +644,9 @@ function drawWaiting(g: GameView) {
 
 function drawDeckPick(g: GameView) {
   const me = g.seats[g.me!.side]!, op = g.seats[1 - g.me!.side]!;
-  if (me.picked) return `<div class="bt-panel center"><div class="bt-spinner"></div><h2>Deck locked in</h2><p class="dim">${op.picked ? "Starting…" : `Waiting for ${esc(op.name)} to pick a deck.`}</p><button class="textbtn" data-act="forfeit">Leave game</button></div>`;
+  if (me.picked) return `<div class="bt-panel center"><div class="bt-spinner"></div><h2>Deck locked in</h2><p class="bt-dim">${op.picked ? "Starting…" : `Waiting for ${esc(op.name)} to pick a deck.`}</p><button class="textbtn" data-act="forfeit">Leave game</button></div>`;
   const decks = HOME.decks;
-  return `<div class="bt-panel"><h2>Pick your deck</h2><p class="dim">Decks stay private. Ownership is checked again now.</p>
+  return `<div class="bt-panel"><h2>Pick your deck</h2><p class="bt-dim">Decks stay private. Ownership is checked again now.</p>
     <div class="bt-decklist">${decks.map((d) => `<button class="bt-deckrow ${d.problems.length ? "off" : ""}" data-deck="${d.deck.id}" ${d.problems.length ? "disabled" : ""}>
       <div class="bt-deckrow-cap t-${esc(ROBOT.get(d.deck.captain ?? 0)?.tier ?? "none")}">${d.deck.captain ? `<span>${d.deck.captain}</span>` : "?"}</div>
       <div><b>${esc(d.deck.name)}</b><span class="${d.problems.length ? "warn" : "ok"}">${d.problems.length ? esc(d.problems[0]) : "Ready"}</span></div></button>`).join("") || '<div class="bt-empty">No decks.</div>'}</div>
@@ -666,7 +674,7 @@ function fieldTile(r: RobotInst, opts: { station?: number; captain?: boolean; pa
     </div>
     <div class="bt-ft-stats">
       ${s ? s.points.map((p, i) => `<span class="ph${i}" data-pts="${p}" data-base="${s.base[i]}"><small>${["A", "T", "E"][i]}</small><b>${p}</b></span>`).join("") : `<span><small>A</small><b>${r.stats.auto}</b></span><span><small>T</small><b>${r.stats.tele}</b></span><span><small>E</small><b>${r.stats.end}</b></span>`}
-      ${s ? `<span class="bt-roll" data-hit="${s.rp_hit}" title="RP${s.station} chance"><small>RP${s.station}</small><b>${s.rp_chance}%</b><em>${s.rp_hit ? "+1" : "–"}</em></span>` : rp !== null ? `<span class="rp" title="${names[st - 1]} RP at station ${st}"><small>RP${st}</small><b>${rp}%</b></span>` : `<span class="rp dim"><small>RP</small><b>${r.stats.rp.join("/")}</b></span>`}
+      ${s ? `<span class="bt-roll" data-hit="${s.rp_hit}" title="RP${s.station} chance"><small>RP${s.station}</small><b>${s.rp_chance}%</b><em>${s.rp_hit ? "+1" : "–"}</em></span>` : rp !== null ? `<span class="rp" title="${names[st - 1]} RP at station ${st}"><small>RP${st}</small><b>${rp}%</b></span>` : `<span class="rp bt-dim"><small>RP</small><b>${r.stats.rp.join("/")}</b></span>`}
     </div>
     ${r.effect_text ? `<div class="bt-ft-fx">${esc(r.effect_text)}</div>` : ""}
     ${partChips ? `<div class="bt-ft-parts">${partChips}</div>` : ""}
@@ -696,12 +704,12 @@ function drawPit(g: GameView) {
       <div class="bt-field">${robotsByStation.map((i) => fieldTile(robotOf(i)!, { station: stationOf(plan, i), captain: i === myBots[0], parts: attachedTo(i), mine: !locked, target: !locked && selCard?.kind === "PART" })).join("")}</div>
       <div class="bt-loreslot ${!locked && selCard?.kind === "LORE" ? "target" : ""} ${loreCard ? "full" : ""}" data-lore-slot>
         <small>YOUR LORE THIS ROUND (0–1)</small>
-        ${loreCard ? `<b>${esc(loreCard.name)}</b><span>${esc(loreCard.text)}</span>${locked ? "" : '<button class="textbtn" data-lore-clear>Take back</button>'}` : `<span class="dim">${selCard?.kind === "LORE" ? "Tap here to play it" : "No lore played. Lore hits all six robots for one round."}</span>`}
+        ${loreCard ? `<b>${esc(loreCard.name)}</b><span>${esc(loreCard.text)}</span>${locked ? "" : '<button class="textbtn" data-lore-clear>Take back</button>'}` : `<span class="bt-dim">${selCard?.kind === "LORE" ? "Tap here to play it" : "No lore played. Lore hits all six robots for one round."}</span>`}
       </div>
     </section>
     <section class="bt-hand">
       <h3>Your hand <small>${plural(hand.length, "card")} · ${me.pile_count} left to draw</small></h3>
-      <div class="bt-handrow">${hand.length ? hand.map((c) => supportCard(c, `data-hand="${c.inst}" class="${selected === c.inst ? "sel" : ""} ${planned.has(c.inst) ? "used" : ""}" role="button" tabindex="0"`, planned.has(c.inst) ? `<div class="bt-inplay">${plan.lore === c.inst ? "Lore slot" : "Attached"}</div>` : "")).join("") : '<p class="dim">No cards in hand.</p>'}</div>
+      <div class="bt-handrow">${hand.length ? hand.map((c) => supportCard(c, `data-hand="${c.inst}" role="button" tabindex="0"`, planned.has(c.inst) ? `<div class="bt-inplay">${plan.lore === c.inst ? "Lore slot" : "Attached"}</div>` : "", `${selected === c.inst ? "sel" : ""} ${planned.has(c.inst) ? "used" : ""}`)).join("") : '<p class="bt-dim">No cards in hand.</p>'}</div>
     </section>
     <div class="bt-lockbar">
       ${locked ? `<div class="bt-waitlock"><div class="bt-spinner small"></div>${them.locked ? "Revealing…" : `Locked in. Waiting for ${esc(them.name)}.`}</div>` : `<button class="cta wide" data-act="lock">Lock pit</button>`}
@@ -870,7 +878,7 @@ function drawFinal(g: GameView) {
   const why = o.reason === "forfeit" ? (res === "win" ? `${esc(g.seats[op]!.name)} forfeited.` : "You forfeited.") : o.reason === "timeout" ? (res === "win" ? `${esc(g.seats[op]!.name)} ran out the pit timer.` : "You ran out the pit timer.") : "";
   return `<div class="bt-final ${res}">
     <h1>${res === "win" ? "Victory" : res === "loss" ? "Defeat" : "Draw"}</h1>
-    ${why ? `<p class="dim">${why}</p>` : ""}
+    ${why ? `<p class="bt-dim">${why}</p>` : ""}
     <div class="bt-finalscore"><div><b>${o.rp[side]}</b><small>your RP</small></div><span>–</span><div><b>${o.rp[op]}</b><small>${esc(g.seats[op]!.name)}</small></div></div>
     <p class="bt-tiebreak">Points ${o.points[side]} – ${o.points[op]}${o.rp[0] === o.rp[1] ? " (RP tied, so points decide)" : ""}</p>
     <div class="bt-elochange ${d >= 0 ? "up" : "down"}">${o.elo_before[side]} → <b>${o.elo_after[side]}</b> Elo <span>${d >= 0 ? "+" : ""}${d}</span></div>
@@ -880,7 +888,7 @@ function drawFinal(g: GameView) {
     <div class="cta-row"><button class="cta" data-go="#play">Play again</button><button class="cta ghost" data-go="#home">Home</button></div>
     <details class="bt-log"><summary>Fairness check</summary><p>Every shuffle and roll in this game came from one secret number, locked in before the game started. Its fingerprint (SHA-256) was shown from the start:</p>
       <code class="bt-code">${g.seed_hash}</code><p>The number itself, revealed now:</p><code class="bt-code">${g.seed}</code>
-      <p class="dim">SHA-256 of the number as 8 little-endian bytes gives the fingerprint above, so it couldn't have been changed mid-game.</p></details>
+      <p class="bt-dim">SHA-256 of the number as 8 little-endian bytes gives the fingerprint above, so it couldn't have been changed mid-game.</p></details>
   </div>`;
 }
 
@@ -915,7 +923,7 @@ async function renderAdmin() {
       .slice(0, 120);
     $("#fxList")!.innerHTML = list.map((r) => {
       const f = byTeam.get(r.team);
-      const state = f?.published.length ? `<span class="ok">Published r${f.rev}</span>` : f?.draft.length ? '<span class="warn">Draft</span>' : data.test_effects[r.team] ? '<span class="dim">Test example</span>' : '<span class="dim">No effect</span>';
+      const state = f?.published.length ? `<span class="ok">Published r${f.rev}</span>` : f?.draft.length ? '<span class="warn">Draft</span>' : data.test_effects[r.team] ? '<span class="bt-dim">Test example</span>' : '<span class="bt-dim">No effect</span>';
       return robotTile(r, `data-fx-team="${r.team}"`, `<div class="bt-tile-act">${state}</div>`);
     }).join("");
   };
@@ -1023,7 +1031,7 @@ function editEffect(r: Robot, f: FxRow | undefined, onSaved: (f: FxRow) => void)
       <h3>${r.team} ${esc(r.name)}</h3>
       <div class="bt-fxnow">${f?.published.length ? `Published (r${f.rev}): ${esc(f.published_text)}` : "Nothing published yet."}</div>
       <div id="fxRows"></div>
-      <div class="bt-fxprev"><small>RULES TEXT (generated)</small><div id="fxText"></div><div id="fxSim" class="dim"></div>
+      <div class="bt-fxprev"><small>RULES TEXT (generated)</small><div id="fxText"></div><div id="fxSim" class="bt-dim"></div>
         <div class="bt-fxsimopts"><label>Preview in station <select id="fxSt"><option>1</option><option>2</option><option>3</option></select></label><label><input type="checkbox" id="fxCap"> as captain</label></div></div>
       <div class="cta-row"><button class="cta small ghost" id="fxDraft">Save draft</button><button class="cta small" id="fxPublish">Publish</button></div>
     </div>`, (t) => {
@@ -1050,10 +1058,10 @@ async function start() {
     route();
   } catch (e) {
     if (e instanceof ApiError && e.status === 401) {
-      main.innerHTML = '<div class="bt-panel center"><h2>Sign in first</h2><p class="dim">The Battler uses your FRC Packs account and the robots you own there.</p><a class="cta" href="/">Sign in to FRC Packs</a></div>';
+      main.innerHTML = '<div class="bt-panel center"><h2>Sign in first</h2><p class="bt-dim">The Battler uses your FRC Packs account and the robots you own there.</p><a class="cta" href="/">Sign in to FRC Packs</a></div>';
       return;
     }
-    main.innerHTML = `<div class="bt-panel center"><h2>Couldn't load the Battler</h2><p class="dim">${esc(explain(e))}</p><button class="cta" id="retry">Try again</button></div>`;
+    main.innerHTML = `<div class="bt-panel center"><h2>Couldn't load the Battler</h2><p class="bt-dim">${esc(explain(e))}</p><button class="cta" id="retry">Try again</button></div>`;
     $("#retry")!.onclick = () => location.reload();
   }
 }

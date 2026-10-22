@@ -231,7 +231,7 @@ fn describe_one(e: &Effect, owner: Owner) -> String {
         (Scope::Enemies, _) => "Opposing robots",
         (Scope::Field, _) => "Every robot on the field",
     };
-    let plural = !matches!(e.scope, Scope::Itself);
+    let plural = matches!(e.scope, Scope::Allies | Scope::Enemies);
     let what = match &e.op {
         Op::AddPhaseFlat { phase, value } => format!("{} {}", signed(*value), phase.word()),
         Op::AddPhasePct { phase, value } => format!("{}% {}", signed(*value), phase.word()),
