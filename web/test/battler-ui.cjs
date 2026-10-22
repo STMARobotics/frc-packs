@@ -117,14 +117,14 @@ async function main() {
       // Attach the first part to the second robot, play the first lore, move the captain to station 3.
       const part = p.locator('.bt-handrow .bt-sup.k-part:not(.used)').first();
       if (await part.count()) {
-        await part.click({ force: true });
+        await part.click();
         await p.waitForSelector('.bt-ft.target');
         await p.click('.bt-side.me .bt-ft >> nth=1');
         await p.waitForTimeout(300);
       }
       const lore = p.locator('.bt-handrow .bt-sup.k-lore:not(.used)').first();
       if (await lore.count()) {
-        await lore.click({ force: true });
+        await lore.click();
         await p.click('[data-lore-slot]');
         await p.waitForTimeout(300);
       }

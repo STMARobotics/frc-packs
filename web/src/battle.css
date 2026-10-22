@@ -3,7 +3,7 @@
 .bt-page { --tier-common: #aab8c4; --tier-uncommon: #7fe0d2; --tier-rare: #ffc850; --tier-legendary: #b478ff; --tier-mythic: #3cffdc; --me: #27d3c3; --op: #ff8a7a; }
 .bt-noscroll { overflow: hidden; }
 .bt-app { max-width: 760px; margin: 0 auto; width: 100%; gap: 12px; padding-bottom: 120px; }
-.bt-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; position: sticky; top: 0; z-index: 20; padding: 10px 0; background: linear-gradient(var(--bg) 70%, transparent); }
+.bt-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; position: sticky; top: 0; z-index: 20; margin-inline: -16px; padding: 10px 16px; background: rgba(6, 22, 29, .82); backdrop-filter: blur(8px); border-bottom: 1px solid rgba(31, 70, 80, .6); }
 .bt-top .brand { text-decoration: none; }
 .bt-top-r { display: flex; gap: 8px; align-items: center; }
 .bt-top-r .chip { text-decoration: none; }
@@ -237,7 +237,7 @@
 .bt-board-row.head span:nth-child(2) { color: var(--me); } .bt-board-row.head span:nth-child(3) { color: var(--op); }
 .bt-board-row.tot { border-top: 1px solid var(--line); margin-top: 4px; }
 .bt-board-row.tot b { font-size: 30px; }
-.bt-results.anim .bt-board-row:not(.head) b, .bt-results.anim .bt-ft-stats span[class^="ph"] b { opacity: .25; transition: opacity .3s; }
+.bt-results.anim .bt-board-row:not(.head) b, .bt-results.anim .bt-ft-stats span[class^="ph"] b { opacity: .06; transition: opacity .3s; }
 .bt-results.anim .bt-board-row.lit b, .bt-results.anim .bt-ft-stats span.lit b { opacity: 1; }
 .bt-results.anim .bt-board-row.lit:not(.tot) { background: rgba(39, 211, 195, .08); }
 .bt-results.anim .bt-ft-stats span.lit { animation: bt-pop .4s ease-out; }
@@ -256,8 +256,9 @@
 .bt-verdict span b { color: var(--foam); }
 .bt-verdict.win { background: linear-gradient(135deg, #0f5f57, #0a2d33); border-color: #3fe0cf; }
 .bt-verdict.loss { background: linear-gradient(135deg, #5a2320, #2a1013); border-color: #ff8a7a; }
-.bt-results.anim .bt-verdict { opacity: 0; transform: translateY(8px); transition: opacity .4s, transform .4s; }
-.bt-results.anim .bt-verdict.lit { opacity: 1; transform: none; }
+.bt-results.anim .bt-verdict:not(.lit) { display: none; }
+.bt-results.anim .bt-verdict.lit { animation: bt-rise .45s ease-out; }
+@keyframes bt-rise { from { opacity: 0; transform: translateY(10px); } }
 .bt-log { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; font-size: 13px; }
 .bt-log summary { cursor: pointer; font-weight: 700; color: var(--foam); }
 .bt-log ul { margin: 8px 0 0; padding-left: 18px; line-height: 1.5; color: #cfe6e8; }
@@ -314,3 +315,17 @@
 @media (prefers-reduced-motion: reduce) {
   .bt-resume, .bt-ft.target, .bt-loreslot.target, .bt-lorecard { animation: none; }
 }
+
+/* the opponent's alliance in the pit: one compact row */
+.bt-field.compact .bt-ft { padding: 6px; gap: 4px; }
+.bt-field.compact .bt-ft-pic { height: 34px; }
+.bt-field.compact .bt-ft-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px; }
+.bt-field.compact .bt-ft-stats span { padding: 2px 0; }
+.bt-field.compact .bt-ft-stats b { font-size: 14px; }
+.bt-field.compact .bt-ft-stats .rp { display: none; }
+/* a robot's RP roll: clear hit or miss */
+.bt-roll { position: relative; }
+.bt-roll em { position: absolute; top: -7px; right: -4px; min-width: 22px; padding: 1px 4px; border-radius: 999px; background: #33474d; color: #cfe; text-align: center; }
+.bt-roll[data-hit="true"] em { background: #2fd39a; color: #032; }
+.bt-results.anim .bt-roll.done em { animation: bt-pop .35s ease-out; }
+.bt-oppready { font-size: 12px; font-weight: 700; color: #6ff0c0; }

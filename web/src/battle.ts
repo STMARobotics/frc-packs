@@ -530,6 +530,7 @@ let G: GameView | null = null;
 let selected: number | null = null; // the hand card picked up in the pit
 let shownResult = 0; // the last round whose results animation has played
 let skipAnim = false;
+let lastAnimated = 0; // the last round whose reveal has played
 
 const gameOver = () => { const g = G as GameView | null; return !!g && (g.status === "FINAL" || g.status === "CANCELLED"); };
 
@@ -555,11 +556,28 @@ async function renderGame(id: string) {
   timer = window.setInterval(tickClock, 1000);
 }
 
+/** Whether the game is waiting on this player right now. */
+function myMove(g: GameView) {
+  const me = g.me ? g.seats[g.me.side] : null;
+  if (!me) return false;
+  return (g.status === "DECKS" && !me.picked) || (g.status === "PIT" && !me.locked) || (g.status === "RESULTS" && !me.acked);
+}
+
 function setGame(g: GameView) {
   const prev = G;
   G = g;
+  document.title = myMove(g) ? "● Your move · Battler" : "Battler · FRC Packs";
+  // A short buzz on phones when the round resolves or the game ends.
+  if (prev && prev.status !== g.status && (g.status === "RESULTS" || g.status === "FINAL")) navigator.vibrate?.(40);
   if (shownResult === -1) shownResult = g.status === "RESULTS" ? g.round - 1 : g.rounds.length; // don't replay old results on load
   if (prev && prev.status !== g.status) selected = null;
+  // While the round reveal plays, the only thing that can change is the other player tapping Next: don't restart the
+  // reveal for that, just say they're ready.
+  if (prev && prev.status === "RESULTS" && g.status === "RESULTS" && prev.round === g.round && g.me && prev.seats[g.me.side]?.acked === g.seats[g.me.side]?.acked) {
+    const r = $("#oppReady");
+    if (r) r.hidden = !g.seats[1 - g.me.side]?.acked;
+    return;
+  }
   drawGame();
   if (g.status === "FINAL" && prev && prev.status !== "FINAL") loadHome().catch(() => {});
 }
@@ -570,6 +588,7 @@ async function act(action: Record<string, unknown>) {
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const g = await call<GameView>("POST", `/api/battler/games/${G!.id}/act`, { rev: G!.rev, action });
+      $("#toast")!.hidden = true; // any "now tap…" hint is done
       setGame(g);
       return;
     } catch (e) {
@@ -599,9 +618,14 @@ function gameHeader(g: GameView) {
   const me = g.me!.side, op = 1 - me;
   const a = g.seats[me], b = g.seats[op];
   const dots = Array.from({ length: g.rounds_total }, (_, i) => `<i class="${i + 1 < g.round || (i + 1 === g.round && (g.status === "RESULTS" || g.status === "FINAL")) ? "done" : i + 1 === g.round ? "now" : ""}"></i>`).join("");
+  // While a round's results are still being revealed, the RP shown is from before it (no spoilers); the reveal ends by
+  // counting it up to the real total.
+  const last = g.rounds[g.rounds.length - 1];
+  const hiding = !!last && (g.status === "RESULTS" || shownResult < g.rounds.length) && lastAnimated < last.round && !skipAnim;
+  const gain = (s: number) => (hiding ? last.result.match_rp[s] + last.result.bonus_rp[s] : 0);
   return `<div class="bt-gh">
     <div class="bt-gh-p me"><b>${esc(a?.name)}</b><span>${a?.elo ?? ""} Elo</span></div>
-    <div class="bt-gh-mid"><div class="bt-gh-rp"><b>${a?.rp ?? 0}</b><small>RP</small><b>${b?.rp ?? 0}</b></div><div class="bt-dots">${dots}</div>
+    <div class="bt-gh-mid"><div class="bt-gh-rp"><b data-rp-to="${a?.rp ?? 0}">${(a?.rp ?? 0) - gain(me)}</b><small>RP</small><b data-rp-to="${b?.rp ?? 0}">${(b?.rp ?? 0) - gain(op)}</b></div><div class="bt-dots">${dots}</div>
       ${g.deadline && !["FINAL", "CANCELLED"].includes(g.status) ? '<div class="bt-clock" id="clock"></div>' : ""}</div>
     <div class="bt-gh-p op"><b>${esc(b?.name ?? "Waiting…")}</b><span>${b ? `${b.elo} Elo` : ""}</span></div>
   </div>`;
@@ -610,7 +634,15 @@ function gameHeader(g: GameView) {
 function drawGame() {
   const g = G!;
   if (!g.me) {
-    main.innerHTML = `<div class="bt-empty">You're watching a game you're not in.</div>`;
+    // Someone opened a game link: they can take the empty seat.
+    const host = g.seats[0];
+    main.innerHTML = g.status === "OPEN" && host
+      ? `<div class="bt-panel center"><h2>${esc(host.name)} wants a game</h2><p class="bt-dim">${host.elo} Elo · 5 rounds · bring a ready deck</p><button class="cta" id="joinLink">Join game</button><button class="textbtn" data-go="#home">Not now</button></div>`
+      : `<div class="bt-empty">This game is already full. <button class="textbtn" data-go="#play">Find another</button></div>`;
+    const j = $("#joinLink");
+    if (j) j.onclick = async () => {
+      try { await call("POST", `/api/battler/games/${g.id}/join`); route(); } catch (e) { toast(explain(e), true); }
+    };
     return;
   }
   switch (g.status) {
@@ -637,6 +669,7 @@ function drawWaiting(g: GameView) {
     <div class="bt-spinner" aria-hidden="true"></div>
     <h2>Waiting for an opponent</h2>
     <p class="bt-dim">Your game is in the lobby. It's called off if nobody joins within 30 minutes.</p>
+    <button class="cta small" id="shareGame">Copy invite link</button>
     <button class="cta small ghost" data-act="cancel">Cancel game</button>
     <p class="bt-fair">Fairness code <code>${g.seed_hash.slice(0, 16)}…</code></p>
   </div>`;
@@ -696,20 +729,22 @@ function drawPit(g: GameView) {
   return `
     <section class="bt-side op">
       <h3>${esc(them.name)}'s alliance <span class="bt-lockst ${them.locked ? "on" : ""}">${them.locked ? "Locked ✓" : "In the pit…"}</span></h3>
-      <div class="bt-field">${g.alliances[op].map((i) => fieldTile(robotOf(i)!, { captain: i === g.alliances[op][0] })).join("")}</div>
+      <div class="bt-field compact">${g.alliances[op].map((i) => fieldTile(robotOf(i)!, { captain: i === g.alliances[op][0] })).join("")}</div>
       <p class="bt-note">Their parts, lore and stations stay hidden until you both lock. They hold ${plural(them.hand_count, "card")}.</p>
     </section>
     <section class="bt-side me">
       <h3>Your alliance <small>${locked ? "Locked" : "tap a card, then a robot"}</small></h3>
       <div class="bt-field">${robotsByStation.map((i) => fieldTile(robotOf(i)!, { station: stationOf(plan, i), captain: i === myBots[0], parts: attachedTo(i), mine: !locked, target: !locked && selCard?.kind === "PART" })).join("")}</div>
-      <div class="bt-loreslot ${!locked && selCard?.kind === "LORE" ? "target" : ""} ${loreCard ? "full" : ""}" data-lore-slot>
-        <small>YOUR LORE THIS ROUND (0–1)</small>
-        ${loreCard ? `<b>${esc(loreCard.name)}</b><span>${esc(loreCard.text)}</span>${locked ? "" : '<button class="textbtn" data-lore-clear>Take back</button>'}` : `<span class="bt-dim">${selCard?.kind === "LORE" ? "Tap here to play it" : "No lore played. Lore hits all six robots for one round."}</span>`}
-      </div>
     </section>
     <section class="bt-hand">
       <h3>Your hand <small>${plural(hand.length, "card")} · ${me.pile_count} left to draw</small></h3>
       <div class="bt-handrow">${hand.length ? hand.map((c) => supportCard(c, `data-hand="${c.inst}" role="button" tabindex="0"`, planned.has(c.inst) ? `<div class="bt-inplay">${plan.lore === c.inst ? "Lore slot" : "Attached"}</div>` : "", `${selected === c.inst ? "sel" : ""} ${planned.has(c.inst) ? "used" : ""}`)).join("") : '<p class="bt-dim">No cards in hand.</p>'}</div>
+    </section>
+    <section class="bt-side lore">
+      <div class="bt-loreslot ${!locked && selCard?.kind === "LORE" ? "target" : ""} ${loreCard ? "full" : ""}" data-lore-slot>
+        <small>YOUR LORE THIS ROUND (0–1)</small>
+        ${loreCard ? `<b>${esc(loreCard.name)}</b><span>${esc(loreCard.text)}</span>${locked ? "" : '<button class="textbtn" data-lore-clear>Take back</button>'}` : `<span class="bt-dim">${selCard?.kind === "LORE" ? "Tap here to play it" : "No lore played. Lore hits all six robots for one round."}</span>`}
+      </div>
     </section>
     <div class="bt-lockbar">
       ${locked ? `<div class="bt-waitlock"><div class="bt-spinner small"></div>${them.locked ? "Revealing…" : `Locked in. Waiting for ${esc(them.name)}.`}</div>` : `<button class="cta wide" data-act="lock">Lock pit</button>`}
@@ -719,6 +754,14 @@ function drawPit(g: GameView) {
 }
 
 function bindGame() {
+  const share = $("#shareGame");
+  if (share) share.onclick = async () => {
+    const url = `${location.origin}/battle.html#game/${G!.id}`;
+    try {
+      if (navigator.share) await navigator.share({ title: "Battler", text: "Play me in the Battler", url });
+      else { await navigator.clipboard.writeText(url); toast("Invite link copied."); }
+    } catch { /* closed the share sheet */ }
+  };
   main.onclick = (e) => {
     const t = e.target as HTMLElement;
     const a = t.closest<HTMLElement>("[data-act]");
@@ -811,6 +854,7 @@ function drawResults(g: GameView, idx: number, replay: boolean) {
     ${r.events.length ? `<details class="bt-log"><summary>What triggered (${r.events.length})</summary><ul>${r.events.map((ev) => `<li><b>${esc(ev.source)}</b> ${esc(ev.text)}</li>`).join("")}</ul></details>` : ""}
     <div class="bt-lockbar">
       ${waiting ? `<div class="bt-waitlock"><div class="bt-spinner small"></div>Waiting for ${esc(them.name)}…</div>` : `<button class="cta wide" data-act="ack">${replay ? "Continue" : log.round >= g.rounds_total ? "See final result" : "Next round"}</button>`}
+      <span class="bt-oppready" id="oppReady" ${them.acked ? "" : "hidden"}>${esc(them.name)} is ready for the next round</span>
       <button class="textbtn" id="skipAnim">Skip animation</button>
     </div>
   </div>`;
@@ -846,9 +890,8 @@ async function runResults() {
   }
   box.querySelector(".bt-verdict")?.classList.add("lit");
   box.classList.add("finished");
+  document.querySelectorAll<HTMLElement>("[data-rp-to]").forEach((b) => countUp(b, +b.dataset.rpTo!));
 }
-let lastAnimated = 0;
-
 function finishAnim(box: HTMLElement) {
   animToken++;
   box.dataset.played = "1";
@@ -856,6 +899,7 @@ function finishAnim(box: HTMLElement) {
   box.querySelectorAll(".bt-board-row, .bt-ft-stats span, .bt-verdict").forEach((e) => e.classList.add("lit"));
   box.querySelectorAll(".bt-roll").forEach((e) => e.classList.add("done"));
   box.querySelectorAll<HTMLElement>(".bt-board-row b[data-to]").forEach((b) => (b.textContent = b.dataset.to!));
+  document.querySelectorAll<HTMLElement>("[data-rp-to]").forEach((b) => (b.textContent = b.dataset.rpTo!));
 }
 
 function countUp(el: HTMLElement, to: number) {
