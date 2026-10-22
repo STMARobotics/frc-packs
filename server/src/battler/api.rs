@@ -1,0 +1,719 @@
+//! The Battler's HTTP API, under /api/battler. Every request reads the game fresh, applies one rule from
+//! [`super::game`], and writes it back on condition the game's version is unchanged, so two tabs, a double tap or a
+//! script can never apply an action twice or act on a stale game. Ownership is read from FRC Packs (the player's
+//! cards) and never written here.
+//!
+//! Items (see docs/dynamodb.md):
+//! - `BG#<id>` / `GAME`: the whole game as JSON, `ver`; GSI1 `BGOPEN` while it's waiting for a second player.
+//! - `U#<id>` / `BTACTIVE`: the game a player is in (one at a time).
+//! - `U#<id>` / `BTPROF`: rating and record.
+//! - `U#<id>` / `BTDECK#<deck>`: a saved deck.
+//! - `U#<id>` / `BTHIST#<time>#<game>`: a finished game, for match history.
+//! - `BTFX#<team>` / `FX`: a robot's admin-written effect (draft and published); GSI1 `BTFX`. `BTFX#<team>` / `REV#<n>`:
+//!   each published revision.
+
+use std::collections::{HashMap, HashSet};
+
+use axum::extract::{Path, Query, State};
+use axum::http::StatusCode;
+use axum::routing::{get, post, put};
+use axum::{Json, Router};
+use serde::{Deserialize, Serialize};
+use serde_json::{Value, json};
+use uuid::Uuid;
+
+use super::content::{self, Kind, Robot};
+use super::effects::{self, Effect, Owner};
+use super::engine::{self, FieldRobot};
+use super::game::{self, DeckPick, Game, RobotPick, Seat, Status};
+use crate::Shared;
+use crate::auth::{Admin, User};
+use crate::db::{Cond, Db, Tx, from_item, get_n, get_s, item, n, pad, s};
+use crate::error::{ApiError, ApiResult};
+use crate::model::{self, now_ms, upk};
+use crate::retry;
+
+/// Everyone gets this many copies of every starter Part and Lore card until they can be pulled from packs.
+pub const STARTER_COPIES: usize = 3;
+pub const START_ELO: i32 = 1000;
+
+pub fn routes() -> Router<Shared> {
+    Router::new()
+        .route("/battler/home", get(home))
+        .route("/battler/catalog", get(catalog))
+        .route("/battler/decks", post(create_deck))
+        .route("/battler/decks/{id}", put(save_deck).delete(delete_deck))
+        .route("/battler/lobby", get(lobby))
+        .route("/battler/games", post(create_game))
+        .route("/battler/games/{id}", get(view_game))
+        .route("/battler/games/{id}/join", post(join_game))
+        .route("/battler/games/{id}/act", post(act))
+        .route("/battler/history", get(history))
+        .route("/battler/admin/effects", get(admin_effects))
+        .route("/battler/admin/effects/{team}", put(admin_save_effect))
+        .route("/battler/admin/preview", post(admin_preview))
+}
+
+fn bad(code: &'static str) -> ApiError {
+    ApiError::new(StatusCode::BAD_REQUEST, code)
+}
+
+fn refused(code: &'static str) -> ApiError {
+    ApiError::new(StatusCode::CONFLICT, code)
+}
+
+// ---------- profiles, ownership, effects ----------
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+struct BtProfile {
+    elo: i32,
+    games: i32,
+    wins: i32,
+    losses: i32,
+    draws: i32,
+}
+
+async fn bt_profile(db: &Db, uid: Uuid) -> ApiResult<BtProfile> {
+    Ok(db.get_as(&upk(uid), "BTPROF").await?.unwrap_or(BtProfile { elo: START_ELO, ..Default::default() }))
+}
+
+/// The teams a player owns at least one card of, read from their FRC Packs collection.
+async fn owned_teams(db: &Db, uid: Uuid) -> ApiResult<HashSet<i32>> {
+    Ok(model::cards(db, uid, content::PACK).await?.into_iter().map(|c| c.team).collect())
+}
+
+fn support_owned(st: &Shared) -> HashMap<String, usize> {
+    st.battler.support.iter().map(|c| (c.id.clone(), STARTER_COPIES)).collect()
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+struct FxItem {
+    team: i32,
+    /// The admin's working copy.
+    #[serde(default)]
+    draft: Vec<Effect>,
+    /// What players get; empty until published.
+    #[serde(default)]
+    published: Vec<Effect>,
+    #[serde(default)]
+    rev: i32,
+    #[serde(default)]
+    author: String,
+    #[serde(default)]
+    updated: i64,
+}
+
+/// Every robot's admin-written effect, by team.
+async fn robot_effects(db: &Db) -> ApiResult<HashMap<i32, FxItem>> {
+    let mut out = HashMap::new();
+    for it in db.index("gsi1", "BTFX", None, false).await? {
+        if let Ok(fx) = from_item::<FxItem>(it) {
+            out.insert(fx.team, fx);
+        }
+    }
+    Ok(out)
+}
+
+/// A robot's effect in play: the published one, else a test example, else none.
+fn effect_for(st: &Shared, fx: &HashMap<i32, FxItem>, team: i32) -> (Vec<Effect>, bool) {
+    match fx.get(&team) {
+        Some(f) if !f.published.is_empty() => (f.published.clone(), false),
+        _ => match st.battler.test_effects.get(&team) {
+            Some(e) => (e.clone(), true),
+            None => (vec![], false),
+        },
+    }
+}
+
+// ---------- catalog and home ----------
+
+#[derive(Serialize)]
+struct RobotOut<'a> {
+    #[serde(flatten)]
+    robot: &'a Robot,
+    effect_text: String,
+    effect_test: bool,
+}
+
+async fn catalog(State(st): State<Shared>, _user: User) -> ApiResult<Json<Value>> {
+    let fx = robot_effects(&st.db).await?;
+    let robots: Vec<RobotOut> = st
+        .battler
+        .robots
+        .iter()
+        .map(|r| {
+            let (e, test) = effect_for(&st, &fx, r.team);
+            RobotOut { robot: r, effect_text: if e.is_empty() { String::new() } else { effects::describe(&e, Owner::Robot) }, effect_test: test }
+        })
+        .collect();
+    Ok(Json(json!({
+        "season": content::SEASON,
+        "rp_names": content::rp_names(content::SEASON),
+        "rules": {
+            "rounds": game::ROUNDS, "deck_robots": game::DECK_ROBOTS, "support_cards": game::SUPPORT_CARDS,
+            "draw": game::DRAW, "max_copies": game::MAX_COPIES, "pit_seconds": game::PIT_MS / 1000,
+            "results_seconds": game::RESULTS_MS / 1000, "strikes": game::STRIKES, "start_elo": START_ELO,
+        },
+        "robots": robots,
+        "support": st.battler.support,
+        "tags": effects::TAGS,
+    })))
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+struct Deck {
+    id: String,
+    name: String,
+    captain: Option<i32>,
+    #[serde(default)]
+    robots: Vec<i32>,
+    #[serde(default)]
+    support: Vec<String>,
+    #[serde(default)]
+    updated: i64,
+}
+
+/// What stops a deck from being played (empty = ready).
+fn deck_problems(st: &Shared, owned: &HashSet<i32>, d: &Deck) -> Vec<String> {
+    let c = &st.battler;
+    let mut out = vec![];
+    match d.captain {
+        None => out.push("Pick an Alliance Captain.".to_string()),
+        Some(t) if c.robot(t).is_none() => out.push(format!("Team {t} isn't in this set.")),
+        Some(t) if !owned.contains(&t) => out.push(format!("You don't own team {t} (captain) any more.")),
+        _ => {}
+    }
+    if d.robots.len() != game::DECK_ROBOTS {
+        out.push(format!("Robots {}/{}.", d.robots.len(), game::DECK_ROBOTS));
+    }
+    let mut seen = HashSet::new();
+    for t in d.captain.iter().chain(&d.robots) {
+        if !seen.insert(*t) {
+            out.push(format!("Team {t} is in the deck twice."));
+        }
+    }
+    for t in &d.robots {
+        if c.robot(*t).is_none() {
+            out.push(format!("Team {t} isn't in this set."));
+        } else if !owned.contains(t) {
+            out.push(format!("You don't own team {t} any more."));
+        }
+    }
+    if d.support.len() != game::SUPPORT_CARDS {
+        out.push(format!("Support cards {}/{}.", d.support.len(), game::SUPPORT_CARDS));
+    }
+    let mut copies: HashMap<&str, usize> = HashMap::new();
+    for id in &d.support {
+        *copies.entry(id.as_str()).or_default() += 1;
+    }
+    let have = support_owned(st);
+    for (id, k) in copies {
+        match c.support(id) {
+            None => out.push(format!("Unknown card {id}.")),
+            Some(card) if k > game::MAX_COPIES => out.push(format!("At most {} copies of {}.", game::MAX_COPIES, card.name)),
+            Some(card) if k > have.get(id).copied().unwrap_or(0) => out.push(format!("You only own {} {}.", have[id], card.name)),
+            _ => {}
+        }
+    }
+    out
+}
+
+async fn decks(db: &Db, uid: Uuid) -> ApiResult<Vec<Deck>> {
+    Ok(db.query(&upk(uid), "BTDECK#").await?.into_iter().filter_map(|it| from_item(it).ok()).collect())
+}
+
+async fn active_game(db: &Db, uid: Uuid) -> ApiResult<Option<String>> {
+    Ok(db.get(&upk(uid), "BTACTIVE").await?.and_then(|it| get_s(&it, "game")))
+}
+
+async fn home(State(st): State<Shared>, user: User) -> ApiResult<Json<Value>> {
+    let db = &st.db;
+    let (p, prof, owned, mut ds, active) = tokio::try_join!(
+        async { model::profile(db, user.id).await.map_err(ApiError::from) },
+        bt_profile(db, user.id),
+        owned_teams(db, user.id),
+        decks(db, user.id),
+        active_game(db, user.id),
+    )?;
+    // A pointer to a game that's over is stale (cleared on the next write).
+    let active = match active {
+        Some(id) => match load(db, &id).await? {
+            Some((g, _)) if !g.status.over() => Some(id),
+            _ => None,
+        },
+        None => None,
+    };
+    ds.sort_by(|a, b| b.updated.cmp(&a.updated));
+    let decks: Vec<Value> = ds
+        .iter()
+        .map(|d| json!({ "deck": d, "problems": deck_problems(&st, &owned, d) }))
+        .collect();
+    let mut teams: Vec<i32> = owned.into_iter().filter(|t| st.battler.robot(*t).is_some()).collect();
+    teams.sort_unstable();
+    Ok(Json(json!({
+        "name": p.and_then(|p| p.username).unwrap_or_default(),
+        "is_admin": user.is_admin,
+        "profile": prof,
+        "active": active,
+        "owned_teams": teams,
+        "support_owned": support_owned(&st),
+        "decks": decks,
+    })))
+}
+
+// ---------- decks ----------
+
+#[derive(Deserialize)]
+struct DeckReq {
+    name: String,
+    captain: Option<i32>,
+    #[serde(default)]
+    robots: Vec<i32>,
+    #[serde(default)]
+    support: Vec<String>,
+}
+
+const MAX_DECKS: usize = 20;
+
+async fn write_deck(st: &Shared, uid: Uuid, id: String, req: DeckReq) -> ApiResult<Json<Value>> {
+    let name = req.name.trim();
+    if name.is_empty() || name.chars().count() > 30 {
+        return Err(bad("bad_name"));
+    }
+    // A draft can be incomplete, but never bigger than a deck or full of unknown cards.
+    if req.robots.len() > game::DECK_ROBOTS || req.support.len() > game::SUPPORT_CARDS {
+        return Err(bad("too_many_cards"));
+    }
+    if req.support.iter().any(|c| st.battler.support(c).is_none())
+        || req.robots.iter().chain(req.captain.iter()).any(|t| st.battler.robot(*t).is_none())
+    {
+        return Err(bad("unknown_card"));
+    }
+    let d = Deck { id: id.clone(), name: name.to_string(), captain: req.captain, robots: req.robots, support: req.support, updated: now_ms() };
+    st.db.put(item(upk(uid), format!("BTDECK#{id}"), &d)).await?;
+    let owned = owned_teams(&st.db, uid).await?;
+    Ok(Json(json!({ "deck": d, "problems": deck_problems(st, &owned, &d) })))
+}
+
+async fn create_deck(State(st): State<Shared>, user: User, Json(req): Json<DeckReq>) -> ApiResult<Json<Value>> {
+    if decks(&st.db, user.id).await?.len() >= MAX_DECKS {
+        return Err(refused("too_many_decks"));
+    }
+    write_deck(&st, user.id, Uuid::new_v4().simple().to_string()[..12].to_string(), req).await
+}
+
+async fn save_deck(State(st): State<Shared>, user: User, Path(id): Path<String>, Json(req): Json<DeckReq>) -> ApiResult<Json<Value>> {
+    if st.db.get(&upk(user.id), &format!("BTDECK#{id}")).await?.is_none() {
+        return Err(ApiError::new(StatusCode::NOT_FOUND, "no_deck"));
+    }
+    write_deck(&st, user.id, id, req).await
+}
+
+async fn delete_deck(State(st): State<Shared>, user: User, Path(id): Path<String>) -> ApiResult<StatusCode> {
+    st.db.delete(&upk(user.id), &format!("BTDECK#{id}")).await?;
+    Ok(StatusCode::NO_CONTENT)
+}
+
+// ---------- games: storage ----------
+
+fn gpk(id: &str) -> String {
+    format!("BG#{id}")
+}
+
+async fn load(db: &Db, id: &str) -> ApiResult<Option<(Game, i64)>> {
+    let Some(it) = db.get(&gpk(id), "GAME").await? else { return Ok(None) };
+    let ver = get_n(&it, "ver").unwrap_or(0);
+    let g: Game = serde_json::from_str(&get_s(&it, "state").unwrap_or_default())
+        .map_err(|e| ApiError::from(crate::db::DbError::Other(format!("bad game {id}: {e}"))))?;
+    Ok(Some((g, ver)))
+}
+
+fn game_item(g: &Game, ver: i64) -> crate::db::Item {
+    let mut it = crate::db::key(gpk(&g.id), "GAME");
+    it.insert("state".into(), s(serde_json::to_string(g).expect("games serialize")));
+    it.insert("ver".into(), n(ver));
+    it.insert("status".into(), s(format!("{:?}", g.status)));
+    it.insert("created_at".into(), n(g.created_at));
+    if g.status == Status::Open {
+        it.insert("gsi1pk".into(), s("BGOPEN"));
+        it.insert("gsi1sk".into(), s(format!("{}#{}", pad(g.created_at, 15), g.id)));
+    }
+    it
+}
+
+/// Writes a game back on condition nobody changed it since `ver` was read, plus whatever the change implies: freeing
+/// both players when the game ends, and (once, the moment it ends) the new ratings and the history lines.
+async fn save(db: &Db, g: &mut Game, ver: i64, was_over: bool, mut tx: Tx) -> ApiResult<()> {
+    let cond = if ver == 0 { Cond::absent() } else { Cond::new("ver = :v").val(":v", n(ver)) };
+    if g.status.over() && !was_over {
+        let uids: Vec<Uuid> = g.seats.iter().flatten().map(|s| s.uid).collect();
+        for uid in &uids {
+            tx.delete_if("", &upk(*uid), "BTACTIVE", Some(Cond::new("game = :g").val(":g", s(&g.id))));
+        }
+        if g.status == Status::Final && uids.len() == 2 {
+            let profs = [bt_profile(db, uids[0]).await?, bt_profile(db, uids[1]).await?];
+            let after = g.rate([profs[0].elo, profs[1].elo]);
+            let o = g.outcome.clone().expect("finished");
+            for side in 0..2 {
+                let mut p = profs[side].clone();
+                let games_before = p.games;
+                p.elo = after[side];
+                p.games += 1;
+                match o.winner {
+                    Some(w) if w == side => p.wins += 1,
+                    Some(_) => p.losses += 1,
+                    None => p.draws += 1,
+                }
+                let pc = if games_before == 0 {
+                    Cond::new("attribute_not_exists(pk) OR games = :z").val(":z", n(0))
+                } else {
+                    Cond::new("games = :g").val(":g", n(games_before))
+                };
+                tx.put_if("race", item(upk(uids[side]), "BTPROF", &p), Some(pc));
+                let opp = g.seat(1 - side);
+                tx.put(item(
+                    upk(uids[side]),
+                    format!("BTHIST#{}#{}", pad(now_ms(), 15), g.id),
+                    &json!({
+                        "game": g.id, "opponent": opp.name, "winner": o.winner.map(|w| w == side),
+                        "reason": o.reason, "rp": [o.rp[side], o.rp[1 - side]],
+                        "points": [o.points[side], o.points[1 - side]],
+                        "elo_before": o.elo_before[side], "elo_after": o.elo_after[side], "at": now_ms(),
+                    }),
+                ));
+            }
+        }
+    }
+    tx.put_if("ver", game_item(g, ver + 1), Some(cond));
+    tx.commit(db).await?;
+    Ok(())
+}
+
+fn not_found() -> ApiError {
+    ApiError::new(StatusCode::NOT_FOUND, "no_game")
+}
+
+// ---------- lobby ----------
+
+async fn lobby(State(st): State<Shared>, _user: User) -> ApiResult<Json<Value>> {
+    let now = now_ms();
+    let mut out = vec![];
+    for it in st.db.index("gsi1", "BGOPEN", Some(50), true).await? {
+        let Ok(g) = serde_json::from_str::<Game>(&get_s(&it, "state").unwrap_or_default()) else { continue };
+        if g.status != Status::Open || g.deadline < now {
+            continue;
+        }
+        let host = g.seat(0);
+        out.push(json!({ "id": g.id, "host": host.name, "elo": host.elo, "created_at": g.created_at }));
+    }
+    Ok(Json(json!({ "games": out })))
+}
+
+/// Makes sure the player isn't already in a game; returns the stale pointer to overwrite, if any.
+async fn ensure_free(db: &Db, uid: Uuid) -> ApiResult<Option<String>> {
+    match active_game(db, uid).await? {
+        Some(id) => match load(db, &id).await? {
+            Some((mut g, ver)) if !g.status.over() => {
+                // The old game may only be over on the clock.
+                let was = g.status.over();
+                if g.tick(now_ms()) && g.status.over() {
+                    save(db, &mut g, ver, was, Tx::new()).await?;
+                    return Ok(Some(id));
+                }
+                Err(ApiError::new(StatusCode::CONFLICT, "in_game"))
+            }
+            _ => Ok(Some(id)),
+        },
+        None => Ok(None),
+    }
+}
+
+fn claim_active(tx: &mut Tx, uid: Uuid, game: &str, stale: Option<String>) {
+    let cond = match stale {
+        Some(old) => Cond::new("attribute_not_exists(pk) OR game = :o").val(":o", s(old)),
+        None => Cond::absent(),
+    };
+    tx.put_if("in_game", item(upk(uid), "BTACTIVE", &json!({ "game": game, "at": now_ms() })), Some(cond));
+}
+
+async fn seat_for(db: &Db, uid: Uuid) -> ApiResult<Seat> {
+    let p = model::profile(db, uid).await?.ok_or(ApiError::new(StatusCode::UNAUTHORIZED, "no_session"))?;
+    let prof = bt_profile(db, uid).await?;
+    Ok(Seat::new(uid, p.username.unwrap_or_default(), prof.elo))
+}
+
+async fn create_game(State(st): State<Shared>, user: User) -> ApiResult<Json<Value>> {
+    let db = &st.db;
+    let stale = ensure_free(db, user.id).await?;
+    let seat = seat_for(db, user.id).await?;
+    let id = Uuid::new_v4().simple().to_string()[..12].to_string();
+    let mut g = Game::new(id.clone(), seat, rand::random::<u64>(), now_ms());
+    let mut tx = Tx::new();
+    claim_active(&mut tx, user.id, &id, stale);
+    save(db, &mut g, 0, false, tx).await?;
+    Ok(Json(serde_json::to_value(g.view(Some(0))).unwrap()))
+}
+
+async fn join_game(State(st): State<Shared>, user: User, Path(id): Path<String>) -> ApiResult<Json<Value>> {
+    let db = &st.db;
+    let stale = ensure_free(db, user.id).await?;
+    let seat = seat_for(db, user.id).await?;
+    retry!(async {
+        let (mut g, ver) = load(db, &id).await?.ok_or_else(not_found)?;
+        let was = g.status.over();
+        g.tick(now_ms());
+        g.join(seat.clone(), now_ms()).map_err(refused)?;
+        let mut tx = Tx::new();
+        claim_active(&mut tx, user.id, &id, stale.clone());
+        save(db, &mut g, ver, was, tx).await?;
+        Ok::<_, ApiError>(Json(serde_json::to_value(g.view(Some(1))).unwrap()))
+    })
+}
+
+// ---------- playing ----------
+
+#[derive(Deserialize)]
+struct ViewQuery {
+    rev: Option<u64>,
+}
+
+async fn view_game(State(st): State<Shared>, user: User, Path(id): Path<String>, Query(q): Query<ViewQuery>) -> ApiResult<Json<Value>> {
+    let db = &st.db;
+    retry!(async {
+        let (mut g, ver) = load(db, &id).await?.ok_or_else(not_found)?;
+        let side = g.side_of(user.id);
+        // Deadlines are applied whenever anyone looks (there's no background worker on Lambda).
+        let was = g.status.over();
+        if g.tick(now_ms()) {
+            save(db, &mut g, ver, was, Tx::new()).await?;
+        } else if q.rev == Some(g.rev) {
+            return Ok(Json(json!({ "same": true, "rev": g.rev })));
+        }
+        if side.is_none() && g.status != Status::Open {
+            return Err(ApiError::new(StatusCode::FORBIDDEN, "not_your_game"));
+        }
+        Ok::<_, ApiError>(Json(serde_json::to_value(g.view(side)).unwrap()))
+    })
+}
+
+#[derive(Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+enum Action {
+    PickDeck { deck: String },
+    Attach { part: u32, robot: u32 },
+    Detach { part: u32 },
+    Lore { card: Option<u32> },
+    Stations { robots: [u32; 3] },
+    Lock,
+    Ack,
+    Forfeit,
+    Cancel,
+}
+
+#[derive(Deserialize)]
+struct ActReq {
+    /// The game version the player was looking at. An action based on an older version is refused (409 `stale`), so a
+    /// player never acts on something that already changed.
+    rev: u64,
+    action: Action,
+}
+
+/// Builds the frozen deck for a game from a saved deck, checking ownership again right now (fails closed).
+async fn deck_pick(st: &Shared, uid: Uuid, deck: &str) -> ApiResult<DeckPick> {
+    let d: Deck = st.db.get_as(&upk(uid), &format!("BTDECK#{deck}")).await?.ok_or(ApiError::new(StatusCode::NOT_FOUND, "no_deck"))?;
+    let owned = owned_teams(&st.db, uid).await?;
+    if !deck_problems(st, &owned, &d).is_empty() {
+        return Err(refused("deck_not_ready"));
+    }
+    let fx = robot_effects(&st.db).await?;
+    let pick = |t: i32| {
+        let (effects, effect_test) = effect_for(st, &fx, t);
+        RobotPick { robot: st.battler.robot(t).expect("checked").clone(), effects, effect_test }
+    };
+    Ok(DeckPick {
+        deck_id: d.id.clone(),
+        captain: pick(d.captain.expect("checked")),
+        robots: d.robots.iter().map(|t| pick(*t)).collect(),
+        support: d.support.iter().map(|c| st.battler.support(c).expect("checked").clone()).collect(),
+    })
+}
+
+async fn act(State(st): State<Shared>, user: User, Path(id): Path<String>, Json(req): Json<ActReq>) -> ApiResult<Json<Value>> {
+    let db = &st.db;
+    // Deck picks need reads of their own; do them once, before the retry loop.
+    let pick = match &req.action {
+        Action::PickDeck { deck } => Some(deck_pick(&st, user.id, deck).await?),
+        _ => None,
+    };
+    retry!(async {
+        let (mut g, ver) = load(db, &id).await?.ok_or_else(not_found)?;
+        let side = g.side_of(user.id).ok_or(ApiError::new(StatusCode::FORBIDDEN, "not_your_game"))?;
+        let was = g.status.over();
+        let now = now_ms();
+        if g.tick(now) {
+            // A deadline passed first: save that, and tell the player the game moved on.
+            save(db, &mut g, ver, was, Tx::new()).await?;
+            return Err(refused("stale"));
+        }
+        if req.rev != g.rev {
+            return Err(refused("stale"));
+        }
+        let r = match &req.action {
+            Action::PickDeck { .. } => g.pick_deck(side, pick.clone().expect("loaded above"), now),
+            Action::Attach { part, robot } => g.attach(side, *part, *robot),
+            Action::Detach { part } => g.detach(side, *part),
+            Action::Lore { card } => g.set_lore(side, *card),
+            Action::Stations { robots } => g.set_stations(side, *robots),
+            Action::Lock => g.lock(side, now),
+            Action::Ack => g.ack(side, now),
+            Action::Forfeit => g.forfeit(side),
+            Action::Cancel => g.cancel(side),
+        };
+        r.map_err(refused)?;
+        save(db, &mut g, ver, was, Tx::new()).await?;
+        Ok::<_, ApiError>(Json(serde_json::to_value(g.view(Some(side))).unwrap()))
+    })
+}
+
+async fn history(State(st): State<Shared>, user: User) -> ApiResult<Json<Value>> {
+    let items = st.db.query_desc(&upk(user.id), "BTHIST#", 30).await?;
+    let games: Vec<Value> = items
+        .into_iter()
+        .filter_map(|it| serde_dynamo::from_item::<_, Value>(it).ok())
+        .map(|mut v| {
+            if let Some(o) = v.as_object_mut() {
+                o.remove("pk");
+                o.remove("sk");
+            }
+            v
+        })
+        .collect();
+    Ok(Json(json!({ "games": games })))
+}
+
+// ---------- admin: robot effects ----------
+
+async fn admin_effects(State(st): State<Shared>, _admin: Admin) -> ApiResult<Json<Value>> {
+    let fx = robot_effects(&st.db).await?;
+    let list: Vec<Value> = fx
+        .values()
+        .map(|f| {
+            json!({
+                "team": f.team, "draft": f.draft, "published": f.published, "rev": f.rev, "author": f.author,
+                "updated": f.updated,
+                "draft_text": if f.draft.is_empty() { String::new() } else { effects::describe(&f.draft, Owner::Robot) },
+                "published_text": if f.published.is_empty() { String::new() } else { effects::describe(&f.published, Owner::Robot) },
+            })
+        })
+        .collect();
+    let tests: HashMap<String, String> =
+        st.battler.test_effects.iter().map(|(t, e)| (t.to_string(), effects::describe(e, Owner::Robot))).collect();
+    Ok(Json(json!({ "effects": list, "test_effects": tests })))
+}
+
+#[derive(Deserialize)]
+struct SaveFxReq {
+    effects: Vec<Effect>,
+    /// Publish this version (players get it in games that start from now on).
+    #[serde(default)]
+    publish: bool,
+}
+
+async fn admin_save_effect(State(st): State<Shared>, admin: Admin, Path(team): Path<i32>, Json(req): Json<SaveFxReq>) -> ApiResult<Json<Value>> {
+    if st.battler.robot(team).is_none() {
+        return Err(ApiError::new(StatusCode::NOT_FOUND, "no_robot"));
+    }
+    if req.publish || !req.effects.is_empty() {
+        effects::validate(&req.effects, Owner::Robot).map_err(|e| {
+            tracing::info!("effect refused: {e}");
+            bad("bad_effect")
+        })?;
+    }
+    let db = &st.db;
+    let pk = format!("BTFX#{team}");
+    let mut fx: FxItem = db.get_as(&pk, "FX").await?.unwrap_or(FxItem { team, ..Default::default() });
+    let name = model::profile(db, admin.id).await?.and_then(|p| p.username).unwrap_or_default();
+    fx.draft = req.effects.clone();
+    fx.author = name.clone();
+    fx.updated = now_ms();
+    let mut tx = Tx::new();
+    if req.publish {
+        fx.rev += 1;
+        fx.published = req.effects.clone();
+        tx.put_if(
+            "race",
+            item(&pk, format!("REV#{}", pad(i64::from(fx.rev), 6)), &json!({ "effects": req.effects, "author": name, "at": fx.updated })),
+            Some(Cond::absent()),
+        );
+    }
+    let mut it = item(&pk, "FX", &fx);
+    it.insert("gsi1pk".into(), s("BTFX"));
+    it.insert("gsi1sk".into(), s(pad(i64::from(team), 6)));
+    tx.put(it);
+    tx.commit(db).await?;
+    Ok(Json(json!({
+        "team": team, "draft": fx.draft, "published": fx.published, "rev": fx.rev,
+        "draft_text": if fx.draft.is_empty() { String::new() } else { effects::describe(&fx.draft, Owner::Robot) },
+    })))
+}
+
+#[derive(Deserialize)]
+struct PreviewReq {
+    team: i32,
+    effects: Vec<Effect>,
+    /// Part card ids to attach to the robot in the preview.
+    #[serde(default)]
+    parts: Vec<String>,
+    #[serde(default = "one")]
+    station: u8,
+    #[serde(default)]
+    captain: bool,
+    #[serde(default)]
+    seed: u64,
+}
+
+fn one() -> u8 {
+    1
+}
+
+/// Runs the effect in a sample round (this robot plus five average robots) so the admin can see what it does before
+/// publishing. Nothing is saved.
+async fn admin_preview(State(st): State<Shared>, _admin: Admin, Json(req): Json<PreviewReq>) -> ApiResult<Json<Value>> {
+    let r = st.battler.robot(req.team).ok_or(ApiError::new(StatusCode::NOT_FOUND, "no_robot"))?;
+    let check = effects::validate(&req.effects, Owner::Robot);
+    let filler = content::test_stats(0, Some(135.0));
+    let station = req.station.clamp(1, 3);
+    let others: Vec<u8> = (1..=3).filter(|s| *s != station).collect();
+    let mut field = vec![FieldRobot {
+        inst: 1,
+        name: format!("{} {}", r.team, r.name),
+        side: 0,
+        captain: req.captain,
+        station,
+        stats: r.stats,
+        effects: if check.is_ok() { req.effects.clone() } else { vec![] },
+        parts: req
+            .parts
+            .iter()
+            .filter_map(|id| st.battler.support(id))
+            .filter(|c| c.kind == Kind::Part)
+            .enumerate()
+            .map(|(i, c)| engine::FieldPart { inst: 100 + i as u32, name: c.name.clone(), tags: c.tags.clone(), effects: c.effects.clone() })
+            .collect(),
+    }];
+    for (k, st_) in others.iter().enumerate() {
+        field.push(FieldRobot { inst: 2 + k as u32, name: "Ally".into(), side: 0, captain: false, station: *st_, stats: filler, effects: vec![], parts: vec![] });
+    }
+    for k in 0..3u8 {
+        field.push(FieldRobot { inst: 4 + u32::from(k), name: "Opponent".into(), side: 1, captain: k == 0, station: k + 1, stats: filler, effects: vec![], parts: vec![] });
+    }
+    let without = engine::resolve(&{ let mut f = field.clone(); f[0].effects.clear(); f }, &[], req.seed);
+    let with = engine::resolve(&field, &[], req.seed);
+    Ok(Json(json!({
+        "valid": check.is_ok(),
+        "error": check.err(),
+        "text": if req.effects.is_empty() { String::new() } else { effects::describe(&req.effects, Owner::Robot) },
+        "with": with,
+        "without": without,
+    })))
+}

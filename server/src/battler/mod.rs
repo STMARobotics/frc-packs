@@ -5,3 +5,4 @@ pub mod content;
 pub mod effects;
 pub mod engine;
 pub mod game;
+pub mod api;
