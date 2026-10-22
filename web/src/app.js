@@ -1672,6 +1672,7 @@ export function start(RECIPE) {
       '<input class="input" type="text" name="title" maxlength="80" placeholder="In a few words (a bug, or what you wish it did)" aria-label="Title" autocomplete="off">' +
       '<textarea class="input" name="details" maxlength="1500" placeholder="Tell us more. For a bug: what you did, what you expected, and what happened instead."></textarea>' +
       '<span class="fb-count" id="fbCount">0 / 1500</span>' +
+      '<p class="hint fb-bounty"><b>Bug bounty:</b> if we accept your bug report, you get 50 parts or a free pack.</p>' +
       '<p class="hint">We also send the page you are on, the app version and your device, so we can find the problem. Nothing else.</p>' +
       '<div class="msg" id="fbMsg" role="status" hidden></div></div>' +
       '<div class="cta-row"><button type="submit" class="cta">Send</button><button type="button" class="cta ghost" id="fbCancel">Cancel</button></div>' +
@@ -1684,7 +1685,8 @@ export function start(RECIPE) {
       if (!list.length) { box.innerHTML = '<p class="hint">Nothing yet. Thank you for helping!</p>'; return; }
       box.innerHTML = list.map(function (x) {
         return '<div class="fb-item"><div class="row"><b>' + esc(x.title) + '</b><span class="fb-st ' + x.status + '">' + (FB_STATUS[x.status] || x.status) + '</span></div>' +
-          (x.note ? '<small>' + esc(x.note) + '</small>' : '') + '</div>';
+          (x.note ? '<small>' + esc(x.note) + '</small>' : '') +
+          (x.reward ? '<small class="fb-earned">Earned ' + (x.reward === "pack" ? "a free pack" : "50 parts") + '</small>' : '') + '</div>';
       }).join("");
     }
     function loadMine() { api.myFeedback().then(paintMine, function () { var b = $("#fbMine"); if (b) b.innerHTML = '<p class="hint">Could not load your feedback.</p>'; }); }
@@ -1701,6 +1703,27 @@ export function start(RECIPE) {
     return f.title;
   }
   $("#feedbackBtn").onclick = function () { feedbackForm(); };
+  /* A small reminder to report bugs: once a day, a few seconds after the game opens, above the tab bar. Closing it (or
+     tapping Report) puts it away until tomorrow. Not on a player's first day (they get the beta welcome), never on top
+     of a pack being opened. */
+  var NUDGE_KEY = "frcpacks.bugNudge";
+  function bugNudge() {
+    var today = new Date().toDateString(), seen;
+    try { seen = localStorage.getItem(NUDGE_KEY); } catch (e) { return; }
+    if (seen === today) return;
+    if (!seen) { try { localStorage.setItem(NUDGE_KEY, today); } catch (e) {} return; } // first day: the welcome covers it
+    if (!modal.hidden || state !== "home" || document.querySelector(".bug-nudge")) { setTimeout(bugNudge, 20000); return; }
+    var bar = document.createElement("div");
+    bar.className = "bug-nudge";
+    bar.setAttribute("role", "status");
+    bar.innerHTML = '<span class="bn-icon" aria-hidden="true">🐞</span><span class="bn-text"><b>Spotted a bug?</b> Report it in Settings. Accepted bug reports earn 50 parts.</span>' +
+      '<button type="button" class="bn-go">Report</button><button type="button" class="bn-x" aria-label="Close for today">×</button>';
+    var done = function () { try { localStorage.setItem(NUDGE_KEY, today); } catch (e) {} bar.classList.add("out"); setTimeout(function () { bar.remove(); }, 250); };
+    bar.querySelector(".bn-x").onclick = done;
+    bar.querySelector(".bn-go").onclick = function () { done(); feedbackForm(); };
+    document.body.appendChild(bar);
+  }
+  setTimeout(bugNudge, 6000);
   /* Players who are past the first-pack tips get the welcome the first time they open the app (once). */
   if (!tourOn) setTimeout(function () { betaWelcome(); }, 3000);
   /* Shown once to a new player after the first-pack tips: what the beta is and how to tell us what's broken. */

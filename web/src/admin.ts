@@ -4,7 +4,7 @@
 import "./style.css";
 import "./admin.css";
 import { setupRarities } from "./rarities";
-import { api, ApiError, explain, type AdminUser, type Feedback, type FeedbackStatus, type Invite, type Report, type Rules } from "./api";
+import { api, ApiError, explain, type AdminUser, type Feedback, type FeedbackReward, type FeedbackStatus, type Invite, type Report, type Rules } from "./api";
 
 type Kid = Node | string | null | undefined | false;
 
@@ -603,12 +603,25 @@ function paintFeedback() {
   for (const f of shown) {
     const note = h("input", { class: "input", maxlength: "200", placeholder: "Note for the sender (optional)", "aria-label": "Note for the sender" });
     note.value = f.note;
+    // Bug bounty: the first time a bug report is accepted (Planned or Done), its sender earns this.
+    const canPay = f.kind === "bug" && !f.reward;
+    const reward = h(
+      "select",
+      { class: "input fb-reward", "aria-label": "Reward when accepted" },
+      h("option", { value: "parts" }, "Reward: 50 parts"),
+      h("option", { value: "pack" }, "Reward: a free pack"),
+      h("option", { value: "none" }, "No reward"),
+    );
     const set = (status: FeedbackStatus) => async (b: HTMLButtonElement) => {
       b.disabled = true;
       try {
-        await api.admin.feedbackStatus(f.id, status, note.value.trim());
+        const r = await api.admin.feedbackStatus(f.id, status, note.value.trim(), canPay ? (reward.value as FeedbackReward | "none") : "none");
         f.status = status;
         f.note = note.value.trim();
+        if (r?.rewarded) {
+          f.reward = r.rewarded;
+          say(`${f.username ?? "They"} earned ${r.rewarded === "pack" ? "a free pack" : "50 parts"}.`);
+        }
         paintFeedback();
       } catch (e) {
         fail(e);
@@ -627,6 +640,7 @@ function paintFeedback() {
           h("div", { class: "meta" }, h("span", {}, `from ${f.username ?? "?"}`), h("span", {}, when(f.createdAt))),
           f.context ? h("div", { class: "meta fb-ctx" }, f.context) : null,
           note,
+          canPay ? reward : f.reward ? h("div", { class: "meta fb-paid" }, `Rewarded: ${f.reward === "pack" ? "a free pack" : "50 parts"}`) : null,
         ),
         h(
           "div",

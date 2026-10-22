@@ -1,5 +1,8 @@
 //! Feedback from beta testers: bug reports, feature requests and anything else. Players send it from Settings; the admin
 //! sees it in the panel, sets a status, and players can see how their own are doing.
+//!
+//! Bug bounty: the first time a bug report is accepted (set to planned or done), its reporter gets a reward, 50 parts or
+//! a free pack (the admin picks), with a note shown the next time they open the game. Once per report.
 
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
@@ -11,12 +14,15 @@ use crate::Shared;
 use crate::auth::{Admin, User};
 use crate::db::{Cond, DbError, Item, Tx, get_n, get_s, key, n, pad, s};
 use crate::error::{ApiError, ApiResult};
-use crate::model::now_ms;
+use crate::model::{self, now_ms};
+use crate::retry;
 
 pub const KINDS: [&str; 3] = ["bug", "idea", "other"];
 pub const STATUSES: [&str; 4] = ["open", "planned", "done", "wontfix"];
 /// Ten a day per player is plenty and stops anyone flooding the admin.
 pub const PER_DAY: usize = 10;
+/// What an accepted bug report earns.
+pub const BOUNTY_PARTS: i64 = 50;
 const TITLE_MAX: usize = 80;
 const DETAILS_MAX: usize = 1500;
 const CONTEXT_MAX: usize = 300;
@@ -105,6 +111,9 @@ pub struct FeedbackOut {
     status: String,
     note: String,
     created_at: i64,
+    /// What the report earned, if it was rewarded: "parts" or "pack".
+    #[serde(skip_serializing_if = "Option::is_none")]
+    reward: Option<String>,
     /// Only the admin gets these two.
     #[serde(skip_serializing_if = "Option::is_none")]
     username: Option<String>,
@@ -121,6 +130,7 @@ fn out(it: &Item, admin: bool) -> Option<FeedbackOut> {
         status: get_s(it, "status").unwrap_or_else(|| "open".into()),
         note: get_s(it, "note").unwrap_or_default(),
         created_at: get_n(it, "created_at").unwrap_or(0),
+        reward: get_s(it, "reward"),
         username: admin.then(|| get_s(it, "username").unwrap_or_default()),
         context: admin.then(|| get_s(it, "context").unwrap_or_default()),
     })
@@ -152,6 +162,9 @@ struct StatusReq {
     /// A short note players see next to the status ("Fixed in the next update").
     #[serde(default)]
     note: String,
+    /// The bounty for a bug report accepted for the first time: "parts" (the default), "pack" or "none".
+    #[serde(default)]
+    reward: Option<String>,
 }
 
 async fn set_status(
@@ -159,26 +172,75 @@ async fn set_status(
     _admin: Admin,
     Path(id): Path<i64>,
     Json(req): Json<StatusReq>,
-) -> ApiResult<StatusCode> {
+) -> ApiResult<Json<serde_json::Value>> {
     let note = req.note.trim();
-    if !STATUSES.contains(&req.status.as_str()) || note.chars().count() > 200 || has_control(note) {
+    let reward = req.reward.as_deref().unwrap_or("parts");
+    if !STATUSES.contains(&req.status.as_str())
+        || note.chars().count() > 200
+        || has_control(note)
+        || !["parts", "pack", "none"].contains(&reward)
+    {
         return Err(err(StatusCode::BAD_REQUEST, "bad_request"));
     }
-    let mut tx = Tx::new();
-    tx.update(
-        "not_found",
-        &format!("FB#{id}"),
-        "FB",
-        Cond::new("SET #st = :st, note = :note, updated_at = :at")
+    let db = &st.db;
+    let free_pack = st.catalog().await.claimable().id().to_string();
+    let rewarded = retry!(async {
+        let it = db.get(&format!("FB#{id}"), "FB").await?.ok_or(err(StatusCode::NOT_FOUND, "not_found"))?;
+        let accepted = matches!(req.status.as_str(), "planned" | "done");
+        let pay = accepted
+            && reward != "none"
+            && get_s(&it, "kind").as_deref() == Some("bug")
+            && get_s(&it, "reward").is_none();
+        let mut tx = Tx::new();
+        let mut set = Cond::new("SET #st = :st, note = :note, updated_at = :at")
             .name("#st", "status")
             .val(":st", s(req.status.clone()))
             .val(":note", s(note))
-            .val(":at", n(now_ms())),
-        Some("attribute_exists(pk)"),
-    );
-    match tx.commit(&st.db).await {
-        Ok(()) => Ok(StatusCode::NO_CONTENT),
-        Err(DbError::Conflict("not_found")) => Err(err(StatusCode::NOT_FOUND, "not_found")),
-        Err(e) => Err(e.into()),
-    }
+            .val(":at", n(now_ms()));
+        if pay {
+            // Paid once: the report is marked in the same transaction, on condition it wasn't already.
+            set = Cond::new("SET #st = :st, note = :note, updated_at = :at, reward = :rw")
+                .name("#st", "status")
+                .val(":st", s(req.status.clone()))
+                .val(":note", s(note))
+                .val(":at", n(now_ms()))
+                .val(":rw", s(reward));
+            tx.update(
+                "race",
+                &format!("FB#{id}"),
+                "FB",
+                set,
+                Some("attribute_exists(pk) AND attribute_not_exists(reward)"),
+            );
+            let Some(uid) = get_s(&it, "user_id").and_then(|u| uuid::Uuid::parse_str(&u).ok()) else {
+                return Err(err(StatusCode::NOT_FOUND, "no_player"));
+            };
+            let Some(mut p) = model::profile(db, uid).await? else {
+                return Err(err(StatusCode::NOT_FOUND, "no_player"));
+            };
+            let parts = p.parts;
+            let title = get_s(&it, "title").unwrap_or_default();
+            let what = if reward == "pack" {
+                let before = model::pack_row(db, uid, &free_pack).await?;
+                let mut after = before.clone();
+                after.sealed += 1;
+                model::save_pack(&mut tx, uid, &before, &after, "bug bounty");
+                "a free pack"
+            } else {
+                p.parts += BOUNTY_PARTS;
+                "50 parts"
+            };
+            p.notice =
+                Some(format!("Thanks for your bug report \"{title}\"! It's been accepted, so you earned {what}."));
+            model::save_user(&mut tx, &mut p, parts, "bug bounty");
+        } else {
+            tx.update("not_found", &format!("FB#{id}"), "FB", set, Some("attribute_exists(pk)"));
+        }
+        match tx.commit(db).await {
+            Ok(()) => Ok(pay),
+            Err(DbError::Conflict("not_found")) => Err(err(StatusCode::NOT_FOUND, "not_found")),
+            Err(e) => Err(ApiError::from(e)),
+        }
+    })?;
+    Ok(Json(serde_json::json!({ "rewarded": rewarded.then_some(reward) })))
 }

@@ -135,6 +135,7 @@ export interface Report {
 
 export type FeedbackKind = "bug" | "idea" | "other";
 export type FeedbackStatus = "open" | "planned" | "done" | "wontfix";
+export type FeedbackReward = "parts" | "pack";
 
 export interface Feedback {
   id: number;
@@ -145,6 +146,8 @@ export interface Feedback {
   /** A note from the admin, shown next to the status. */
   note: string;
   createdAt: number;
+  /** What an accepted bug report earned its sender (bug bounty). */
+  reward?: FeedbackReward;
   /** Admin only: who sent it and where they were (page, version, device). */
   username?: string;
   context?: string;
@@ -455,8 +458,8 @@ export const api = {
     rename: (id: string, username: string) => call<void>("POST", `/api/admin/users/${id}/rename`, { username }),
     reports: () => call<Report[]>("GET", "/api/admin/reports"),
     feedback: () => call<Feedback[]>("GET", "/api/admin/feedback"),
-    feedbackStatus: (id: number, status: FeedbackStatus, note: string) =>
-      call<void>("POST", `/api/admin/feedback/${id}/status`, { status, note }),
+    feedbackStatus: (id: number, status: FeedbackStatus, note: string, reward: FeedbackReward | "none" = "parts") =>
+      call<{ rewarded: FeedbackReward | null }>("POST", `/api/admin/feedback/${id}/status`, { status, note, reward }),
     resolveReport: (id: number) => call<void>("POST", `/api/admin/reports/${id}/resolve`),
     givePacks: (id: string, count: number) => call<void>("POST", `/api/admin/users/${id}/packs`, { count }),
     setAdmin: (id: string, admin: boolean) => call<void>("POST", `/api/admin/users/${id}/admin`, { admin }),

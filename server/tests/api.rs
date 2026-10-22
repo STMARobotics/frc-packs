@@ -2600,15 +2600,34 @@ async fn beta_testers_send_feedback_and_the_admin_sorts_it() {
         call(&app, "POST", "/api/admin/feedback/999999999/status", Some(&admin), Some(st.clone())).await.status,
         StatusCode::NOT_FOUND
     );
-    assert_eq!(
-        call(&app, "POST", &format!("/api/admin/feedback/{id}/status"), Some(&admin), Some(st)).await.status,
-        StatusCode::NO_CONTENT
-    );
+    let parts_before = call(&app, "GET", "/api/state", Some(&ca), None).await.body["parts"].as_i64().unwrap();
+    let r = call(&app, "POST", &format!("/api/admin/feedback/{id}/status"), Some(&admin), Some(st.clone())).await;
+    assert_eq!((r.status, r.body["rewarded"].as_str()), (StatusCode::OK, Some("parts")), "{}", r.body);
     let mine = call(&app, "GET", "/api/feedback/mine", Some(&ca), None).await.body;
     assert_eq!(
-        (mine[0]["status"].as_str(), mine[0]["note"].as_str()),
-        (Some("done"), Some("Fixed in the next update"))
+        (mine[0]["status"].as_str(), mine[0]["note"].as_str(), mine[0]["reward"].as_str()),
+        (Some("done"), Some("Fixed in the next update"), Some("parts"))
     );
+    // Bug bounty: an accepted bug report pays its sender once, however often its status changes.
+    let s = call(&app, "GET", "/api/state", Some(&ca), None).await.body;
+    assert_eq!(s["parts"].as_i64().unwrap(), parts_before + 50);
+    let again = call(&app, "POST", &format!("/api/admin/feedback/{id}/status"), Some(&admin), Some(st)).await;
+    assert_eq!((again.status, again.body["rewarded"].is_null()), (StatusCode::OK, true));
+    assert_eq!(
+        call(&app, "GET", "/api/state", Some(&ca), None).await.body["parts"].as_i64().unwrap(),
+        parts_before + 50
+    );
+    // Ideas don't pay, and "none" pays nothing.
+    let idea = all.as_array().unwrap().iter().find(|f| f["title"] == "Add dark mode").unwrap()["id"].as_i64().unwrap();
+    let r = call(
+        &app,
+        "POST",
+        &format!("/api/admin/feedback/{idea}/status"),
+        Some(&admin),
+        Some(json!({ "status": "planned" })),
+    )
+    .await;
+    assert_eq!((r.status, r.body["rewarded"].is_null()), (StatusCode::OK, true));
     // Ten a day.
     for i in 0..9 {
         let r = call(
