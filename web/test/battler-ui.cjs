@@ -111,37 +111,60 @@ async function main() {
   await b.waitForSelector('[data-deck]');
   await b.click('[data-deck]');
 
+  const drag = async (p, from, to) => {
+    const f = await p.locator(from).first().boundingBox(), t = await p.locator(to).first().boundingBox();
+    const sx = f.x + Math.min(14, f.width / 2), sy = f.y + f.height / 2;
+    await p.mouse.move(sx, sy);
+    await p.mouse.down();
+    for (let i = 1; i <= 8; i++) await p.mouse.move(sx + (t.x + t.width / 2 - sx) * i / 8, sy + (t.y + t.height / 2 - sy) * i / 8);
+    await p.mouse.up();
+  };
   for (let round = 1; round <= 5; round++) {
     for (const [p, who] of [[a, 'a'], [b, 'b']]) {
-      await p.waitForSelector('.bt-hand', { timeout: 15000 });
-      // Attach the first part to the second robot, play the first lore, move the captain to station 3.
-      const part = p.locator('.bt-handrow .bt-sup.k-part:not(.used)').first();
+      await p.waitForSelector('.ar[data-mode="pit"] .ar-hand', { timeout: 15000 });
+      const part = p.locator('.ar-hand .ar-card.k-part');
       if (await part.count()) {
-        await part.click();
-        await p.waitForSelector('.bt-ft.target');
-        await p.click('.bt-side.me .bt-ft >> nth=1');
-        await p.waitForTimeout(300);
+        if (who === 'a') {
+          // Drag a part onto the middle lane's robot.
+          await drag(p, '.ar-hand .ar-card.k-part', '.ar-lane[data-lane="2"] [data-drop-robot]');
+        } else {
+          await part.first().click({ position: { x: 14, y: 60 } });
+          await p.waitForSelector('.ar-bot.target');
+          await p.click('.ar-lane[data-lane="2"] [data-drop-robot]');
+        }
+        await p.waitForTimeout(400);
       }
-      const lore = p.locator('.bt-handrow .bt-sup.k-lore:not(.used)').first();
+      const lore = p.locator('.ar-hand .ar-card.k-lore');
       if (await lore.count()) {
-        await lore.click();
-        await p.click('[data-lore-slot]');
-        await p.waitForTimeout(300);
+        if (who === 'a') await drag(p, '.ar-hand .ar-card.k-lore', '[data-drop-lore]');
+        else { await lore.first().click({ position: { x: 14, y: 60 } }); await p.click('[data-drop-lore]'); }
+        await p.waitForTimeout(400);
       }
       if (round === 1 && who === 'a') {
-        await p.click('.bt-side.me .bt-ft >> nth=0 >> [data-station="3"]');
-        await p.waitForTimeout(300);
-        await shot(p, `11-pit-round1`, true);
+        // Move the station-1 robot to station 3: tap it, then tap lane 3.
+        await p.click('.ar-lane[data-lane="1"] [data-drop-robot]');
+        await p.click('.ar-lane[data-lane="3"] .ar-lane-mid');
+        await p.waitForTimeout(400);
+        await shot(p, '11-pit-round1');
+      }
+      if (round === 1 && who === 'b') {
+        await p.click('#emoteBtn');
+        await p.click('[data-emote="nice"]');
+        await a.waitForSelector('.ar-bubble.op', { timeout: 5000 });
+        await shot(a, '11b-opponent-acting');
       }
       await p.click('[data-act="lock"]');
       await p.waitForTimeout(300);
       if (round === 1 && who === 'a') await shot(p, '12-locked');
     }
-    await a.waitForSelector('.bt-results', { timeout: 15000 });
-    if (round === 1) { await a.waitForTimeout(1200); await shot(a, '13-results-animating'); await a.waitForSelector('.bt-results.finished', { timeout: 10000 }); await shot(a, '14-results', true); }
+    await a.waitForSelector('.ar[data-mode="reveal"]', { timeout: 15000 });
+    if (round === 1) {
+      await a.waitForTimeout(3500); await shot(a, '13-reveal-scoring');
+      await a.waitForSelector('.ar.revealed', { timeout: 20000 }); await shot(a, '14-revealed', true);
+    }
     for (const p of [a, b]) {
-      await p.waitForSelector('.bt-results [data-act="ack"]', { timeout: 15000 });
-      await p.click('.bt-results [data-act="ack"]');
+      await p.waitForSelector('.ar [data-act="ack"]:not([disabled])', { timeout: 30000 });
+      await p.click('.ar [data-act="ack"]');
     }
   }
   await a.waitForSelector('.bt-final', { timeout: 15000 });

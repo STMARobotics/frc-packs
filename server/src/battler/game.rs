@@ -187,6 +187,24 @@ pub struct Game {
     pub deadline: i64,
     pub outcome: Option<Outcome>,
     pub engine: u32,
+    /// The latest quick-chat emotes (newest last). They don't change the game, so they don't bump `rev`.
+    #[serde(default)]
+    pub emotes: Vec<Emote>,
+    #[serde(default)]
+    pub emote_seq: u64,
+}
+
+/// The quick-chat emotes a player can send during a game.
+pub const EMOTES: &[&str] = &["gg", "nice", "oops", "wow", "thinking", "hello"];
+/// At most one emote per player this often.
+pub const EMOTE_GAP_MS: i64 = 2_000;
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct Emote {
+    pub side: usize,
+    pub id: String,
+    pub at: i64,
+    pub n: u64,
 }
 
 /// A deck pick as stored until the game starts.
@@ -237,6 +255,8 @@ impl Game {
             deadline: now + OPEN_MS,
             outcome: None,
             engine: engine::ENGINE_VERSION,
+            emotes: vec![],
+            emote_seq: 0,
         }
     }
 
@@ -549,6 +569,25 @@ impl Game {
         }
     }
 
+    /// Sends a quick-chat emote (only while both players are in the game).
+    pub fn emote(&mut self, side: usize, id: &str, now: i64) -> Result<(), Refusal> {
+        if self.status.over() || self.status == Status::Open {
+            return Err("game_over");
+        }
+        if !EMOTES.contains(&id) {
+            return Err("bad_emote");
+        }
+        if self.emotes.iter().any(|e| e.side == side && now - e.at < EMOTE_GAP_MS) {
+            return Err("too_fast");
+        }
+        self.emote_seq += 1;
+        self.emotes.push(Emote { side, id: id.to_string(), at: now, n: self.emote_seq });
+        if self.emotes.len() > 6 {
+            self.emotes.remove(0);
+        }
+        Ok(())
+    }
+
     pub fn forfeit(&mut self, side: usize) -> Result<(), Refusal> {
         match self.status {
             Status::Decks => {
@@ -656,6 +695,11 @@ pub struct SeatView {
     pub hand_count: usize,
     pub pile_count: usize,
     pub strikes: u8,
+    /// During the pit: one entry per part this player has put down, naming the robot it's on, but not the card
+    /// (face down, like Marvel Snap). Empty otherwise.
+    pub face_down: Vec<u32>,
+    /// During the pit: whether they've put a lore card down (not which).
+    pub lore_down: bool,
 }
 
 #[derive(Serialize)]
@@ -689,6 +733,10 @@ pub struct GameView<'a> {
     pub seed: Option<String>,
     pub outcome: Option<&'a Outcome>,
     pub engine: u32,
+    pub emotes: &'a [Emote],
+    pub emote_seq: u64,
+    /// The server's clock (ms) when this view was made, so timers line up with the server's (set by the API).
+    pub now: i64,
 }
 
 impl Game {
@@ -696,6 +744,7 @@ impl Game {
     /// stay hidden.
     pub fn view(&self, viewer: Option<usize>) -> GameView<'_> {
         let started = !self.robots.is_empty();
+        let pit = self.status == Status::Pit;
         let seats = self
             .seats
             .iter()
@@ -708,9 +757,13 @@ impl Game {
                     acked: s.acked,
                     rp: s.rp,
                     points: s.points,
-                    hand_count: s.hand.len(),
+                    // Cards already put down in the pit have left the hand, as far as anyone watching can tell.
+                    hand_count: s.hand.len()
+                        - if pit { s.plan.attach.len() + usize::from(s.plan.lore.is_some()) } else { 0 },
                     pile_count: s.pile.len(),
                     strikes: s.strikes,
+                    face_down: if pit { s.plan.attach.iter().map(|(_, r)| *r).collect() } else { vec![] },
+                    lore_down: pit && s.plan.lore.is_some(),
                 })
             })
             .collect();
@@ -758,6 +811,9 @@ impl Game {
             seed: over.then(|| self.seed.to_string()),
             outcome: self.outcome.as_ref(),
             engine: self.engine,
+            emotes: &self.emotes,
+            emote_seq: self.emote_seq,
+            now: 0,
         }
     }
 }
@@ -922,6 +978,26 @@ mod tests {
         let o = g.outcome.as_ref().unwrap();
         assert_eq!(o.winner, Some(0));
         assert_eq!(o.reason, "timeout");
+    }
+
+    #[test]
+    fn placements_show_face_down_and_emotes_are_limited() {
+        let (mut g, _, _) = started();
+        let part = *g.seat(0).hand.iter().find(|c| g.card(**c).unwrap().kind == Kind::Part).unwrap();
+        let robot = g.alliances[0][2];
+        g.attach(0, part, robot).unwrap();
+        let v = serde_json::to_value(g.view(Some(1))).unwrap();
+        assert_eq!(v["seats"][0]["face_down"], serde_json::json!([robot]), "bob sees a card went on that robot");
+        assert_eq!(v["seats"][0]["hand_count"], 2, "and alice's hand shrink");
+        let shown: Vec<u64> = v["support"].as_array().unwrap().iter().map(|c| c["inst"].as_u64().unwrap()).collect();
+        assert!(!shown.contains(&u64::from(part)), "but not which card");
+        let rev = g.rev;
+        g.emote(1, "gg", 100).unwrap();
+        assert_eq!(g.emote(1, "nice", 900), Err("too_fast"));
+        assert_eq!(g.emote(0, "lol", 900), Err("bad_emote"));
+        g.emote(1, "nice", 2_200).unwrap();
+        assert_eq!(g.rev, rev, "emotes don't change the game");
+        assert_eq!(g.emote_seq, 2);
     }
 
     #[test]

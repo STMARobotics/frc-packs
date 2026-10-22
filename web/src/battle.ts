@@ -3,6 +3,7 @@
 // #home, #library, #decks, #deck/<id>, #play, #game/<id>, #history, #admin.
 import "./style.css";
 import "./battle.css";
+import "./arena.css";
 
 // ---------- types (mirror server/src/battler) ----------
 
@@ -24,7 +25,8 @@ interface Home { name: string; is_admin: boolean; profile: Profile; active: stri
 interface RobotInst extends RobotCard { inst: number; card: string; from: number }
 interface SupportInst { inst: number; owner: number; card: string; kind: "PART" | "LORE"; name: string; tags: string[]; text: string }
 interface Plan { attach: [number, number][]; lore: number | null; stations: [number, number, number] }
-interface SeatView { name: string; elo: number; picked: boolean; locked: boolean; acked: boolean; rp: number; points: number; hand_count: number; pile_count: number; strikes: number }
+interface SeatView { name: string; elo: number; picked: boolean; locked: boolean; acked: boolean; rp: number; points: number; hand_count: number; pile_count: number; strikes: number; face_down: number[]; lore_down: boolean }
+interface EmoteView { side: number; id: string; at: number; n: number }
 interface RobotScore { inst: number; side: number; station: number; base: [number, number, number]; points: [number, number, number]; rp_chance: number; rp_roll: number; rp_hit: boolean }
 interface GameEvent { source: string; target: number; text: string }
 interface RoundResult { robots: RobotScore[]; phase_totals: [[number, number, number], [number, number, number]]; totals: [number, number]; winner: number | null; match_rp: [number, number]; bonus_rp: [number, number]; events: GameEvent[] }
@@ -36,6 +38,7 @@ interface GameView {
   seats: (SeatView | null)[]; me: { side: number; hand: number[]; plan: Plan; deck_robots: number[] } | null;
   alliances: [[number, number, number], [number, number, number]]; pool_left: number;
   robots: RobotInst[]; support: SupportInst[]; rounds: RoundLog[]; seed_hash: string; seed: string | null; outcome: Outcome | null;
+  emotes: EmoteView[]; emote_seq: number; now: number;
 }
 interface HistoryRow { game: string; opponent: string; winner: boolean | null; reason: string; rp: [number, number]; points: [number, number]; elo_before: number; elo_after: number; at: number }
 
@@ -556,35 +559,93 @@ function ago(t: number) {
 }
 
 // ---------- the game ----------
+//
+// The match is an arena, laid out like the TCG battlers it borrows from (Marvel Snap's simultaneous turns and reveal,
+// Hearthstone's board: you at the bottom, them at the top): the three driver stations are three lanes with your robot
+// facing theirs; your hand fans along the bottom and you drag (or tap) cards onto robots or the lore banner; you watch
+// the other player put cards down face down, see their hand shrink and their lock, and trade quick emotes. When both
+// lock, the round is revealed as a sequence (flips, lore, Auto/Tele/End lane by lane into a tug-of-war bar, the round
+// banner, one RP die per robot) instead of a results page.
 
 let G: GameView | null = null;
 let selected: number | null = null; // the hand card picked up in the pit
-let shownResult = 0; // the last round whose results animation has played
+let pickedRobot: number | null = null; // your robot picked up to move to another station
+let shownResult = 0; // results of rounds before this one have been seen
 let skipAnim = false;
 let lastAnimated = 0; // the last round whose reveal has played
+let clockSkew = 0; // server clock minus this device's
+let seenEmote = 0;
+let dragging = false;
+let pendingDraw = false;
+const seenDown = new Map<number, number>(); // face-down cards already shown per robot (so only new ones animate in)
 
 const gameOver = () => { const g = G as GameView | null; return !!g && (g.status === "FINAL" || g.status === "CANCELLED"); };
+
+// ---------- sound (synthesized, no files) ----------
+
+let audio: AudioContext | null = null;
+const muted = () => { try { return localStorage.getItem("bt-mute") === "1"; } catch { return false; } };
+const emotesMuted = () => { try { return localStorage.getItem("bt-mute-emotes") === "1"; } catch { return false; } };
+function tone(freq: number, ms: number, type: OscillatorType = "sine", gain = 0.06, slide = 0) {
+  if (muted()) return;
+  try {
+    audio = audio ?? new AudioContext();
+    const t = audio.currentTime, o = audio.createOscillator(), g = audio.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(freq, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(40, freq + slide), t + ms / 1000);
+    g.gain.setValueAtTime(gain, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + ms / 1000);
+    o.connect(g).connect(audio.destination);
+    o.start(t);
+    o.stop(t + ms / 1000 + 0.02);
+  } catch { /* no audio */ }
+}
+const sfx = {
+  pick: () => tone(660, 70, "triangle", 0.05),
+  place: () => { tone(320, 90, "square", 0.04, -120); navigator.vibrate?.(12); },
+  flip: () => tone(900, 60, "triangle", 0.04, 400),
+  lock: () => { tone(440, 90, "triangle"); setTimeout(() => tone(660, 120, "triangle"), 90); navigator.vibrate?.(25); },
+  tick: (k: number) => tone(500 + k * 40, 45, "square", 0.025),
+  boom: () => { tone(120, 260, "sawtooth", 0.07, -60); navigator.vibrate?.(60); },
+  win: () => [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => tone(f, 160, "triangle", 0.06), i * 110)),
+  lose: () => [392, 330, 262].forEach((f, i) => setTimeout(() => tone(f, 200, "sine", 0.05), i * 140)),
+  dice: () => tone(200 + Math.random() * 300, 30, "square", 0.02),
+  hit: () => { tone(1046, 140, "triangle", 0.06); navigator.vibrate?.(20); },
+  miss: () => tone(180, 120, "sine", 0.04),
+  emote: () => tone(880, 80, "sine", 0.04, 200),
+};
+
+// ---------- loading and polling ----------
 
 async function renderGame(id: string) {
   if (!HOME) await loadHome();
   G = null;
   selected = null;
+  pickedRobot = null;
   shownResult = -1;
+  seenEmote = 0;
+  seenDown.clear();
   let alive = true;
   let timer = 0;
-  leave = () => { alive = false; clearInterval(timer); };
+  leave = () => { alive = false; clearInterval(timer); document.body.classList.remove("bt-in-arena"); };
   const poll = async () => {
     try {
-      const r = await call<GameView & { same?: boolean }>("GET", `/api/battler/games/${id}${G ? `?rev=${G.rev}` : ""}`);
+      const q = G ? `?rev=${G.rev}&e=${G.emote_seq}` : "";
+      const r = await call<GameView & { same?: boolean }>("GET", `/api/battler/games/${id}${q}`);
       if (!alive || r.same) return;
       setGame(r);
     } catch (e) {
-      if (e instanceof ApiError && (e.status === 404 || e.status === 403)) { alive = false; main.innerHTML = `<div class="bt-empty">${e.status === 404 ? "That game doesn't exist." : "That's not your game."} <button class="textbtn" data-go="#play">Back to Play</button></div>`; }
+      if (e instanceof ApiError && (e.status === 404 || e.status === 403)) {
+        alive = false;
+        main.innerHTML = `<div class="bt-empty">${e.status === 404 ? "That game doesn't exist." : "That's not your game."} <button class="textbtn" data-go="#play">Back to Play</button></div>`;
+      }
     }
   };
   await poll();
-  (async () => { while (alive) { await wait(gameOver() ? 15000 : 1500); if (alive && document.visibilityState === "visible") await poll(); } })();
-  timer = window.setInterval(tickClock, 1000);
+  // About once a second while the game is live, so the other player's moves show up as they make them.
+  (async () => { while (alive) { await wait(gameOver() ? 15000 : 1000); if (alive && document.visibilityState === "visible") await poll(); } })();
+  timer = window.setInterval(tickClock, 250);
 }
 
 /** Whether the game is waiting on this player right now. */
@@ -597,19 +658,29 @@ function myMove(g: GameView) {
 function setGame(g: GameView) {
   const prev = G;
   G = g;
+  if (g.now) clockSkew = g.now - Date.now();
   document.title = myMove(g) ? "● Your move · Battler" : "Battler · FRC Packs";
-  // A short buzz on phones when the round resolves or the game ends.
-  if (prev && prev.status !== g.status && (g.status === "RESULTS" || g.status === "FINAL")) navigator.vibrate?.(40);
-  if (shownResult === -1) shownResult = g.status === "RESULTS" ? g.round - 1 : g.rounds.length; // don't replay old results on load
-  if (prev && prev.status !== g.status) selected = null;
-  // While the round reveal plays, the only thing that can change is the other player tapping Next: don't restart the
-  // reveal for that, just say they're ready.
+  if (shownResult === -1) {
+    // Don't replay old rounds on load; do play the current round's reveal.
+    shownResult = g.status === "RESULTS" ? g.round - 1 : g.rounds.length;
+    seenEmote = g.emote_seq;
+  }
+  showEmotes(g);
+  if (prev && prev.status !== g.status) { selected = null; pickedRobot = null; }
+  // During the reveal, the only thing that can change is the other player tapping Next: keep the reveal going.
   if (prev && prev.status === "RESULTS" && g.status === "RESULTS" && prev.round === g.round && g.me && prev.seats[g.me.side]?.acked === g.seats[g.me.side]?.acked) {
     const r = $("#oppReady");
     if (r) r.hidden = !g.seats[1 - g.me.side]?.acked;
     return;
   }
+  if (prev && prev.status === g.status && prev.rev === g.rev) return; // only emotes changed
+  if (dragging) { pendingDraw = true; return; } // don't yank a card out from under a finger
   drawGame();
+  if (prev && prev.status === "PIT" && g.status === "PIT" && g.me) {
+    const was = prev.seats[1 - g.me.side], now = g.seats[1 - g.me.side];
+    if (was && now && !was.locked && now.locked) sfx.lock();
+    else if (was && now && was.face_down.length + Number(was.lore_down) < now.face_down.length + Number(now.lore_down)) sfx.place();
+  }
   if (g.status === "FINAL" && prev && prev.status !== "FINAL") loadHome().catch(() => {});
 }
 
@@ -619,7 +690,7 @@ async function act(action: Record<string, unknown>) {
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const g = await call<GameView>("POST", `/api/battler/games/${G!.id}/act`, { rev: G!.rev, action });
-      $("#toast")!.hidden = true; // any "now tap…" hint is done
+      $("#toast")!.hidden = true;
       setGame(g);
       return;
     } catch (e) {
@@ -635,35 +706,80 @@ async function act(action: Record<string, unknown>) {
 }
 
 function tickClock() {
+  if (!G || !G.deadline) return;
+  const left = Math.max(0, G.deadline - (Date.now() + clockSkew));
+  const s = Math.round(left / 1000);
   const el = $("#clock");
-  if (!el || !G || !G.deadline) return;
-  const s = Math.max(0, Math.round((G.deadline - Date.now()) / 1000));
-  el.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
-  el.classList.toggle("low", s <= 30);
+  if (el) {
+    el.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+    el.classList.toggle("low", s <= 30);
+  }
+  // The ring around your picture runs down with the pit timer.
+  const ring = $<SVGCircleElement & HTMLElement>("#ring");
+  if (ring) {
+    const total = (G.status === "PIT" ? CAT.rules.pit_seconds : CAT.rules.results_seconds) * 1000;
+    ring.style.strokeDashoffset = String(113 * (1 - Math.min(1, left / total)));
+    ring.classList.toggle("low", s <= 30);
+  }
 }
 
 const robotOf = (inst: number) => G!.robots.find((r) => r.inst === inst);
 const cardOf = (inst: number) => G!.support.find((c) => c.inst === inst);
 
-function gameHeader(g: GameView) {
-  const me = g.me!.side, op = 1 - me;
-  const a = g.seats[me], b = g.seats[op];
-  const dots = Array.from({ length: g.rounds_total }, (_, i) => `<i class="${i + 1 < g.round || (i + 1 === g.round && (g.status === "RESULTS" || g.status === "FINAL")) ? "done" : i + 1 === g.round ? "now" : ""}"></i>`).join("");
-  // While a round's results are still being revealed, the RP shown is from before it (no spoilers); the reveal ends by
-  // counting it up to the real total.
-  const last = g.rounds[g.rounds.length - 1];
-  const hiding = !!last && (g.status === "RESULTS" || shownResult < g.rounds.length) && lastAnimated < last.round && !skipAnim;
-  const gain = (s: number) => (hiding ? last.result.match_rp[s] + last.result.bonus_rp[s] : 0);
-  return `<div class="bt-gh">
-    <div class="bt-gh-p me"><b>${esc(a?.name)}</b><span>${a?.elo ?? ""} Elo</span></div>
-    <div class="bt-gh-mid"><div class="bt-gh-rp"><b data-rp-to="${a?.rp ?? 0}">${(a?.rp ?? 0) - gain(me)}</b><small>RP</small><b data-rp-to="${b?.rp ?? 0}">${(b?.rp ?? 0) - gain(op)}</b></div><div class="bt-dots">${dots}</div>
-      ${g.deadline && !["FINAL", "CANCELLED"].includes(g.status) ? '<div class="bt-clock" id="clock"></div>' : ""}</div>
-    <div class="bt-gh-p op"><b>${esc(b?.name ?? "Waiting…")}</b><span>${b ? `${b.elo} Elo` : ""}</span></div>
-  </div>`;
+// ---------- emotes ----------
+
+const EMOTE_TEXT: Record<string, string> = { gg: "GG!", nice: "Nice play!", oops: "Oops…", wow: "Wow!", thinking: "Hmm…", hello: "Hello!" };
+
+function showEmotes(g: GameView) {
+  if (!g.me) return;
+  for (const e of g.emotes) {
+    if (e.n <= seenEmote) continue;
+    seenEmote = e.n;
+    if (e.side === g.me.side) continue;
+    if (emotesMuted()) continue;
+    sfx.emote();
+    popEmote("op", EMOTE_TEXT[e.id] ?? e.id);
+  }
 }
+
+/** Speech bubbles still showing. Kept here so a repaint of the arena (the other player doing something) doesn't wipe
+    them halfway through. */
+const bubbles: { who: "op" | "me"; text: string; until: number }[] = [];
+
+function popEmote(who: "op" | "me", text: string) {
+  bubbles.push({ who, text, until: Date.now() + 2600 });
+  placeBubble(who, text, true);
+}
+
+function placeBubble(who: "op" | "me", text: string, fresh: boolean) {
+  const host = $(who === "op" ? ".ar-opp" : ".ar-me");
+  if (!host) return;
+  const b = document.createElement("div");
+  b.className = `ar-bubble ${who} ${fresh ? "" : "still"}`;
+  b.textContent = text;
+  host.appendChild(b);
+  const left = (bubbles.find((x) => x.who === who && x.text === text)?.until ?? Date.now()) - Date.now();
+  setTimeout(() => b.remove(), Math.max(0, left));
+}
+
+/** Puts back the bubbles that were showing before a repaint. */
+function restoreBubbles() {
+  const now = Date.now();
+  for (let i = bubbles.length - 1; i >= 0; i--) if (bubbles[i].until <= now) bubbles.splice(i, 1);
+  for (const b of bubbles) placeBubble(b.who, b.text, false);
+}
+
+async function sendEmote(id: string) {
+  if (!G) return;
+  popEmote("me", EMOTE_TEXT[id]);
+  try { await call("POST", `/api/battler/games/${G.id}/emote`, { emote: id }); } catch (e) { if (!(e instanceof ApiError && e.code === "too_fast")) toast(explain(e), true); }
+}
+
+// ---------- screens around the arena ----------
 
 function drawGame() {
   const g = G!;
+  document.body.classList.toggle("bt-in-arena", !!g.me && ["PIT", "RESULTS"].includes(g.status));
   if (!g.me) {
     // Someone opened a game link: they can take the empty seat.
     const host = g.seats[0];
@@ -676,23 +792,29 @@ function drawGame() {
     };
     return;
   }
+  const replay = shownResult < g.rounds.length && g.rounds.length > 0;
   switch (g.status) {
     case "OPEN": main.innerHTML = drawWaiting(g); break;
-    case "DECKS": main.innerHTML = gameHeader(g) + drawDeckPick(g); break;
-    case "PIT":
-      if (shownResult < g.rounds.length) { main.innerHTML = gameHeader(g) + drawResults(g, g.rounds.length - 1, true); break; }
-      main.innerHTML = gameHeader(g) + drawPit(g);
-      break;
-    case "RESULTS": main.innerHTML = gameHeader(g) + drawResults(g, g.rounds.length - 1, false); break;
+    case "DECKS": main.innerHTML = drawVersus(g) + drawDeckPick(g); break;
+    case "PIT": main.innerHTML = replay ? drawArena(g, "reveal") : drawArena(g, "pit"); break;
+    case "RESULTS": main.innerHTML = drawArena(g, "reveal"); break;
     case "FINAL":
-      if (shownResult < g.rounds.length && g.outcome?.reason === "complete") { main.innerHTML = gameHeader(g) + drawResults(g, g.rounds.length - 1, true); break; }
-      main.innerHTML = gameHeader(g) + drawFinal(g);
+      if (replay && g.outcome?.reason === "complete") { document.body.classList.add("bt-in-arena"); main.innerHTML = drawArena(g, "reveal"); break; }
+      main.innerHTML = drawVersus(g) + drawFinal(g);
+      if (g.outcome) (g.outcome.winner === g.me.side ? sfx.win : g.outcome.winner === null ? sfx.tick.bind(null, 3) : sfx.lose)();
       break;
     case "CANCELLED": main.innerHTML = `<div class="bt-panel center"><h2>Game called off</h2><p class="bt-dim">It ended before anyone played a round (or both players left), so nobody's rating changed.</p><button class="cta" data-go="#play">Back to Play</button></div>`; break;
   }
   bindGame();
   tickClock();
-  if (g.status === "RESULTS" || (shownResult < g.rounds.length && g.rounds.length)) runResults();
+  restoreBubbles();
+  if ($(".ar[data-mode='reveal']")) runReveal();
+}
+
+function drawVersus(g: GameView) {
+  const me = g.seats[g.me!.side]!, op = g.seats[1 - g.me!.side]!;
+  return `<div class="ar-vs"><div class="me"><span class="ar-ava">${esc(me.name.slice(0, 1).toUpperCase())}</span><b>${esc(me.name)}</b><small>${me.elo} Elo</small></div>
+    <i>VS</i><div class="op"><span class="ar-ava op">${esc(op.name.slice(0, 1).toUpperCase())}</span><b>${esc(op.name)}</b><small>${op.elo} Elo</small></div></div>`;
 }
 
 function drawWaiting(g: GameView) {
@@ -708,81 +830,142 @@ function drawWaiting(g: GameView) {
 
 function drawDeckPick(g: GameView) {
   const me = g.seats[g.me!.side]!, op = g.seats[1 - g.me!.side]!;
-  if (me.picked) return `<div class="bt-panel center"><div class="bt-spinner"></div><h2>Deck locked in</h2><p class="bt-dim">${op.picked ? "Starting…" : `Waiting for ${esc(op.name)} to pick a deck.`}</p><button class="textbtn" data-act="forfeit">Leave game</button></div>`;
-  const decks = HOME.decks;
-  return `<div class="bt-panel"><h2>Pick your deck</h2><p class="bt-dim">Decks stay private. Ownership is checked again now.</p>
-    <div class="bt-decklist">${decks.map((d) => `<button class="bt-deckrow ${d.problems.length ? "off" : ""}" data-deck="${d.deck.id}" ${d.problems.length ? "disabled" : ""}>
-      <div class="bt-deckrow-cap t-${esc(ROBOT.get(d.deck.captain ?? 0)?.tier ?? "none")}">${d.deck.captain ? `<span>${d.deck.captain}</span>` : "?"}</div>
+  if (me.picked) return `<div class="bt-panel center"><div class="bt-spinner"></div><h2>Deck locked in</h2><p class="bt-dim">${op.picked ? "Shuffling…" : `Waiting for ${esc(op.name)} to pick a deck.`}</p><button class="textbtn" data-act="forfeit">Leave game</button></div>`;
+  return `<div class="bt-panel"><h2>Pick your deck</h2><p class="bt-dim">Decks stay private. Ownership is checked again now.${op.picked ? ` ${esc(op.name)} is ready.` : ""}</p>
+    <div class="bt-decklist">${HOME.decks.map((d) => `<button class="bt-deckrow ${d.problems.length ? "off" : ""}" data-deck="${d.deck.id}" ${d.problems.length ? "disabled" : ""}>
+      <div class="bt-deckrow-cap t-${esc(ROBOT.get(d.deck.captain ?? 0)?.tier ?? "none")}">${d.deck.captain && ROBOT.get(d.deck.captain)?.photo ? `<img alt="" src="/photos/${d.deck.captain}.webp">` : `<span>${d.deck.captain ?? "?"}</span>`}</div>
       <div><b>${esc(d.deck.name)}</b><span class="${d.problems.length ? "warn" : "ok"}">${d.problems.length ? esc(d.problems[0]) : "Ready"}</span></div></button>`).join("") || '<div class="bt-empty">No decks.</div>'}</div>
     <button class="textbtn" data-act="forfeit">Leave game</button></div>`;
 }
+
+// ---------- the arena ----------
 
 function stationOf(plan: Plan, inst: number) {
   return plan.stations.indexOf(inst as never) + 1;
 }
 
-function fieldTile(r: RobotInst, opts: { station?: number; captain?: boolean; parts?: SupportInst[]; mine?: boolean; target?: boolean; score?: RobotScore; hidden?: boolean }) {
-  const names = CAT.rp_names;
-  const st = opts.station ?? 0;
-  const rp = st ? r.stats.rp[st - 1] : null;
-  const partChips = (opts.parts ?? []).map((p) => `<span class="bt-pchip">${esc(p.name)}${opts.mine ? `<button data-detach="${p.inst}" aria-label="Remove ${esc(p.name)}">×</button>` : ""}</span>`).join("");
-  const stations = opts.mine
-    ? `<div class="bt-stations" role="group" aria-label="Driver station">${[1, 2, 3].map((n) => `<button data-station="${n}" data-robot="${r.inst}" aria-pressed="${st === n}">${n}</button>`).join("")}</div>`
-    : st ? `<span class="bt-stbadge">S${st}</span>` : "";
-  const s = opts.score;
-  return `<div class="bt-ft t-${esc(r.tier)} ${opts.target ? "target" : ""} ${opts.mine ? "mine" : ""}" data-robot-tile="${r.inst}">
-    <div class="bt-ft-top">
-      <div class="bt-ft-pic">${r.photo ? `<img alt="" src="/photos/${r.team}.webp">` : `<span>#${r.team}</span>`}${opts.captain ? '<i class="bt-cap" title="Alliance Captain">C</i>' : ""}</div>
-      <div class="bt-ft-id"><b>${r.team}</b><span>${esc(r.name)}</span></div>
-      ${stations}
+/** A robot as it stands in a lane. */
+function laneBot(r: RobotInst, o: { station?: number; captain?: boolean; mine?: boolean; live?: boolean; down?: number; parts?: SupportInst[]; hidden?: boolean; target?: boolean; picked?: boolean; score?: RobotScore }) {
+  const st = o.station ?? 0;
+  const s = r.stats;
+  const backs = o.down ? Array.from({ length: o.down }, (_, i) => `<i class="ar-back ${i >= (o.down! - newDown(r.inst, o.down!)) ? "new" : ""}"></i>`).join("") : "";
+  const parts = (o.parts ?? []).map((p) => `<span class="ar-part ${o.live ? "mine" : ""}" ${o.live ? `data-detach="${p.inst}"` : ""} title="${esc(p.text)}">${esc(p.name)}</span>`).join("");
+  return `<div class="ar-bot t-${esc(r.tier)} ${o.target ? "target" : ""} ${o.picked ? "picked" : ""} ${o.hidden ? "hidden" : ""}" data-bot="${r.inst}" ${o.live ? `data-drop-robot="${r.inst}"` : ""}>
+    <div class="ar-bot-face">
+      <div class="ar-bot-pic">${r.photo ? `<img alt="" draggable="false" src="/photos/${r.team}.webp">` : `<span>#${r.team}</span>`}${o.captain ? '<i class="ar-cap" title="Alliance Captain">C</i>' : ""}</div>
+      <div class="ar-bot-id"><b>${r.team}</b><span>${esc(r.name)}</span></div>
+      <div class="ar-bot-stats"><span><small>A</small><b data-ph="0">${s.auto}</b></span><span><small>T</small><b data-ph="1">${s.tele}</b></span><span><small>E</small><b data-ph="2">${s.end}</b></span></div>
+      ${st ? `<div class="ar-bot-rp" data-rp>RP${st} <b>${o.score ? o.score.rp_chance : s.rp[st - 1]}%</b></div>` : `<div class="ar-bot-rp bt-dim">RP ${s.rp.join("/")}</div>`}
+      ${r.effect_text ? `<div class="ar-bot-fx" title="${esc(r.effect_text)}">★ ${esc(r.effect_text)}</div>` : ""}
     </div>
-    <div class="bt-ft-stats">
-      ${s ? s.points.map((p, i) => `<span class="ph${i}" data-pts="${p}" data-base="${s.base[i]}"><small>${["A", "T", "E"][i]}</small><b>${p}</b></span>`).join("") : `<span><small>A</small><b>${r.stats.auto}</b></span><span><small>T</small><b>${r.stats.tele}</b></span><span><small>E</small><b>${r.stats.end}</b></span>`}
-      ${s ? `<span class="bt-roll" data-hit="${s.rp_hit}" title="RP${s.station} chance"><small>RP${s.station}</small><b>${s.rp_chance}%</b><em>${s.rp_hit ? "+1" : "–"}</em></span>` : rp !== null ? `<span class="rp" title="${names[st - 1]} RP at station ${st}"><small>RP${st}</small><b>${rp}%</b></span>` : `<span class="rp bt-dim"><small>RP</small><b>${r.stats.rp.join("/")}</b></span>`}
-    </div>
-    ${r.effect_text ? `<div class="bt-ft-fx">${esc(r.effect_text)}</div>` : ""}
-    ${partChips ? `<div class="bt-ft-parts">${partChips}</div>` : ""}
+    <div class="ar-bot-back"></div>
+    ${backs ? `<div class="ar-backs">${backs}</div>` : ""}
+    ${parts ? `<div class="ar-parts">${parts}</div>` : ""}
+    ${o.score ? `<div class="ar-die" data-die="${o.score.rp_roll}" data-hit="${o.score.rp_hit}" data-chance="${o.score.rp_chance}"></div>` : ""}
   </div>`;
 }
 
-function drawPit(g: GameView) {
+/** How many of a robot's face-down cards are new since the last paint (they animate in). */
+function newDown(inst: number, n: number) {
+  const before = seenDown.get(inst) ?? 0;
+  seenDown.set(inst, n);
+  return Math.max(0, n - before);
+}
+
+function handCard(c: SupportInst, used: boolean, i: number, n: number) {
+  const mid = (n - 1) / 2;
+  const tilt = n > 1 ? (i - mid) * Math.min(7, 26 / n) : 0;
+  // Cards overlap more the more there are, so the hand always fits the screen.
+  const room = Math.min(520, innerWidth) - 32 - 56;
+  const ov = n > 1 ? Math.max(14, (n * 92 - room) / (n - 1)) : 0;
+  const lift = Math.abs(i - mid) * Math.abs(i - mid) * 2;
+  const tags = c.kind === "PART" ? c.tags.map((t) => t.replace("_", " ")).join(" · ") : "Field · 1 round";
+  return `<button type="button" class="ar-card k-${c.kind.toLowerCase()} ${selected === c.inst ? "sel" : ""} ${used ? "used" : ""}" style="--r:${tilt}deg;--y:${lift}px;--i:${i};margin-left:${i ? -ov : 0}px" data-hand="${c.inst}" aria-label="${esc(c.name)}: ${esc(c.text)}">
+    <span class="ar-card-k">${c.kind}</span><b>${esc(c.name)}</b><small>${esc(tags)}</small><span class="ar-card-t">${esc(c.text)}</span>
+    ${used ? `<span class="ar-card-used">${G?.me?.plan.lore === c.inst ? "Lore" : "Played"}</span>` : ""}
+  </button>`;
+}
+
+function avatar(name: string, side: "me" | "op", ring = false) {
+  return `<span class="ar-ava ${side}">${esc(name.slice(0, 1).toUpperCase())}${ring ? '<svg class="ar-ring" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18"/><circle id="ring" cx="20" cy="20" r="18"/></svg>' : ""}</span>`;
+}
+
+function drawArena(g: GameView, mode: "pit" | "reveal") {
   const side = g.me!.side, op = 1 - side;
   const me = g.seats[side]!, them = g.seats[op]!;
   const plan = g.me!.plan;
-  const myBots = g.alliances[side];
-  const selCard = selected !== null ? cardOf(selected) : null;
-  const attachedTo = (inst: number) => plan.attach.filter(([, r]) => r === inst).map(([p]) => cardOf(p)!).filter(Boolean);
-  const planned = new Set([...plan.attach.map(([p]) => p), ...(plan.lore !== null ? [plan.lore] : [])]);
-  const hand = g.me!.hand.map((i) => cardOf(i)!).filter(Boolean);
-  const loreCard = plan.lore !== null ? cardOf(plan.lore) : null;
+  const log = mode === "reveal" ? g.rounds[g.rounds.length - 1] : null;
+  const r = log?.result;
+  const score = (inst: number) => r?.robots.find((x) => x.inst === inst);
   const locked = me.locked;
-  const robotsByStation = [...myBots].sort((a, b) => stationOf(plan, a) - stationOf(plan, b));
-  return `
-    <section class="bt-side op">
-      <h3>${esc(them.name)}'s alliance <span class="bt-lockst ${them.locked ? "on" : ""}">${them.locked ? "Locked ✓" : "In the pit…"}</span></h3>
-      <div class="bt-field compact">${g.alliances[op].map((i) => fieldTile(robotOf(i)!, { captain: i === g.alliances[op][0] })).join("")}</div>
-      <p class="bt-note">Their parts, lore and stations stay hidden until you both lock. They hold ${plural(them.hand_count, "card")}.</p>
-    </section>
-    <section class="bt-side me">
-      <h3>Your alliance <small>${locked ? "Locked" : "tap a card, then a robot"}</small></h3>
-      <div class="bt-field">${robotsByStation.map((i) => fieldTile(robotOf(i)!, { station: stationOf(plan, i), captain: i === myBots[0], parts: attachedTo(i), mine: !locked, target: !locked && selCard?.kind === "PART" })).join("")}</div>
-    </section>
-    <section class="bt-hand">
-      <h3>Your hand <small>${plural(hand.length, "card")} · ${me.pile_count} left to draw</small></h3>
-      <div class="bt-handrow">${hand.length ? hand.map((c) => supportCard(c, `data-hand="${c.inst}" role="button" tabindex="0"`, planned.has(c.inst) ? `<div class="bt-inplay">${plan.lore === c.inst ? "Lore slot" : "Attached"}</div>` : "", `${selected === c.inst ? "sel" : ""} ${planned.has(c.inst) ? "used" : ""}`)).join("") : '<p class="bt-dim">No cards in hand.</p>'}</div>
-    </section>
-    <section class="bt-side lore">
-      <div class="bt-loreslot ${!locked && selCard?.kind === "LORE" ? "target" : ""} ${loreCard ? "full" : ""}" data-lore-slot>
-        <small>YOUR LORE THIS ROUND (0–1)</small>
-        ${loreCard ? `<b>${esc(loreCard.name)}</b><span>${esc(loreCard.text)}</span>${locked ? "" : '<button class="textbtn" data-lore-clear>Take back</button>'}` : `<span class="bt-dim">${selCard?.kind === "LORE" ? "Tap here to play it" : "No lore played. Lore hits all six robots for one round."}</span>`}
-      </div>
-    </section>
-    <div class="bt-lockbar">
-      ${locked ? `<div class="bt-waitlock"><div class="bt-spinner small"></div>${them.locked ? "Revealing…" : `Locked in. Waiting for ${esc(them.name)}.`}</div>` : `<button class="cta wide" data-act="lock">Lock pit</button>`}
-      <button class="textbtn bt-forfeit" data-act="forfeit">Forfeit</button>
+  const selCard = selected !== null ? cardOf(selected) : null;
+  const names = CAT.rp_names;
+
+  // Lanes: station 1..3. Yours by your plan (or the round log); theirs only once revealed.
+  const myBots = log ? log.stations[side] : plan.stations;
+  const theirBots = log ? log.stations[op] : g.alliances[op];
+  const partsOn = (s: number, inst: number) => (log ? log.attach[s] : s === side ? plan.attach : []).filter(([, rb]) => rb === inst).map(([p]) => cardOf(p)!).filter(Boolean);
+  const downOn = (inst: number) => (mode === "pit" ? them.face_down.filter((x) => x === inst).length : 0);
+  const lanes = [0, 1, 2].map((k) => {
+    const mine = robotOf(myBots[k])!, theirs = robotOf(theirBots[k])!;
+    return `<div class="ar-lane" data-lane="${k + 1}" ${mode === "pit" && !locked ? `data-drop-lane="${k + 1}"` : ""}>
+      ${laneBot(theirs, { station: log ? k + 1 : 0, captain: theirs.inst === g.alliances[op][0], down: downOn(theirs.inst), parts: log ? partsOn(op, theirs.inst) : [], hidden: !!log, score: score(theirs.inst) })}
+      <div class="ar-lane-mid"><b>S${k + 1}</b><small>${names[k]}</small><span class="ar-lane-score" data-lane-score="${k}"></span></div>
+      ${laneBot(mine, { station: k + 1, captain: mine.inst === g.alliances[side][0], mine: true, live: mode === "pit" && !locked, parts: partsOn(side, mine.inst), target: mode === "pit" && !locked && selCard?.kind === "PART", picked: pickedRobot === mine.inst, score: score(mine.inst) })}
+    </div>`;
+  }).join("");
+
+  const myLore = log ? (log.lore[side] !== null ? cardOf(log.lore[side]!) : null) : plan.lore !== null ? cardOf(plan.lore) : null;
+  const theirLore = log && log.lore[op] !== null ? cardOf(log.lore[op]!) : null;
+  const theirLoreDown = mode === "pit" && them.lore_down;
+  const loreSlot = (who: "op" | "me", c: SupportInst | null | undefined, down: boolean) => `<div class="ar-lore-slot ${who} ${c ? "full" : ""} ${down ? "down" : ""} ${who === "me" && mode === "pit" && !locked && selCard?.kind === "LORE" ? "target" : ""}" ${who === "me" && mode === "pit" && !locked ? "data-drop-lore" : ""} ${log && c ? "data-flip" : ""}>
+      ${c ? `<b>${esc(c.name)}</b><span>${esc(c.text)}</span>${who === "me" && mode === "pit" && !locked ? '<button class="ar-x" data-lore-clear aria-label="Take back">×</button>' : ""}` : down ? '<i class="ar-back new"></i><span>Lore played</span>' : `<span>${who === "me" ? (selCard?.kind === "LORE" ? "Drop lore here" : "Your lore") : "Their lore"}</span>`}
+    </div>`;
+
+  const planned = new Set([...plan.attach.map(([p]) => p), ...(plan.lore !== null ? [plan.lore] : [])]);
+  const hand = mode === "pit" ? g.me!.hand.map((i) => cardOf(i)!).filter(Boolean) : [];
+  const handVisible = hand.filter((c) => !planned.has(c.inst));
+  const backs = Array.from({ length: Math.min(them.hand_count, 9) }, (_, i) => `<i class="ar-back sm" style="--i:${i}"></i>`).join("");
+  const last = g.rounds[g.rounds.length - 1];
+  const hiding = !!last && mode === "reveal" && lastAnimated < last.round && !skipAnim;
+  const gain = (s: number) => (hiding ? last.result.match_rp[s] + last.result.bonus_rp[s] : 0);
+  const dots = Array.from({ length: g.rounds_total }, (_, i) => `<i class="${i + 1 < g.round || (i + 1 === g.round && mode === "reveal") ? "done" : i + 1 === g.round ? "now" : ""}"></i>`).join("");
+
+  return `<div class="ar" data-mode="${mode}" data-round="${log?.round ?? g.round}">
+    <div class="ar-opp ${them.locked && mode === "pit" ? "ready" : ""}">
+      ${avatar(them.name, "op")}
+      <div class="ar-who"><b>${esc(them.name)}</b><small>${them.elo} Elo${mode === "pit" ? ` · ${them.locked ? '<em class="ok">Locked in</em>' : "in the pit…"}` : ""}</small></div>
+      <div class="ar-hand-backs" aria-label="${plural(them.hand_count, "card")} in hand">${backs}</div>
+      <div class="ar-rp op"><b data-rp-to="${them.rp}">${them.rp - gain(op)}</b><small>RP</small></div>
     </div>
-    ${me.strikes ? `<p class="bt-note warn">You missed ${plural(me.strikes, "pit timer")}. Missing ${CAT.rules.strikes} forfeits the game.</p>` : ""}`;
+    <div class="ar-round"><div class="bt-dots">${dots}</div><span>Round ${g.round} of ${g.rounds_total}</span>${g.deadline ? '<span class="bt-clock" id="clock"></span>' : ""}</div>
+    <div class="ar-board">
+      <div class="ar-lanes">${lanes}</div>
+      <div class="ar-lore">${loreSlot("op", theirLore, theirLoreDown)}<div class="ar-tug" aria-hidden="true"><i class="op"></i><i class="me"></i><b class="ar-phase" id="phase"></b></div>${loreSlot("me", myLore, false)}</div>
+    </div>
+    ${mode === "pit" ? `
+    <div class="ar-handwrap ${locked ? "locked" : ""}">
+      <div class="ar-hand" id="hand">${handVisible.map((c, i) => handCard(c, false, i, handVisible.length)).join("") || `<p class="bt-dim ar-nohand">${hand.length ? "Every card is on the field." : "No cards in hand."}</p>`}</div>
+      <div class="ar-pile">${me.pile_count}<small>deck</small></div>
+    </div>` : `<div class="ar-verdict" id="verdict" hidden></div>`}
+    <div class="ar-me ${locked && mode === "pit" ? "ready" : ""}">
+      ${avatar(me.name, "me", true)}
+      <div class="ar-rp me"><b data-rp-to="${me.rp}">${me.rp - gain(side)}</b><small>RP</small></div>
+      <button type="button" class="ar-emote-btn" id="emoteBtn" aria-label="Quick chat">💬</button>
+      ${mode === "pit"
+        ? locked
+          ? `<div class="ar-wait"><div class="bt-spinner small"></div>${them.locked ? "Revealing…" : `Waiting for ${esc(them.name)}`}</div>`
+          : `<button type="button" class="ar-lock" data-act="lock">Lock in</button>`
+        : `<div class="ar-next"><button type="button" class="ar-lock" data-act="ack" ${me.acked ? "disabled" : ""}>${me.acked ? "Waiting…" : log && log.round >= g.rounds_total ? "Final result" : "Next round"}</button><button type="button" class="textbtn" id="skipAnim">Skip</button></div>`}
+      <button type="button" class="ar-menu-btn" id="arMenu" aria-label="Menu">⋯</button>
+    </div>
+    ${mode === "reveal" ? `<span class="bt-oppready" id="oppReady" ${them.acked ? "" : "hidden"}>${esc(them.name)} is ready for the next round</span>` : ""}
+    ${mode === "pit" ? `<p class="ar-hint">${locked ? "" : selCard ? (selCard.kind === "PART" ? "Drop it on one of your robots." : "Drop it on your lore slot.") : pickedRobot ? "Tap the lane to move it to." : "Drag a card onto a robot or the lore slot. Drag a robot to another lane to change its station."}</p>` : ""}
+    ${log && r?.events.length ? `<details class="bt-log ar-log"><summary>What triggered (${r.events.length})</summary><ul>${r.events.map((ev) => `<li><b>${esc(ev.source)}</b> ${esc(ev.text)}</li>`).join("")}</ul></details>` : ""}
+  </div>`;
 }
+
+// ---------- pit input: drag, or tap then tap ----------
 
 function bindGame() {
   const share = $("#shareGame");
@@ -793,151 +976,321 @@ function bindGame() {
       else { await navigator.clipboard.writeText(url); toast("Invite link copied."); }
     } catch { /* closed the share sheet */ }
   };
+  const emoteBtn = $("#emoteBtn");
+  if (emoteBtn) emoteBtn.onclick = () => {
+    const m = emotesMuted();
+    openSheet(`<h3>Quick chat</h3><div class="ar-emotes">${Object.entries(EMOTE_TEXT).map(([id, t]) => `<button class="cta small ghost" data-emote="${id}">${t}</button>`).join("")}</div>
+      <label class="ar-mute"><input type="checkbox" id="muteEmotes" ${m ? "checked" : ""}> Hide the other player's chat</label>`, (t) => {
+      const b = t.closest<HTMLElement>("[data-emote]");
+      if (b) { closeSheet(); sendEmote(b.dataset.emote!); }
+    });
+    $("#muteEmotes")!.addEventListener("change", (e) => { try { localStorage.setItem("bt-mute-emotes", (e.target as HTMLInputElement).checked ? "1" : "0"); } catch { /* private mode */ } });
+  };
+  const menu = $("#arMenu");
+  if (menu) menu.onclick = () => {
+    openSheet(`<h3>Game</h3><label class="ar-mute"><input type="checkbox" id="muteSfx" ${muted() ? "checked" : ""}> Mute sounds</label>
+      <p class="bt-fair">Fairness code <code>${G!.seed_hash.slice(0, 16)}…</code> (the seed behind every shuffle and roll is shown when the game ends)</p>
+      <button class="cta small ghost" data-forfeit>Forfeit game</button>`, (t) => {
+      if (t.closest("[data-forfeit]") && confirm("Forfeit this game? It counts as a loss.")) { closeSheet(); act({ kind: "forfeit" }); }
+    });
+    $("#muteSfx")!.addEventListener("change", (e) => { try { localStorage.setItem("bt-mute", (e.target as HTMLInputElement).checked ? "1" : "0"); } catch { /* private mode */ } });
+  };
   main.onclick = (e) => {
     const t = e.target as HTMLElement;
     const a = t.closest<HTMLElement>("[data-act]");
     if (a) {
       const k = a.dataset.act!;
       if (k === "forfeit" && !confirm(G!.status === "DECKS" ? "Leave this game? Nobody's rating changes." : "Forfeit this game? It counts as a loss.")) return;
+      if (k === "lock") sfx.lock();
       if (k === "ack") { shownResult = G!.rounds.length; if (G!.status !== "RESULTS") return drawGame(); }
       return void act({ kind: k });
     }
     const deck = t.closest<HTMLElement>("[data-deck]");
     if (deck) return void act({ kind: "pick_deck", deck: deck.dataset.deck });
-    if (G!.status !== "PIT") {
-      const rt = t.closest<HTMLElement>("[data-robot-tile]");
-      if (rt) showRobot(robotOf(+rt.dataset.robotTile!)!);
+    if (G!.status !== "PIT" || G!.seats[G!.me!.side]?.locked) {
+      const b = t.closest<HTMLElement>("[data-bot]");
+      if (b && !b.classList.contains("hidden")) showRobot(robotOf(+b.dataset.bot!)!);
       return;
     }
-    const plan = G!.me!.plan;
     const det = t.closest<HTMLElement>("[data-detach]");
-    if (det) return void act({ kind: "detach", part: +det.dataset.detach! });
-    const stb = t.closest<HTMLElement>("[data-station]");
-    if (stb) {
-      const n = +stb.dataset.station!, inst = +stb.dataset.robot!;
-      const st = [...plan.stations] as [number, number, number];
-      const cur = st.indexOf(inst);
-      if (cur === n - 1) return;
-      [st[cur], st[n - 1]] = [st[n - 1], st[cur]];
-      return void act({ kind: "stations", robots: st });
-    }
-    if (t.closest("[data-lore-clear]")) return void act({ kind: "lore", card: null });
+    if (det) { sfx.pick(); return void act({ kind: "detach", part: +det.dataset.detach! }); }
+    if (t.closest("[data-lore-clear]")) { sfx.pick(); return void act({ kind: "lore", card: null }); }
     const h = t.closest<HTMLElement>("[data-hand]");
     if (h) {
       const inst = +h.dataset.hand!;
-      const c = cardOf(inst);
-      // Tapping a card already in play takes it back.
-      if (plan.lore === inst) return void act({ kind: "lore", card: null });
-      if (plan.attach.some(([p]) => p === inst)) return void act({ kind: "detach", part: inst });
       selected = selected === inst ? null : inst;
-      if (c) toast(c.kind === "PART" ? "Now tap one of your robots to attach it." : "Now tap the lore slot to play it.");
+      pickedRobot = null;
+      if (selected !== null) sfx.pick();
       return drawGame();
     }
-    const slot = t.closest<HTMLElement>("[data-lore-slot]");
-    if (slot && selected !== null && cardOf(selected)?.kind === "LORE") {
-      const card = selected;
-      selected = null;
-      return void act({ kind: "lore", card });
+    if (t.closest("[data-drop-lore]") && selected !== null && cardOf(selected)?.kind === "LORE") return void playCard(selected, { lore: true });
+    const rb = t.closest<HTMLElement>("[data-drop-robot]");
+    if (rb && selected !== null && cardOf(selected)?.kind === "PART") return void playCard(selected, { robot: +rb.dataset.dropRobot! });
+    const lane = t.closest<HTMLElement>("[data-drop-lane]");
+    if (rb && selected === null) {
+      const inst = +rb.dataset.dropRobot!;
+      if (pickedRobot === null) { pickedRobot = inst; sfx.pick(); return drawGame(); }
+      if (pickedRobot === inst) { pickedRobot = null; return drawGame(); }
     }
-    const rt = t.closest<HTMLElement>("[data-robot-tile]");
-    if (rt) {
-      const inst = +rt.dataset.robotTile!;
-      if (selected !== null && cardOf(selected)?.kind === "PART" && G!.alliances[G!.me!.side].includes(inst as never)) {
-        const part = selected;
-        selected = null;
-        return void act({ kind: "attach", part, robot: inst });
+    if (lane && pickedRobot !== null) return void moveRobot(pickedRobot, +lane.dataset.dropLane!);
+    const b = t.closest<HTMLElement>("[data-bot]");
+    if (b) showRobot(robotOf(+b.dataset.bot!)!);
+  };
+  bindDrag();
+}
+
+function playCard(card: number, to: { robot?: number; lore?: boolean }) {
+  selected = null;
+  sfx.place();
+  if (to.lore) return act({ kind: "lore", card });
+  return act({ kind: "attach", part: card, robot: to.robot });
+}
+
+function moveRobot(inst: number, lane: number) {
+  pickedRobot = null;
+  const st = [...G!.me!.plan.stations] as [number, number, number];
+  const cur = st.indexOf(inst);
+  if (cur < 0 || cur === lane - 1) return drawGame();
+  [st[cur], st[lane - 1]] = [st[lane - 1], st[cur]];
+  sfx.place();
+  return act({ kind: "stations", robots: st });
+}
+
+/** Drag a hand card onto a robot or the lore slot, or one of your robots onto another lane. Pointer events, so it works
+    with a finger, a pen or a mouse; a tap without moving falls through to the tap handlers. */
+function bindDrag() {
+  const arena = $(".ar[data-mode='pit']");
+  if (!arena || G!.seats[G!.me!.side]?.locked) return;
+  arena.onpointerdown = (e: PointerEvent) => {
+    const src = (e.target as HTMLElement).closest<HTMLElement>("[data-hand], .ar-lane [data-drop-robot]");
+    if (!src || (e.target as HTMLElement).closest("[data-detach]")) return;
+    const card = src.dataset.hand ? +src.dataset.hand : null;
+    const robot = src.dataset.dropRobot ? +src.dataset.dropRobot : null;
+    const kind = card !== null ? cardOf(card)?.kind : null;
+    const x0 = e.clientX, y0 = e.clientY;
+    let ghost: HTMLElement | null = null;
+    let over: HTMLElement | null = null;
+    const move = (ev: PointerEvent) => {
+      if (!ghost) {
+        if (Math.hypot(ev.clientX - x0, ev.clientY - y0) < 8) return;
+        dragging = true;
+        ghost = src.cloneNode(true) as HTMLElement;
+        ghost.classList.add("ar-ghost");
+        const r = src.getBoundingClientRect();
+        ghost.style.width = `${r.width}px`;
+        document.body.appendChild(ghost);
+        src.classList.add("lifted");
+        arena.classList.add(card !== null ? (kind === "PART" ? "drag-part" : "drag-lore") : "drag-bot");
+        sfx.pick();
       }
-      showRobot(robotOf(inst)!);
-    }
+      ev.preventDefault();
+      ghost.style.transform = `translate(${ev.clientX - ghost.offsetWidth / 2}px, ${ev.clientY - ghost.offsetHeight * 0.6}px) rotate(-4deg)`;
+      ghost.style.display = "none";
+      const hit = document.elementFromPoint(ev.clientX, ev.clientY) as HTMLElement | null;
+      ghost.style.display = "";
+      const target = card !== null
+        ? kind === "PART" ? hit?.closest<HTMLElement>("[data-drop-robot]") : hit?.closest<HTMLElement>("[data-drop-lore]")
+        : hit?.closest<HTMLElement>("[data-drop-lane]");
+      if (target !== over) { over?.classList.remove("over"); target?.classList.add("over"); over = target ?? null; }
+    };
+    const up = () => {
+      removeEventListener("pointermove", move);
+      removeEventListener("pointerup", up);
+      removeEventListener("pointercancel", up);
+      if (!ghost) return; // a tap: the click handler takes it
+      ghost.remove();
+      src.classList.remove("lifted");
+      arena.classList.remove("drag-part", "drag-lore", "drag-bot");
+      dragging = false;
+      // Swallow the click that follows a drag.
+      const swallow = (c: Event) => { c.stopPropagation(); c.preventDefault(); };
+      addEventListener("click", swallow, { capture: true, once: true });
+      setTimeout(() => removeEventListener("click", swallow, { capture: true }), 80);
+      const target = over;
+      over?.classList.remove("over");
+      if (target && card !== null) playCard(card, kind === "PART" ? { robot: +target.dataset.dropRobot! } : { lore: true });
+      else if (target && robot !== null) moveRobot(robot, +target.dataset.dropLane!);
+      else if (pendingDraw) { pendingDraw = false; drawGame(); }
+    };
+    addEventListener("pointermove", move, { passive: false });
+    addEventListener("pointerup", up);
+    addEventListener("pointercancel", up);
   };
 }
 
-// ---------- results ----------
-
-function drawResults(g: GameView, idx: number, replay: boolean) {
-  const log = g.rounds[idx];
-  if (!log) return "";
-  const side = g.me!.side, op = 1 - side;
-  const r = log.result;
-  const score = (inst: number) => r.robots.find((x) => x.inst === inst)!;
-  const partsOn = (s: number, inst: number) => log.attach[s].filter(([, rb]) => rb === inst).map(([p]) => cardOf(p)!).filter(Boolean);
-  const lore = (s: number) => (log.lore[s] !== null ? cardOf(log.lore[s]!) : null);
-  const won = r.winner === null ? "tie" : r.winner === side ? "win" : "loss";
-  const myRp = r.match_rp[side] + r.bonus_rp[side], opRp = r.match_rp[op] + r.bonus_rp[op];
-  // The captain never changes, so this round's first robot per side is it.
-  const tiles = (s: number) => log.stations[s].map((inst) => fieldTile(robotOf(inst)!, { station: score(inst).station, captain: inst === g.alliances[s][0], parts: partsOn(s, inst), score: score(inst) })).join("");
-  const me = g.seats[side]!, them = g.seats[op]!;
-  const waiting = g.status === "RESULTS" && me.acked;
-  return `<div class="bt-results" data-round="${log.round}">
-    <h2 class="bt-rtitle">Round ${log.round} results</h2>
-    <div class="bt-lores">
-      ${[side, op].map((s) => { const l = lore(s); return `<div class="bt-lorecard ${l ? "" : "none"} ${s === side ? "me" : "op"}"><small>${s === side ? "Your lore" : `${esc(g.seats[s]!.name)}'s lore`}</small>${l ? `<b>${esc(l.name)}</b><span>${esc(l.text)}</span>` : "<span>None played</span>"}</div>`; }).join("")}
-    </div>
-    <div class="bt-board">
-      <div class="bt-board-row head"><span></span><span>You</span><span>${esc(them.name)}</span></div>
-      ${["Auto", "Tele", "End"].map((p, k) => `<div class="bt-board-row ph" data-phase="${k}"><span>${p}</span><b data-to="${r.phase_totals[side][k]}">${r.phase_totals[side][k]}</b><b data-to="${r.phase_totals[op][k]}">${r.phase_totals[op][k]}</b></div>`).join("")}
-      <div class="bt-board-row tot"><span>Total</span><b>${r.totals[side]}</b><b>${r.totals[op]}</b></div>
-    </div>
-    <div class="bt-verdict ${won}">${won === "win" ? "You won the round" : won === "loss" ? "You lost the round" : "Tied round"}
-      <span>+${r.match_rp[side]} RP for the result, +${r.bonus_rp[side]} from robot rolls = <b>+${myRp} RP</b> (them +${opRp})</span></div>
-    <section class="bt-side me"><h3>Your alliance${log.auto_locked[side] ? ' <span class="warn">auto-locked</span>' : ""}</h3><div class="bt-field">${tiles(side)}</div></section>
-    <section class="bt-side op"><h3>${esc(them.name)}${log.auto_locked[op] ? ' <span class="warn">auto-locked</span>' : ""}</h3><div class="bt-field">${tiles(op)}</div></section>
-    ${r.events.length ? `<details class="bt-log"><summary>What triggered (${r.events.length})</summary><ul>${r.events.map((ev) => `<li><b>${esc(ev.source)}</b> ${esc(ev.text)}</li>`).join("")}</ul></details>` : ""}
-    <div class="bt-lockbar">
-      ${waiting ? `<div class="bt-waitlock"><div class="bt-spinner small"></div>Waiting for ${esc(them.name)}…</div>` : `<button class="cta wide" data-act="ack">${replay ? "Continue" : log.round >= g.rounds_total ? "See final result" : "Next round"}</button>`}
-      <span class="bt-oppready" id="oppReady" ${them.acked ? "" : "hidden"}>${esc(them.name)} is ready for the next round</span>
-      <button class="textbtn" id="skipAnim">Skip animation</button>
-    </div>
-  </div>`;
-}
+// ---------- the reveal ----------
 
 let animToken = 0;
-async function runResults() {
-  const box = $(".bt-results");
-  if (!box) return;
-  const round = +box.dataset.round!;
+async function runReveal() {
+  const ar = $(".ar[data-mode='reveal']");
+  if (!ar) return;
+  const g = G!;
+  const round = +ar.dataset.round!;
+  const log = g.rounds.find((r) => r.round === round);
+  if (!log) return;
   const token = ++animToken;
-  const fast = skipAnim || box.dataset.played === "1" || lastAnimated >= round;
-  $("#skipAnim")?.addEventListener("click", () => { skipAnim = true; finishAnim(box); });
-  if (fast) return finishAnim(box);
+  const alive = () => token === animToken && document.body.contains(ar);
+  $("#skipAnim")?.addEventListener("click", () => { skipAnim = true; finishReveal(ar, log); });
+  if (skipAnim || lastAnimated >= round) return finishReveal(ar, log);
   lastAnimated = round;
-  box.classList.add("anim");
-  // Phase by phase: totals count up, robots' phase numbers light up.
+  const side = g.me!.side, op = 1 - side;
+  const r = log.result;
+  const phase = $("#phase")!;
+  const banner = async (text: string, ms = 650) => {
+    phase.textContent = text;
+    phase.classList.remove("show");
+    void phase.offsetWidth;
+    phase.classList.add("show");
+    await wait(ms);
+  };
+  ar.classList.add("revealing");
+  // 1. Flip: lane by lane, the opponent's robot turns over, then both sides' parts.
+  await banner("REVEAL", 500);
   for (let k = 0; k < 3; k++) {
-    if (token !== animToken) return;
-    box.querySelectorAll<HTMLElement>(`.bt-board-row[data-phase="${k}"] b`).forEach((b) => countUp(b, +b.dataset.to!));
-    box.querySelectorAll<HTMLElement>(`.bt-ft-stats .ph${k}`).forEach((s) => s.classList.add("lit"));
-    box.querySelector(`.bt-board-row[data-phase="${k}"]`)?.classList.add("lit");
-    await wait(900);
+    if (!alive()) return;
+    ar.querySelectorAll<HTMLElement>(`.ar-lane[data-lane="${k + 1}"] .ar-bot.hidden`).forEach((b) => b.classList.remove("hidden"));
+    ar.querySelectorAll<HTMLElement>(`.ar-lane[data-lane="${k + 1}"] .ar-part`).forEach((p) => p.classList.add("flip"));
+    sfx.flip();
+    await wait(380);
   }
-  box.querySelector(".bt-board-row.tot")?.classList.add("lit");
-  await wait(500);
-  for (const roll of box.querySelectorAll<HTMLElement>(".bt-roll")) {
-    if (token !== animToken) return;
-    roll.classList.add("rolling");
-    await wait(320);
-    roll.classList.remove("rolling");
-    roll.classList.add("done");
+  // 2. Lore.
+  const lores = ar.querySelectorAll<HTMLElement>("[data-flip]");
+  if (lores.length) {
+    await banner("LORE", 400);
+    for (const l of lores) { if (!alive()) return; l.classList.add("flip"); sfx.flip(); await wait(450); }
   }
-  box.querySelector(".bt-verdict")?.classList.add("lit");
-  box.classList.add("finished");
-  document.querySelectorAll<HTMLElement>("[data-rp-to]").forEach((b) => countUp(b, +b.dataset.rpTo!));
+  // 3. Auto, Tele, End: each robot's points pop and pour into the tug-of-war bar.
+  const totals = [0, 0];
+  const tug = (mine: number, theirs: number) => {
+    const sum = Math.max(1, mine + theirs);
+    ar.style.setProperty("--tug", `${(mine / sum) * 100}%`);
+  };
+  tug(1, 1);
+  const PH = ["AUTO", "TELE", "END"];
+  for (let k = 0; k < 3; k++) {
+    if (!alive()) return;
+    await banner(PH[k], 450);
+    for (let lane = 0; lane < 3; lane++) {
+      for (const s of [op, side]) {
+        const inst = log.stations[s][lane];
+        const sc = r.robots.find((x) => x.inst === inst)!;
+        const bot = ar.querySelector<HTMLElement>(`.ar-bot[data-bot="${inst}"]`);
+        const num = bot?.querySelector<HTMLElement>(`[data-ph="${k}"]`);
+        if (num) {
+          num.textContent = String(sc.points[k]);
+          num.parentElement!.classList.add("lit");
+          if (sc.points[k] !== sc.base[k]) num.parentElement!.classList.add(sc.points[k] > sc.base[k] ? "up" : "down");
+        }
+        if (bot) floatText(bot, `+${sc.points[k]}`, s === side ? "me" : "op");
+        if (sc.points[k] >= sc.base[k] * 1.5 && sc.points[k] - sc.base[k] >= 10) { ar.classList.add("shake"); sfx.boom(); setTimeout(() => ar.classList.remove("shake"), 400); } else sfx.tick(lane + k);
+        totals[s === side ? 0 : 1] += sc.points[k];
+        tug(totals[0], totals[1]);
+        const ls = ar.querySelector<HTMLElement>(`[data-lane-score="${lane}"]`);
+        if (ls) ls.innerHTML = `<i class="op">${laneSum(log, op, lane, k)}</i><i class="me">${laneSum(log, side, lane, k)}</i>`;
+        await wait(170);
+      }
+    }
+    await wait(250);
+  }
+  // 4. The round.
+  if (!alive()) return;
+  const won = r.winner === null ? "tie" : r.winner === side ? "win" : "loss";
+  const v = $("#verdict")!;
+  v.hidden = false;
+  v.className = `ar-verdict ${won} show`;
+  v.innerHTML = `<b>${won === "win" ? "Round won" : won === "loss" ? "Round lost" : "Tied round"}</b><span>${r.totals[side]} – ${r.totals[op]} · +${r.match_rp[side]} RP</span>`;
+  (won === "win" ? sfx.win : won === "loss" ? sfx.lose : () => sfx.tick(4))();
+  bumpRp(ar, r.match_rp[side], r.match_rp[op]);
+  await wait(1100);
+  // 5. One RP die per robot, at its station's chance.
+  await banner("RP ROLLS", 450);
+  for (const s of [side, op]) {
+    for (const inst of log.stations[s]) {
+      if (!alive()) return;
+      const die = ar.querySelector<HTMLElement>(`.ar-bot[data-bot="${inst}"] .ar-die`);
+      if (!die) continue;
+      die.classList.add("rolling");
+      for (let i = 0; i < 6; i++) { die.textContent = String(Math.floor(Math.random() * 100)); sfx.dice(); await wait(55); }
+      die.classList.remove("rolling");
+      const hit = die.dataset.hit === "true";
+      die.textContent = hit ? "+1" : die.dataset.die!;
+      die.classList.add(hit ? "hit" : "miss");
+      (hit ? sfx.hit : sfx.miss)();
+      if (hit) floatText(die.parentElement!, "+1 RP", s === side ? "me" : "op");
+      await wait(260);
+    }
+  }
+  bumpRp(ar, r.bonus_rp[side], r.bonus_rp[op]);
+  v.querySelector("span")!.textContent = `${r.totals[side]} – ${r.totals[op]} · +${r.match_rp[side] + r.bonus_rp[side]} RP for you, +${r.match_rp[op] + r.bonus_rp[op]} for them`;
+  finishReveal(ar, log);
 }
-function finishAnim(box: HTMLElement) {
+
+function laneSum(log: RoundLog, s: number, lane: number, upto: number) {
+  const sc = log.result.robots.find((x) => x.inst === log.stations[s][lane])!;
+  return sc.points.slice(0, upto + 1).reduce((a, b) => a + b, 0);
+}
+
+function bumpRp(ar: HTMLElement, mine: number, theirs: number) {
+  const a = ar.querySelector<HTMLElement>(".ar-rp.me b"), b = ar.querySelector<HTMLElement>(".ar-rp.op b");
+  if (!a || !b) return;
+  if (mine) { countUp(a, +a.textContent! + mine); a.parentElement!.classList.add("bump"); }
+  if (theirs) { countUp(b, +b.textContent! + theirs); b.parentElement!.classList.add("bump"); }
+}
+
+function floatText(host: HTMLElement, text: string, who: "me" | "op") {
+  const f = document.createElement("span");
+  f.className = `ar-float ${who}`;
+  f.textContent = text;
+  host.appendChild(f);
+  setTimeout(() => f.remove(), 900);
+}
+
+function finishReveal(ar: HTMLElement, log: RoundLog) {
   animToken++;
-  box.dataset.played = "1";
-  box.classList.add("anim", "finished");
-  box.querySelectorAll(".bt-board-row, .bt-ft-stats span, .bt-verdict").forEach((e) => e.classList.add("lit"));
-  box.querySelectorAll(".bt-roll").forEach((e) => e.classList.add("done"));
-  box.querySelectorAll<HTMLElement>(".bt-board-row b[data-to]").forEach((b) => (b.textContent = b.dataset.to!));
+  const g = G!;
+  const side = g.me!.side, op = 1 - side;
+  const r = log.result;
+  ar.classList.remove("revealing");
+  ar.classList.add("revealed");
+  ar.querySelectorAll(".ar-bot.hidden").forEach((b) => b.classList.remove("hidden"));
+  ar.querySelectorAll(".ar-part").forEach((p) => p.classList.add("flip"));
+  ar.querySelectorAll("[data-flip]").forEach((l) => l.classList.add("flip"));
+  for (const sc of r.robots) {
+    const bot = ar.querySelector<HTMLElement>(`.ar-bot[data-bot="${sc.inst}"]`);
+    if (!bot) continue;
+    sc.points.forEach((p, k) => {
+      const num = bot.querySelector<HTMLElement>(`[data-ph="${k}"]`);
+      if (!num) return;
+      num.textContent = String(p);
+      num.parentElement!.classList.add("lit");
+      if (p !== sc.base[k]) num.parentElement!.classList.add(p > sc.base[k] ? "up" : "down");
+    });
+    const die = bot.querySelector<HTMLElement>(".ar-die");
+    if (die) { die.textContent = sc.rp_hit ? "+1" : String(sc.rp_roll); die.classList.add(sc.rp_hit ? "hit" : "miss"); }
+  }
+  for (let lane = 0; lane < 3; lane++) {
+    const ls = ar.querySelector<HTMLElement>(`[data-lane-score="${lane}"]`);
+    if (ls) ls.innerHTML = `<i class="op">${laneSum(log, op, lane, 2)}</i><i class="me">${laneSum(log, side, lane, 2)}</i>`;
+  }
+  const sum = Math.max(1, r.totals[side] + r.totals[op]);
+  ar.style.setProperty("--tug", `${(r.totals[side] / sum) * 100}%`);
+  const v = $("#verdict");
+  if (v) {
+    const won = r.winner === null ? "tie" : r.winner === side ? "win" : "loss";
+    v.hidden = false;
+    v.className = `ar-verdict ${won} show`;
+    v.innerHTML = `<b>${won === "win" ? "Round won" : won === "loss" ? "Round lost" : "Tied round"}</b><span>${r.totals[side]} – ${r.totals[op]} · +${r.match_rp[side] + r.bonus_rp[side]} RP for you, +${r.match_rp[op] + r.bonus_rp[op]} for them</span>`;
+  }
   document.querySelectorAll<HTMLElement>("[data-rp-to]").forEach((b) => (b.textContent = b.dataset.rpTo!));
+  $("#phase")?.classList.remove("show");
 }
 
 function countUp(el: HTMLElement, to: number) {
+  const from = +(el.textContent || 0);
   const start = performance.now();
   const step = (t: number) => {
-    const k = Math.min(1, (t - start) / 700);
-    el.textContent = String(Math.round(to * (1 - Math.pow(1 - k, 3))));
+    const k = Math.min(1, (t - start) / 600);
+    el.textContent = String(Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3))));
     if (k < 1) requestAnimationFrame(step);
   };
   requestAnimationFrame(step);

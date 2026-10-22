@@ -48,6 +48,7 @@ pub fn routes() -> Router<Shared> {
         .route("/battler/games/{id}", get(view_game))
         .route("/battler/games/{id}/join", post(join_game))
         .route("/battler/games/{id}/act", post(act))
+        .route("/battler/games/{id}/emote", post(emote))
         .route("/battler/history", get(history))
         .route("/battler/admin/effects", get(admin_effects))
         .route("/battler/admin/effects/{team}", put(admin_save_effect))
@@ -469,7 +470,7 @@ async fn create_game(State(st): State<Shared>, user: User) -> ApiResult<Json<Val
     let mut tx = Tx::new();
     claim_active(&mut tx, user.id, &id, stale);
     save(db, &mut g, 0, false, tx).await?;
-    Ok(Json(serde_json::to_value(g.view(Some(0))).unwrap()))
+    Ok(Json(view_json(g.view(Some(0)))))
 }
 
 async fn join_game(State(st): State<Shared>, user: User, Path(id): Path<String>) -> ApiResult<Json<Value>> {
@@ -484,15 +485,45 @@ async fn join_game(State(st): State<Shared>, user: User, Path(id): Path<String>)
         let mut tx = Tx::new();
         claim_active(&mut tx, user.id, &id, stale.clone());
         save(db, &mut g, ver, was, tx).await?;
-        Ok::<_, ApiError>(Json(serde_json::to_value(g.view(Some(1))).unwrap()))
+        Ok::<_, ApiError>(Json(view_json(g.view(Some(1)))))
     })
 }
 
 // ---------- playing ----------
 
+fn view_json(mut v: game::GameView<'_>) -> Value {
+    v.now = now_ms();
+    serde_json::to_value(v).expect("views serialize")
+}
+
+#[derive(Deserialize)]
+struct EmoteReq {
+    emote: String,
+}
+
+/// A quick-chat emote. Not part of the game, so it needs no version and never makes the other player's tap stale.
+async fn emote(
+    State(st): State<Shared>,
+    user: User,
+    Path(id): Path<String>,
+    Json(req): Json<EmoteReq>,
+) -> ApiResult<StatusCode> {
+    let db = &st.db;
+    retry!(async {
+        let (mut g, ver) = load(db, &id).await?.ok_or_else(not_found)?;
+        let side = g.side_of(user.id).ok_or(ApiError::new(StatusCode::FORBIDDEN, "not_your_game"))?;
+        g.emote(side, &req.emote, now_ms()).map_err(refused)?;
+        let was = g.status.over();
+        save(db, &mut g, ver, was, Tx::new()).await?;
+        Ok::<_, ApiError>(StatusCode::NO_CONTENT)
+    })
+}
+
 #[derive(Deserialize)]
 struct ViewQuery {
     rev: Option<u64>,
+    /// The emote count the player has seen: a view is only "the same" when neither changed.
+    e: Option<u64>,
 }
 
 async fn view_game(
@@ -509,13 +540,13 @@ async fn view_game(
         let was = g.status.over();
         if g.tick(now_ms()) {
             save(db, &mut g, ver, was, Tx::new()).await?;
-        } else if q.rev == Some(g.rev) {
+        } else if q.rev == Some(g.rev) && q.e.unwrap_or(0) == g.emote_seq {
             return Ok(Json(json!({ "same": true, "rev": g.rev })));
         }
         if side.is_none() && g.status != Status::Open {
             return Err(ApiError::new(StatusCode::FORBIDDEN, "not_your_game"));
         }
-        Ok::<_, ApiError>(Json(serde_json::to_value(g.view(side)).unwrap()))
+        Ok::<_, ApiError>(Json(view_json(g.view(side))))
     })
 }
 
@@ -603,7 +634,7 @@ async fn act(
         };
         r.map_err(refused)?;
         save(db, &mut g, ver, was, Tx::new()).await?;
-        Ok::<_, ApiError>(Json(serde_json::to_value(g.view(Some(side))).unwrap()))
+        Ok::<_, ApiError>(Json(view_json(g.view(Some(side)))))
     })
 }
 
