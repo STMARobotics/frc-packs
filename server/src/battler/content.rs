@@ -135,8 +135,9 @@ pub fn test_stats(team: i32, epa: Option<f64>) -> Stats {
 impl Content {
     pub fn load(data_dir: &Path) -> anyhow::Result<Content> {
         let rpath = data_dir.join("packs").join(format!("{PACK}.json"));
-        let recipe: Recipe =
-            serde_json::from_str(&std::fs::read_to_string(&rpath).with_context(|| format!("reading {}", rpath.display()))?)?;
+        let recipe: Recipe = serde_json::from_str(
+            &std::fs::read_to_string(&rpath).with_context(|| format!("reading {}", rpath.display()))?,
+        )?;
         let robots: Vec<Robot> = recipe
             .teams
             .into_iter()
@@ -161,9 +162,10 @@ impl Content {
         let by_team = robots.iter().enumerate().map(|(i, r)| (r.team, i)).collect();
 
         let spath = data_dir.join("battler").join(format!("support-{SEASON}.json"));
-        let file: SupportFile =
-            serde_json::from_str(&std::fs::read_to_string(&spath).with_context(|| format!("reading {}", spath.display()))?)
-                .with_context(|| format!("parsing {}", spath.display()))?;
+        let file: SupportFile = serde_json::from_str(
+            &std::fs::read_to_string(&spath).with_context(|| format!("reading {}", spath.display()))?,
+        )
+        .with_context(|| format!("parsing {}", spath.display()))?;
         let mut support = file.cards;
         for c in &mut support {
             let owner = if c.kind == Kind::Part { Owner::Part } else { Owner::Lore };

@@ -143,7 +143,11 @@ async fn catalog(State(st): State<Shared>, _user: User) -> ApiResult<Json<Value>
         .iter()
         .map(|r| {
             let (e, test) = effect_for(&st, &fx, r.team);
-            RobotOut { robot: r, effect_text: if e.is_empty() { String::new() } else { effects::describe(&e, Owner::Robot) }, effect_test: test }
+            RobotOut {
+                robot: r,
+                effect_text: if e.is_empty() { String::new() } else { effects::describe(&e, Owner::Robot) },
+                effect_test: test,
+            }
         })
         .collect();
     Ok(Json(json!({
@@ -210,8 +214,12 @@ fn deck_problems(st: &Shared, owned: &HashSet<i32>, d: &Deck) -> Vec<String> {
     for (id, k) in copies {
         match c.support(id) {
             None => out.push(format!("Unknown card {id}.")),
-            Some(card) if k > game::MAX_COPIES => out.push(format!("At most {} copies of {}.", game::MAX_COPIES, card.name)),
-            Some(card) if k > have.get(id).copied().unwrap_or(0) => out.push(format!("You only own {} {}.", have[id], card.name)),
+            Some(card) if k > game::MAX_COPIES => {
+                out.push(format!("At most {} copies of {}.", game::MAX_COPIES, card.name))
+            }
+            Some(card) if k > have.get(id).copied().unwrap_or(0) => {
+                out.push(format!("You only own {} {}.", have[id], card.name))
+            }
             _ => {}
         }
     }
@@ -243,11 +251,9 @@ async fn home(State(st): State<Shared>, user: User) -> ApiResult<Json<Value>> {
         },
         None => None,
     };
-    ds.sort_by(|a, b| b.updated.cmp(&a.updated));
-    let decks: Vec<Value> = ds
-        .iter()
-        .map(|d| json!({ "deck": d, "problems": deck_problems(&st, &owned, d) }))
-        .collect();
+    ds.sort_by_key(|d| std::cmp::Reverse(d.updated));
+    let decks: Vec<Value> =
+        ds.iter().map(|d| json!({ "deck": d, "problems": deck_problems(&st, &owned, d) })).collect();
     let mut teams: Vec<i32> = owned.into_iter().filter(|t| st.battler.robot(*t).is_some()).collect();
     teams.sort_unstable();
     Ok(Json(json!({
@@ -289,7 +295,14 @@ async fn write_deck(st: &Shared, uid: Uuid, id: String, req: DeckReq) -> ApiResu
     {
         return Err(bad("unknown_card"));
     }
-    let d = Deck { id: id.clone(), name: name.to_string(), captain: req.captain, robots: req.robots, support: req.support, updated: now_ms() };
+    let d = Deck {
+        id: id.clone(),
+        name: name.to_string(),
+        captain: req.captain,
+        robots: req.robots,
+        support: req.support,
+        updated: now_ms(),
+    };
     st.db.put(item(upk(uid), format!("BTDECK#{id}"), &d)).await?;
     let owned = owned_teams(&st.db, uid).await?;
     Ok(Json(json!({ "deck": d, "problems": deck_problems(st, &owned, &d) })))
@@ -302,7 +315,12 @@ async fn create_deck(State(st): State<Shared>, user: User, Json(req): Json<DeckR
     write_deck(&st, user.id, Uuid::new_v4().simple().to_string()[..12].to_string(), req).await
 }
 
-async fn save_deck(State(st): State<Shared>, user: User, Path(id): Path<String>, Json(req): Json<DeckReq>) -> ApiResult<Json<Value>> {
+async fn save_deck(
+    State(st): State<Shared>,
+    user: User,
+    Path(id): Path<String>,
+    Json(req): Json<DeckReq>,
+) -> ApiResult<Json<Value>> {
     if st.db.get(&upk(user.id), &format!("BTDECK#{id}")).await?.is_none() {
         return Err(ApiError::new(StatusCode::NOT_FOUND, "no_deck"));
     }
@@ -477,7 +495,12 @@ struct ViewQuery {
     rev: Option<u64>,
 }
 
-async fn view_game(State(st): State<Shared>, user: User, Path(id): Path<String>, Query(q): Query<ViewQuery>) -> ApiResult<Json<Value>> {
+async fn view_game(
+    State(st): State<Shared>,
+    user: User,
+    Path(id): Path<String>,
+    Query(q): Query<ViewQuery>,
+) -> ApiResult<Json<Value>> {
     let db = &st.db;
     retry!(async {
         let (mut g, ver) = load(db, &id).await?.ok_or_else(not_found)?;
@@ -520,7 +543,11 @@ struct ActReq {
 
 /// Builds the frozen deck for a game from a saved deck, checking ownership again right now (fails closed).
 async fn deck_pick(st: &Shared, uid: Uuid, deck: &str) -> ApiResult<DeckPick> {
-    let d: Deck = st.db.get_as(&upk(uid), &format!("BTDECK#{deck}")).await?.ok_or(ApiError::new(StatusCode::NOT_FOUND, "no_deck"))?;
+    let d: Deck = st
+        .db
+        .get_as(&upk(uid), &format!("BTDECK#{deck}"))
+        .await?
+        .ok_or(ApiError::new(StatusCode::NOT_FOUND, "no_deck"))?;
     let owned = owned_teams(&st.db, uid).await?;
     if !deck_problems(st, &owned, &d).is_empty() {
         return Err(refused("deck_not_ready"));
@@ -538,7 +565,12 @@ async fn deck_pick(st: &Shared, uid: Uuid, deck: &str) -> ApiResult<DeckPick> {
     })
 }
 
-async fn act(State(st): State<Shared>, user: User, Path(id): Path<String>, Json(req): Json<ActReq>) -> ApiResult<Json<Value>> {
+async fn act(
+    State(st): State<Shared>,
+    user: User,
+    Path(id): Path<String>,
+    Json(req): Json<ActReq>,
+) -> ApiResult<Json<Value>> {
     let db = &st.db;
     // Deck picks need reads of their own; do them once, before the retry loop.
     let pick = match &req.action {
@@ -619,7 +651,12 @@ struct SaveFxReq {
     publish: bool,
 }
 
-async fn admin_save_effect(State(st): State<Shared>, admin: Admin, Path(team): Path<i32>, Json(req): Json<SaveFxReq>) -> ApiResult<Json<Value>> {
+async fn admin_save_effect(
+    State(st): State<Shared>,
+    admin: Admin,
+    Path(team): Path<i32>,
+    Json(req): Json<SaveFxReq>,
+) -> ApiResult<Json<Value>> {
     if st.battler.robot(team).is_none() {
         return Err(ApiError::new(StatusCode::NOT_FOUND, "no_robot"));
     }
@@ -642,7 +679,11 @@ async fn admin_save_effect(State(st): State<Shared>, admin: Admin, Path(team): P
         fx.published = req.effects.clone();
         tx.put_if(
             "race",
-            item(&pk, format!("REV#{}", pad(i64::from(fx.rev), 6)), &json!({ "effects": req.effects, "author": name, "at": fx.updated })),
+            item(
+                &pk,
+                format!("REV#{}", pad(i64::from(fx.rev), 6)),
+                &json!({ "effects": req.effects, "author": name, "at": fx.updated }),
+            ),
             Some(Cond::absent()),
         );
     }
@@ -698,16 +739,47 @@ async fn admin_preview(State(st): State<Shared>, _admin: Admin, Json(req): Json<
             .filter_map(|id| st.battler.support(id))
             .filter(|c| c.kind == Kind::Part)
             .enumerate()
-            .map(|(i, c)| engine::FieldPart { inst: 100 + i as u32, name: c.name.clone(), tags: c.tags.clone(), effects: c.effects.clone() })
+            .map(|(i, c)| engine::FieldPart {
+                inst: 100 + i as u32,
+                name: c.name.clone(),
+                tags: c.tags.clone(),
+                effects: c.effects.clone(),
+            })
             .collect(),
     }];
     for (k, st_) in others.iter().enumerate() {
-        field.push(FieldRobot { inst: 2 + k as u32, name: "Ally".into(), side: 0, captain: false, station: *st_, stats: filler, effects: vec![], parts: vec![] });
+        field.push(FieldRobot {
+            inst: 2 + k as u32,
+            name: "Ally".into(),
+            side: 0,
+            captain: false,
+            station: *st_,
+            stats: filler,
+            effects: vec![],
+            parts: vec![],
+        });
     }
     for k in 0..3u8 {
-        field.push(FieldRobot { inst: 4 + u32::from(k), name: "Opponent".into(), side: 1, captain: k == 0, station: k + 1, stats: filler, effects: vec![], parts: vec![] });
+        field.push(FieldRobot {
+            inst: 4 + u32::from(k),
+            name: "Opponent".into(),
+            side: 1,
+            captain: k == 0,
+            station: k + 1,
+            stats: filler,
+            effects: vec![],
+            parts: vec![],
+        });
     }
-    let without = engine::resolve(&{ let mut f = field.clone(); f[0].effects.clear(); f }, &[], req.seed);
+    let without = engine::resolve(
+        &{
+            let mut f = field.clone();
+            f[0].effects.clear();
+            f
+        },
+        &[],
+        req.seed,
+    );
     let with = engine::resolve(&field, &[], req.seed);
     Ok(Json(json!({
         "valid": check.is_ok(),

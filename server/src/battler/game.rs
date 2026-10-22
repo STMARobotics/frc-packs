@@ -479,7 +479,12 @@ impl Game {
                     .iter()
                     .filter(|(_, rb)| *rb == inst)
                     .filter_map(|(p, _)| self.card(*p))
-                    .map(|c| FieldPart { inst: c.inst, name: c.name.clone(), tags: c.tags.clone(), effects: c.effects.clone() })
+                    .map(|c| FieldPart {
+                        inst: c.inst,
+                        name: c.name.clone(),
+                        tags: c.tags.clone(),
+                        effects: c.effects.clone(),
+                    })
                     .collect();
                 field.push(FieldRobot {
                     inst,
@@ -571,7 +576,8 @@ impl Game {
             std::cmp::Ordering::Equal => None,
         });
         let before = [self.seat(0).elo, self.seat(1).elo];
-        self.outcome = Some(Outcome { winner, reason: reason.into(), rp, points, elo_before: before, elo_after: before });
+        self.outcome =
+            Some(Outcome { winner, reason: reason.into(), rp, points, elo_before: before, elo_after: before });
         self.status = Status::Final;
         self.deadline = 0;
         self.bump();
@@ -693,8 +699,7 @@ impl Game {
         let seats = self
             .seats
             .iter()
-            .enumerate()
-            .map(|(_, s)| {
+            .map(|s| {
                 s.as_ref().map(|s| SeatView {
                     name: s.name.clone(),
                     elo: s.elo,
@@ -783,11 +788,12 @@ mod tests {
     fn part(i: usize) -> Support {
         Support {
             id: format!("P-{i}"),
-            kind: if i % 5 == 0 { Kind::Lore } else { Kind::Part },
+            kind: if i.is_multiple_of(5) { Kind::Lore } else { Kind::Part },
             name: format!("Card {i}"),
             season: 2026,
-            tags: if i % 5 == 0 { vec![] } else { vec!["MECHANICAL".into()] },
-            effects: serde_json::from_str(r#"[{"op":"ADD_PHASE_FLAT","phase":"TELE","value":5,"scope":"ALLIES"}]"#).unwrap(),
+            tags: if i.is_multiple_of(5) { vec![] } else { vec!["MECHANICAL".into()] },
+            effects: serde_json::from_str(r#"[{"op":"ADD_PHASE_FLAT","phase":"TELE","value":5,"scope":"ALLIES"}]"#)
+                .unwrap(),
             text: String::new(),
             flavor: String::new(),
             draft: true,

@@ -158,9 +158,15 @@ pub fn resolve(robots: &[FieldRobot], lores: &[FieldLore], seed: u64) -> RoundRe
     order.sort_by_key(|&i| robots[i].inst);
     let mut sources: Vec<Source> = Vec::new();
     for &i in &order {
-        sources.push(Source { name: &robots[i].name, robot: Some(i), side: robots[i].side, effects: &robots[i].effects });
+        sources.push(Source {
+            name: &robots[i].name,
+            robot: Some(i),
+            side: robots[i].side,
+            effects: &robots[i].effects,
+        });
     }
-    let mut parts: Vec<(usize, &FieldPart)> = order.iter().flat_map(|&i| robots[i].parts.iter().map(move |p| (i, p))).collect();
+    let mut parts: Vec<(usize, &FieldPart)> =
+        order.iter().flat_map(|&i| robots[i].parts.iter().map(move |p| (i, p))).collect();
     parts.sort_by_key(|(_, p)| p.inst);
     for (i, p) in &parts {
         sources.push(Source { name: &p.name, robot: Some(*i), side: robots[*i].side, effects: &p.effects });
@@ -191,7 +197,12 @@ pub fn resolve(robots: &[FieldRobot], lores: &[FieldLore], seed: u64) -> RoundRe
                     events.push(Event {
                         source: src.name.to_string(),
                         target: target.inst,
-                        text: format!("{}% chance on {}: rolled {roll}, {}", chance, target.name, if hit { "hit" } else { "missed" }),
+                        text: format!(
+                            "{}% chance on {}: rolled {roll}, {}",
+                            chance,
+                            target.name,
+                            if hit { "hit" } else { "missed" }
+                        ),
                     });
                     if !hit {
                         continue;
@@ -253,7 +264,16 @@ pub fn resolve(robots: &[FieldRobot], lores: &[FieldLore], seed: u64) -> RoundRe
             points[k] = half_up(v, 10_000).max(0);
             phase_totals[r.side][k] += points[k];
         }
-        scores.push(RobotScore { inst: r.inst, side: r.side, station: r.station, base, points, rp_chance: 0, rp_roll: 0, rp_hit: false });
+        scores.push(RobotScore {
+            inst: r.inst,
+            side: r.side,
+            station: r.station,
+            base,
+            points,
+            rp_chance: 0,
+            rp_roll: 0,
+            rp_hit: false,
+        });
     }
     let totals: [i32; 2] = [phase_totals[0].iter().sum(), phase_totals[1].iter().sum()];
     let winner = match totals[0].cmp(&totals[1]) {
@@ -309,7 +329,16 @@ mod tests {
     use super::*;
 
     fn robot(inst: u32, side: usize, station: u8, stats: Stats) -> FieldRobot {
-        FieldRobot { inst, name: format!("R{inst}"), side, captain: inst % 3 == 0, station, stats, effects: vec![], parts: vec![] }
+        FieldRobot {
+            inst,
+            name: format!("R{inst}"),
+            side,
+            captain: inst.is_multiple_of(3),
+            station,
+            stats,
+            effects: vec![],
+            parts: vec![],
+        }
     }
 
     fn st(auto: i32, tele: i32, end: i32, rp: [i32; 3]) -> Stats {
@@ -353,7 +382,8 @@ mod tests {
 
     #[test]
     fn tie_gives_one_rp_each() {
-        let f: Vec<FieldRobot> = (0..6).map(|i| robot(i, (i / 3) as usize, (i % 3 + 1) as u8, st(10, 10, 10, [0, 0, 0]))).collect();
+        let f: Vec<FieldRobot> =
+            (0..6).map(|i| robot(i, (i / 3) as usize, (i % 3 + 1) as u8, st(10, 10, 10, [0, 0, 0]))).collect();
         let r = resolve(&f, &[], 3);
         assert_eq!(r.winner, None);
         assert_eq!(r.match_rp, [1, 1]);
@@ -414,9 +444,12 @@ mod tests {
     fn conditions_and_scopes() {
         let mut f = field();
         // Captain (inst 0) gives its alliance +10 Auto, only while it's the captain.
-        f[0].effects = fx(r#"[{"op":"ADD_PHASE_FLAT","phase":"AUTO","value":10,"scope":"ALLIES","when":[{"if":"CAPTAIN","of":"SOURCE"}]}]"#);
+        f[0].effects = fx(
+            r#"[{"op":"ADD_PHASE_FLAT","phase":"AUTO","value":10,"scope":"ALLIES","when":[{"if":"CAPTAIN","of":"SOURCE"}]}]"#,
+        );
         // A robot with +5 RP2 only in station 2.
-        f[4].effects = fx(r#"[{"op":"ADD_RP_PP","rp":"RP2","value":-100,"scope":"SELF","when":[{"if":"STATION","station":2}]}]"#);
+        f[4].effects =
+            fx(r#"[{"op":"ADD_RP_PP","rp":"RP2","value":-100,"scope":"SELF","when":[{"if":"STATION","station":2}]}]"#);
         let r = resolve(&f, &[], 9);
         assert_eq!(r.robots[0].points[0], 40);
         assert_eq!(r.robots[1].points[0], 20);

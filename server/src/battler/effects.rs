@@ -185,7 +185,9 @@ pub fn validate(effects: &[Effect], owner: Owner) -> Result<(), String> {
             if owner == Owner::Lore
                 && matches!(
                     c,
-                    Cond::HasPartTag { of: Of::Source, .. } | Cond::Station { of: Of::Source, .. } | Cond::Captain { of: Of::Source, .. }
+                    Cond::HasPartTag { of: Of::Source, .. }
+                        | Cond::Station { of: Of::Source, .. }
+                        | Cond::Captain { of: Of::Source, .. }
                 )
             {
                 return Err("lore has no source robot".into());
@@ -332,11 +334,15 @@ mod tests {
         assert_eq!(describe(&e, Owner::Robot), "This robot gets +8 Tele for each MECHANICAL part attached.");
         let e = fx(r#"[{"op":"ADD_RP_PP","rp":"RP2","value":5,"scope":"SELF","when":[{"if":"STATION","station":2}]}]"#);
         assert_eq!(describe(&e, Owner::Robot), "This robot gets +5 RP2 chance if it's in Station 2.");
-        let e = fx(r#"[{"op":"ADD_PHASE_FLAT","phase":"AUTO","value":10,"scope":"SELF","when":[{"if":"HAS_PART_TAG","tag":"VISION"}]}]"#);
+        let e = fx(
+            r#"[{"op":"ADD_PHASE_FLAT","phase":"AUTO","value":10,"scope":"SELF","when":[{"if":"HAS_PART_TAG","tag":"VISION"}]}]"#,
+        );
         assert_eq!(describe(&e, Owner::Robot), "This robot gets +10 Auto if it has a VISION part.");
         let e = fx(r#"[{"op":"ADD_PHASE_MULTIPLIER","phase":"TELE","percent":200,"scope":"FIELD","chance":50}]"#);
         assert_eq!(describe(&e, Owner::Lore), "Every robot on the field: 50% chance to double Tele.");
-        let e = fx(r#"[{"op":"ADD_PHASE_FLAT","phase":"AUTO","value":10,"scope":"ALLIES","when":[{"if":"CAPTAIN","of":"SOURCE"}]}]"#);
+        let e = fx(
+            r#"[{"op":"ADD_PHASE_FLAT","phase":"AUTO","value":10,"scope":"ALLIES","when":[{"if":"CAPTAIN","of":"SOURCE"}]}]"#,
+        );
         assert_eq!(describe(&e, Owner::Robot), "Robots on this alliance get +10 Auto if this robot is the Captain.");
     }
 
