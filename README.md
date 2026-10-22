@@ -21,6 +21,7 @@ server/ (Rust: Axum)  ──►  DynamoDB (one table, see docs/dynamodb.md)
 - **The server owns everything that matters.** It rolls packs, mints serial numbers (No. 1, No. 2, ... per card), runs the free-pack timer and the Mythic meter, and stores every card. The browser can't change any of it.
 - **Accounts by invite.** New players join with an invite code, then sign in with a username and password on any device. Passwords are stored as argon2 hashes and sessions as hashes of a cookie token; repeated wrong guesses get blocked for 15 minutes. One admin account makes invite codes and manages accounts at `/admin`.
 - **Scrap and craft.** Extra copies of a card can be scrapped for parts in the binder (the first copy is always kept): 5 for a Common up to 600 for a Mythic. Parts buy a boosted pack (250 by default, set in the admin panel) with better odds, Legendary or better in about half of them and Mythic 4x as likely. A recipe can set its own boosted odds under `odds.boosted`.
+- **The Battler.** A 1v1, five-round card game played with the robots you own, at `/battle.html`. See [docs/battler.md](docs/battler.md).
 - **Controller support.** Any standard gamepad plays the whole thing: A takes, opens and flips, B goes back, X turns the pack over, Y reveals the rest, the d-pad moves (and spins the wheel), the sticks tilt what you're holding, LB/RB switch tabs and Start claims free packs.
 
 ## Run it locally

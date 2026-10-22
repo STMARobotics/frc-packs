@@ -154,6 +154,7 @@ function robotTile(r: RobotCard, attrs = "", extra = "", cls = "") {
     <div class="bt-tile-m">
       <div class="bt-tile-name"><b>${r.team}</b> ${esc(r.name)}</div>
       <div class="bt-tile-stats"><span>A <b>${s.auto}</b></span><span>T <b>${s.tele}</b></span><span>E <b>${s.end}</b></span><span class="bt-dim">RP ${s.rp.join("/")}</span></div>
+      ${r.effect_text ? `<div class="bt-tile-fx">${esc(r.effect_text)}</div>` : ""}
       ${extra}
     </div>
   </div>`;
@@ -999,7 +1000,7 @@ function allTags() {
 function editEffect(r: Robot, f: FxRow | undefined, onSaved: (f: FxRow) => void) {
   let fx: Effect[] = JSON.parse(JSON.stringify(f?.draft?.length ? f.draft : f?.published ?? []));
   if (!fx.length) fx = [{ op: "ADD_PHASE_FLAT", phase: "TELE", value: 5, scope: "SELF" }];
-  let station = 1, captain = false;
+  let station = 1, captain = false, previewPart = "";
   const opt = (list: [string, string][] | string[], v: string | undefined) => list.map((o) => { const [val, label] = Array.isArray(o) ? o : [o, o]; return `<option value="${val}" ${val === (v ?? "") ? "selected" : ""}>${label}</option>`; }).join("");
   const row = (e: Effect, i: number) => {
     const c = e.when?.[0];
@@ -1028,11 +1029,11 @@ function editEffect(r: Robot, f: FxRow | undefined, onSaved: (f: FxRow) => void)
   const preview = async () => {
     const my = ++pv;
     try {
-      const out = await call<{ valid: boolean; error: string | null; text: string; with: { totals: [number, number]; robots: RobotScore[] }; without: { totals: [number, number]; robots: RobotScore[] } }>("POST", "/api/battler/admin/preview", { team: r.team, effects: fx, station, captain, seed: 7 });
+      const out = await call<{ valid: boolean; error: string | null; text: string; with: { totals: [number, number]; robots: RobotScore[] }; without: { totals: [number, number]; robots: RobotScore[] } }>("POST", "/api/battler/admin/preview", { team: r.team, effects: fx, station, captain, seed: 7, parts: previewPart ? [previewPart, previewPart] : [] });
       if (my !== pv) return;
       const w = out.with.robots.find((x) => x.inst === 1)!, wo = out.without.robots.find((x) => x.inst === 1)!;
       $("#fxText")!.innerHTML = out.valid ? `<b>${esc(out.text)}</b>` : `<span class="warn">${esc(out.error)}</span>`;
-      $("#fxSim")!.innerHTML = out.valid ? `Sample round (station ${station}${captain ? ", captain" : ""}, vs average robots): this robot scores <b>${w.points.join(" / ")}</b> (without the effect ${wo.points.join(" / ")}); RP chance ${w.rp_chance}% (was ${wo.rp_chance}%). Alliance ${out.with.totals[0]} vs ${out.with.totals[1]} (was ${out.without.totals[0]}).` : "";
+      $("#fxSim")!.innerHTML = out.valid ? `Sample round (station ${station}${captain ? ", captain" : ""}${previewPart ? `, two ${esc(SUPPORT.get(previewPart)?.name)} attached` : ""}, vs average robots): this robot scores <b>${w.points.join(" / ")}</b> (without the effect ${wo.points.join(" / ")}); RP chance ${w.rp_chance}% (was ${wo.rp_chance}%). Alliance ${out.with.totals[0]} vs ${out.with.totals[1]} (was ${out.without.totals[0]}).` : "";
       ($("#fxPublish") as HTMLButtonElement).disabled = !out.valid;
     } catch (e) { $("#fxText")!.textContent = explain(e); }
   };
@@ -1076,7 +1077,8 @@ function editEffect(r: Robot, f: FxRow | undefined, onSaved: (f: FxRow) => void)
       <div class="bt-fxnow">${f?.published.length ? `Published (r${f.rev}): ${esc(f.published_text)}` : "Nothing published yet."}</div>
       <div id="fxRows"></div>
       <div class="bt-fxprev"><small>RULES TEXT (generated)</small><div id="fxText"></div><div id="fxSim" class="bt-dim"></div>
-        <div class="bt-fxsimopts"><label>Preview in station <select id="fxSt"><option>1</option><option>2</option><option>3</option></select></label><label><input type="checkbox" id="fxCap"> as captain</label></div></div>
+        <div class="bt-fxsimopts"><label>Preview in station <select id="fxSt"><option>1</option><option>2</option><option>3</option></select></label><label><input type="checkbox" id="fxCap"> as captain</label>
+          <label>with parts <select id="fxPart"><option value="">none</option>${CAT.support.filter((c) => c.kind === "PART").map((c) => `<option value="${c.id}">${esc(c.name)} (${c.tags.join(" ")})</option>`).join("")}</select></label></div></div>
       <div class="cta-row"><button class="cta small ghost" id="fxDraft">Save draft</button><button class="cta small" id="fxPublish">Publish</button></div>
     </div>`, (t) => {
     if (t.closest("[data-add]")) { fx.push({ op: "ADD_PHASE_FLAT", phase: "AUTO", value: 5, scope: "SELF" }); return draw(); }
@@ -1088,6 +1090,7 @@ function editEffect(r: Robot, f: FxRow | undefined, onSaved: (f: FxRow) => void)
   $("#fxRows")!.addEventListener("change", (e) => read(e.target as HTMLElement));
   $("#fxSt")!.addEventListener("change", (e) => { station = +(e.target as HTMLSelectElement).value; preview(); });
   $("#fxCap")!.addEventListener("change", (e) => { captain = (e.target as HTMLInputElement).checked; preview(); });
+  $("#fxPart")!.addEventListener("change", (e) => { previewPart = (e.target as HTMLSelectElement).value; preview(); });
   draw();
 }
 
