@@ -310,6 +310,8 @@
   .bt-menu { grid-template-columns: 1fr 1fr; }
   .bt-field { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .bt-side.me .bt-ft-top { flex-wrap: wrap; }
+  .bt-side.me .bt-stations { width: 100%; }
+  .bt-side.me .bt-stations button { flex: 1; }
   .bt-handrow { grid-auto-columns: 180px; }
 }
 @media (prefers-reduced-motion: reduce) {

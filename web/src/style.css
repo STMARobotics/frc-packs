@@ -885,7 +885,7 @@ body.takeover .rays, body.mythic-aura .rays { animation-play-state: running; }
 
 /* ===== Redesign: bottom tab bar, less text, cleaner cards, social, picker-first trading ===== */
 .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: flex; justify-content: center; background: rgba(6,22,29,.94); border-top: 1px solid var(--line); backdrop-filter: blur(10px); padding: 6px max(8px, env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-right)); }
-.tabbar button { position: relative; flex: 1; max-width: 120px; background: none; border: 0; color: var(--ink-dim); display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 5px 0; font: 700 10px/1 var(--body); letter-spacing: .08em; text-transform: uppercase; cursor: pointer; }
+.tabbar button, .tabbar .tablink { position: relative; flex: 1; text-decoration: none; max-width: 120px; background: none; border: 0; color: var(--ink-dim); display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 5px 0; font: 700 10px/1 var(--body); letter-spacing: .08em; text-transform: uppercase; cursor: pointer; }
 .tabbar svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .tabbar button[aria-selected="true"] { color: var(--tide); }
 .tabbar .tabdot { position: absolute; top: 0; left: calc(50% + 6px); margin: 0; }
