@@ -231,6 +231,15 @@ async function route() {
   }
 }
 
+// Cards in the hand are role="button" divs: Enter or Space taps them, like a button.
+main.addEventListener("keydown", (e) => {
+  const t = e.target as HTMLElement;
+  if ((e.key === "Enter" || e.key === " ") && t.getAttribute("role") === "button" && t.tagName !== "BUTTON") {
+    e.preventDefault();
+    t.click();
+  }
+});
+
 main.addEventListener("click", (e) => {
   const t = (e.target as HTMLElement).closest<HTMLElement>("[data-go]");
   if (t) { e.preventDefault(); go(t.dataset.go!); }
@@ -365,6 +374,7 @@ async function renderDeckEditor(id: string) {
       <h3 class="bt-h3">Support <small>${d.support.length}/${CAT.rules.support_cards}, any mix of Part and Lore, up to ${CAT.rules.max_copies} copies each</small></h3>
       <div class="bt-suplist">${[...counts.entries()].map(([sid, k]) => { const c = SUPPORT.get(sid)!; return `<div class="bt-supline k-${c.kind.toLowerCase()}"><span class="bt-supline-k">${c.kind === "PART" ? "P" : "L"}</span><span class="bt-supline-n"><b>${esc(c.name)}</b><small>${esc(c.text)}</small></span><span class="bt-stepper"><button data-sup-minus="${sid}" aria-label="One fewer">−</button><b>${k}</b><button data-sup-plus="${sid}" aria-label="One more" ${k >= CAT.rules.max_copies || d.support.length >= CAT.rules.support_cards ? "disabled" : ""}>+</button></span></div>`; }).join("")}</div>
       ${d.support.length < CAT.rules.support_cards ? '<button class="bt-addslot" data-pick="support">+ Add Part and Lore cards</button>' : ""}
+      ${problems.length ? '<button class="bt-addslot" id="deckFill">Fill the rest automatically</button>' : ""}
       <div class="bt-savebar">
         <button class="cta small ghost" id="deckDelete">Delete</button>
         <button class="cta small" id="deckSave">${dirty ? "Save" : "Saved"}</button>
@@ -389,6 +399,26 @@ async function renderDeckEditor(id: string) {
     $<HTMLInputElement>("#deckName")!.onchange = (e) => { d.name = (e.target as HTMLInputElement).value; dirty = true; save(true); };
     $("#deckBack")!.onclick = async () => { if (dirty) await save(true); go("#decks"); };
     $("#deckSave")!.onclick = () => save();
+    const fill = $("#deckFill");
+    if (fill) fill.onclick = () => {
+      // Strongest owned robots for the empty slots (best total as captain), then a mix of the starter Parts and Lore.
+      const best = CAT.robots.filter((r) => owned.has(r.team)).sort((a, b) => total(b.stats) - total(a.stats)).map((r) => r.team);
+      d.robots = d.robots.filter((t) => owned.has(t) && t !== d.captain);
+      if (!d.captain || !owned.has(d.captain)) d.captain = best.find((t) => !d.robots.includes(t)) ?? null;
+      for (const t of best) if (d.robots.length < CAT.rules.deck_robots && t !== d.captain && !d.robots.includes(t)) d.robots.push(t);
+      const parts = CAT.support.filter((c) => c.kind === "PART").map((c) => c.id), lore = CAT.support.filter((c) => c.kind === "LORE").map((c) => c.id);
+      const count = (id: string) => d.support.filter((x) => x === id).length;
+      const add = (ids: string[], until: () => boolean) => {
+        for (let round = 0; round < CAT.rules.max_copies; round++)
+          for (const id of ids) if (!until() && count(id) < Math.min(CAT.rules.max_copies, HOME.support_owned[id] ?? 0) && count(id) === round) d.support.push(id);
+      };
+      // About a quarter Lore (one to play most rounds), the rest Parts, as many different cards as fit.
+      const loreNow = () => d.support.filter((x) => SUPPORT.get(x)?.kind === "LORE").length;
+      add(lore, () => loreNow() >= 4 || d.support.length >= CAT.rules.support_cards);
+      add(parts, () => d.support.length >= CAT.rules.support_cards);
+      dirty = true;
+      save();
+    };
     $("#deckDelete")!.onclick = async () => {
       if (!confirm(`Delete "${d.name}"?`)) return;
       await call("DELETE", `/api/battler/decks/${d.id}`).catch(() => {});
