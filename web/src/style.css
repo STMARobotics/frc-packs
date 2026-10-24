@@ -1434,3 +1434,15 @@ body.has-notice .app > .top { top: calc(36px + env(safe-area-inset-top)); }
 .inner.b2 .avatar.none { display: grid; place-items: center; font: 400 calc(var(--cw) * .034) / 1 var(--display); color: var(--acc2); }
 .inner.bt .effect p.tbd { color: rgba(255,255,255,.55); font-style: italic; font-weight: 500; }
 .inner.bt b.na { opacity: .4; }
+
+/* The card sits in the middle of the space between the top buttons and the bottom row (it used to ride high), and the
+   bottom row stays put. */
+.modal.card-view .modal-in { justify-content: flex-start; }
+.modal.card-view .modal-in > .slot { margin-top: auto; }
+.modal.card-view .cv-bottom { margin-top: auto; }
+
+/* Fewer things moving at once while you look at a card, tear a pack or trade: the big drifting background and the small
+   pulsing dots stop, which leaves the phone's graphics free for the card and takes away the flicker. */
+body.modal-open .bg i, body.cutting .bg i, body.focus .bg i, body.tr-sheet .bg i, body.settings-open .bg i { animation-play-state: paused; }
+body.modal-open .claim, body.modal-open .claim::after, body.modal-open .tabdot, body.modal-open .rdot,
+body.cutting .claim, body.cutting .claim::after, body.cutting .tabdot, body.cutting .rdot { animation: none !important; }

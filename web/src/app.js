@@ -824,8 +824,18 @@ export function start(RECIPE) {
         testHand = null;
       } else openReq = api.open(PACK_ID, S.openKind, S.openMythic);
       openReq.catch(function () {});
+      // The answer usually arrives while the swipe is still finishing: build the five cards then, off screen, so the
+      // end of the tear only has to show them.
+      openReq.then(prebuild, function () {});
     }
     return openReq;
+  }
+  /* The cards of the pack being opened, built before the tear finishes. */
+  var PRE = null;
+  function prebuild(res) {
+    PRE = null;
+    var o = res && res.opening; if (!o || o.test) return;
+    try { var p = pendingFrom(o); if (p) PRE = { id: p.id, p: p, els: makeStackEls(p.cards, 0) }; } catch (e) { PRE = null; }
   }
   function cut() {
     if (state !== "inspect") return; state = "cutting";
@@ -835,7 +845,7 @@ export function start(RECIPE) {
       o.sets.forEach(function (d) { S.sets[d] = 1; });
       var was = S.streak || { days: 0, today: false };
       if (res.state) applyState(res.state); save();
-      S.pending = pendingFrom(o);
+      S.pending = PRE && PRE.id === o.id ? PRE.p : pendingFrom(o);
       if (res.streakReward) setTimeout(function () { sfx.promote(); say(S.streak.days + "-day streak! A boosted pack is yours", 4000); }, 2600);
       else if (!was.today && S.streak && S.streak.today && S.streak.days > 1) setTimeout(function () { say(S.streak.days + "-day streak! Keep it going tomorrow", 3000); }, 2600);
       if (!S.pending) return lostPack(); // a card this page doesn't know (an older tab after an update)
@@ -886,17 +896,25 @@ export function start(RECIPE) {
     if (from) hidePending();
     buildStack(from || 0, r);
   }
-  /* fromPack = the torn pack's rect: the real cards rise out of it, fanned, and settle into the stack while the empty pack drops away. */
-  function buildStack(from, fromPack) {
-    deck = S.pending.cards; idx = from; stackEl.innerHTML = ""; summaryEl.innerHTML = "";
+  /* The card elements for a pack, last card first (so the best card ends up on the bottom of the stack). */
+  function makeStackEls(deck, from) {
+    var els = [];
     for (var i = deck.length - 1; i >= from; i--) {
       var c = deck[i], hidden = c.tier !== "common" && c.tier !== "uncommon";
       var el = cardEl(c, { faceUp: !hidden, ribbon: true });
       if (hidden) el.classList.add("tease");
       if (c.tier === "mythic") { el.style.setProperty("--tc", TIERS.legendary.color); el._promo = true; }
       el._c = c; el._hidden = hidden;
-      stackEl.appendChild(el);
+      els.push(el);
     }
+    return els;
+  }
+  /* fromPack = the torn pack's rect: the real cards rise out of it, fanned, and settle into the stack while the empty pack drops away. */
+  function buildStack(from, fromPack) {
+    deck = S.pending.cards; idx = from; stackEl.innerHTML = ""; summaryEl.innerHTML = "";
+    var els = PRE && PRE.p === S.pending && from === 0 ? PRE.els : makeStackEls(deck, from);
+    PRE = null;
+    els.forEach(function (el) { stackEl.appendChild(el); });
     showOnly("stack");
     stackEl.classList.remove("rise"); void stackEl.offsetWidth;
     paintCounter(); sfx.whoosh();
