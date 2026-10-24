@@ -87,7 +87,29 @@ async function main() {
 
   await act(A, { kind: 'pick_deck', deck: decks.A });
   let v = await act(B, { kind: 'pick_deck', deck: decks.B });
-  assert(v.status === 'PIT' && v.round === 1, 'round 1 pit');
+  assert(v.status === 'DRAFT' && v.draft_turn === 0 && v.offer.length === 3, 'both decks in: the draft starts with three robots on offer');
+  assert(v.alliances[0][0] && v.alliances[1][0], 'both Captains are known from the start');
+
+  // Draft: take turns, 20 picks. Picking out of turn or a robot that is not on offer is refused.
+  const before = await view(A);
+  const first = before.draft_side === 0 ? A : B, second = before.draft_side === 0 ? B : A;
+  const early = await act(second, { kind: 'draft_pick', robot: before.offer[0] }).catch((e) => e);
+  assert(early instanceof Error && early.data.error === 'not_your_turn', 'out-of-turn pick refused');
+  const wrong = await act(first, { kind: 'draft_pick', robot: 99999 }).catch((e) => e);
+  assert(wrong instanceof Error && wrong.data.error === 'not_offered', 'a robot not on offer is refused');
+  for (let n = 0; n < 20; n++) {
+    const cur = await view(A);
+    assert(cur.status === 'DRAFT', `draft pick ${n + 1}`);
+    const who = cur.draft_side === cur.me.side ? A : B;
+    const pick = cur.offer[n % cur.offer.length];
+    v = await act(who, { kind: 'draft_pick', robot: pick });
+  }
+  v = await view(A);
+  assert(v.status === 'PIT' && v.round === 1, 'round 1 pit after the draft');
+  assert(v.seats[0].pool.length === 10 && v.seats[1].pool.length === 10, 'ten robots in each pool');
+  const vb = await view(B);
+  assert(vb.alliances[1 - vb.me.side][1] === 0 && vb.alliances[1 - vb.me.side][2] === 0, "the other player's partners stay hidden in the pit");
+  assert(vb.alliances[vb.me.side][1] !== 0, 'your own partners are shown');
 
   // A stale action is refused.
   const stale = await B.call('POST', `/api/battler/games/${id}/act`, { rev: 1, action: { kind: 'lock' } }).catch((e) => e);
@@ -98,6 +120,17 @@ async function main() {
       let me = await view(c);
       assert(me.status === 'PIT' && me.round === round, `round ${round} pit for ${c.label}`);
       const mine = me.me.side;
+      if (round === 3 && c === A) {
+        // Swap partners from the pool: two ready robots that are not out there now.
+        const out = me.seats[mine].pool.filter((i) => !me.alliances[mine].includes(i) && me.robots.find((r) => r.inst === i).broken === 0);
+        await act(c, { kind: 'partners', robots: [out[0], out[1]] });
+        me = await view(c);
+        assert(me.alliances[mine][1] === out[0] && me.alliances[mine][2] === out[1], 'partners swapped from the pool');
+        const dup = await act(c, { kind: 'partners', robots: [out[0], out[0]] }).catch((e) => e);
+        assert(dup instanceof Error && dup.data.error === 'bad_partners', 'two different partners needed');
+        const foreign = await act(c, { kind: 'partners', robots: [out[0], me.seats[1 - mine].pool[0]] }).catch((e) => e);
+        assert(foreign instanceof Error && foreign.data.error === 'not_in_pool', "can't field the other player's robots");
+      }
       // The opponent's hand cards are never in my view.
       const oppHand = me.seats[1 - mine].hand_count;
       const visibleOpp = me.support.filter((s) => s.owner !== mine).length;
@@ -124,6 +157,8 @@ async function main() {
     assert(v.status === 'RESULTS', 'both locked: results');
     const r = v.rounds[round - 1].result;
     assert(r.robots.length === 6, 'six robots scored');
+    assert(r.robots.every((x) => x.power >= 65 && x.power <= 100 && x.battery >= 0), 'batteries and power reported');
+    if (round === 1) assert(r.robots.every((x) => x.battery === 100 && x.power === 100), 'everyone starts fully charged');
     assert(r.robots.every((x) => x.rp_chance >= 0 && x.rp_chance <= 100), 'RP chances clamped');
     console.log(`round ${round}: ${r.totals.join(' - ')}  RP +${r.match_rp[0] + r.bonus_rp[0]} / +${r.match_rp[1] + r.bonus_rp[1]}`);
     await act(A, { kind: 'ack' });

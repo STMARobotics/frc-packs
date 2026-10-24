@@ -15,28 +15,29 @@ interface RobotCard {
 }
 interface Robot extends RobotCard { id: string; season: number }
 interface Support { id: string; kind: "PART" | "LORE"; name: string; season: number; tags: string[]; text: string; flavor: string; draft: boolean }
-interface Rules { rounds: number; deck_robots: number; support_cards: number; draw: number; max_copies: number; pit_seconds: number; results_seconds: number; strikes: number; start_elo: number }
+interface Rules { rounds: number; deck_robots: number; support_cards: number; draw: number; max_copies: number; pit_seconds: number; results_seconds: number; strikes: number; start_elo: number; pool_size: number; offer: number; draft_seconds: number; intro_seconds: number; drain: number; recharge: number; repair_battery: number }
 interface Catalog { season: number; rp_names: [string, string, string]; rules: Rules; robots: Robot[]; support: Support[]; tags: [string, string[]][] }
 interface Deck { id: string; name: string; captain: number | null; robots: number[]; support: string[]; updated: number }
 interface DeckRow { deck: Deck; problems: string[] }
 interface Profile { elo: number; games: number; wins: number; losses: number; draws: number }
 interface Home { name: string; is_admin: boolean; profile: Profile; active: string | null; owned_teams: number[]; support_owned: Record<string, number>; decks: DeckRow[] }
 
-interface RobotInst extends RobotCard { inst: number; card: string; from: number }
+interface RobotInst extends RobotCard { inst: number; card: string; from: number; battery: number; broken: number }
 interface SupportInst { inst: number; owner: number; card: string; kind: "PART" | "LORE"; name: string; tags: string[]; text: string }
-interface Plan { attach: [number, number][]; lore: number | null; stations: [number, number, number] }
-interface SeatView { name: string; elo: number; picked: boolean; locked: boolean; acked: boolean; rp: number; points: number; hand_count: number; pile_count: number; strikes: number; face_down: number[]; lore_down: boolean }
+interface Plan { attach: [number, number][]; lore: number | null; partners: [number, number]; stations: [number, number, number] }
+interface SeatView { name: string; elo: number; picked: boolean; locked: boolean; acked: boolean; rp: number; points: number; hand_count: number; pile_count: number; strikes: number; parts_down: number; lore_down: boolean; pool: number[] }
 interface EmoteView { side: number; id: string; at: number; n: number }
-interface RobotScore { inst: number; side: number; station: number; base: [number, number, number]; points: [number, number, number]; rp_chance: number; rp_roll: number; rp_hit: boolean }
+interface RobotScore { inst: number; side: number; station: number; battery: number; power: number; broke: boolean; base: [number, number, number]; points: [number, number, number]; rp_chance: number; rp_roll: number; rp_hit: boolean }
 interface GameEvent { source: string; target: number; text: string }
 interface RoundResult { robots: RobotScore[]; phase_totals: [[number, number, number], [number, number, number]]; totals: [number, number]; winner: number | null; match_rp: [number, number]; bonus_rp: [number, number]; events: GameEvent[] }
 interface RoundLog { round: number; stations: [[number, number, number], [number, number, number]]; attach: [[number, number][], [number, number][]]; lore: [number | null, number | null]; result: RoundResult; auto_locked: [boolean, boolean] }
 interface Outcome { winner: number | null; reason: string; rp: [number, number]; points: [number, number]; elo_before: [number, number]; elo_after: [number, number] }
-type Status = "OPEN" | "DECKS" | "PIT" | "RESULTS" | "FINAL" | "CANCELLED";
+type Status = "OPEN" | "DECKS" | "DRAFT" | "PIT" | "RESULTS" | "FINAL" | "CANCELLED";
 interface GameView {
   id: string; rev: number; status: Status; round: number; rounds_total: number; deadline: number;
-  seats: (SeatView | null)[]; me: { side: number; hand: number[]; plan: Plan; deck_robots: number[] } | null;
+  seats: (SeatView | null)[]; me: { side: number; hand: number[]; plan: Plan } | null;
   alliances: [[number, number, number], [number, number, number]]; pool_left: number;
+  offer: number[]; draft_turn: number; draft_total: number; draft_side: number | null;
   robots: RobotInst[]; support: SupportInst[]; rounds: RoundLog[]; seed_hash: string; seed: string | null; outcome: Outcome | null;
   emotes: EmoteView[]; emote_seq: number; now: number;
 }
@@ -88,6 +89,11 @@ const MESSAGES: Record<string, string> = {
   no_session: "Sign in to FRC Packs first.",
   bad_effect: "That effect isn't valid.",
   busy: "Busy, try again.",
+  not_your_turn: "It isn't your pick yet.",
+  not_offered: "That robot isn't on offer any more.",
+  bad_partners: "Pick two different robots.",
+  not_in_pool: "That robot isn't in your pool.",
+  broken: "That robot is broken and being repaired.",
 };
 const explain = (e: unknown) => (e instanceof ApiError ? MESSAGES[e.code] ?? `Something went wrong (${e.code}).` : "Something went wrong.");
 
@@ -129,7 +135,7 @@ function nameScale(n: string) {
 }
 
 /** The full robot card, the same art as the pack cards. */
-function robotCard(r: RobotCard, cw = 260, extra = "") {
+function robotCard(r: RobotCard, cw: number | string = 260, extra = "") {
   const s = r.stats;
   const pic = r.photo
     ? `<span class="phw"><img class="ph" alt="" draggable="false" decoding="async" loading="lazy" src="/photos/${r.team}.webp"></span>`
@@ -137,7 +143,7 @@ function robotCard(r: RobotCard, cw = 260, extra = "") {
   const effect = r.effect_text
     ? `<p>${esc(r.effect_text)}</p>${r.effect_test ? '<em class="bt-flag">Test effect</em>' : ""}`
     : '<p class="tbd">No effect yet</p>';
-  return `<div class="slot flipped bt-cardslot ${extra}" style="--cw:${cw}px;--tc:#fff"><div class="float"><div class="tilt rest"><div class="flip card" data-tier="${esc(r.tier)}">
+  return `<div class="slot flipped bt-cardslot ${extra}" style="--cw:${typeof cw === "number" ? cw + "px" : cw};--tc:#fff"><div class="float"><div class="tilt rest"><div class="flip card" data-tier="${esc(r.tier)}">
     <div class="face front btf"><div class="inner v2 bt b2" style="--nl:${nameScale(r.name)}">
       <div class="head"><span class="avatar none">${r.team}</span><span class="tname">${esc(r.name)}</span></div>
       <div class="fwrap"><div class="fphoto">${pic}${r.test_stats ? '<span class="bt-teststats">Test stats</span>' : ""}</div>
@@ -270,8 +276,9 @@ async function renderHome() {
     <details class="bt-rules"><summary>How to play</summary>
       <ol>
         <li>A deck is <b>1 Alliance Captain + 10 robots + 15 Part or Lore cards</b>, all from your collection.</li>
-        <li>Both players' 10 robots are shuffled into one shared Alliance Deck. Each of the <b>5 rounds</b> you field your Captain plus two robots dealt from it (they can be your opponent's!).</li>
-        <li>Each round you draw <b>3 support cards</b>. In the Pit, attach Parts to your robots, play at most <b>one Lore</b> (it hits all six robots), and put your robots in Driver Stations 1–3.</li>
+        <li>Both decks are shuffled together and you <b>draft</b> in turns: 3 robots on offer, take 1, the rest go back. You end up with a pool of <b>10 robots</b> plus your Captain, who plays every round.</li>
+        <li>Each of the <b>5 rounds</b> you pick which 2 robots from your pool go out with your Captain. Robots lose battery when they play, recharge on the bench, play weaker when low, and can break down.</li>
+        <li>Each round you draw <b>3 support cards</b>. In the Pit, attach Parts to your robots, play at most <b>one Lore</b> (it hits all six robots), and put your robots in Driver Stations 1–3. The other player's robots stay face down until you both lock.</li>
         <li>Lock in. Auto, Tele and End are scored. Winning the round is <b>3 RP</b> (a tie is 1 each), and each robot rolls once for <b>+1 RP</b> at its station's RP chance.</li>
         <li>Most RP after five rounds wins (then most points). Your Elo changes once per game.</li>
       </ol>
@@ -577,7 +584,6 @@ let clockSkew = 0; // server clock minus this device's
 let seenEmote = 0;
 let dragging = false;
 let pendingDraw = false;
-const seenDown = new Map<number, number>(); // face-down cards already shown per robot (so only new ones animate in)
 
 const gameOver = () => { const g = G as GameView | null; return !!g && (g.status === "FINAL" || g.status === "CANCELLED"); };
 
@@ -625,7 +631,10 @@ async function renderGame(id: string) {
   pickedRobot = null;
   shownResult = -1;
   seenEmote = 0;
-  seenDown.clear();
+  draftSel = null;
+  benchSlots = null;
+  dealtRound = 0;
+  seenPool.clear();
   let alive = true;
   let timer = 0;
   leave = () => { alive = false; clearInterval(timer); document.body.classList.remove("bt-in-arena"); };
@@ -652,7 +661,7 @@ async function renderGame(id: string) {
 function myMove(g: GameView) {
   const me = g.me ? g.seats[g.me.side] : null;
   if (!me) return false;
-  return (g.status === "DECKS" && !me.picked) || (g.status === "PIT" && !me.locked) || (g.status === "RESULTS" && !me.acked);
+  return (g.status === "DECKS" && !me.picked) || (g.status === "DRAFT" && g.draft_side === g.me!.side) || (g.status === "PIT" && !me.locked) || (g.status === "RESULTS" && !me.acked);
 }
 
 function setGame(g: GameView) {
@@ -666,7 +675,7 @@ function setGame(g: GameView) {
     seenEmote = g.emote_seq;
   }
   showEmotes(g);
-  if (prev && prev.status !== g.status) { selected = null; pickedRobot = null; }
+  if (prev && (prev.status !== g.status || prev.round !== g.round)) { selected = null; pickedRobot = null; benchSlots = null; }
   // During the reveal, the only thing that can change is the other player tapping Next: keep the reveal going.
   if (prev && prev.status === "RESULTS" && g.status === "RESULTS" && prev.round === g.round && g.me && prev.seats[g.me.side]?.acked === g.seats[g.me.side]?.acked) {
     const r = $("#oppReady");
@@ -679,8 +688,9 @@ function setGame(g: GameView) {
   if (prev && prev.status === "PIT" && g.status === "PIT" && g.me) {
     const was = prev.seats[1 - g.me.side], now = g.seats[1 - g.me.side];
     if (was && now && !was.locked && now.locked) sfx.lock();
-    else if (was && now && was.face_down.length + Number(was.lore_down) < now.face_down.length + Number(now.lore_down)) sfx.place();
+    else if (was && now && was.parts_down + Number(was.lore_down) < now.parts_down + Number(now.lore_down)) sfx.place();
   }
+  if (prev && prev.status === "DRAFT" && g.status === "DRAFT" && g.draft_turn > prev.draft_turn && g.me && g.draft_side === g.me.side) sfx.pick();
   if (g.status === "FINAL" && prev && prev.status !== "FINAL") loadHome().catch(() => {});
 }
 
@@ -717,7 +727,7 @@ function tickClock() {
   // The ring around your picture runs down with the pit timer.
   const ring = $<SVGCircleElement & HTMLElement>("#ring");
   if (ring) {
-    const total = (G.status === "PIT" ? CAT.rules.pit_seconds : CAT.rules.results_seconds) * 1000;
+    const total = (G.status === "PIT" ? CAT.rules.pit_seconds : G.status === "DRAFT" ? CAT.rules.draft_seconds : CAT.rules.results_seconds) * 1000;
     ring.style.strokeDashoffset = String(113 * (1 - Math.min(1, left / total)));
     ring.classList.toggle("low", s <= 30);
   }
@@ -779,7 +789,7 @@ async function sendEmote(id: string) {
 
 function drawGame() {
   const g = G!;
-  document.body.classList.toggle("bt-in-arena", !!g.me && ["PIT", "RESULTS"].includes(g.status));
+  document.body.classList.toggle("bt-in-arena", !!g.me && ["DRAFT", "PIT", "RESULTS"].includes(g.status));
   if (!g.me) {
     // Someone opened a game link: they can take the empty seat.
     const host = g.seats[0];
@@ -796,6 +806,7 @@ function drawGame() {
   switch (g.status) {
     case "OPEN": main.innerHTML = drawWaiting(g); break;
     case "DECKS": main.innerHTML = drawVersus(g) + drawDeckPick(g); break;
+    case "DRAFT": main.innerHTML = drawDraft(g); runIntro(g); break;
     case "PIT": main.innerHTML = replay ? drawArena(g, "reveal") : drawArena(g, "pit"); break;
     case "RESULTS": main.innerHTML = drawArena(g, "reveal"); break;
     case "FINAL":
@@ -838,57 +849,74 @@ function drawDeckPick(g: GameView) {
     <button class="textbtn" data-act="forfeit">Leave game</button></div>`;
 }
 
+// ---------- batteries ----------
+
+/** Percent of its stats a robot has at this charge (mirrors server game.rs `power_for`). */
+const powerFor = (b: number) => (b >= 50 ? 100 : b >= 25 ? 85 : 65);
+const battLevel = (b: number, broken: boolean) => (broken ? "dead" : b >= 50 ? "ok" : b >= 25 ? "mid" : "low");
+const scaled = (v: number, p: number) => Math.floor((v * p + 50) / 100);
+
+/** The charge bar under a robot. A captain never runs down. */
+function batteryBar(inst: number, battery: number, broken: boolean, captain: boolean) {
+  if (captain) return `<div class="ar-batt cap" data-batt="${inst}"><span>Captain · full power</span></div>`;
+  const label = broken ? "Broken · repairing" : battery < 50 ? `${battery}% · ${powerFor(battery)}% power` : `${battery}%`;
+  return `<div class="ar-batt ${battLevel(battery, broken)}" data-batt="${inst}"><i style="width:${broken ? 100 : battery}%"></i><span>${label}</span></div>`;
+}
+
 // ---------- the arena ----------
 
 function stationOf(plan: Plan, inst: number) {
   return plan.stations.indexOf(inst as never) + 1;
 }
 
-/** A robot as it stands in a lane. */
-function laneBot(r: RobotInst, o: { station?: number; captain?: boolean; mine?: boolean; live?: boolean; down?: number; parts?: SupportInst[]; hidden?: boolean; target?: boolean; picked?: boolean; score?: RobotScore }) {
-  const st = o.station ?? 0;
-  const s = r.stats;
-  const backs = o.down ? Array.from({ length: o.down }, (_, i) => `<i class="ar-back ${i >= (o.down! - newDown(r.inst, o.down!)) ? "new" : ""}"></i>`).join("") : "";
-  const parts = (o.parts ?? []).map((p) => `<span class="ar-part ${o.live ? "mine" : ""}" ${o.live ? `data-detach="${p.inst}"` : ""} title="${esc(p.text)}">${esc(p.name)}</span>`).join("");
-  return `<div class="ar-bot t-${esc(r.tier)} ${o.target ? "target" : ""} ${o.picked ? "picked" : ""} ${o.hidden ? "hidden" : ""}" data-bot="${r.inst}" ${o.live ? `data-drop-robot="${r.inst}"` : ""}>
-    <div class="ar-bot-face">
-      <div class="ar-bot-pic">${r.photo ? `<img alt="" draggable="false" src="/photos/${r.team}.webp">` : `<span>#${r.team}</span>`}${o.captain ? '<i class="ar-cap" title="Alliance Captain">C</i>' : ""}</div>
-      <div class="ar-bot-id"><b>${r.team}</b><span>${esc(r.name)}</span></div>
-      <div class="ar-bot-stats"><span><small>A</small><b data-ph="0">${s.auto}</b></span><span><small>T</small><b data-ph="1">${s.tele}</b></span><span><small>E</small><b data-ph="2">${s.end}</b></span></div>
-      ${st ? `<div class="ar-bot-rp" data-rp>RP${st} <b>${o.score ? o.score.rp_chance : s.rp[st - 1]}%</b></div>` : `<div class="ar-bot-rp bt-dim">RP ${s.rp.join("/")}</div>`}
-      ${r.effect_text ? `<div class="ar-bot-fx" title="${esc(r.effect_text)}">★ ${esc(r.effect_text)}</div>` : ""}
-    </div>
-    <div class="ar-bot-back"></div>
-    ${backs ? `<div class="ar-backs">${backs}</div>` : ""}
-    ${parts ? `<div class="ar-parts">${parts}</div>` : ""}
-    ${o.score ? `<div class="ar-die" data-die="${o.score.rp_roll}" data-hit="${o.score.rp_hit}" data-chance="${o.score.rp_chance}"></div>` : ""}
-  </div>`;
+interface LaneOpts {
+  station: number; captain?: boolean; mine?: boolean; live?: boolean; parts?: SupportInst[]; hidden?: boolean;
+  target?: boolean; picked?: boolean; score?: RobotScore; swap?: boolean; open?: boolean;
 }
 
-/** How many of a robot's face-down cards are new since the last paint (they animate in). */
-function newDown(inst: number, n: number) {
-  const before = seenDown.get(inst) ?? 0;
-  seenDown.set(inst, n);
-  return Math.max(0, n - before);
+/** A robot in a lane: its real card (face down while it's the other player's), then what it will score and its charge. */
+function laneBot(r: RobotInst | undefined, o: LaneOpts) {
+  const st = o.station;
+  const front = r ? robotCard(r, "var(--lw)", "ar-fc") : "";
+  const battery = o.score ? o.score.battery : r?.battery ?? 100;
+  const broken = o.score ? false : (r?.broken ?? 0) > 0;
+  const power = o.score ? o.score.power : powerFor(battery);
+  const s = r?.stats;
+  const val = (k: 0 | 1 | 2) => (s ? (o.mine && !o.score && !o.captain ? scaled([s.auto, s.tele, s.end][k], power) : [s.auto, s.tele, s.end][k]) : 0);
+  const parts = (o.parts ?? []).map((p) => `<span class="ar-part ${o.live ? "mine" : ""}" ${o.live ? `data-detach="${p.inst}"` : ""} title="${esc(p.text)}">${esc(p.name)}</span>`).join("");
+  const showInfo = !!r && (o.mine || o.open);
+  const info = showInfo
+    ? `<div class="ar-ph3"><span><small>A</small><b data-ph="0">${val(0)}</b></span><span><small>T</small><b data-ph="1">${val(1)}</b></span><span><small>E</small><b data-ph="2">${val(2)}</b></span><span class="rpc"><small>RP${st}</small><b data-rp>${o.score ? o.score.rp_chance : s!.rp[st - 1]}%</b></span></div>
+       ${batteryBar(r!.inst, battery, broken, !!o.captain)}`
+    : "";
+  return `<div class="ar-bot t-${esc(r?.tier ?? "common")} ${o.target ? "target" : ""} ${o.picked ? "picked" : ""} ${o.hidden ? "hidden" : ""} ${o.mine ? "mine" : "theirs"}" ${r ? `data-bot="${r.inst}"` : ""} ${o.live && r ? `data-drop-robot="${r.inst}"` : ""}>
+    <div class="ar-flip"><div class="ar-flip-f">${front}</div><div class="ar-flip-b"><div class="ar-cb"><i>?</i></div></div></div>
+    ${o.captain && r ? '<i class="ar-cap" title="Alliance Captain">C</i>' : ""}
+    ${o.swap ? `<button type="button" class="ar-swap" data-bench aria-label="Swap this robot from your bench">⇄</button>` : ""}
+    ${o.score ? `<div class="ar-die" data-die="${o.score.rp_roll}" data-hit="${o.score.rp_hit}" data-chance="${o.score.rp_chance}"></div>` : ""}
+    <div class="ar-info ${showInfo ? "" : "none"}">${info}</div>
+    ${parts ? `<div class="ar-parts">${parts}</div>` : ""}
+  </div>`;
 }
 
 function handCard(c: SupportInst, used: boolean, i: number, n: number) {
   const mid = (n - 1) / 2;
-  const tilt = n > 1 ? (i - mid) * Math.min(7, 26 / n) : 0;
+  const tilt = n > 1 ? (i - mid) * Math.min(6, 22 / n) : 0;
   // Cards overlap more the more there are, so the hand always fits the screen.
   const room = Math.min(520, innerWidth) - 32 - 56;
-  const ov = n > 1 ? Math.max(14, (n * 92 - room) / (n - 1)) : 0;
+  const ov = n > 1 ? Math.max(14, (n * 100 - room) / (n - 1)) : 0;
   const lift = Math.abs(i - mid) * Math.abs(i - mid) * 2;
   const tags = c.kind === "PART" ? c.tags.map((t) => t.replace("_", " ")).join(" · ") : "Field · 1 round";
   return `<button type="button" class="ar-card k-${c.kind.toLowerCase()} ${selected === c.inst ? "sel" : ""} ${used ? "used" : ""}" style="--r:${tilt}deg;--y:${lift}px;--i:${i};margin-left:${i ? -ov : 0}px" data-hand="${c.inst}" aria-label="${esc(c.name)}: ${esc(c.text)}">
     <span class="ar-card-k">${c.kind}</span><b>${esc(c.name)}</b><small>${esc(tags)}</small><span class="ar-card-t">${esc(c.text)}</span>
-    ${used ? `<span class="ar-card-used">${G?.me?.plan.lore === c.inst ? "Lore" : "Played"}</span>` : ""}
   </button>`;
 }
 
 function avatar(name: string, side: "me" | "op", ring = false) {
   return `<span class="ar-ava ${side}">${esc(name.slice(0, 1).toUpperCase())}${ring ? '<svg class="ar-ring" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18"/><circle id="ring" cx="20" cy="20" r="18"/></svg>' : ""}</span>`;
 }
+
+let dealtRound = 0; // the last round whose "dealing" animation has played
 
 function drawArena(g: GameView, mode: "pit" | "reveal") {
   const side = g.me!.side, op = 1 - side;
@@ -898,52 +926,80 @@ function drawArena(g: GameView, mode: "pit" | "reveal") {
   const r = log?.result;
   const score = (inst: number) => r?.robots.find((x) => x.inst === inst);
   const locked = me.locked;
+  const live = mode === "pit" && !locked;
   const selCard = selected !== null ? cardOf(selected) : null;
   const names = CAT.rp_names;
+  const dealing = mode === "pit" && dealtRound !== g.round;
+  if (mode === "pit") dealtRound = g.round;
 
-  // Lanes: station 1..3. Yours by your plan (or the round log); theirs only once revealed.
+  // Lanes: station 1..3. Yours by your plan (or the round log). Theirs stay face down until the round is revealed.
   const myBots = log ? log.stations[side] : plan.stations;
-  const theirBots = log ? log.stations[op] : g.alliances[op];
+  const theirBots = log ? log.stations[op] : null;
   const partsOn = (s: number, inst: number) => (log ? log.attach[s] : s === side ? plan.attach : []).filter(([, rb]) => rb === inst).map(([p]) => cardOf(p)!).filter(Boolean);
-  const downOn = (inst: number) => (mode === "pit" ? them.face_down.filter((x) => x === inst).length : 0);
+  const captains = [g.alliances[0][0], g.alliances[1][0]];
   const lanes = [0, 1, 2].map((k) => {
-    const mine = robotOf(myBots[k])!, theirs = robotOf(theirBots[k])!;
-    return `<div class="ar-lane" data-lane="${k + 1}" ${mode === "pit" && !locked ? `data-drop-lane="${k + 1}"` : ""}>
-      ${laneBot(theirs, { station: log ? k + 1 : 0, captain: theirs.inst === g.alliances[op][0], down: downOn(theirs.inst), parts: log ? partsOn(op, theirs.inst) : [], hidden: !!log, score: score(theirs.inst) })}
-      <div class="ar-lane-mid"><b>S${k + 1}</b><small>${names[k]}</small><span class="ar-lane-score" data-lane-score="${k}"></span></div>
-      ${laneBot(mine, { station: k + 1, captain: mine.inst === g.alliances[side][0], mine: true, live: mode === "pit" && !locked, parts: partsOn(side, mine.inst), target: mode === "pit" && !locked && selCard?.kind === "PART", picked: pickedRobot === mine.inst, score: score(mine.inst) })}
+    const mine = robotOf(myBots[k])!;
+    const theirs = theirBots ? robotOf(theirBots[k]) : undefined;
+    return `<div class="ar-lane" data-lane="${k + 1}" style="--d:${k}" ${live ? `data-drop-lane="${k + 1}"` : ""}>
+      ${laneBot(theirs, { station: k + 1, hidden: true, open: !!log, captain: !!theirs && theirs.inst === captains[op], parts: theirs && log ? partsOn(op, theirs.inst) : [], score: theirs ? score(theirs.inst) : undefined })}
+      <div class="ar-lane-mid"><b>Station ${k + 1}</b><small>${names[k]}</small><span class="ar-lane-score" data-lane-score="${k}"></span></div>
+      ${laneBot(mine, { station: k + 1, mine: true, open: true, captain: mine.inst === captains[side], live, parts: partsOn(side, mine.inst), target: live && selCard?.kind === "PART", picked: pickedRobot === mine.inst, score: score(mine.inst), swap: live && mine.inst !== captains[side] })}
     </div>`;
   }).join("");
 
   const myLore = log ? (log.lore[side] !== null ? cardOf(log.lore[side]!) : null) : plan.lore !== null ? cardOf(plan.lore) : null;
   const theirLore = log && log.lore[op] !== null ? cardOf(log.lore[op]!) : null;
-  const theirLoreDown = mode === "pit" && them.lore_down;
-  const loreSlot = (who: "op" | "me", c: SupportInst | null | undefined, down: boolean) => `<div class="ar-lore-slot ${who} ${c ? "full" : ""} ${down ? "down" : ""} ${who === "me" && mode === "pit" && !locked && selCard?.kind === "LORE" ? "target" : ""}" ${who === "me" && mode === "pit" && !locked ? "data-drop-lore" : ""} ${log && c ? "data-flip" : ""}>
-      ${c ? `<b>${esc(c.name)}</b><span>${esc(c.text)}</span>${who === "me" && mode === "pit" && !locked ? '<button class="ar-x" data-lore-clear aria-label="Take back">×</button>' : ""}` : down ? '<i class="ar-back new"></i><span>Lore played</span>' : `<span>${who === "me" ? (selCard?.kind === "LORE" ? "Drop lore here" : "Your lore") : "Their lore"}</span>`}
-    </div>`;
+  const loreCard = (c: SupportInst | null | undefined, who: "me" | "op") => c
+    ? `<div class="ar-lore-slot ${who} full" ${log ? "data-flip" : ""}><b>${esc(c.name)}</b><span>${esc(c.text)}</span>${who === "me" && live ? '<button class="ar-x" data-lore-clear aria-label="Take back">×</button>' : ""}</div>`
+    : "";
+  const myLoreSlot = myLore
+    ? loreCard(myLore, "me")
+    : `<div class="ar-lore-slot me ${live && selCard?.kind === "LORE" ? "target" : ""}" ${live ? "data-drop-lore" : ""}><span>${live ? (selCard?.kind === "LORE" ? "Drop the Lore here" : "Lore slot (optional)") : "No Lore played"}</span></div>`;
 
   const planned = new Set([...plan.attach.map(([p]) => p), ...(plan.lore !== null ? [plan.lore] : [])]);
   const hand = mode === "pit" ? g.me!.hand.map((i) => cardOf(i)!).filter(Boolean) : [];
   const handVisible = hand.filter((c) => !planned.has(c.inst));
   const backs = Array.from({ length: Math.min(them.hand_count, 9) }, (_, i) => `<i class="ar-back sm" style="--i:${i}"></i>`).join("");
+  const played = mode === "pit"
+    ? Array.from({ length: them.parts_down }, () => '<i class="ar-back sm part new"></i>').join("") + (them.lore_down ? '<i class="ar-back sm lore new"></i>' : "")
+    : "";
   const last = g.rounds[g.rounds.length - 1];
   const hiding = !!last && mode === "reveal" && lastAnimated < last.round && !skipAnim;
   const gain = (s: number) => (hiding ? last.result.match_rp[s] + last.result.bonus_rp[s] : 0);
   const dots = Array.from({ length: g.rounds_total }, (_, i) => `<i class="${i + 1 < g.round || (i + 1 === g.round && mode === "reveal") ? "done" : i + 1 === g.round ? "now" : ""}"></i>`).join("");
 
-  return `<div class="ar" data-mode="${mode}" data-round="${log?.round ?? g.round}">
+  // The three things to do, in order.
+  const field = g.alliances[side].slice(1).map((i) => robotOf(i)).filter(Boolean) as RobotInst[];
+  const tired = field.filter((x) => x.battery < 50);
+  const cardsDone = planned.size > 0;
+  const steps = `<ol class="ar-steps">
+    <li class="${tired.length ? "warn" : "done"}"><button type="button" data-bench><i>1</i>Alliance</button></li>
+    <li class="${cardsDone ? "done" : "now"}"><i>2</i>Cards</li>
+    <li class="${locked ? "done" : "now"}"><i>3</i>Lock in</li></ol>`;
+  const hint = locked ? ""
+    : selCard ? `<b>${esc(selCard.name)}.</b> ${esc(selCard.text)} <em>${selCard.kind === "PART" ? "Tap or drop it on one of your robots." : "Tap or drop it on the Lore slot."}</em>`
+    : pickedRobot ? "Tap the station to move it to."
+    : tired.length ? `<b class="warnt">${esc(tired[0].name)} is at ${tired[0].battery}% battery</b> and plays at ${powerFor(tired[0].battery)}% power. <button class="textbtn" data-bench>Swap from your bench</button>`
+    : "Check your alliance, play cards onto robots, then Lock in. Tap a robot to see its card.";
+
+  return `<div class="ar ${dealing ? "dealing" : ""}" data-mode="${mode}" data-round="${log?.round ?? g.round}">
+    ${dealing ? `<div class="ar-roundbanner" aria-hidden="true"><span>Round ${g.round}</span></div>` : ""}
     <div class="ar-opp ${them.locked && mode === "pit" ? "ready" : ""}">
       ${avatar(them.name, "op")}
-      <div class="ar-who"><b>${esc(them.name)}</b><small>${them.elo} Elo${mode === "pit" ? ` · ${them.locked ? '<em class="ok">Locked in</em>' : "in the pit…"}` : ""}</small></div>
-      <div class="ar-hand-backs" aria-label="${plural(them.hand_count, "card")} in hand">${backs}</div>
+      <div class="ar-who"><b>${esc(them.name)}</b><small>${them.elo} Elo${mode === "pit" ? ` · ${them.locked ? '<em class="ok">Locked in</em>' : "choosing…"}` : ""}</small></div>
+      <div class="ar-theirs" aria-label="${plural(them.hand_count, "card")} in hand"><div class="ar-hand-backs">${backs}</div>${played ? `<div class="ar-played" title="Played face down">${played}</div>` : ""}</div>
+      <button type="button" class="ar-poolbtn" data-pool="${op}" aria-label="See their pool of robots">Pool</button>
       <div class="ar-rp op"><b data-rp-to="${them.rp}">${them.rp - gain(op)}</b><small>RP</small></div>
     </div>
     <div class="ar-round"><div class="bt-dots">${dots}</div><span>Round ${g.round} of ${g.rounds_total}</span>${g.deadline ? '<span class="bt-clock" id="clock"></span>' : ""}</div>
+    ${mode === "pit" ? steps : ""}
     <div class="ar-board">
       <div class="ar-lanes">${lanes}</div>
-      <div class="ar-lore">${loreSlot("op", theirLore, theirLoreDown)}<div class="ar-tug" aria-hidden="true"><i class="op"></i><i class="me"></i><b class="ar-phase" id="phase"></b></div>${loreSlot("me", myLore, false)}</div>
+      <div class="ar-lore"><div class="ar-lorebox">${theirLore ? loreCard(theirLore, "op") : ""}</div><div class="ar-tug" aria-hidden="true"><i class="op"></i><i class="me"></i><b class="ar-phase" id="phase"></b></div><div class="ar-lorebox">${myLoreSlot}</div></div>
+      <div class="ar-autoclock" id="autoclock" hidden></div>
     </div>
     ${mode === "pit" ? `
+    <p class="ar-hint">${hint}</p>
     <div class="ar-handwrap ${locked ? "locked" : ""}">
       <div class="ar-hand" id="hand">${handVisible.map((c, i) => handCard(c, false, i, handVisible.length)).join("") || `<p class="bt-dim ar-nohand">${hand.length ? "Every card is on the field." : "No cards in hand."}</p>`}</div>
       <div class="ar-pile">${me.pile_count}<small>deck</small></div>
@@ -951,6 +1007,7 @@ function drawArena(g: GameView, mode: "pit" | "reveal") {
     <div class="ar-me ${locked && mode === "pit" ? "ready" : ""}">
       ${avatar(me.name, "me", true)}
       <div class="ar-rp me"><b data-rp-to="${me.rp}">${me.rp - gain(side)}</b><small>RP</small></div>
+      <button type="button" class="ar-poolbtn" data-bench aria-label="Your pool and bench">Bench</button>
       <button type="button" class="ar-emote-btn" id="emoteBtn" aria-label="Quick chat">💬</button>
       ${mode === "pit"
         ? locked
@@ -960,9 +1017,168 @@ function drawArena(g: GameView, mode: "pit" | "reveal") {
       <button type="button" class="ar-menu-btn" id="arMenu" aria-label="Menu">⋯</button>
     </div>
     ${mode === "reveal" ? `<span class="bt-oppready" id="oppReady" ${them.acked ? "" : "hidden"}>${esc(them.name)} is ready for the next round</span>` : ""}
-    ${mode === "pit" ? `<p class="ar-hint">${locked ? "" : selCard ? (selCard.kind === "PART" ? "Drop it on one of your robots." : "Drop it on your lore slot.") : pickedRobot ? "Tap the lane to move it to." : "Drag a card onto a robot or the lore slot. Drag a robot to another lane to change its station."}</p>` : ""}
     ${log && r?.events.length ? `<details class="bt-log ar-log"><summary>What triggered (${r.events.length})</summary><ul>${r.events.map((ev) => `<li><b>${esc(ev.source)}</b> ${esc(ev.text)}</li>`).join("")}</ul></details>` : ""}
   </div>`;
+}
+
+// ---------- pools and the bench ----------
+
+/** A small robot card with its charge, for lists of robots. */
+function miniRobot(r: RobotInst, attrs = "", note = "") {
+  return `<div class="ar-mini ${r.broken ? "broken" : ""}" ${attrs}>
+    ${robotCard(r, "var(--mw)", "ar-fc")}
+    ${batteryBar(r.inst, r.battery, r.broken > 0, false)}
+    ${note ? `<small class="ar-mini-note">${note}</small>` : ""}
+  </div>`;
+}
+
+function poolSheet(who: number) {
+  const g = G!;
+  const seat = g.seats[who]!;
+  const mine = who === g.me!.side;
+  const cap = robotOf(g.alliances[who][0]);
+  const list = seat.pool.map(robotOf).filter(Boolean) as RobotInst[];
+  const onField = new Set(mine ? g.alliances[who] : []);
+  openSheet(`<h3>${mine ? "Your" : esc(seat.name) + "'s"} robots</h3>
+    <p class="bt-note">${mine ? "Everyone you drafted. Robots run down their battery when they play and recharge on the bench." : "Their drafted pool is public. Which two partners they field each round stays hidden until the reveal."}</p>
+    <div class="ar-minigrid">${cap ? miniRobot({ ...cap, battery: 100, broken: 0 }, `data-view="${cap.inst}"`, "Alliance Captain") : ""}
+    ${list.map((r) => miniRobot(r, `data-view="${r.inst}"`, onField.has(r.inst) ? "Playing now" : r.broken ? "Being repaired" : "")).join("")}</div>`, (t) => {
+    const v = t.closest<HTMLElement>("[data-view]");
+    if (v) showRobot(robotOf(+v.dataset.view!)!);
+  });
+}
+
+let benchSlots: [number, number] | null = null;
+let benchSel = 0;
+
+function openBench() {
+  const g = G!;
+  if (g.status !== "PIT" || !g.me) return poolSheet(g.me!.side);
+  if (g.seats[g.me.side]?.locked) return poolSheet(g.me.side);
+  if (!benchSlots) benchSlots = [g.me.plan.partners[0], g.me.plan.partners[1]];
+  renderBench();
+}
+
+function renderBench() {
+  const g = G!, side = g.me!.side;
+  const slots = benchSlots!;
+  const cap = robotOf(g.alliances[side][0])!;
+  const list = g.seats[side]!.pool.map(robotOf).filter(Boolean) as RobotInst[];
+  const chip = (i: number) => {
+    const r = robotOf(slots[i]);
+    return `<button type="button" class="ar-slotchip ${benchSel === i ? "sel" : ""}" data-slot="${i}">${r ? (r.photo ? `<img alt="" src="/photos/${r.team}.webp">` : `<span>#${r.team}</span>`) : "<span>?</span>"}<b>${r ? `${r.team}` : "Empty"}</b><small>${r ? (r.battery < 50 ? `${r.battery}% ⚡` : `${r.battery}%`) : ""}</small></button>`;
+  };
+  const old = $("#sheetIn")?.scrollTop ?? 0;
+  openSheet(`<h3>Your alliance this round</h3>
+    <p class="bt-note">The Captain plays every round. Pick the slot, then tap a robot below to put it there. Robots lose ${CAT.rules.drain}% battery when they play, recharge ${CAT.rules.recharge}% on the bench, and play weaker when low. A robot that breaks down loses its End phase and sits out a round to be repaired.</p>
+    <div class="ar-slots"><div class="ar-slotchip cap">${cap.photo ? `<img alt="" src="/photos/${cap.team}.webp">` : `<span>#${cap.team}</span>`}<b>${cap.team}</b><small>Captain</small></div>${chip(0)}${chip(1)}</div>
+    <div class="ar-minigrid">${list.map((r) => miniRobot(r, `data-pick="${r.inst}"`, slots.includes(r.inst) ? "In your alliance" : r.broken ? "Being repaired" : "")).join("")}</div>
+    <button class="cta wide" data-bench-done>Done</button>`, (t) => {
+    const s = t.closest<HTMLElement>("[data-slot]");
+    if (s) { benchSel = +s.dataset.slot!; return renderBench(); }
+    const p = t.closest<HTMLElement>("[data-pick]");
+    if (p) {
+      const inst = +p.dataset.pick!;
+      const r = robotOf(inst)!;
+      if (r.broken) return toast(`${r.name} is broken and being repaired.`, true);
+      const at = slots.indexOf(inst);
+      if (at === benchSel) return;
+      if (at >= 0) [slots[0], slots[1]] = [slots[1], slots[0]];
+      else { slots[benchSel] = inst; benchSel = 1 - benchSel; }
+      sfx.pick();
+      return renderBench();
+    }
+    if (t.closest("[data-bench-done]")) {
+      const cur = G!.me!.plan.partners;
+      const [a, b] = slots;
+      benchSlots = null;
+      closeSheet();
+      if (a !== cur[0] || b !== cur[1]) { sfx.place(); act({ kind: "partners", robots: [a, b] }); }
+    }
+  });
+  const sh = $("#sheetIn");
+  if (sh) sh.scrollTop = old;
+}
+
+// ---------- the draft ----------
+
+let draftSel: number | null = null;
+const seenPool = new Set<number>();
+
+function poolRow(who: number, label: string) {
+  const g = G!;
+  const seat = g.seats[who]!;
+  const chips = Array.from({ length: CAT.rules.pool_size }, (_, i) => {
+    const r = robotOf(seat.pool[i]);
+    if (!r) return '<i class="dr-chip empty"></i>';
+    const fresh = !seenPool.has(r.inst);
+    seenPool.add(r.inst);
+    return `<button type="button" class="dr-chip t-${esc(r.tier)} ${fresh ? "new" : ""}" data-view="${r.inst}" aria-label="${r.team} ${esc(r.name)}">${r.photo ? `<img alt="" src="/photos/${r.team}.webp">` : `<span>#${r.team}</span>`}</button>`;
+  }).join("");
+  return `<div class="dr-pool"><div class="dr-pool-h"><b>${label}</b><small>${seat.pool.length} of ${CAT.rules.pool_size}</small></div><div class="dr-chips">${chips}</div></div>`;
+}
+
+function drawDraft(g: GameView) {
+  const side = g.me!.side, op = 1 - side;
+  const mine = g.draft_side === side;
+  const offer = g.offer.map(robotOf).filter(Boolean) as RobotInst[];
+  if (draftSel === null || !g.offer.includes(draftSel)) draftSel = g.offer[0] ?? null;
+  const them = g.seats[op]!;
+  const sel = draftSel !== null ? robotOf(draftSel) : undefined;
+  const cards = offer.map((r) => `<button type="button" class="dr-opt ${r.inst === draftSel ? "sel" : ""} ${mine ? "" : "wait"}" data-offer="${r.inst}" aria-label="${r.team} ${esc(r.name)}">${robotCard(r, "var(--dw)", "ar-fc")}<span class="dr-tick">${r.inst === draftSel ? (mine ? "Your pick" : "Looking") : "Tap to look"}</span></button>`).join("");
+  return `<div class="dr">
+    <div class="dr-head"><div><h2>Draft</h2><small>Pick ${Math.min(g.draft_turn + 1, g.draft_total)} of ${g.draft_total} · the shuffled decks of both players</small></div><span class="bt-clock" id="clock"></span></div>
+    <div class="dr-turn ${mine ? "mine" : "theirs"}">${mine ? "Your pick: take 1 of these 3. The other 2 go back into the deck." : `${esc(them.name)} is picking…`}</div>
+    <div class="dr-offer">${cards}</div>
+    <button type="button" class="ar-lock dr-go" data-draft ${mine && sel ? "" : "disabled"}>${mine && sel ? `Draft ${sel.team} ${esc(sel.name)}` : `Waiting for ${esc(them.name)}`}</button>
+    ${poolRow(side, "Your pool")}
+    ${poolRow(op, `${esc(them.name)}'s pool`)}
+    <p class="bt-note">You each get a Captain who plays every round, plus ${CAT.rules.pool_size} drafted robots. Each round you choose which 2 of your pool go out with your Captain. ${g.pool_left} robots are still in the deck.</p>
+    <div class="cta-row"><button class="textbtn" id="arMenu">Menu</button></div>
+  </div>`;
+}
+
+// ---------- pre-game intro ----------
+
+const introSeen = new Set<string>();
+
+/** Versus splash, both Captains, the decks shuffling, and the toss for who drafts first. Plays once per game, over the
+    draft screen, and can be skipped. The first pick has extra time on the server's clock to cover it. */
+async function runIntro(g: GameView) {
+  if (introSeen.has(g.id) || g.draft_turn !== 0 || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  introSeen.add(g.id);
+  const side = g.me!.side, op = 1 - side;
+  const me = g.seats[side]!, them = g.seats[op]!;
+  const myCap = robotOf(g.alliances[side][0]), theirCap = robotOf(g.alliances[op][0]);
+  if (!myCap || !theirCap) return;
+  const first = g.draft_side;
+  const el = document.createElement("div");
+  el.className = "intro";
+  let done = false;
+  const end = () => { if (done) return; done = true; el.classList.add("out"); setTimeout(() => el.remove(), 400); };
+  const back = '<div class="ar-cb"><i>?</i></div>';
+  const cap = (r: RobotInst, who: string, mine: boolean) => `<div class="in-cap ${mine ? "mine" : "theirs"}"><div class="in-flip"><div class="in-f">${robotCard(r, "var(--iw)", "ar-fc")}</div><div class="in-b">${back}</div></div><small>${who}</small></div>`;
+  el.innerHTML = `<button class="in-skip" type="button">Skip</button>
+    <div class="in-stage in-vs"><div class="in-p me"><span class="ar-ava me">${esc(me.name.slice(0, 1).toUpperCase())}</span><b>${esc(me.name)}</b><small>${me.elo} Elo</small></div><i>VS</i><div class="in-p op"><span class="ar-ava op">${esc(them.name.slice(0, 1).toUpperCase())}</span><b>${esc(them.name)}</b><small>${them.elo} Elo</small></div></div>
+    <div class="in-stage in-caps" hidden><h3>Alliance Captains</h3><p>They play every round.</p><div class="in-capsrow">${cap(myCap, "Your Captain", true)}${cap(theirCap, `${esc(them.name)}'s Captain`, false)}</div></div>
+    <div class="in-stage in-shuffle" hidden><div class="in-decks"><div class="in-deck">${Array.from({ length: 7 }, (_, i) => `<i style="--i:${i}"></i>`).join("")}</div><div class="in-deck">${Array.from({ length: 7 }, (_, i) => `<i style="--i:${i}"></i>`).join("")}</div></div><h3>Shuffling both decks together</h3><p>Every robot goes into one pile. You'll take turns drafting from it.</p></div>
+    <div class="in-stage in-coin" hidden><div class="in-coinface"><b>${first === side ? esc(me.name.slice(0, 1).toUpperCase()) : esc(them.name.slice(0, 1).toUpperCase())}</b></div><h3>${first === side ? "You pick first" : `${esc(them.name)} picks first`}</h3></div>`;
+  el.onclick = end;
+  document.body.appendChild(el);
+  const show = (cls: string) => el.querySelectorAll<HTMLElement>(".in-stage").forEach((s) => (s.hidden = !s.classList.contains(cls)));
+  const stay = async (ms: number) => { await wait(ms); return !done; };
+  sfx.flip();
+  if (!(await stay(1700))) return;
+  show("in-caps"); sfx.pick();
+  if (!(await stay(700))) return;
+  el.querySelectorAll(".in-cap").forEach((c) => c.classList.add("up")); sfx.flip();
+  if (!(await stay(2100))) return;
+  show("in-shuffle");
+  for (let i = 0; i < 5; i++) { sfx.dice(); await wait(180); }
+  if (!(await stay(900))) return;
+  show("in-coin"); sfx.boom();
+  if (!(await stay(1900))) return;
+  end();
 }
 
 // ---------- pit input: drag, or tap then tap ----------
@@ -1007,6 +1223,20 @@ function bindGame() {
     }
     const deck = t.closest<HTMLElement>("[data-deck]");
     if (deck) return void act({ kind: "pick_deck", deck: deck.dataset.deck });
+    if (t.closest("[data-bench]")) return void openBench();
+    const pb = t.closest<HTMLElement>("[data-pool]");
+    if (pb) return poolSheet(+pb.dataset.pool!);
+    const dv = t.closest<HTMLElement>("[data-view]");
+    if (dv) return showRobot(robotOf(+dv.dataset.view!)!);
+    const off = t.closest<HTMLElement>("[data-offer]");
+    if (off) return selectOffer(+off.dataset.offer!);
+    if (t.closest("[data-draft]")) {
+      if (draftSel === null) return;
+      const robot = draftSel;
+      draftSel = null;
+      sfx.place();
+      return void act({ kind: "draft_pick", robot });
+    }
     if (G!.status !== "PIT" || G!.seats[G!.me!.side]?.locked) {
       const b = t.closest<HTMLElement>("[data-bot]");
       if (b && !b.classList.contains("hidden")) showRobot(robotOf(+b.dataset.bot!)!);
@@ -1037,6 +1267,22 @@ function bindGame() {
     if (b) showRobot(robotOf(+b.dataset.bot!)!);
   };
   bindDrag();
+}
+
+/** Picks which of the three robots on offer the Draft button will take, without redrawing (so the row stays scrolled). */
+function selectOffer(inst: number) {
+  draftSel = inst;
+  sfx.pick();
+  document.querySelectorAll<HTMLElement>(".dr-opt").forEach((o) => {
+    const on = +o.dataset.offer! === inst;
+    o.classList.toggle("sel", on);
+    const tick = o.querySelector(".dr-tick");
+    const mine = G!.draft_side === G!.me!.side;
+    if (tick) tick.textContent = on ? (mine ? "Your pick" : "Looking") : "Tap to look";
+  });
+  const r = robotOf(inst);
+  const go = $("[data-draft]");
+  if (go && r && G!.draft_side === G!.me!.side) go.textContent = `Draft ${r.team} ${r.name}`;
 }
 
 function playCard(card: number, to: { robot?: number; lore?: boolean }) {
@@ -1159,15 +1405,60 @@ async function runReveal() {
     await banner("LORE", 400);
     for (const l of lores) { if (!alive()) return; l.classList.add("flip"); sfx.flip(); await wait(450); }
   }
-  // 3. Auto, Tele, End: each robot's points pop and pour into the tug-of-war bar.
+  // 3. Auto, Tele, End. Auto plays out over five one-second ticks (each about a fifth of the points, give or take 10%,
+  //    and always adding up to the real total); Tele and End pop robot by robot into the tug-of-war bar.
   const totals = [0, 0];
-  const tug = (mine: number, theirs: number) => {
-    const sum = Math.max(1, mine + theirs);
-    ar.style.setProperty("--tug", `${(mine / sum) * 100}%`);
+  const got = new Map<number, number>();
+  const tug = () => {
+    const sum = Math.max(1, totals[0] + totals[1]);
+    ar.style.setProperty("--tug", `${totals[0] ? (totals[0] / sum) * 100 : totals[1] ? 0 : 50}%`);
   };
-  tug(1, 1);
-  const PH = ["AUTO", "TELE", "END"];
-  for (let k = 0; k < 3; k++) {
+  const laneScores = () => {
+    for (let lane = 0; lane < 3; lane++) {
+      const ls = ar.querySelector<HTMLElement>(`[data-lane-score="${lane}"]`);
+      if (ls) ls.innerHTML = `<i class="op">${got.get(log.stations[op][lane]) ?? 0}</i><i class="me">${got.get(log.stations[side][lane]) ?? 0}</i>`;
+    }
+  };
+  const num = (inst: number, k: number) => ar.querySelector<HTMLElement>(`.ar-bot[data-bot="${inst}"] [data-ph="${k}"]`);
+  const lit = (sc: RobotScore, k: number, val: number) => {
+    const n = num(sc.inst, k);
+    if (!n) return;
+    n.textContent = String(val);
+    n.parentElement!.classList.add("lit");
+  };
+  const grade = (sc: RobotScore, k: number) => {
+    const n = num(sc.inst, k);
+    if (n && sc.points[k] !== sc.base[k]) n.parentElement!.classList.add(sc.points[k] > sc.base[k] ? "up" : "down");
+  };
+  tug();
+  if (!alive()) return;
+  await banner("AUTO", 500);
+  const clock = $("#autoclock")!;
+  clock.hidden = false;
+  const ticks = new Map(r.robots.map((sc) => [sc.inst, autoTicks(sc.points[0], `${g.seed_hash}:${round}:${sc.inst}`)]));
+  const shown = new Map<number, number>();
+  for (let t = 0; t < 5; t++) {
+    if (!alive()) return;
+    clock.innerHTML = `<b>AUTO</b><span>0:0${t + 1}</span><em>${[0, 1, 2, 3, 4].map((i) => `<i class="${i <= t ? "on" : ""}"></i>`).join("")}</em>`;
+    for (const sc of r.robots) {
+      const add = ticks.get(sc.inst)![t];
+      shown.set(sc.inst, (shown.get(sc.inst) ?? 0) + add);
+      got.set(sc.inst, (got.get(sc.inst) ?? 0) + add);
+      lit(sc, 0, shown.get(sc.inst)!);
+      totals[sc.side === side ? 0 : 1] += add;
+      const bot = ar.querySelector<HTMLElement>(`.ar-bot[data-bot="${sc.inst}"]`);
+      if (bot && add > 0) floatText(bot, `+${add}`, sc.side === side ? "me" : "op");
+    }
+    tug();
+    laneScores();
+    sfx.tick(t);
+    await wait(1000);
+  }
+  clock.hidden = true;
+  r.robots.forEach((sc) => grade(sc, 0));
+  await wait(250);
+  const PH = ["", "TELE", "END"];
+  for (let k = 1; k < 3; k++) {
     if (!alive()) return;
     await banner(PH[k], 450);
     for (let lane = 0; lane < 3; lane++) {
@@ -1175,19 +1466,21 @@ async function runReveal() {
         const inst = log.stations[s][lane];
         const sc = r.robots.find((x) => x.inst === inst)!;
         const bot = ar.querySelector<HTMLElement>(`.ar-bot[data-bot="${inst}"]`);
-        const num = bot?.querySelector<HTMLElement>(`[data-ph="${k}"]`);
-        if (num) {
-          num.textContent = String(sc.points[k]);
-          num.parentElement!.classList.add("lit");
-          if (sc.points[k] !== sc.base[k]) num.parentElement!.classList.add(sc.points[k] > sc.base[k] ? "up" : "down");
+        if (k === 2 && sc.broke && bot) {
+          bot.classList.add("broke");
+          floatText(bot, "BREAKDOWN", s === side ? "me" : "op");
+          sfx.boom();
+          await wait(450);
         }
+        lit(sc, k, sc.points[k]);
+        grade(sc, k);
         if (bot) floatText(bot, `+${sc.points[k]}`, s === side ? "me" : "op");
         if (sc.points[k] >= sc.base[k] * 1.5 && sc.points[k] - sc.base[k] >= 10) { ar.classList.add("shake"); sfx.boom(); setTimeout(() => ar.classList.remove("shake"), 400); } else sfx.tick(lane + k);
+        got.set(inst, (got.get(inst) ?? 0) + sc.points[k]);
         totals[s === side ? 0 : 1] += sc.points[k];
-        tug(totals[0], totals[1]);
-        const ls = ar.querySelector<HTMLElement>(`[data-lane-score="${lane}"]`);
-        if (ls) ls.innerHTML = `<i class="op">${laneSum(log, op, lane, k)}</i><i class="me">${laneSum(log, side, lane, k)}</i>`;
-        await wait(170);
+        tug();
+        laneScores();
+        await wait(190);
       }
     }
     await wait(250);
@@ -1225,6 +1518,22 @@ async function runReveal() {
   finishReveal(ar, log);
 }
 
+/** Splits an Auto score into five ticks: each about a fifth, up to 10% smaller or larger, always summing to the total. The
+    same game always gives the same ticks (seeded from the game's fairness code), so a replay looks identical. */
+function autoTicks(total: number, seed: string): number[] {
+  let h = 1779033703 ^ seed.length;
+  for (let i = 0; i < seed.length; i++) { h = Math.imul(h ^ seed.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
+  const rnd = () => { h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); h ^= h >>> 16; return (h >>> 0) / 4294967296; };
+  const w = Array.from({ length: 5 }, () => 0.9 + rnd() * 0.2);
+  const sum = w.reduce((a, b) => a + b, 0);
+  const raw = w.map((x) => (total * x) / sum);
+  const out = raw.map(Math.floor);
+  let rest = total - out.reduce((a, b) => a + b, 0);
+  const order = raw.map((x, i) => [x - Math.floor(x), i] as const).sort((p, q) => q[0] - p[0]);
+  for (let i = 0; rest > 0; i++, rest--) out[order[i % 5][1]]++;
+  return out;
+}
+
 function laneSum(log: RoundLog, s: number, lane: number, upto: number) {
   const sc = log.result.robots.find((x) => x.inst === log.stations[s][lane])!;
   return sc.points.slice(0, upto + 1).reduce((a, b) => a + b, 0);
@@ -1258,6 +1567,7 @@ function finishReveal(ar: HTMLElement, log: RoundLog) {
   for (const sc of r.robots) {
     const bot = ar.querySelector<HTMLElement>(`.ar-bot[data-bot="${sc.inst}"]`);
     if (!bot) continue;
+    bot.classList.toggle("broke", sc.broke);
     sc.points.forEach((p, k) => {
       const num = bot.querySelector<HTMLElement>(`[data-ph="${k}"]`);
       if (!num) return;
@@ -1281,6 +1591,19 @@ function finishReveal(ar: HTMLElement, log: RoundLog) {
     v.className = `ar-verdict ${won} show`;
     v.innerHTML = `<b>${won === "win" ? "Round won" : won === "loss" ? "Round lost" : "Tied round"}</b><span>${r.totals[side]} – ${r.totals[op]} · +${r.match_rp[side] + r.bonus_rp[side]} RP for you, +${r.match_rp[op] + r.bonus_rp[op]} for them</span>`;
   }
+  // The round cost every robot on the field some charge; show where each one stands now.
+  ar.querySelectorAll<HTMLElement>(".ar-batt:not(.cap)").forEach((el) => {
+    const rb = robotOf(+el.dataset.batt!);
+    if (!rb) return;
+    const tmp = document.createElement("div");
+    tmp.innerHTML = batteryBar(rb.inst, rb.battery, rb.broken > 0, false);
+    const n = tmp.firstElementChild as HTMLElement;
+    el.className = n.className;
+    const bar = el.querySelector("i");
+    if (bar) bar.style.width = (n.querySelector("i") as HTMLElement).style.width;
+    el.querySelector("span")!.textContent = n.querySelector("span")!.textContent;
+  });
+  $("#autoclock")?.setAttribute("hidden", "");
   document.querySelectorAll<HTMLElement>("[data-rp-to]").forEach((b) => (b.textContent = b.dataset.rpTo!));
   $("#phase")?.classList.remove("show");
 }

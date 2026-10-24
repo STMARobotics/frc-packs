@@ -1,12 +1,12 @@
-//! One Battler game as a state machine (spec §3, §6): OPEN -> DECKS -> (PIT -> RESULTS) x 5 -> FINAL. Pure: the
+//! One Battler game as a state machine (spec §3, §6): OPEN -> DECKS -> DRAFT -> (PIT -> RESULTS) x 5 -> FINAL. Pure: the
 //! server reads the game, calls one of these with the current time, and writes it back on condition nobody else changed
 //! it first. Every shuffle and roll comes from the game's secret seed, so a refresh or a retry never re-rolls anything.
 //! The seed's hash is shown from the start and the seed itself once the game is over, so players can check nothing was
 //! changed along the way.
 
-use rand::SeedableRng;
 use rand::rngs::StdRng;
 use rand::seq::SliceRandom;
+use rand::{Rng, SeedableRng};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use uuid::Uuid;
@@ -25,6 +25,34 @@ pub const OPEN_MS: i64 = 30 * 60_000;
 pub const DECKS_MS: i64 = 5 * 60_000;
 pub const PIT_MS: i64 = 5 * 60_000;
 pub const RESULTS_MS: i64 = 2 * 60_000;
+/// Time for each draft pick; missing it picks the first robot offered.
+pub const DRAFT_MS: i64 = 45_000;
+/// Extra time on the first pick, for the pre-game intro both players watch.
+pub const INTRO_MS: i64 = 8_000;
+/// Robots each player drafts into their pool, and how many are offered at a time.
+pub const POOL_SIZE: usize = 10;
+pub const OFFER: usize = 3;
+/// A robot's battery: what a round on the field costs, what a round on the bench gives back, where a repaired robot
+/// comes back at, and the chance (per mille) it breaks down: 4% when fresh, more as the battery runs down.
+pub const DRAIN: i32 = 30;
+pub const RECHARGE: i32 = 25;
+pub const REPAIR_BATTERY: i32 = 60;
+/// Misses of the draft timer that cancel the game.
+pub const DRAFT_MISSES: u8 = 2;
+
+/// Percent of its stats a robot has at this battery level.
+pub fn power_for(battery: i32) -> i32 {
+    match battery {
+        50.. => 100,
+        25..=49 => 85,
+        _ => 65,
+    }
+}
+
+/// Chance, per mille, that a robot with this battery breaks down during a round.
+pub fn break_permille(battery: i32) -> u32 {
+    (40 + (100 - battery.clamp(0, 100)) * 3 / 2) as u32
+}
 /// Missing this many pit deadlines forfeits the game.
 pub const STRIKES: u8 = 2;
 
@@ -33,6 +61,7 @@ pub const STRIKES: u8 = 2;
 pub enum Status {
     Open,
     Decks,
+    Draft,
     Pit,
     Results,
     Final,
@@ -62,6 +91,15 @@ pub struct RobotInst {
     pub effect_test: bool,
     /// Whose deck it came from.
     pub from: usize,
+    /// Charge left (a captain never runs down), and rounds still to sit out after a breakdown.
+    #[serde(default = "full_battery")]
+    pub battery: i32,
+    #[serde(default)]
+    pub broken: u8,
+}
+
+fn full_battery() -> i32 {
+    100
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -99,6 +137,9 @@ pub struct Plan {
     /// (part instance, robot instance)
     pub attach: Vec<(u32, u32)>,
     pub lore: Option<u32>,
+    /// The two robots from your pool that go out with your Captain this round.
+    #[serde(default)]
+    pub partners: [u32; 2],
     /// The robot in driver station 1, 2 and 3.
     pub stations: [u32; 3],
 }
@@ -110,6 +151,11 @@ pub struct Seat {
     pub elo: i32,
     pub deck_id: Option<String>,
     pub captain: u32,
+    /// The robots drafted into this player's pool (public), not counting the Captain.
+    #[serde(default)]
+    pub pool: Vec<u32>,
+    #[serde(default)]
+    pub draft_misses: u8,
     /// Support cards not drawn yet, top first (private).
     pub pile: Vec<u32>,
     pub hand: Vec<u32>,
@@ -129,6 +175,8 @@ impl Seat {
             elo,
             deck_id: None,
             captain: 0,
+            pool: vec![],
+            draft_misses: 0,
             pile: vec![],
             hand: vec![],
             plan: Plan::default(),
@@ -176,8 +224,16 @@ pub struct Game {
     pub picks: [Option<PickSnap>; 2],
     pub robots: Vec<RobotInst>,
     pub support: Vec<SupportInst>,
-    /// The shared Alliance Deck still to deal, top first (private).
+    /// The shuffled robots still to be drafted, top first (private except the current offer).
     pub pool: Vec<u32>,
+    /// The robots on offer to whoever drafts next (public): the top of `pool`.
+    #[serde(default)]
+    pub offer: Vec<u32>,
+    /// Picks made so far, and who picked first.
+    #[serde(default)]
+    pub draft_turn: u8,
+    #[serde(default)]
+    pub draft_first: usize,
     pub round: u8,
     /// This round's robots per side: captain first.
     pub alliances: [[u32; 3]; 2],
@@ -247,6 +303,9 @@ impl Game {
             robots: vec![],
             support: vec![],
             pool: vec![],
+            offer: vec![],
+            draft_turn: 0,
+            draft_first: 0,
             round: 0,
             alliances: [[0; 3]; 2],
             rounds: vec![],
@@ -352,6 +411,8 @@ impl Game {
                     effects: r.effects.clone(),
                     effect_test: r.effect_test,
                     from: side,
+                    battery: 100,
+                    broken: 0,
                 });
                 if k == 0 {
                     self.seat_mut(side).captain = inst;
@@ -362,6 +423,9 @@ impl Game {
         }
         pool.shuffle(&mut rng);
         self.pool = pool;
+        for side in 0..2 {
+            self.alliances[side] = [self.seat(side).captain, 0, 0];
+        }
         let mut inst = 1000u32;
         for (side, p) in picks.iter().enumerate() {
             let mut pile = vec![];
@@ -382,14 +446,77 @@ impl Game {
             pile.shuffle(&mut rng);
             self.seat_mut(side).pile = pile;
         }
-        self.deal(now);
+        // The shuffled robots of both decks are drafted in turns: three on offer, you take one, the other two go back.
+        self.draft_first = rng.random_range(0..2);
+        self.draft_turn = 0;
+        self.offer = self.pool.iter().take(OFFER).copied().collect();
+        self.status = Status::Draft;
+        // The first pick gets a few extra seconds for the pre-game intro.
+        self.deadline = now + DRAFT_MS + INTRO_MS;
+        self.bump();
+    }
+
+    /// Whose turn it is to draft.
+    pub fn draft_side(&self) -> usize {
+        (self.draft_first + usize::from(self.draft_turn)) % 2
+    }
+
+    pub fn draft_pick(&mut self, side: usize, robot: u32, now: i64) -> Result<(), Refusal> {
+        if self.status != Status::Draft {
+            return Err("not_drafting");
+        }
+        if side != self.draft_side() {
+            return Err("not_your_turn");
+        }
+        if !self.offer.contains(&robot) {
+            return Err("not_offered");
+        }
+        self.take_draft(robot, now);
+        Ok(())
+    }
+
+    fn take_draft(&mut self, robot: u32, now: i64) {
+        let side = self.draft_side();
+        let n = self.offer.len();
+        let unpicked: Vec<u32> = self.offer.iter().copied().filter(|r| *r != robot).collect();
+        self.pool.drain(..n).for_each(drop);
+        self.pool.extend(unpicked);
+        self.seat_mut(side).pool.push(robot);
+        self.draft_turn += 1;
+        if usize::from(self.draft_turn) >= 2 * POOL_SIZE {
+            self.offer.clear();
+            self.deal(now);
+        } else {
+            self.offer = self.pool.iter().take(OFFER).copied().collect();
+            self.deadline = now + DRAFT_MS;
+            self.bump();
+        }
+    }
+
+    /// Your partners when you don't choose: last round's pair if they're still fit to go (not broken, still at full
+    /// power), otherwise the charged, ready robots in your pool.
+    fn default_partners(&self, side: usize) -> [u32; 2] {
+        let seat = self.seat(side);
+        let fit = |i: u32| self.robot(i).is_some_and(|r| r.broken == 0 && power_for(r.battery) == 100);
+        let mut chosen: Vec<u32> = seat.plan.partners.iter().copied().filter(|i| *i != 0 && fit(*i)).collect();
+        let mut ready: Vec<&RobotInst> =
+            seat.pool.iter().filter_map(|i| self.robot(*i)).filter(|r| r.broken == 0).collect();
+        ready.sort_by(|a, b| b.battery.cmp(&a.battery).then(a.inst.cmp(&b.inst)));
+        for r in ready {
+            if chosen.len() == 2 {
+                break;
+            }
+            if !chosen.contains(&r.inst) {
+                chosen.push(r.inst);
+            }
+        }
+        [chosen[0], chosen[1]]
     }
 
     fn deal(&mut self, now: i64) {
         self.round += 1;
         for side in 0..2 {
-            let a = self.pool.remove(0);
-            let b = self.pool.remove(0);
+            let [a, b] = self.default_partners(side);
             let captain = self.seat(side).captain;
             self.alliances[side] = [captain, a, b];
             let seat = self.seat_mut(side);
@@ -399,7 +526,7 @@ impl Game {
                     seat.hand.push(c);
                 }
             }
-            seat.plan = Plan { attach: vec![], lore: None, stations: [captain, a, b] };
+            seat.plan = Plan { attach: vec![], lore: None, partners: [a, b], stations: [captain, a, b] };
             seat.locked = false;
             seat.acked = false;
         }
@@ -460,6 +587,32 @@ impl Game {
         Ok(())
     }
 
+    /// Chooses the two robots from your pool that go out with your Captain this round. Robots that are broken can't go.
+    /// Changing partners puts everyone back in station order and takes parts off any robot that's no longer on the field.
+    pub fn set_partners(&mut self, side: usize, partners: [u32; 2]) -> Result<(), Refusal> {
+        self.pit_check(side)?;
+        if partners[0] == partners[1] {
+            return Err("bad_partners");
+        }
+        for p in partners {
+            if !self.seat(side).pool.contains(&p) {
+                return Err("not_in_pool");
+            }
+            if self.robot(p).is_none_or(|r| r.broken > 0) {
+                return Err("broken");
+            }
+        }
+        let captain = self.seat(side).captain;
+        let seat = self.seat_mut(side);
+        seat.plan.partners = partners;
+        seat.plan.stations = [captain, partners[0], partners[1]];
+        let field = [captain, partners[0], partners[1]];
+        seat.plan.attach.retain(|(_, r)| field.contains(r));
+        self.alliances[side] = field;
+        self.bump();
+        Ok(())
+    }
+
     /// Puts your three robots in driver stations 1, 2 and 3 (each robot once).
     pub fn set_stations(&mut self, side: usize, stations: [u32; 3]) -> Result<(), Refusal> {
         self.pit_check(side)?;
@@ -489,6 +642,8 @@ impl Game {
     fn resolve(&mut self, now: i64, auto_locked: [bool; 2]) {
         let mut field = vec![];
         let mut lores = vec![];
+        // Breakdown rolls come from their own seeded stream, in station order, so a refresh never re-rolls them.
+        let mut brk = StdRng::seed_from_u64(round_seed(self.seed, self.round) ^ 0xB4EA_C0DE);
         for side in 0..2 {
             let seat = self.seat(side).clone();
             for (k, &inst) in seat.plan.stations.iter().enumerate() {
@@ -506,13 +661,19 @@ impl Game {
                         effects: c.effects.clone(),
                     })
                     .collect();
+                let captain = inst == seat.captain;
+                let battery = if captain { 100 } else { r.battery };
+                let breaks = !captain && brk.random_range(0..1000u32) < break_permille(battery);
                 field.push(FieldRobot {
                     inst,
                     name: format!("{} {}", r.team, r.name),
                     side,
-                    captain: inst == seat.captain,
+                    captain,
                     station: k as u8 + 1,
                     stats: r.stats,
+                    power: if captain { 100 } else { power_for(battery) },
+                    battery,
+                    breaks,
                     effects: r.effects.clone(),
                     parts,
                 });
@@ -530,6 +691,28 @@ impl Game {
             result: result.clone(),
             auto_locked,
         };
+        // Batteries: robots on the field spend charge (and a broken one is out next round), the bench recharges, and a
+        // robot that sat out its repair comes back at 60%. A Captain never runs down.
+        for side in 0..2 {
+            let fielded = self.seat(side).plan.stations;
+            for inst in self.seat(side).pool.clone() {
+                let broke = result.robots.iter().any(|s| s.inst == inst && s.broke);
+                let r = self.robots.iter_mut().find(|r| r.inst == inst).expect("pool robot in game");
+                if fielded.contains(&inst) {
+                    r.battery = (r.battery - DRAIN).max(0);
+                    if broke {
+                        r.broken = 1;
+                    }
+                } else if r.broken > 0 {
+                    r.broken -= 1;
+                    if r.broken == 0 {
+                        r.battery = REPAIR_BATTERY;
+                    }
+                } else {
+                    r.battery = (r.battery + RECHARGE).min(100);
+                }
+            }
+        }
         for side in 0..2 {
             let seat = self.seat_mut(side);
             seat.rp += result.match_rp[side] + result.bonus_rp[side];
@@ -590,7 +773,7 @@ impl Game {
 
     pub fn forfeit(&mut self, side: usize) -> Result<(), Refusal> {
         match self.status {
-            Status::Decks => {
+            Status::Decks | Status::Draft => {
                 // Nothing played yet: call it off, no rating change.
                 self.status = Status::Cancelled;
                 self.bump();
@@ -646,6 +829,18 @@ impl Game {
                 self.status = Status::Cancelled;
                 self.bump();
             }
+            Status::Draft => {
+                // A missed pick takes the first robot offered; missing two in a row-ish cancels the game.
+                let side = self.draft_side();
+                self.seat_mut(side).draft_misses += 1;
+                if self.seat(side).draft_misses >= DRAFT_MISSES {
+                    self.status = Status::Cancelled;
+                    self.bump();
+                } else {
+                    let robot = self.offer[0];
+                    self.take_draft(robot, now);
+                }
+            }
             Status::Pit => {
                 let late: Vec<usize> = (0..2).filter(|&s| !self.seat(s).locked).collect();
                 for &s in &late {
@@ -695,11 +890,12 @@ pub struct SeatView {
     pub hand_count: usize,
     pub pile_count: usize,
     pub strikes: u8,
-    /// During the pit: one entry per part this player has put down, naming the robot it's on, but not the card
-    /// (face down, like Marvel Snap). Empty otherwise.
-    pub face_down: Vec<u32>,
+    /// During the pit: how many parts this player has put down (face down: not which cards, not on which robots).
+    pub parts_down: usize,
     /// During the pit: whether they've put a lore card down (not which).
     pub lore_down: bool,
+    /// The robots they drafted (public).
+    pub pool: Vec<u32>,
 }
 
 #[derive(Serialize)]
@@ -707,8 +903,6 @@ pub struct MeView {
     pub side: usize,
     pub hand: Vec<u32>,
     pub plan: Plan,
-    /// Your own deck's robots (instances), so you can recognise them in the shared deck.
-    pub deck_robots: Vec<u32>,
 }
 
 #[derive(Serialize)]
@@ -721,9 +915,15 @@ pub struct GameView<'a> {
     pub deadline: i64,
     pub seats: Vec<Option<SeatView>>,
     pub me: Option<MeView>,
+    /// Each side's Captain and two partners this round. The other player's partners stay 0 until the round is revealed.
     pub alliances: [[u32; 3]; 2],
     pub pool_left: usize,
-    /// Every robot this player may see: captains, dealt robots, and their own deck.
+    /// The draft: robots on offer, picks made, whose pick it is.
+    pub offer: &'a [u32],
+    pub draft_turn: u8,
+    pub draft_total: usize,
+    pub draft_side: Option<usize>,
+    /// Every robot this player may see: captains, both pools, the current offer, and revealed alliances.
     pub robots: Vec<&'a RobotInst>,
     /// Every support card this player may see: their own, and the opponent's once played.
     pub support: Vec<&'a SupportInst>,
@@ -762,8 +962,9 @@ impl Game {
                         - if pit { s.plan.attach.len() + usize::from(s.plan.lore.is_some()) } else { 0 },
                     pile_count: s.pile.len(),
                     strikes: s.strikes,
-                    face_down: if pit { s.plan.attach.iter().map(|(_, r)| *r).collect() } else { vec![] },
+                    parts_down: if pit { s.plan.attach.len() } else { 0 },
                     lore_down: pit && s.plan.lore.is_some(),
+                    pool: s.pool.clone(),
                 })
             })
             .collect();
@@ -771,18 +972,31 @@ impl Game {
             side: v,
             hand: s.hand.clone(),
             plan: s.plan.clone(),
-            deck_robots: self.robots.iter().filter(|r| r.from == v).map(|r| r.inst).collect(),
         });
+        // In the pit each player's partners are hidden from the other until both lock.
+        let mut alliances = self.alliances;
+        if pit {
+            for (side, a) in alliances.iter_mut().enumerate() {
+                if viewer != Some(side) {
+                    a[1] = 0;
+                    a[2] = 0;
+                }
+            }
+        }
         let mut seen: Vec<u32> = vec![];
         if started {
             for s in self.seats.iter().flatten() {
                 seen.push(s.captain);
             }
-            for a in &self.alliances {
-                seen.extend(a.iter().copied());
+            for a in &alliances {
+                seen.extend(a.iter().copied().filter(|i| *i != 0));
             }
-            if let Some(v) = viewer {
-                seen.extend(self.robots.iter().filter(|r| r.from == v).map(|r| r.inst));
+            for s in self.seats.iter().flatten() {
+                seen.extend(s.pool.iter().copied());
+            }
+            seen.extend(self.offer.iter().copied());
+            for log in &self.rounds {
+                seen.extend(log.stations.iter().flatten().copied());
             }
         }
         let over = self.status.over();
@@ -802,8 +1016,12 @@ impl Game {
             deadline: self.deadline,
             seats,
             me,
-            alliances: self.alliances,
+            alliances,
             pool_left: self.pool.len(),
+            offer: &self.offer,
+            draft_turn: self.draft_turn,
+            draft_total: 2 * POOL_SIZE,
+            draft_side: (self.status == Status::Draft).then(|| self.draft_side()),
             robots,
             support,
             rounds: &self.rounds,
@@ -874,36 +1092,153 @@ mod tests {
         (g, a, b)
     }
 
+    /// Takes the first robot offered, for whoever's turn it is, until the draft is over.
+    fn draft_all(g: &mut Game) {
+        while g.status == Status::Draft {
+            let (side, robot) = (g.draft_side(), g.offer[0]);
+            g.draft_pick(side, robot, 5).unwrap();
+        }
+    }
+
+    fn drafted() -> (Game, Uuid, Uuid) {
+        let (mut g, a, b) = started();
+        draft_all(&mut g);
+        (g, a, b)
+    }
+
     #[test]
-    fn a_full_game_runs_five_rounds_and_uses_every_partner_once() {
+    fn the_draft_alternates_and_fills_both_pools() {
         let (mut g, _, _) = started();
+        assert_eq!(g.status, Status::Draft);
+        assert_eq!(g.pool.len(), 20);
+        assert_eq!(g.offer.len(), OFFER);
+        let first = g.draft_side();
+        let other = 1 - first;
+        let robot = g.offer[1];
+        assert_eq!(g.draft_pick(other, robot, 5), Err("not_your_turn"));
+        assert_eq!(g.draft_pick(first, 9999, 5), Err("not_offered"));
+        let left: Vec<u32> = g.offer.iter().copied().filter(|r| *r != robot).collect();
+        g.draft_pick(first, robot, 5).unwrap();
+        assert_eq!(g.seat(first).pool, vec![robot]);
+        assert_eq!(g.draft_side(), other, "turns alternate");
+        assert!(left.iter().all(|r| g.pool.contains(r)), "the two you passed on go back in the deck");
+        assert!(!g.offer.contains(&robot));
+        draft_all(&mut g);
         assert_eq!(g.status, Status::Pit);
-        assert_eq!(g.pool.len(), 16);
-        let mut dealt = vec![];
+        assert_eq!(g.round, 1);
+        for side in 0..2 {
+            assert_eq!(g.seat(side).pool.len(), POOL_SIZE);
+        }
+        let mut all: Vec<u32> = g.seats.iter().flatten().flat_map(|s| s.pool.clone()).collect();
+        all.sort_unstable();
+        all.dedup();
+        assert_eq!(all.len(), 20, "every robot went to exactly one player");
+    }
+
+    #[test]
+    fn missing_a_draft_pick_takes_the_first_offer_and_two_misses_cancel() {
+        let (mut g, _, _) = started();
+        let (side, first) = (g.draft_side(), g.offer[0]);
+        let mut now = g.deadline + 1;
+        assert!(g.tick(now));
+        assert_eq!(g.seat(side).pool, vec![first]);
+        assert_eq!(g.status, Status::Draft);
+        // The other player picks, then the first misses again.
+        let (s2, r2) = (g.draft_side(), g.offer[0]);
+        g.draft_pick(s2, r2, now).unwrap();
+        now += DRAFT_MS + 1;
+        assert!(g.tick(now));
+        assert_eq!(g.seat(side).draft_misses, 2);
+        assert_eq!(g.status, Status::Cancelled);
+    }
+
+    #[test]
+    fn a_full_game_runs_five_rounds_with_batteries() {
+        let (mut g, _, _) = drafted();
+        assert_eq!(g.status, Status::Pit);
         for round in 1..=ROUNDS {
             assert_eq!(g.round, round);
             for side in 0..2 {
                 assert_eq!(g.alliances[side][0], g.seat(side).captain, "the captain plays every round");
-                dealt.extend_from_slice(&g.alliances[side][1..]);
             }
+            let field = g.alliances;
+            let before: Vec<i32> = g.robots.iter().map(|r| r.battery).collect();
             g.lock(0, 10).unwrap();
             g.lock(1, 11).unwrap();
             assert_eq!(g.status, Status::Results);
+            if round == 1 {
+                for (side, on_field) in field.iter().enumerate() {
+                    for inst in g.seat(side).pool.clone() {
+                        let r = g.robot(inst).unwrap();
+                        if on_field.contains(&inst) {
+                            assert_eq!(r.battery, 100 - DRAIN, "fielding costs charge, broken or not");
+                        } else {
+                            assert_eq!(r.battery, 100, "the bench recharges, up to full");
+                        }
+                    }
+                }
+            }
+            assert_eq!(before.len(), g.robots.len());
             g.ack(0, 12).unwrap();
             g.ack(1, 13).unwrap();
         }
         assert_eq!(g.status, Status::Final);
-        dealt.sort_unstable();
-        dealt.dedup();
-        assert_eq!(dealt.len(), 20, "all 20 partners used exactly once");
         let o = g.outcome.as_ref().unwrap();
         assert_eq!(o.rp, [g.seat(0).rp, g.seat(1).rp]);
         assert!(g.seat(0).rp >= 0 && g.rounds.len() == 5);
     }
 
     #[test]
+    fn choosing_partners_and_broken_robots() {
+        let (mut g, _, _) = drafted();
+        let pool = g.seat(0).pool.clone();
+        let out: Vec<u32> = pool.iter().copied().filter(|i| !g.alliances[0].contains(i)).collect();
+        assert_eq!(g.set_partners(0, [out[0], out[0]]), Err("bad_partners"));
+        assert_eq!(g.set_partners(0, [out[0], g.seat(1).pool[0]]), Err("not_in_pool"));
+        // A part on a robot that leaves the field comes off with it.
+        let part = *g.seat(0).hand.iter().find(|c| g.card(**c).unwrap().kind == Kind::Part).unwrap();
+        let old = g.alliances[0][1];
+        g.attach(0, part, old).unwrap();
+        g.robots.iter_mut().find(|r| r.inst == out[1]).unwrap().broken = 1;
+        assert_eq!(g.set_partners(0, [out[0], out[1]]), Err("broken"));
+        g.set_partners(0, [out[0], out[2]]).unwrap();
+        assert_eq!(g.alliances[0][1..], [out[0], out[2]]);
+        assert_eq!(g.seat(0).plan.stations, [g.seat(0).captain, out[0], out[2]]);
+        assert!(g.seat(0).plan.attach.is_empty(), "the part came off with the robot");
+        g.lock(0, 5).unwrap();
+        assert_eq!(g.set_partners(0, [out[0], out[2]]), Err("locked"));
+    }
+
+    #[test]
+    fn a_broken_robot_sits_out_a_round_and_comes_back_repaired() {
+        let (mut g, _, _) = drafted();
+        let sick = *g.seat(0).pool.iter().find(|i| !g.alliances[0].contains(i)).unwrap();
+        let r = g.robots.iter_mut().find(|r| r.inst == sick).unwrap();
+        r.broken = 1;
+        r.battery = 10;
+        g.lock(0, 5).unwrap();
+        g.lock(1, 5).unwrap();
+        let r = g.robot(sick).unwrap();
+        assert_eq!((r.broken, r.battery), (0, REPAIR_BATTERY), "a round on the bench repairs it");
+    }
+
+    #[test]
+    fn tired_robots_swap_out_by_default() {
+        let (mut g, _, _) = drafted();
+        let [a, b] = g.seat(0).plan.partners;
+        for i in [a, b] {
+            g.robots.iter_mut().find(|r| r.inst == i).unwrap().battery = 20;
+        }
+        assert_ne!(g.default_partners(0), [a, b], "low-power partners are replaced when you don't choose");
+        g.robots.iter_mut().find(|r| r.inst == a).unwrap().battery = 100;
+        let d = g.default_partners(0);
+        assert!(d.contains(&a), "a charged partner stays");
+        assert!(!d.contains(&b));
+    }
+
+    #[test]
     fn three_cards_a_round_and_unplayed_ones_stay() {
-        let (mut g, _, _) = started();
+        let (mut g, _, _) = drafted();
         assert_eq!(g.seat(0).hand.len(), 3);
         let part = *g.seat(0).hand.iter().find(|c| g.card(**c).unwrap().kind == Kind::Part).unwrap();
         let robot = g.alliances[0][1];
@@ -921,7 +1256,7 @@ mod tests {
 
     #[test]
     fn pit_rules_are_enforced() {
-        let (mut g, _, _) = started();
+        let (mut g, _, _) = drafted();
         let theirs = g.seat(1).hand[0];
         let my_robot = g.alliances[0][0];
         assert_eq!(g.attach(0, theirs, my_robot), Err("not_in_hand"));
@@ -936,7 +1271,7 @@ mod tests {
 
     #[test]
     fn only_one_lore_and_only_lore() {
-        let (mut g, _, _) = started();
+        let (mut g, _, _) = drafted();
         let hand = g.seat(0).hand.clone();
         let part = hand.iter().copied().find(|c| g.card(*c).unwrap().kind == Kind::Part).unwrap();
         assert_eq!(g.set_lore(0, Some(part)), Err("not_in_hand"));
@@ -947,7 +1282,7 @@ mod tests {
 
     #[test]
     fn the_opponents_secrets_stay_hidden() {
-        let (mut g, _, _) = started();
+        let (mut g, _, _) = drafted();
         let mine = g.seat(0).hand[0];
         if g.card(mine).unwrap().kind == Kind::Part {
             g.attach(0, mine, g.alliances[0][0]).unwrap();
@@ -960,20 +1295,30 @@ mod tests {
         assert!(!visible.contains(&u64::from(mine)), "alice's hand isn't visible to bob");
         assert!(v["seed"].is_null(), "the seed stays secret until the end");
         assert!(v.get("pool").is_none());
+        // Alice's partners are hidden until the round is played; her captain and pool are public.
+        assert_eq!(v["alliances"][0][1], 0);
+        assert_eq!(v["alliances"][0][2], 0);
+        assert_ne!(v["alliances"][0][0], 0);
+        assert_ne!(v["alliances"][1][1], 0, "bob sees his own");
+        let alice_partner = g.alliances[0][1];
+        let shown: Vec<u64> = v["robots"].as_array().unwrap().iter().map(|r| r["inst"].as_u64().unwrap()).collect();
+        assert!(shown.contains(&u64::from(alice_partner)), "pools are public, so her robots are known");
     }
 
     #[test]
     fn missing_the_pit_deadline_auto_locks_then_forfeits() {
-        let (mut g, _, _) = started();
+        let (mut g, _, _) = drafted();
         g.lock(0, 10).unwrap();
-        assert!(g.tick(PIT_MS + 100));
+        g.deadline = 1_000;
+        assert!(g.tick(1_100));
         assert_eq!(g.status, Status::Results);
         assert!(g.rounds[0].auto_locked[1]);
         assert_eq!(g.seat(1).strikes, 1);
-        assert!(g.tick(PIT_MS + 100 + RESULTS_MS));
+        assert!(g.tick(1_100 + RESULTS_MS));
         assert_eq!(g.status, Status::Pit);
-        g.lock(0, PIT_MS + 200 + RESULTS_MS).unwrap();
-        assert!(g.tick(10 * PIT_MS));
+        let t = 1_200 + RESULTS_MS;
+        g.lock(0, t).unwrap();
+        assert!(g.tick(t + 10 * PIT_MS));
         assert_eq!(g.status, Status::Final);
         let o = g.outcome.as_ref().unwrap();
         assert_eq!(o.winner, Some(0));
@@ -981,13 +1326,13 @@ mod tests {
     }
 
     #[test]
-    fn placements_show_face_down_and_emotes_are_limited() {
-        let (mut g, _, _) = started();
+    fn placements_show_a_count_not_the_cards_and_emotes_are_limited() {
+        let (mut g, _, _) = drafted();
         let part = *g.seat(0).hand.iter().find(|c| g.card(**c).unwrap().kind == Kind::Part).unwrap();
         let robot = g.alliances[0][2];
         g.attach(0, part, robot).unwrap();
         let v = serde_json::to_value(g.view(Some(1))).unwrap();
-        assert_eq!(v["seats"][0]["face_down"], serde_json::json!([robot]), "bob sees a card went on that robot");
+        assert_eq!(v["seats"][0]["parts_down"], 1, "bob sees that a card went down, nothing more");
         assert_eq!(v["seats"][0]["hand_count"], 2, "and alice's hand shrink");
         let shown: Vec<u64> = v["support"].as_array().unwrap().iter().map(|c| c["inst"].as_u64().unwrap()).collect();
         assert!(!shown.contains(&u64::from(part)), "but not which card");
@@ -1011,7 +1356,7 @@ mod tests {
 
     #[test]
     fn ratings_change_once_by_the_spec_formula() {
-        let (mut g, _, _) = started();
+        let (mut g, _, _) = drafted();
         g.forfeit(1).unwrap();
         let after = g.rate([1000, 1000]);
         assert_eq!(after, [1016, 984]);
@@ -1021,9 +1366,9 @@ mod tests {
 
     #[test]
     fn same_seed_same_game() {
-        let (mut a, _, _) = started();
-        let (mut b, _, _) = started();
-        assert_eq!(a.pool, b.pool);
+        let (mut a, _, _) = drafted();
+        let (mut b, _, _) = drafted();
+        assert_eq!(a.seat(0).pool, b.seat(0).pool);
         a.lock(0, 1).unwrap();
         a.lock(1, 1).unwrap();
         b.lock(0, 1).unwrap();

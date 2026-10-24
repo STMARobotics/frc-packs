@@ -111,6 +111,30 @@ async function main() {
   await b.waitForSelector('[data-deck]');
   await b.click('[data-deck]');
 
+  // Pre-game intro (tap to skip), then the draft: take turns, 20 picks, 10 robots each.
+  await a.waitForSelector('.intro', { timeout: 10000 });
+  await a.waitForTimeout(900); await shot(a, '10b-intro-vs');
+  await a.waitForTimeout(2200); await shot(a, '10c-intro-captains');
+  await a.waitForTimeout(1500); await shot(a, '10d-intro-shuffle');
+  await a.click('.intro');
+  if (await b.$('.intro')) await b.click('.intro');
+  await a.waitForSelector('.dr .dr-opt');
+  await shot(a, '10e-draft');
+  await shot(b, '10f-draft-b');
+  for (let n = 0; n < 20; n++) {
+    const p = await Promise.race([a, b].map((x) => x.waitForSelector('[data-draft]:not([disabled])', { timeout: 15000 }).then(() => x).catch(() => new Promise(() => {}))));
+    if (n === 3) { await p.click('.dr-opt >> nth=1'); await shot(p, '10g-draft-pick-selected'); }
+    await p.click('[data-draft]');
+    await p.waitForFunction(() => !document.querySelector('[data-draft]:not([disabled])'));
+  }
+  await a.waitForSelector('.ar[data-mode="pit"]', { timeout: 15000 });
+  await b.waitForSelector('.ar[data-mode="pit"]', { timeout: 15000 });
+  const poolsA = await A.call('GET', '/api/battler/home');
+  assert(poolsA.active, 'game is active');
+  const gv = await A.call('GET', `/api/battler/games/${poolsA.active}`);
+  assert(gv.seats[0].pool.length === 10 && gv.seats[1].pool.length === 10, 'both pools have 10 robots');
+  assert(gv.alliances[1 - gv.me.side][1] === 0, "the other player's partners are hidden in the pit");
+
   const drag = async (p, from, to) => {
     const f = await p.locator(from).first().boundingBox(), t = await p.locator(to).first().boundingBox();
     const sx = f.x + Math.min(14, f.width / 2), sy = f.y + f.height / 2;
@@ -148,6 +172,17 @@ async function main() {
         await shot(p, '11-pit-round1');
       }
       if (round === 1 && who === 'b') {
+        // Swap a partner from the bench.
+        const before = (await B.call('GET', `/api/battler/games/${poolsA.active}`)).alliances[(await B.call('GET', `/api/battler/games/${poolsA.active}`)).me.side];
+        await p.click('.ar-steps [data-bench]');
+        await p.waitForSelector('.ar-slots');
+        await shot(p, '11c-bench');
+        await p.locator('.ar-minigrid .ar-mini[data-pick]:not(.broken)').filter({ hasNotText: 'In your alliance' }).first().click();
+        await p.click('[data-bench-done]');
+        await p.waitForTimeout(700);
+        const after = (await B.call('GET', `/api/battler/games/${poolsA.active}`)).alliances;
+        const mine = after[(await B.call('GET', `/api/battler/games/${poolsA.active}`)).me.side];
+        assert(mine[1] !== before[1] || mine[2] !== before[2], 'bench swap changed a partner');
         await p.click('#emoteBtn');
         await p.click('[data-emote="nice"]');
         await a.waitForSelector('.ar-bubble.op', { timeout: 5000 });
@@ -162,6 +197,7 @@ async function main() {
       await a.waitForTimeout(3500); await shot(a, '13-reveal-scoring');
       await a.waitForSelector('.ar.revealed', { timeout: 20000 }); await shot(a, '14-revealed', true);
     }
+    if (round >= 2 && round <= 4) { await a.waitForSelector('.ar.revealed', { timeout: 25000 }); await shot(a, `14-reveal-round${round}`, true); }
     for (const p of [a, b]) {
       await p.waitForSelector('.ar [data-act="ack"]:not([disabled])', { timeout: 30000 });
       await p.click('.ar [data-act="ack"]');
