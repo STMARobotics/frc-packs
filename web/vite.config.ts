@@ -7,14 +7,8 @@ const server = process.env.API_URL ?? "http://127.0.0.1:3000";
 
 export default defineConfig({
   build: {
-    // Three pages: the game, the admin panel (the server serves it at /admin) and the Battler (/battle.html).
-    rollupOptions: {
-      input: {
-        main: resolve(import.meta.dirname, "index.html"),
-        admin: resolve(import.meta.dirname, "admin.html"),
-        battle: resolve(import.meta.dirname, "battle.html"),
-      },
-    },
+    // Two pages: the game and the admin panel (the server serves it at /admin).
+    rollupOptions: { input: { main: resolve(import.meta.dirname, "index.html"), admin: resolve(import.meta.dirname, "admin.html") } },
   },
   server: {
     proxy: { "/api": server, "/photos": server, "/packs": server },

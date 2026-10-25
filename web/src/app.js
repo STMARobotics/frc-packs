@@ -273,25 +273,9 @@ export function start(RECIPE) {
      fills any gap. */
   function photoHTML(num) {
     var src = '/photos/' + num + '.webp';
-    return '<span class="phw"><img class="ph-bg" alt="" draggable="false" decoding="async" src="' + src + '"><img class="ph" alt="" draggable="false" decoding="async" data-num="' + num + '" src="' + src + '"></span>';
+    return '<span class="phw"><img class="ph-bg" alt="" draggable="false" decoding="async" src="' + src + '"><img class="ph" alt="" draggable="false" decoding="async" src="' + src + '"></span>';
   }
-  /* Centers each photo on where its robot is (data/photos/focus.json, made by tools/photo_focus.py): the photo fills its
-     window, and the part that gets cropped is the part least likely to be the robot. */
-  var FOCUS = {};
-  fetch("/photos/focus.json").then(function (r) { return r.ok ? r.json() : {}; }).then(function (f) { FOCUS = f || {}; document.querySelectorAll(".card img.ph[data-num]").forEach(centerPhoto); }).catch(function () {});
-  function centerPhoto(img) {
-    var f = FOCUS[img.dataset.num], w = img.naturalWidth, h = img.naturalHeight, box = img.parentElement.getBoundingClientRect();
-    if (!f || !w || !box.width) return;
-    var scale = Math.max(box.width / w, box.height / h), visW = box.width / (w * scale), visH = box.height / (h * scale);
-    var pos = function (c, vis) { return vis >= 1 ? 50 : Math.min(100, Math.max(0, (c - vis / 2) / (1 - vis) * 100)); };
-    img.style.objectPosition = pos(f[0], visW) + "% " + pos(f[1], visH) + "%";
-  }
-  document.addEventListener("load", function (e) { if (e.target.matches && e.target.matches(".card img.ph[data-num]")) centerPhoto(e.target); }, true);
   function nameScale(n) { var l = n.length; return l <= 20 ? 1 : l <= 25 ? .86 : l <= 30 ? .74 : .64; } // the name has its own line
-  function btNameScale(n) { var l = n.length; return l <= 12 ? 1 : l <= 15 ? .85 : l <= 19 ? .7 : l <= 24 ? .58 : .5; } // shares its line with the ring
-  /* Rarity star scale: one star per step up, in the tier's accent; the steps not reached are dimmed. */
-  var STARS = { common: 1, uncommon: 2, rare: 3, legendary: 4, mythic: 5 };
-  function starScale(tier) { var s = ""; for (var i = 0; i < 5; i++) s += i < STARS[tier] ? "★" : "<i>★</i>"; return s; }
   function attachTilt(slot) {
     var tilt = slot.querySelector(".tilt"), inner = slot.querySelector(".inner");
     slot.addEventListener("pointermove", function (e) {
@@ -353,28 +337,25 @@ export function start(RECIPE) {
     if (myTeam() && c.num === myTeam()) slot.classList.add("mine");
     if (opts.button) { slot.setAttribute("role", "button"); slot.tabIndex = 0; }
     slot.setAttribute("aria-label", t.name + ", team " + t.num + ", " + T.label);
-    // The battler card layout for every tier (design/battler/): the team's ring and name, the robot photo over a strip with
-    // the number, division and location, and season; then the battler stats (AUTO / TELE / END, RP1-3, unique effect), or
-    // the champs box for a team without them yet; the star scale and serial sit on the bottom of the frame.
-    var snCls = (+c.serial > 0 && +c.serial <= 10 ? " low" : "") + (+c.serial === c.num ? " match" : "");
+    // One layout for every tier: team, name and EPA pills on the frame, the robot photo with its location tags, a tier crest,
+    // the champs box, then the stars and serial pills on the bottom of the frame.
+    var epa = t.epa == null ? "–" : Math.round(t.epa * 10) / 10, snCls = (+c.serial > 0 && +c.serial <= 10 ? " low" : "") + (+c.serial === c.num ? " match" : "");
     var pic = t.photo ? photoHTML(t.num) : '<svg class="ph-fallback" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g transform="translate(6 38) scale(1.04)">' + robotSVG(t.num) + '</g></svg>';
-    // The game's stats (Battler spec §4): AUTO / TELE / END from normalized season EPA, and the three season bonus-RP
-    // chances. A team whose stats haven't been imported yet shows dashes in the same boxes, not other numbers.
-    var bt = t.bt, dash = '<b class="na">–</b>';
-    var stats =
-      '<div class="statrow">' + [["AUTO", "auto"], ["TELE", "tele"], ["END", "end"]].map(function (k) { return '<div class="stat"><small>' + k[0] + '</small>' + (bt ? '<b>' + bt[k[1]] + '</b>' : dash) + '</div>'; }).join("") + '</div>' +
-      '<div class="rprow">' + [0, 1, 2].map(function (i) { return '<div class="rp"><i>RP' + (i + 1) + '</i>' + (bt ? '<b>' + bt.rp[i] + '%</b>' : dash) + '</div>'; }).join("") + '</div>' +
-      '<div class="effect"><small>UNIQUE EFFECT</small>' + (bt && bt.effect ? '<p>' + esc(bt.effect) + '</p>' : '<p class="tbd">' + (bt ? 'Effect coming soon' : 'Stats and effect coming soon') + '</p>') + '</div>';
     slot.innerHTML =
       '<div class="shade"></div><div class="float"><div class="tilt rest"><div class="flip card" data-tier="' + c.tier + '">' + EDGES +
       '<div class="face back">' + BACK_SVG + '</div>' +
-      '<div class="face front btf"><div class="inner v2 bt b2" style="--nl:' + btNameScale(t.name) + '">' +
-      '<div class="head"><span class="avatar none">' + t.num + '</span><span class="tname">' + esc(t.name) + '</span></div>' +
-      '<div class="fwrap"><div class="fphoto">' + pic + '</div>' +
-        '<div class="idbar"><span class="num">#' + t.num + '</span><span class="loc">' + esc(t.region || t.loc || t.div) + '</span><span class="yr">2026</span></div></div>' +
-      stats +
+      '<div class="face front"><div class="inner v2" style="--nl:' + nameScale(t.name) + '">' +
+      '<div class="fwrap"><div class="fphoto">' + pic +
+        '<span class="loc l">' + esc(t.div) + (t.loc ? ' · ' + esc(t.loc) : '') + '</span><span class="loc r">CMP 2026</span></div>' +
+        '<span class="crest">★ ' + T.label + ' ★</span></div>' +
+      '<div class="fine2">EPA data from Statbotics</div>' +
+      '<div class="moves">' +
+        '<div class="mv"><i></i><span>Champs record</span><b>' + esc(t.wl) + '</b></div>' +
+        '<div class="mv"><i></i><span>Champs EPA rank</span><b>#' + t.rank + '</b></div>' +
+      '</div>' +
       '<div class="foil"></div><div class="spark"></div><div class="glare"></div></div>' +
-      '<div class="ftb"><span class="rar" aria-label="' + STARS[c.tier] + ' of 5 stars">' + starScale(c.tier) + '</span><span class="sn' + snCls + '">No. ' + esc(c.serial || "------") + '</span></div>' +
+      '<div class="ttb"><span class="a"><small>TEAM</small>' + t.num + '</span><span class="nmp">' + esc(t.name) + '</span><span class="c"><small>EPA</small>' + epa + '</span></div>' +
+      '<div class="ftb"><span class="rar">' + T.gems + '</span><span class="sn' + snCls + '">No. ' + esc(c.serial || "------") + '</span></div>' +
       '</div></div></div></div></div>';
     if (opts.ribbon) { var r = document.createElement("div"); r.className = "ribbon" + (c.isNew ? "" : " dupe"); r.textContent = c.test ? "TEST" : c.isNew ? "NEW" : "COPY #" + c.copy; r.hidden = true; slot.appendChild(r); slot._ribbon = r; }
     if (opts.count > 1) { var b = document.createElement("div"); b.className = "count-badge"; b.textContent = "×" + opts.count; slot.appendChild(b); }
@@ -1446,7 +1427,7 @@ export function start(RECIPE) {
     // The same team facts the card view shows everywhere else.
     var fx = document.createElement("div"); fx.className = "serials card-facts";
     fx.innerHTML = "<dl><dt>Team</dt><dd>" + t.num + " · " + esc(t.name) + "</dd><dt>Division</dt><dd>" + esc(t.div) + "</dd>" + (t.loc ? "<dt>From</dt><dd>" + esc(t.loc) + "</dd>" : "") +
-      "<dt>EPA</dt><dd>" + (t.epa == null ? "–" : Math.round(t.epa)) + " · #" + t.rank + " at Champs</dd><dt>Record</dt><dd>" + esc(t.wl) + "</dd>" + battlerFacts(t) + "</dl>";
+      "<dt>EPA</dt><dd>" + (t.epa == null ? "–" : Math.round(t.epa)) + " · #" + t.rank + " at Champs</dd><dt>Record</dt><dd>" + esc(t.wl) + "</dd></dl>";
     modalIn.appendChild(fx);
     var extra = [];
     var hc = heldCopies(), free = serials.filter(function (x) { return !hc[t.num + ":" + x]; }).length;
@@ -1523,15 +1504,6 @@ export function start(RECIPE) {
     return b;
   }
   function viewCard(num, o, replace) { present(function () { return cardScreen(num, o || {}); }, replace); }
-  /* What the Battler stats on the card mean, in the card's facts: which bonus RP each RP slot is this season (the same for
-     every card in a season, per the Battler spec), and where the numbers come from. */
-  var RP_NAMES = { 2025: ["Auto", "Coral", "Barge"], 2026: ["Energized", "Supercharged", "Traversal"] };
-  function battlerFacts(t) {
-    var names = RP_NAMES[RECIPE.season] || ["RP1", "RP2", "RP3"];
-    return '<dt>Battler</dt><dd>' + (t.bt ? 'AUTO ' + t.bt.auto + ' · TELE ' + t.bt.tele + ' · END ' + t.bt.end : 'Stats coming soon') + '</dd>' +
-      '<dt>RP slots</dt><dd>' + names.map(function (n, i) { return 'RP' + (i + 1) + ' ' + n; }).join(' · ') + '</dd>';
-  }
-
   /* Serial numbers worth bragging about: No. 1, any of the first ten, and a serial that matches the team number. */
   function serialBadges(num, serials) {
     var b = [];
@@ -1555,7 +1527,7 @@ export function start(RECIPE) {
       '<dt>EPA</dt><dd>' + (t.epa == null ? "–" : Math.round(t.epa)) + ' · #' + t.rank + ' at Champs</dd>' +
       '<dt>Record</dt><dd>' + esc(t.wl) + '</dd>' +
       (o.serial ? '<dt>Serial</dt><dd>No. ' + esc(o.serial) + '</dd>' : '') +
-      battlerFacts(t) + '</dl><p>' + (o.from ? o.from + " " : "") + (mine ? "You own " + (mine === 1 ? "1 copy" : mine + " copies") + "." : "You don't have this one yet.") + '</p>';
+      '</dl><p>' + (o.from ? o.from + " " : "") + (mine ? "You own " + (mine === 1 ? "1 copy" : mine + " copies") + "." : "You don't have this one yet.") + '</p>';
     modalIn.appendChild(facts);
     var close = cardChrome(num, !!mine, o.action && { label: o.action.label, run: function () { closeAll(o.action.run); } });
     cardPos();

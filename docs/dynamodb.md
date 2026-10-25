@@ -61,12 +61,6 @@ add up.
 | `SETTINGS` | `SETTINGS` | the free-pack rules, the push signing key, and the admin's rarity changes (`tier_overrides`, `tiers_ver`, and the parts and note chosen for the last change) |
 | `PUSH#<endpoint hash>` | `PUSH` | a device's push subscription. GSI2 `U#<id>`. |
 | `CTR` | `CTR` | counters for card, opening, trade, report and special ids |
-| `BG#<id>` | `GAME` | a Battler game, whole, as JSON in `state`, with `ver` (every change is conditioned on it). GSI1 `BGOPEN` while waiting for a second player. |
-| `U#<id>` | `BTACTIVE` | the Battler game a player is in (one at a time) |
-| `U#<id>` | `BTPROF` | Battler rating and record |
-| `U#<id>` | `BTDECK#<deck>` | a saved Battler deck |
-| `U#<id>` | `BTHIST#<time>#<game>` | a finished Battler game, for match history |
-| `BTFX#<team>` | `FX`, `REV#<n>` | a robot's admin-written Battler effect (draft and published), and each published revision. GSI1 `BTFX`. |
 
 ## Limits
 
