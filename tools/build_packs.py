@@ -13,10 +13,38 @@ data = root / "data"
 
 CA_PROV = {"ON", "QC", "AB", "BC", "MB", "SK", "NS", "NB"}
 
+STATES = {"AL": "Alabama", "AK": "Alaska", "AZ": "Arizona", "AR": "Arkansas", "CA": "California", "CO": "Colorado",
+    "CT": "Connecticut", "DE": "Delaware", "DC": "District of Columbia", "FL": "Florida", "GA": "Georgia", "HI": "Hawaii",
+    "ID": "Idaho", "IL": "Illinois", "IN": "Indiana", "IA": "Iowa", "KS": "Kansas", "KY": "Kentucky", "LA": "Louisiana",
+    "ME": "Maine", "MD": "Maryland", "MA": "Massachusetts", "MI": "Michigan", "MN": "Minnesota", "MS": "Mississippi",
+    "MO": "Missouri", "MT": "Montana", "NE": "Nebraska", "NV": "Nevada", "NH": "New Hampshire", "NJ": "New Jersey",
+    "NM": "New Mexico", "NY": "New York", "NC": "North Carolina", "ND": "North Dakota", "OH": "Ohio", "OK": "Oklahoma",
+    "OR": "Oregon", "PA": "Pennsylvania", "RI": "Rhode Island", "SC": "South Carolina", "SD": "South Dakota",
+    "TN": "Tennessee", "TX": "Texas", "UT": "Utah", "VT": "Vermont", "VA": "Virginia", "WA": "Washington",
+    "WV": "West Virginia", "WI": "Wisconsin", "WY": "Wyoming", "PR": "Puerto Rico",
+    "ON": "Ontario", "QC": "Quebec", "AB": "Alberta", "BC": "British Columbia", "MB": "Manitoba", "SK": "Saskatchewan",
+    "NS": "Nova Scotia", "NB": "New Brunswick"}
+
+def region(loc):
+    """The Battler card's region: the full state or province name where there is one, otherwise the country."""
+    return STATES.get(loc, loc) if re.fullmatch(r"[A-Z]{2}", loc) else loc
+
 def place(loc):
     if re.fullmatch(r"[A-Z]{2}", loc):
         return loc + (", Canada" if loc in CA_PROV else ", USA")
     return loc
+
+def battler_stats(path):
+    """team|auto|tele|end|rp1|rp2|rp3|event from tools/battler_stats.py: the 1v1 battler stats on each card."""
+    out = {}
+    if path.exists():
+        for line in path.read_text(encoding="utf-8").splitlines():
+            p = line.strip().split("|")
+            if len(p) >= 7 and p[0].isdigit():
+                out[int(p[0])] = {"auto": int(p[1]), "tele": int(p[2]), "end": int(p[3]), "rp": [int(x) for x in p[4:7]]}
+    return out
+
+BATTLER = battler_stats(data / "battler-2026.txt")
 
 def champs_teams(path):
     """team|name|champs EPA|champs W-L|division|season EPA rank|location, one line per team."""
@@ -41,10 +69,12 @@ def champs_teams(path):
         teams.append({
             "num": num, "name": p[1], "epa": epa,
             "wl": p[3] if re.fullmatch(r"\d+-\d+", p[3]) else "–",
-            "div": p[4], "srank": srank, "loc": "" if p[6] == "-" else place(p[6]),
+            "div": p[4], "srank": srank, "loc": "" if p[6] == "-" else place(p[6]), "region": "" if p[6] == "-" else region(p[6]),
             # Robot photo at /photos/<num>.webp (from The Blue Alliance); teams without one get a drawing.
             "photo": (data / "photos" / f"{num}.webp").exists(),
         })
+        if num in BATTLER:
+            teams[-1]["bt"] = BATTLER[num]
     # Rarity: the season's top 50 who came were Mythic at launch; everyone else is ranked by EPA at the event. Since
     # October 2026 only the teams in MYTHICS are Mythic: other former Mythics are Legendary, and the rest keep their tier.
     teams.sort(key=lambda t: (-(t["epa"] if t["epa"] is not None else -1), t["num"]))

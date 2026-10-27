@@ -4,6 +4,7 @@ pub mod accounts;
 pub mod admin;
 pub mod api;
 pub mod auth;
+pub mod battler;
 pub mod db;
 pub mod error;
 pub mod feedback;
@@ -53,6 +54,8 @@ pub struct AppState {
     pub cookie_secure: bool,
     pub admin_only: bool,
     pub limiter: accounts::Limiter,
+    /// The Battler's cards (robots from the pack recipe, Part and Lore cards from data/battler).
+    pub battler: Arc<battler::content::Content>,
 }
 
 impl AppState {
@@ -79,6 +82,7 @@ pub fn app(db: Db, cfg: Config) -> anyhow::Result<Router> {
         cookie_secure: cfg.cookie_secure,
         admin_only: cfg.admin_only,
         limiter: accounts::Limiter::default(),
+        battler: Arc::new(battler::content::Content::load(&cfg.data_dir)?),
     });
     let mut router = Router::new()
         .nest("/api/admin", admin::routes().merge(feedback::admin_routes()).merge(tiers::routes()))
@@ -91,7 +95,8 @@ pub fn app(db: Db, cfg: Config) -> anyhow::Result<Router> {
                 .merge(profiles::routes())
                 .merge(reports::routes())
                 .merge(feedback::routes())
-                .merge(specials::routes()),
+                .merge(specials::routes())
+                .merge(battler::api::routes()),
         )
         .nest_service("/photos", ServeDir::new(cfg.data_dir.join("photos")))
         .nest_service("/packs", ServeDir::new(cfg.data_dir.join("packs")));
