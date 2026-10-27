@@ -22,6 +22,9 @@ rm -rf "$build_dir"
 mkdir -p "$build_dir/data"
 cp "$lambda_binary" "$build_dir/bootstrap"
 cp -a "$repo/data/packs" "$build_dir/data/packs"
+# The server reads these at startup (Battler cards); without them every request fails.
+cp -a "$repo/data/battler" "$build_dir/data/battler"
+test -f "$build_dir/data/battler/support-2026.json" || { echo "missing Battler data in the Lambda bundle" >&2; exit 1; }
 chmod 755 "$build_dir/bootstrap"
 
 echo "Built Lambda assets in $build_dir"
