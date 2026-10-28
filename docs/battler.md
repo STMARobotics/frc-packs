@@ -40,7 +40,7 @@ Played cards are used up only for that game; nothing is ever taken from the FRC 
 | `server/src/battler/game.rs` | The game state machine (OPEN, DECKS, DRAFT, PIT, RESULTS, FINAL, CANCELLED), timeouts, what each player may see |
 | `server/src/battler/content.rs` | Robot cards from the pack recipe (stats from `bt`, or test stats), Part/Lore cards from `data/battler/support-2026.json` |
 | `server/src/battler/api.rs` | `/api/battler/*`: decks, lobby, games, history, admin effects. Storage layout is in `docs/dynamodb.md` |
-| `web/battle.html`, `web/src/battle.ts`, `web/src/battle.css`, `web/src/arena.css` | The page: lobby, deck builder, intro, draft, arena |
+| `web/battle.html`, `web/src/battler/` | The page (Preact): `main.tsx` routes the screens in `screens/`; `game/` is a game from the lobby to the final (`state.ts` applies taps at once and sends them in order, `arena.tsx` the match, `reveal.ts` the reveal timeline); `battler.css` is the look |
 | `tools/battler_stats.py` | Imports robot stats from Statbotics (spec §4) |
 
 ## Keeping it fair
