@@ -8,6 +8,7 @@ import { fail, heldCopies, inv, st, toast } from "../state";
 import { back, closeAll, cx, push, TiltCard } from "../ui";
 import { sfx } from "../sfx";
 import { scrapped } from "./workshop";
+import { offerFromBinder } from "./trade";
 
 export interface CardOpts {
   /** A copy's serial, when it's someone's particular copy (not yours). */
@@ -75,19 +76,19 @@ function CardView({ num, o }: { num: number; o: CardOpts }) {
   const b = owned && !o.from ? badges(num, mine) : serial ? badges(num, [serial]) : [];
   return (
     <div class={cx("s-cardview", facts && "facts")}>
-      <div class="cv-top">
+      <div class="cw-top">
         {owned
           ? <>
               <button type="button" class={cx("s-icon", pin && "on")} disabled={busy === "pin"} onClick={() => toggle("pin")} aria-pressed={pin} aria-label="Pin to profile">{pin ? "★" : "☆"}</button>
               <button type="button" class={cx("s-icon", fav && "on")} disabled={busy === "fav"} onClick={() => toggle("fav")} aria-pressed={fav} aria-label="Keep">{fav ? "♥" : "♡"}</button>
             </>
           : <button type="button" class={cx("s-icon wide", wish && "on")} disabled={busy === "wish"} onClick={() => toggle("wish")} aria-pressed={wish}>{wish ? "♥ Wishlist" : "♡ Wishlist"}</button>}
-        <span class="cv-gap" />
+        <span class="cw-gap" />
         <button type="button" class="s-icon" onClick={back} aria-label="Close">×</button>
       </div>
-      <div class="cv-stage">
+      <div class="cw-stage">
         {facts ? (
-          <dl class="cv-facts">
+          <dl class="cw-facts">
             <dt>Team</dt><dd>{num} · {t.name}</dd>
             <dt>Rarity</dt><dd style={{ color: TIERS[t.tier].color }}>{TIERS[t.tier].label}</dd>
             <dt>Division</dt><dd>{t.div}</dd>
@@ -101,12 +102,12 @@ function CardView({ num, o }: { num: number; o: CardOpts }) {
           </dl>
         ) : <TiltCard num={num} serial={serial} w="min(310px, 80vw, calc((100svh - 250px) / 1.4))" />}
       </div>
-      {b.length > 0 && !facts && <div class="cv-badges">{b.map(([k, l]) => <span class={`s-bdg ${k}`}>{l}</span>)}</div>}
-      <p class="cv-note">{o.from ? `${o.from} ` : ""}{owned ? `You own ${mine.length === 1 ? "1 copy" : `${mine.length} copies`}.` : "You don't have this one yet."}</p>
-      <div class="cv-bottom">
+      {b.length > 0 && !facts && <div class="cw-badges">{b.map(([k, l]) => <span class={`s-bdg ${k}`}>{l}</span>)}</div>}
+      <p class="cw-note">{o.from ? `${o.from} ` : ""}{owned ? `You own ${mine.length === 1 ? "1 copy" : `${mine.length} copies`}.` : "You don't have this one yet."}</p>
+      <div class="cw-bottom">
         <div class="s-row2">
           {o.action ? <button type="button" class="s-btn" onClick={() => closeAll(o.action!.run)}>{o.action.label}</button>
-            : owned && !o.from ? <a class="s-btn" href="/#trade">Offer in a trade</a> : null}
+            : owned && !o.from ? <button type="button" class="s-btn" onClick={() => closeAll(() => offerFromBinder(num))}>Offer in a trade</button> : null}
           <button type="button" class="s-btn ghost" onClick={() => setFacts(!facts)}>{facts ? "Card" : "Details"}</button>
         </div>
         {canScrap && extras > 0 && (

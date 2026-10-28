@@ -4,6 +4,7 @@
 // through. This page runs next to the current one (index.html) until it does everything that one does.
 import "../style.css";
 import "./site.css";
+import "./trade.css";
 import { render } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { api, ApiError, explain } from "../api";
@@ -16,6 +17,8 @@ import { StatusBar } from "./screens/status";
 import { Avatar } from "./ui";
 import { openProfile } from "./screens/profile";
 import { setupPwa } from "./pwa";
+import { TradeTab } from "./screens/trade";
+import { SocialTab } from "./screens/social";
 
 type Tab = "open" | "binder" | "trade" | "social";
 const TABS: Tab[] = ["open", "binder", "trade", "social"];
@@ -83,8 +86,8 @@ function App() {
         {/* A tab stays mounted (hidden) once visited, so coming back to it shows the same cards, not rebuilt ones. */}
         {seen.has("open") && <div hidden={tab !== "open"}><StatusBar /><Later what="Opening packs" /></div>}
         {seen.has("binder") && <div hidden={tab !== "binder"}><Binder active={tab === "binder"} /></div>}
-        {seen.has("trade") && <div hidden={tab !== "trade"}><Later what="Trading" /></div>}
-        {seen.has("social") && <div hidden={tab !== "social"}><Later what="Social" /></div>}
+        {seen.has("trade") && <div hidden={tab !== "trade"}><TradeTab active={tab === "trade"} /></div>}
+        {seen.has("social") && <div hidden={tab !== "social"}><SocialTab active={tab === "social"} /></div>}
       </main>
       <nav class="s-tabbar" aria-label="Sections">
         {(["open", "binder", "trade", "social"] as Tab[]).map((t) => (

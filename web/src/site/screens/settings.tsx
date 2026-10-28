@@ -15,7 +15,7 @@ export function openSettings() {
 }
 
 function Line({ title, note, children }: { title: string; note?: ComponentChildren; children?: ComponentChildren }) {
-  return <div class="set-line"><span><b>{title}</b>{note && <small>{note}</small>}</span>{children}</div>;
+  return <div class="sg-line"><span><b>{title}</b>{note && <small>{note}</small>}</span>{children}</div>;
 }
 const Toggle = ({ on, onClick, disabled }: { on: boolean; onClick: () => void; disabled?: boolean }) => (
   <button type="button" class={cx("s-toggle", on && "on")} role="switch" aria-checked={on} disabled={disabled} onClick={onClick}><i /></button>
@@ -58,17 +58,17 @@ function Settings() {
   return (
     <div class="s-page-in s-settings">
       <header class="s-head"><button type="button" class="s-icon" onClick={back} aria-label="Back">‹</button><h1>Settings</h1></header>
-      <section class="set-acct">
+      <section class="sg-acct">
         <Avatar name={a.username} big />
         <div><b>{a.firstName || a.username}</b>{a.badge && <span class="s-badge">{a.badge}</span>}<small>@{a.username}</small></div>
         <button type="button" class="s-btn small ghost" onClick={() => openProfile(a.username)}>Profile</button>
       </section>
       {msg && <p class={cx("s-msg", msg.bad && "bad")} role="status">{msg.text}</p>}
 
-      <section class="set-group"><h2 class="s-h2">Account</h2>
+      <section class="sg-group"><h2 class="s-h2">Account</h2>
         <Line title="First name" note={a.firstName || "Not set"}><button type="button" class="s-chipbtn" onClick={() => { setEdit(edit === "name" ? "" : "name"); setMsg(null); }}>Edit</button></Line>
         {edit === "name" && (
-          <form class="set-form" onSubmit={(e) => submit(e, async (f) => { const v = (f.elements.namedItem("v") as HTMLInputElement).value.trim(); if (!v) throw new Error("Enter your first name."); applyState(await api.changeFirstName(v)); return "Saved."; })}>
+          <form class="sg-form" onSubmit={(e) => submit(e, async (f) => { const v = (f.elements.namedItem("v") as HTMLInputElement).value.trim(); if (!v) throw new Error("Enter your first name."); applyState(await api.changeFirstName(v)); return "Saved."; })}>
             <input class="s-input" name="v" maxLength={30} autoComplete="given-name" defaultValue={a.firstName ?? ""} aria-label="First name" />
             <button type="submit" class="s-btn small" disabled={busy === "form"}>Save</button>
           </form>
@@ -77,7 +77,7 @@ function Settings() {
           <button type="button" class="s-chipbtn" disabled={!!wait} onClick={() => { setEdit(edit === "user" ? "" : "user"); setMsg(null); }}>Change</button>
         </Line>
         {edit === "user" && (
-          <form class="set-form" onSubmit={(e) => submit(e, async (f) => {
+          <form class="sg-form" onSubmit={(e) => submit(e, async (f) => {
             const u = (f.elements.namedItem("u") as HTMLInputElement).value.trim(), pw = (f.elements.namedItem("pw") as HTMLInputElement).value;
             if (!u || !pw) throw new Error("Enter the new username and your password.");
             const n = await api.changeUsername(u, pw); applyState(n); return `Username changed to ${n.account.username}.`;
@@ -89,7 +89,7 @@ function Settings() {
         )}
         <Line title="Password" note="Changing it signs your other devices out."><button type="button" class="s-chipbtn" onClick={() => { setEdit(edit === "pw" ? "" : "pw"); setMsg(null); }}>Change</button></Line>
         {edit === "pw" && (
-          <form class="set-form" onSubmit={(e) => submit(e, async (f) => {
+          <form class="sg-form" onSubmit={(e) => submit(e, async (f) => {
             const cur = (f.elements.namedItem("cur") as HTMLInputElement).value, next = (f.elements.namedItem("next") as HTMLInputElement).value;
             if (!cur) throw new Error("Enter your current password.");
             if (next.length < 8) throw new Error("New passwords need at least 8 characters.");
@@ -103,7 +103,7 @@ function Settings() {
         <Line title="Sign out"><button type="button" class="s-chipbtn" onClick={async () => { try { await api.logout(); } finally { location.assign("/"); } }}>Sign out</button></Line>
       </section>
 
-      <section class="set-group"><h2 class="s-h2">Game</h2>
+      <section class="sg-group"><h2 class="s-h2">Game</h2>
         <Line title="Notifications" note={ps === "ios-home" ? "Add FRC Packs to your home screen first (Share, Add to Home Screen)." : ps === "blocked" ? "Blocked in your browser's site settings." : ps === "unsupported" ? "This browser can't show them." : "Free pack ready, trade offers, accepted trades."}>
           <Toggle on={ps === "on"} disabled={!(ps === "on" || ps === "off") || busy === "push"} onClick={() => run("push", togglePush)} />
         </Line>
@@ -111,7 +111,7 @@ function Settings() {
         <Line title="Pack wheel every time" note="Pick from the wheel of 10 each time you open another pack."><Toggle on={p.wheel2} onClick={() => setPrefs((x) => { x.wheel2 = !x.wheel2; })} /></Line>
       </section>
 
-      <section class="set-group"><h2 class="s-h2">About</h2>
+      <section class="sg-group"><h2 class="s-h2">About</h2>
         <Line title="Feedback" note="Found a bug or have an idea? We read everything."><button type="button" class="s-chipbtn" onClick={() => openFeedback()}>Send</button></Line>
         {!standalone() && <Line title="Install the app" note={inst ? "Your home screen or desktop, in its own window." : ios ? "In Safari: Share, then Add to Home Screen." : "Use your browser's menu (Install app)."}>{inst && <button type="button" class="s-chipbtn" onClick={install}>Install</button>}</Line>}
         <Line title="App version" note={ver === "checking" ? "Checking…" : ver === "latest" ? "You have the latest version." : ver === "update" ? "A newer version is ready." : ver === "error" ? "Couldn't check. Try again." : undefined}>
@@ -120,7 +120,7 @@ function Settings() {
       </section>
 
       {(a.admin || s.devTools) && (
-        <section class="set-group"><h2 class="s-h2">Admin and testing</h2>
+        <section class="sg-group"><h2 class="s-h2">Admin and testing</h2>
           {a.admin && <Line title="Admin panel"><a class="s-chipbtn" href="/admin">Open</a></Line>}
           {s.devTools && <>
             <Line title="Demo luck" note="Mythic about 1 pack in 5, to try the big moment."><Toggle on={s.demo} onClick={() => dev(() => api.dev.demo(!s.demo))} /></Line>
@@ -165,7 +165,7 @@ function FeedbackForm() {
   return (
     <div class="s-page-in s-feedback">
       <header class="s-head"><button type="button" class="s-icon" onClick={back} aria-label="Back">‹</button><h1>Feedback</h1></header>
-      <form class="set-form col" onSubmit={send}>
+      <form class="sg-form col" onSubmit={send}>
         <div class="s-chips">{KINDS.map(([k, l]) => <button type="button" class={cx("s-chip", kind === k && "on")} aria-pressed={kind === k} onClick={() => setKind(k)}>{l}</button>)}</div>
         <input class="s-input" name="title" maxLength={100} placeholder="Short title" aria-label="Title" />
         <textarea class="s-input" name="details" maxLength={2000} rows={5} placeholder="What happened, or what would you like?" aria-label="Details" />
