@@ -1,26 +1,11 @@
 // App state the screens share: the card catalog, the player's home data, the open sheet and the toast. A store is a value
 // plus listeners; `useStore` re-renders a component when it changes. Screens keep everything else in their own state.
-import { useEffect, useState } from "preact/hooks";
 import type { ComponentChildren } from "preact";
 import { call } from "./api";
 import type { Catalog, Home, Robot, Support } from "./types";
+import { store } from "../lib/store";
 
-export interface Store<T> { get(): T; set(v: T): void; sub(f: (v: T) => void): () => void }
-
-export function store<T>(v: T): Store<T> {
-  const subs = new Set<(v: T) => void>();
-  return {
-    get: () => v,
-    set(n) { if (n === v) return; v = n; subs.forEach((f) => f(v)); },
-    sub(f) { subs.add(f); return () => subs.delete(f); },
-  };
-}
-
-export function useStore<T>(s: Store<T>): T {
-  const [v, setV] = useState(s.get());
-  useEffect(() => { setV(s.get()); return s.sub(setV); }, [s]);
-  return v;
-}
+export { store, useStore, type Store } from "../lib/store";
 
 export let CAT: Catalog;
 export const ROBOT = new Map<number, Robot>();
