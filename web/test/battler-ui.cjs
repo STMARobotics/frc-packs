@@ -72,7 +72,7 @@ async function main() {
   const A = await setup('ann' + tag), B = await setup('ben' + tag);
   await readyDeck(B);
   const browser = await chromium.launch();
-  const phone = { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true };
+  const phone = { viewport: { width: +(process.env.W || 390), height: +(process.env.H || 844) }, deviceScaleFactor: 2, isMobile: true, hasTouch: true };
   const ctxA = await browser.newContext(phone), ctxB = await browser.newContext(phone);
   await ctxA.addCookies([{ name: 'sid', value: A.sid(), url: BASE }]);
   await ctxB.addCookies([{ name: 'sid', value: B.sid(), url: BASE }]);
@@ -192,6 +192,7 @@ async function main() {
       await a.mouse.move(t.x + t.width / 2, t.y + t.height / 3, { steps: 8 });
       if (round === 1) await shot(a, 'r1-dragging');
       await a.mouse.up();
+      await a.waitForTimeout(250);
     }
     if (round === 2) {
       const s = await a.locator('.b-bot.mine >> nth=0').boundingBox();
@@ -236,7 +237,7 @@ async function main() {
     }
     const rs = await stats(a);
     report.push({ round, revealLongFrames: rs.long, revealCLS: rs.cls });
-    await b.click('.b-pbar.me .b-go.ghost').catch(() => {});
+    if (await b.$('.b-pbar.me .b-go.ghost')) await b.click('.b-pbar.me .b-go.ghost', { timeout: 2000 }).catch(() => {});
     await b.waitForSelector('.b-pbar.me .b-go:not(.ghost)', { timeout: 30000 });
     await a.click('.b-pbar.me .b-go:not(.ghost)');
     await b.click('.b-pbar.me .b-go:not(.ghost)');

@@ -29,6 +29,10 @@ export function Arena({ g, log, onNext }: { g: GameView; log: RoundLog | null; o
 
   // A new round, or the reveal starting, drops whatever was in your hand.
   useEffect(() => { setSel(null); }, [g.round, pit, me.locked]);
+  // Lock in sits where Next round was: ignore it for a moment after the pit opens, so a double tap on Next round can't
+  // lock the new round by accident.
+  const opened = useRef(0);
+  useEffect(() => { if (live) opened.current = Date.now(); }, [g.round, live]);
   const selCard = sel !== null && live ? cardOf(g, sel) : undefined;
 
   const captains = [g.alliances[0][0], g.alliances[1][0]];
@@ -198,9 +202,6 @@ export function Arena({ g, log, onNext }: { g: GameView; log: RoundLog | null; o
       {/* your hand, or the round's result */}
       {pit ? (
         <div class={cx("b-handarea", !live && "locked")}>
-          {selCard ? <p class="b-hint"><b>{selCard.name}</b> {selCard.text}</p>
-            : tired.length ? <button type="button" class="b-warnchip" onClick={() => openBench(tired[0].inst)}>⚡ {tired[0].team} at {tired[0].battery}%, plays at {powerFor(tired[0].battery)}%. Swap?</button>
-            : <p class="b-hint" />}
           <Hand cards={hand} sel={sel} lifted={lifted} live={live} onTap={tapCard} onDown={(e, i) => startDrag(e, "card", i)} />
           <span class="b-pile" aria-label={`${me.pile_count} cards in your deck`}>{me.pile_count}</span>
         </div>
@@ -218,14 +219,14 @@ export function Arena({ g, log, onNext }: { g: GameView; log: RoundLog | null; o
       <div class={cx("b-pbar me", pit && me.locked && "ready")}>
         <span class="b-ava me">{initial(me.name)}{pit && <Ring g={g} />}</span>
         <div class="b-rp"><b>{me.rp - gained[0]}</b><small>RP</small></div>
-        <button type="button" class="b-chipbtn" onClick={() => openBench()}>Bench</button>
+        <button type="button" class={cx("b-chipbtn", tired.length > 0 && "warn")} onClick={() => openBench(tired[0]?.inst)} aria-label={tired.length ? `Bench: ${tired[0].name} is low on battery` : "Bench"}>Bench</button>
         {pit
           ? live
-            ? <button type="button" class="b-go" onClick={() => { sfx.lock(); setSel(null); lock(); }}>Lock in</button>
+            ? <button key="lock" type="button" class="b-go" onClick={() => { if (Date.now() - opened.current < 700) return; sfx.lock(); setSel(null); lock(); }}>Lock in</button>
             : <div class="b-waiting">{them.locked ? "Revealing…" : `Waiting for ${them.name}`}</div>
           : rv?.done
-            ? <button type="button" class="b-go" disabled={g.status === "RESULTS" && me.acked} onClick={onNext}>{g.status === "RESULTS" && me.acked ? (them.acked ? "…" : `Waiting for ${them.name}`) : lastRound ? "Final result" : "Next round"}</button>
-            : <button type="button" class="b-go ghost" onClick={skip}>Skip</button>}
+            ? <button key="next" type="button" class="b-go" disabled={g.status === "RESULTS" && me.acked} onClick={onNext}>{g.status === "RESULTS" && me.acked ? (them.acked ? "…" : `Waiting for ${them.name}`) : lastRound ? "Final result" : "Next round"}</button>
+            : <button key="skip" type="button" class="b-go ghost" onClick={skip}>Skip</button>}
         <button type="button" class="b-iconbtn" onClick={() => openMenu(g)} aria-label="Menu">⋯</button>
       </div>
       {!pit && g.status === "RESULTS" && them.acked && !me.acked && <span class="b-oppready">{them.name} is ready</span>}
@@ -326,7 +327,7 @@ function Hand({ cards, sel, lifted, live, onTap, onDown }: { cards: SupportInst[
         const d = i - mid;
         return (
           <button key={c.inst} type="button" class={cx("b-hcard", c.kind === "LORE" ? "lore" : "part", sel === c.inst && "sel", lifted === c.inst && "lifted")}
-            style={{ "--x": `${d * step}px`, "--r": `${d * Math.min(5, 20 / n)}deg`, "--y": `${d * d * 2.5}px`, "--i": i }}
+            style={{ "--x": `${d * step}px`, "--r": `${d * Math.min(5, 20 / n)}deg`, "--y": `${mid ? (d * d * 14) / (mid * mid) : 0}px`, "--i": i }}
             onClick={() => onTap(c.inst)} onPointerDown={(e) => onDown(e as unknown as PointerEvent, c.inst)} aria-label={`${c.name}: ${c.text}`}>
             <span class="k">{c.kind === "PART" ? c.tags.map((t) => t.replace("_", " ")).join(" · ") : "Lore"}</span>
             <b>{c.name}</b>
