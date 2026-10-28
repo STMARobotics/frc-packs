@@ -1149,7 +1149,12 @@ export function start(RECIPE) {
   var gridEl = $("#grid"), tiersEl = $("#tiers"), moreBtn = $("#more"), missingBtn = $("#missingBtn"), filter = "all", shown = 48, showMissing = false;
   var searchEl = $("#binderSearch");
   /* Search looks through every team in the pack, owned or not, so you can see what you're missing. */
-  searchEl.addEventListener("input", function () { shown = 48; paintBinder(); });
+  var searchT = 0;
+  searchEl.addEventListener("input", function () { clearTimeout(searchT); searchT = setTimeout(function () { shown = 48; paintBinder(); }, 120); });
+  /* Binder cards are made once and kept: a repaint (a filter, a search, coming back to the tab) puts the same elements
+     back in order, so their photos never reload and the grid doesn't flash. A card is remade only when what it shows
+     changes (copies, new mark, kept, wishlist). */
+  var binderEls = {}, binderList = [];
   function matches(t, q) { return String(t.num).indexOf(q) === 0 || t.name.toLowerCase().indexOf(q) >= 0 || (t.loc || "").toLowerCase().indexOf(q) >= 0; }
   missingBtn.addEventListener("click", function () { showMissing = !showMissing; shown = 48; paintBinder(); });
   function ownedList() {
@@ -1191,14 +1196,17 @@ export function start(RECIPE) {
     var list = q ? everyone.filter(function (t) { return matches(t, q); }).sort(function (a, b) { return have(b) - have(a); }) // yours first
       : showMissing ? everyone
       : owned.filter(function (t) { return filter === "all" || (isDiv ? t.div === dname : t.tier === filter); });
-    gridEl.innerHTML = "";
+    var els = [];
+    binderList = list.slice(0, shown).map(function (x) { return x.num; });
     if (!list.length) {
       var e = document.createElement("div"); e.className = "empty-binder"; e.style.gridColumn = "1 / -1";
       e.innerHTML = q ? "<b>No team matches</b>Try a team number like 254, or part of a name." : owned.length ? "<b>None of these yet</b>Keep opening packs." : "<b>Your binder is empty</b>Open a pack and every robot you pull lands here.";
-      gridEl.appendChild(e);
+      els.push(e);
     }
     list.slice(0, shown).forEach(function (t) {
       var serials = S.inv[t.num] || [];
+      var key = serials.length ? ["o", t.num, serials.length, serials[0], S.unseen[t.num] ? 1 : 0, isFav(t.num) ? 1 : 0, myTeam() === t.num ? 1 : 0].join(":") : ["g", t.num, wished(t.num) ? 1 : 0].join(":");
+      if (binderEls[key]) { els.push(binderEls[key]); return; }
       if (!serials.length) {
         /* A card you don't own is blurred: you can see its rarity and who it is, not the card itself. */
         var gh = cardEl({ num: t.num, tier: t.tier }, { faceUp: true }); gh.classList.add("ghost");
@@ -1206,17 +1214,20 @@ export function start(RECIPE) {
         gh.appendChild(tag); gh.setAttribute("aria-label", t.name + ", team " + t.num + ", " + TIERS[t.tier].label + ", not owned yet" + (wished(t.num) ? ", on your wishlist" : ""));
         gh.setAttribute("role", "button"); gh.tabIndex = 0;
         if (wished(t.num)) { var wl = document.createElement("span"); wl.className = "tr-want mine"; wl.textContent = "♥ Wishlist"; gh.appendChild(wl); }
-        gh.addEventListener("click", function () { cardNav = list.slice(0, shown).map(function (x) { return x.num; }); viewCard(t.num, { locked: true }); });
+        gh.addEventListener("click", function () { cardNav = binderList.slice(); viewCard(t.num, { locked: true }); });
         gh.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); viewCard(t.num, { locked: true }); } });
-        gridEl.appendChild(gh); return;
+        binderEls[key] = gh; els.push(gh); return;
       }
       var el = cardEl({ num: t.num, tier: t.tier, serial: serials[0], isNew: true }, { faceUp: true, button: true, count: serials.length, ribbon: !!S.unseen[t.num] });
       if (S.unseen[t.num]) showRibbon(el);
-      if (isFav(t.num)) { var hb = document.createElement("div"); hb.className = "fav-badge"; hb.textContent = "\u2665"; hb.setAttribute("aria-label", "Kept"); el.appendChild(hb); }
-      el.addEventListener("click", function () { cardNav = list.slice(0, shown).map(function (x) { return x.num; }); inspect(t); });
+      if (isFav(t.num)) { var hb = document.createElement("div"); hb.className = "fav-badge"; hb.textContent = "♥"; hb.setAttribute("aria-label", "Kept"); el.appendChild(hb); }
+      el.addEventListener("click", function () { cardNav = binderList.slice(); inspect(t); });
       el.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); inspect(t); } });
-      gridEl.appendChild(el);
+      binderEls[key] = el; els.push(el);
     });
+    // Only touch the grid when its cards changed.
+    var same = gridEl.children.length === els.length && els.every(function (x, i) { return gridEl.children[i] === x; });
+    if (!same) gridEl.replaceChildren.apply(gridEl, els);
     moreBtn.hidden = list.length <= shown;
   }
   moreBtn.addEventListener("click", function () { shown += 48; paintBinder(); });

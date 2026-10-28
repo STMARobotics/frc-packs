@@ -1446,3 +1446,9 @@ body.has-notice .app > .top { top: calc(36px + env(safe-area-inset-top)); }
 body.modal-open .bg i, body.cutting .bg i, body.focus .bg i, body.tr-sheet .bg i, body.settings-open .bg i { animation-play-state: paused; }
 body.modal-open .claim, body.modal-open .claim::after, body.modal-open .tabdot, body.modal-open .rdot,
 body.cutting .claim, body.cutting .claim::after, body.cutting .tabdot, body.cutting .rdot { animation: none !important; }
+
+/* ---------- nothing moves on its own ----------
+   Cards and packs move when you touch them or when something happens, never while you're just looking: no bobbing
+   packs, no floating card in the card view, no spinning Mythic frame, no drifting background. Idle loops also kept the
+   GPU busy on every frame for the whole visit. */
+.bg i, .ptype .pk, .alive .float, .card[data-tier="mythic"] .front::before, .card[data-tier="mythic"].mc::before { animation: none !important; }
