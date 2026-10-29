@@ -101,6 +101,10 @@ notification check failing) and a monthly budget warning (`monthlyBudgetUsd`) by
 email to that address; click its link. Logs are kept one week in CloudWatch (log groups `ServerLogs` and
 `ReadyCheckLogs` in the backend stack).
 
+Every taggable resource created by CDK is tagged `AppName=Packs`. To use this tag to filter costs in Cost Explorer or
+cost allocation reports, activate the user-defined `AppName` cost allocation tag in Billing and Cost Management.
+Resources that AWS does not support tagging cannot receive the tag.
+
 ## Running the site
 
 - **Lost admin password:** from a computer signed in to AWS,

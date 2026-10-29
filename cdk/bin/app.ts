@@ -7,6 +7,8 @@ import { PacksFrontendStack } from "../lib/packs-frontend-stack";
 import { PacksDeveloperPolicyStack } from "../lib/packs-developer-policy-stack";
 
 const app = new cdk.App();
+cdk.Tags.of(app).add("AppName", "Packs");
+
 const certificate = new PacksCertificateStack(app, config.stackNames.certificate, {
   env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: config.regions.certificate },
   stackName: config.stackNames.certificate,

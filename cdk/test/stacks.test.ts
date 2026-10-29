@@ -10,6 +10,8 @@ import { PacksCertificateStack } from "../lib/packs-certificate-stack";
 import { PacksFrontendStack } from "../lib/packs-frontend-stack";
 
 const app = new cdk.App();
+cdk.Tags.of(app).add("AppName", "Packs");
+
 const certificateStack = new PacksCertificateStack(app, config.stackNames.certificate, {
   env: { account: "111111111111", region: config.regions.certificate },
   crossRegionReferences: true,
@@ -24,6 +26,21 @@ const frontendStack = new PacksFrontendStack(app, config.stackNames.frontend, {
   api: backendStack.api,
 });
 
+function assertResourcesHaveAppNameTag(template: Template, resourceType: string): void {
+  const resources = template.toJSON().Resources as Record<
+    string,
+    { Type: string; Properties?: { Tags?: Array<{ Key: string; Value: string }> } }
+  >;
+  const matchingResources = Object.values(resources).filter(({ Type }) => Type === resourceType);
+  assert.ok(matchingResources.length > 0, `expected a ${resourceType} resource`);
+  for (const resource of matchingResources) {
+    assert.ok(
+      resource.Properties?.Tags?.some(({ Key, Value }) => Key === "AppName" && Value === "Packs"),
+      `expected ${resourceType} to have the AppName=Packs tag`,
+    );
+  }
+}
+
 assert.equal(certificateStack.stackName, "packs-certificate");
 assert.equal(certificateStack.region, "us-east-1");
 assert.equal(backendStack.stackName, "packs-backend");
@@ -32,6 +49,7 @@ assert.equal(frontendStack.stackName, "packs-frontend");
 assert.equal(frontendStack.region, "us-east-2");
 
 const certificateTemplate = Template.fromStack(certificateStack);
+assertResourcesHaveAppNameTag(certificateTemplate, "AWS::CertificateManager::Certificate");
 certificateTemplate.resourceCountIs("AWS::CertificateManager::Certificate", 1);
 certificateTemplate.resourceCountIs("AWS::Route53::RecordSet", 0);
 certificateTemplate.hasResourceProperties("AWS::CertificateManager::Certificate", {
@@ -40,6 +58,8 @@ certificateTemplate.hasResourceProperties("AWS::CertificateManager::Certificate"
 });
 
 const backendTemplate = Template.fromStack(backendStack);
+assertResourcesHaveAppNameTag(backendTemplate, "AWS::DynamoDB::Table");
+assertResourcesHaveAppNameTag(backendTemplate, "AWS::Lambda::Function");
 backendTemplate.resourceCountIs("AWS::ApiGatewayV2::Api", 1);
 backendTemplate.resourceCountIs("AWS::ApiGatewayV2::Route", 2);
 backendTemplate.resourceCountIs("AWS::DynamoDB::Table", 1);
@@ -111,6 +131,8 @@ assert.match(JSON.stringify(backendResources), /dynamodb:TransactWriteItems/);
 assert.match(JSON.stringify(backendResources), /dynamodb:DescribeTable/);
 
 const frontendTemplate = Template.fromStack(frontendStack);
+assertResourcesHaveAppNameTag(frontendTemplate, "AWS::S3::Bucket");
+assertResourcesHaveAppNameTag(frontendTemplate, "AWS::CloudFront::Distribution");
 frontendTemplate.resourceCountIs("AWS::S3::Bucket", 1);
 frontendTemplate.resourceCountIs("AWS::CloudFront::Distribution", 1);
 frontendTemplate.resourceCountIs("AWS::CloudFront::Function", 1);
