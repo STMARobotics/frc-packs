@@ -61,7 +61,8 @@ add up.
 | `SETTINGS` | `SETTINGS` | the free-pack rules, the push signing key, and the admin's rarity changes (`tier_overrides`, `tiers_ver`, and the parts and note chosen for the last change) |
 | `PUSH#<endpoint hash>` | `PUSH` | a device's push subscription. GSI2 `U#<id>`. |
 | `CTR` | `CTR` | counters for card, opening, trade, report and special ids |
-| `BG#<id>` | `GAME` | a Battler game, whole, as JSON in `state`, with `ver` (every change is conditioned on it). GSI1 `BGOPEN` while waiting for a second player. |
+| `BG#<id>` | `GAME` | a Battler game, whole, as JSON in `state`, with `ver` (every change is conditioned on it). While waiting for a second player: GSI1 `BGQUICK` for a Quick Play game (the queue), `BGOPEN` for one from before Quick Play; a private game is in no index. |
+| `BGCODE#<code>` | `CODE` | the private Battler game a match code invites to (`game`). |
 | `U#<id>` | `BTACTIVE` | the Battler game a player is in (one at a time) |
 | `U#<id>` | `BTPROF` | Battler rating and record |
 | `U#<id>` | `BTDECK#<deck>` | a saved Battler deck |

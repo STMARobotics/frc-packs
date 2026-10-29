@@ -7,7 +7,10 @@ A 1v1, five-round card game played with the robots you own in FRC Packs, at `/ba
 
 1. **Decks.** 1 Alliance Captain + 10 robots + 15 support cards (any mix of Part and Lore, up to 3 copies each, no
    team twice). Robots must be owned in FRC Packs; ownership is checked again when a deck is picked for a game.
-2. **Lobby.** Host a game (or share its invite link); one other player joins. One game at a time per player.
+2. **Finding a game.** Quick Play joins whoever has waited longest, or starts a game and waits in the queue (two
+   players who queue at the same moment are paired). A private match is hosted for someone in particular: it's in no
+   list, and the server only lets someone see or join it with its 6-character code (typed in, or in the invite link).
+   One game at a time per player.
 3. **Start.** Both pick a deck (kept private). The server freezes both decks, effects included, into the game. A short
    intro plays on both screens: versus, the two Alliance Captains (public, and they play every round), the decks
    shuffling, and a toss for who drafts first.

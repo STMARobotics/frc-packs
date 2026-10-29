@@ -48,6 +48,8 @@ export interface GameView {
   offer: number[]; draft_turn: number; draft_total: number; draft_side: number | null;
   robots: RobotInst[]; support: SupportInst[]; rounds: RoundLog[]; seed_hash: string; seed: string | null; outcome: Outcome | null;
   emotes: EmoteView[]; emote_seq: number; now: number;
+  /** How the game found (or is finding) its second player; a private game's code is shown to its players. */
+  mode: "open" | "quick" | "private"; code?: string;
 }
 export interface HistoryRow { game: string; opponent: string; winner: boolean | null; reason: string; rp: [number, number]; points: [number, number]; elo_before: number; elo_after: number; at: number }
 

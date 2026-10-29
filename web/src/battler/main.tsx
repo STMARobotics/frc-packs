@@ -1,6 +1,6 @@
 // The Battler: build a deck from the robots you own in FRC Packs and play 1v1, five-round games. The server runs every
 // rule (server/src/battler); this page shows what it says and sends what you tap. Screens are hash routes:
-// #home, #library, #decks, #deck/<id>, #play, #game/<id>, #history, #admin.
+// #home, #library, #decks, #deck/<id>, #play, #game/<id> (#game/<id>/<code> to join a private one), #history, #admin.
 //
 // Rendering is Preact: each screen describes what it shows, and only what changed gets touched on the page. Cards keep
 // their elements (and loaded photos) from one update to the next, so nothing is rebuilt while you look at it.
@@ -19,7 +19,7 @@ import { History } from "./screens/history";
 import { Admin } from "./screens/admin";
 import { GameScreen } from "./game/game";
 
-const parse = () => (location.hash.slice(1) || "home").split("/") as [string, string?];
+const parse = () => (location.hash.slice(1) || "home").split("/") as [string, string?, string?];
 
 function useRoute() {
   const [r, setR] = useState(parse);
@@ -31,13 +31,13 @@ function useRoute() {
   return r;
 }
 
-function Screen({ name, arg }: { name: string; arg?: string }) {
+function Screen({ name, arg, code }: { name: string; arg?: string; code?: string }) {
   switch (name) {
     case "library": return <Library />;
     case "decks": return <Decks />;
     case "deck": return <DeckEditor key={arg} id={arg!} />;
     case "play": return <Lobby />;
-    case "game": return <GameScreen key={arg} id={arg!} />;
+    case "game": return <GameScreen key={arg} id={arg!} code={code} />;
     case "history": return <History />;
     case "admin": return <Admin />;
     default: return <HomeScreen />;
@@ -46,7 +46,7 @@ function Screen({ name, arg }: { name: string; arg?: string }) {
 
 function App() {
   const [state, setState] = useState<"loading" | "ready" | "signin" | Error>("loading");
-  const [name, arg] = useRoute();
+  const [name, arg, code] = useRoute();
   const h = useStore(home);
   useEffect(() => {
     Promise.all([loadCatalog(), loadHome()]).then(
@@ -79,7 +79,7 @@ function App() {
           <span class="b-top-r">{h && <span class="b-elo"><b>{h.profile.elo}</b> Elo</span>}<a class="b-chip" href="/">FRC Packs</a></span>
         </header>
       )}
-      <main class="b-main" data-screen={name}><Screen name={name} arg={arg} /></main>
+      <main class="b-main" data-screen={name}><Screen name={name} arg={arg} code={code} /></main>
     </>
   );
 }

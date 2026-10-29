@@ -35,8 +35,16 @@ export function resetGame() {
   game.set(null);
 }
 
+/** The code from a private game's invite link: someone not in the game needs it to see and join the game. */
+let invite = "";
+export const setInvite = (code?: string) => { invite = code ?? ""; };
+export const inviteCode = () => invite;
+
 export async function fetchGame(id: string, sinceRev = true) {
-  const q = sinceRev && server ? `?rev=${server.rev}&e=${server.emote_seq}` : "";
+  const p = new URLSearchParams();
+  if (sinceRev && server) { p.set("rev", String(server.rev)); p.set("e", String(server.emote_seq)); }
+  if (invite) p.set("code", invite);
+  const q = p.toString() ? `?${p}` : "";
   const r = await call<GameView & { same?: boolean }>("GET", `/api/battler/games/${id}${q}`);
   if (!r.same) receive(r);
 }

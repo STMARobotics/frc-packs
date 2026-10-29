@@ -4,7 +4,9 @@
 //! cards) and never written here.
 //!
 //! Items (see docs/dynamodb.md):
-//! - `BG#<id>` / `GAME`: the whole game as JSON, `ver`; GSI1 `BGOPEN` while it's waiting for a second player.
+//! - `BG#<id>` / `GAME`: the whole game as JSON, `ver`; while it's waiting for a second player, GSI1 `BGQUICK` for a
+//!   Quick Play game (the queue) or `BGOPEN` for an old listed one. Private games are in no index.
+//! - `BGCODE#<code>` / `CODE`: the private game a code invites to.
 //! - `U#<id>` / `BTACTIVE`: the game a player is in (one at a time).
 //! - `U#<id>` / `BTPROF`: rating and record.
 //! - `U#<id>` / `BTDECK#<deck>`: a saved deck.
@@ -25,7 +27,7 @@ use uuid::Uuid;
 use super::content::{self, Kind, Robot};
 use super::effects::{self, Effect, Owner};
 use super::engine::{self, FieldRobot};
-use super::game::{self, DeckPick, Game, RobotPick, Seat, Status};
+use super::game::{self, DeckPick, Game, Mode, RobotPick, Seat, Status};
 use crate::Shared;
 use crate::auth::{Admin, User};
 use crate::db::{Cond, Db, Tx, from_item, get_n, get_s, item, n, pad, s};
@@ -43,8 +45,9 @@ pub fn routes() -> Router<Shared> {
         .route("/battler/catalog", get(catalog))
         .route("/battler/decks", post(create_deck))
         .route("/battler/decks/{id}", put(save_deck).delete(delete_deck))
-        .route("/battler/lobby", get(lobby))
+        .route("/battler/quick", post(quick))
         .route("/battler/games", post(create_game))
+        .route("/battler/code/{code}", get(find_code))
         .route("/battler/games/{id}", get(view_game))
         .route("/battler/games/{id}/join", post(join_game))
         .route("/battler/games/{id}/act", post(act))
@@ -355,8 +358,13 @@ fn game_item(g: &Game, ver: i64) -> crate::db::Item {
     it.insert("ver".into(), n(ver));
     it.insert("status".into(), s(format!("{:?}", g.status)));
     it.insert("created_at".into(), n(g.created_at));
-    if g.status == Status::Open {
-        it.insert("gsi1pk".into(), s("BGOPEN"));
+    let queue = match g.mode {
+        Mode::Quick => Some("BGQUICK"),
+        Mode::Open => Some("BGOPEN"),
+        Mode::Private => None,
+    };
+    if let (Status::Open, Some(q)) = (g.status, queue) {
+        it.insert("gsi1pk".into(), s(q));
         it.insert("gsi1sk".into(), s(format!("{}#{}", pad(g.created_at, 15), g.id)));
     }
     it
@@ -414,21 +422,11 @@ fn not_found() -> ApiError {
     ApiError::new(StatusCode::NOT_FOUND, "no_game")
 }
 
-// ---------- lobby ----------
-
-async fn lobby(State(st): State<Shared>, _user: User) -> ApiResult<Json<Value>> {
-    let now = now_ms();
-    let mut out = vec![];
-    for it in st.db.index("gsi1", "BGOPEN", Some(50), true).await? {
-        let Ok(g) = serde_json::from_str::<Game>(&get_s(&it, "state").unwrap_or_default()) else { continue };
-        if g.status != Status::Open || g.deadline < now {
-            continue;
-        }
-        let host = g.seat(0);
-        out.push(json!({ "id": g.id, "host": host.name, "elo": host.elo, "created_at": g.created_at }));
-    }
-    Ok(Json(json!({ "games": out })))
-}
+// ---------- finding a game ----------
+//
+// Quick Play puts you in a queue: you join whoever has waited longest, or start a game and wait in it. A private game
+// is hosted for someone in particular: it's in no list, and the server only lets someone see or join it with its code
+// (from the invite link, or typed in), so nobody else can take the seat.
 
 /// Makes sure the player isn't already in a game; returns the stale pointer to overwrite, if any.
 async fn ensure_free(db: &Db, uid: Uuid) -> ApiResult<Option<String>> {
@@ -463,32 +461,146 @@ async fn seat_for(db: &Db, uid: Uuid) -> ApiResult<Seat> {
     Ok(Seat::new(uid, p.username.unwrap_or_default(), prof.elo))
 }
 
+/// Letters for invite codes: no 0/O, 1/I/L, so a code read out loud or typed from a screenshot comes out right.
+const CODE_CHARS: &[u8] = b"ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+
+fn new_game(seat: Seat, mode: Mode) -> Game {
+    let id = Uuid::new_v4().simple().to_string()[..12].to_string();
+    let mut g = Game::new(id, seat, rand::random::<u64>(), now_ms());
+    g.mode = mode;
+    g
+}
+
+/// Hosts a private game: in no list, joined only with its code.
 async fn create_game(State(st): State<Shared>, user: User) -> ApiResult<Json<Value>> {
     let db = &st.db;
     let stale = ensure_free(db, user.id).await?;
     let seat = seat_for(db, user.id).await?;
-    let id = Uuid::new_v4().simple().to_string()[..12].to_string();
-    let mut g = Game::new(id.clone(), seat, rand::random::<u64>(), now_ms());
-    let mut tx = Tx::new();
-    claim_active(&mut tx, user.id, &id, stale);
-    save(db, &mut g, 0, false, tx).await?;
+    let mut g = new_game(seat, Mode::Private);
+    // A new code, claimed along with the game, until one isn't taken (31^6 of them, so that's almost always the first).
+    for attempt in 0.. {
+        g.code = (0..6).map(|_| CODE_CHARS[rand::random::<u32>() as usize % CODE_CHARS.len()] as char).collect();
+        let mut tx = Tx::new();
+        claim_active(&mut tx, user.id, &g.id, stale.clone());
+        tx.put_if(
+            "code_taken",
+            item(format!("BGCODE#{}", g.code), "CODE", &json!({ "game": g.id })),
+            Some(Cond::absent()),
+        );
+        match save(db, &mut g, 0, false, tx).await {
+            Err(e) if e.code == "code_taken" && attempt < 4 => continue,
+            r => r?,
+        }
+        break;
+    }
     Ok(Json(view_json(g.view(Some(0)))))
 }
 
-async fn join_game(State(st): State<Shared>, user: User, Path(id): Path<String>) -> ApiResult<Json<Value>> {
-    let db = &st.db;
-    let stale = ensure_free(db, user.id).await?;
-    let seat = seat_for(db, user.id).await?;
+/// The private game a code invites to.
+async fn find_code(State(st): State<Shared>, _user: User, Path(code): Path<String>) -> ApiResult<Json<Value>> {
+    let code = code.trim().to_ascii_uppercase();
+    let it =
+        st.db.get(&format!("BGCODE#{code}"), "CODE").await?.ok_or(ApiError::new(StatusCode::NOT_FOUND, "bad_code"))?;
+    let id = get_s(&it, "game").unwrap_or_default();
+    match load(&st.db, &id).await? {
+        Some((g, _)) if g.status == Status::Open && g.deadline >= now_ms() => {
+            Ok(Json(json!({ "id": id, "code": code })))
+        }
+        Some(_) => Err(ApiError::new(StatusCode::CONFLICT, "game_full")),
+        None => Err(ApiError::new(StatusCode::NOT_FOUND, "bad_code")),
+    }
+}
+
+#[derive(Deserialize)]
+struct JoinQuery {
+    code: Option<String>,
+}
+
+/// A private game only lets in someone with its code.
+fn code_ok(g: &Game, code: Option<&str>) -> bool {
+    g.mode != Mode::Private || code.is_some_and(|c| c.trim().eq_ignore_ascii_case(&g.code))
+}
+
+async fn join_game(
+    State(st): State<Shared>,
+    user: User,
+    Path(id): Path<String>,
+    Query(q): Query<JoinQuery>,
+) -> ApiResult<Json<Value>> {
+    let stale = ensure_free(&st.db, user.id).await?;
+    join_into(&st.db, user.id, &id, q.code.as_deref(), stale).await
+}
+
+async fn join_into(db: &Db, uid: Uuid, id: &str, code: Option<&str>, stale: Option<String>) -> ApiResult<Json<Value>> {
+    let seat = seat_for(db, uid).await?;
     retry!(async {
-        let (mut g, ver) = load(db, &id).await?.ok_or_else(not_found)?;
+        let (mut g, ver) = load(db, id).await?.ok_or_else(not_found)?;
+        if !code_ok(&g, code) {
+            return Err(ApiError::new(StatusCode::FORBIDDEN, "private_game"));
+        }
         let was = g.status.over();
         g.tick(now_ms());
         g.join(seat.clone(), now_ms()).map_err(refused)?;
         let mut tx = Tx::new();
-        claim_active(&mut tx, user.id, &id, stale.clone());
+        claim_active(&mut tx, uid, id, stale.clone());
         save(db, &mut g, ver, was, tx).await?;
         Ok::<_, ApiError>(Json(view_json(g.view(Some(1)))))
     })
+}
+
+/// Quick Play. Joins whoever in the queue has waited longest, or starts a game and waits in the queue. The waiting player
+/// asks again every few seconds: if two people queued at the same moment and both started a game, the newer one gives
+/// theirs up and joins the older, so they end up playing each other. Already in another game: that game.
+async fn quick(State(st): State<Shared>, user: User) -> ApiResult<Json<Value>> {
+    let db = &st.db;
+    let now = now_ms();
+    let mut mine = match active_game(db, user.id).await? {
+        Some(id) => load(db, &id).await?,
+        None => None,
+    };
+    if let Some((g, _)) = &mine {
+        let waiting = g.status == Status::Open && g.mode == Mode::Quick && g.deadline >= now;
+        if !g.status.over() && !waiting {
+            return Ok(Json(view_json(g.view(g.side_of(user.id)))));
+        }
+        if !waiting {
+            mine = None;
+        }
+    }
+    for it in db.index("gsi1", "BGQUICK", Some(25), false).await? {
+        let Ok(g) = serde_json::from_str::<Game>(&get_s(&it, "state").unwrap_or_default()) else { continue };
+        if g.status != Status::Open || g.deadline < now || g.side_of(user.id).is_some() {
+            continue;
+        }
+        if let Some((m, _)) = &mine {
+            // Only games that were waiting before ours.
+            if (g.created_at, &g.id) >= (m.created_at, &m.id) {
+                break;
+            }
+            // Give ours up first. Somebody may have just joined it, and then that's our game.
+            let (mut m, ver) = load(db, &m.id).await?.ok_or_else(not_found)?;
+            if m.cancel(0).is_err() {
+                return Ok(Json(view_json(m.view(Some(0)))));
+            }
+            save(db, &mut m, ver, false, Tx::new()).await?;
+            mine = None;
+        }
+        let stale = ensure_free(db, user.id).await?;
+        match join_into(db, user.id, &g.id, None, stale).await {
+            Ok(view) => return Ok(view),
+            Err(e) if e.status == StatusCode::CONFLICT => continue, // someone else got there first: the next one
+            Err(e) => return Err(e),
+        }
+    }
+    if let Some((m, _)) = mine {
+        return Ok(Json(view_json(m.view(Some(0)))));
+    }
+    let stale = ensure_free(db, user.id).await?;
+    let mut g = new_game(seat_for(db, user.id).await?, Mode::Quick);
+    let mut tx = Tx::new();
+    claim_active(&mut tx, user.id, &g.id, stale);
+    save(db, &mut g, 0, false, tx).await?;
+    Ok(Json(view_json(g.view(Some(0)))))
 }
 
 // ---------- playing ----------
@@ -523,6 +635,8 @@ async fn emote(
 
 #[derive(Deserialize)]
 struct ViewQuery {
+    /// A private game's code: someone not in the game needs it to see who's waiting.
+    code: Option<String>,
     rev: Option<u64>,
     /// The emote count the player has seen: a view is only "the same" when neither changed.
     e: Option<u64>,
@@ -545,7 +659,7 @@ async fn view_game(
         } else if q.rev == Some(g.rev) && q.e.unwrap_or(0) == g.emote_seq {
             return Ok(Json(json!({ "same": true, "rev": g.rev })));
         }
-        if side.is_none() && g.status != Status::Open {
+        if side.is_none() && (g.status != Status::Open || !code_ok(&g, q.code.as_deref())) {
             return Err(ApiError::new(StatusCode::FORBIDDEN, "not_your_game"));
         }
         Ok::<_, ApiError>(Json(view_json(g.view(side))))

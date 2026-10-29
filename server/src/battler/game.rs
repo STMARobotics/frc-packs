@@ -74,6 +74,19 @@ impl Status {
     }
 }
 
+/// How a waiting game finds its second player.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Mode {
+    /// Listed for anyone to join (games from before Quick Play).
+    #[default]
+    Open,
+    /// In the Quick Play queue: the next player looking for a game takes it.
+    Quick,
+    /// Hosted for someone in particular: never listed, and only someone with its code can see or join it.
+    Private,
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct RobotInst {
     pub inst: u32,
@@ -248,6 +261,11 @@ pub struct Game {
     pub emotes: Vec<Emote>,
     #[serde(default)]
     pub emote_seq: u64,
+    #[serde(default)]
+    pub mode: Mode,
+    /// A private game's invite code (empty for the others).
+    #[serde(default)]
+    pub code: String,
 }
 
 /// The quick-chat emotes a player can send during a game.
@@ -316,6 +334,8 @@ impl Game {
             engine: engine::ENGINE_VERSION,
             emotes: vec![],
             emote_seq: 0,
+            mode: Mode::Open,
+            code: String::new(),
         }
     }
 
@@ -935,6 +955,10 @@ pub struct GameView<'a> {
     pub engine: u32,
     pub emotes: &'a [Emote],
     pub emote_seq: u64,
+    pub mode: Mode,
+    /// A private game's invite code, for its players.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub code: Option<&'a str>,
     /// The server's clock (ms) when this view was made, so timers line up with the server's (set by the API).
     pub now: i64,
 }
@@ -1031,6 +1055,9 @@ impl Game {
             engine: self.engine,
             emotes: &self.emotes,
             emote_seq: self.emote_seq,
+            mode: self.mode,
+            // Only the players see the invite code (someone joining already has it).
+            code: (viewer.is_some() && !self.code.is_empty()).then_some(self.code.as_str()),
             now: 0,
         }
     }

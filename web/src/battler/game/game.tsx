@@ -6,7 +6,7 @@ import { home, loadHome, toast, useStore } from "../store";
 import type { GameView } from "../types";
 import { Empty, Spinner } from "../ui";
 import { DeckLine } from "../screens/decks";
-import { act, fetchGame, game, myMove, resetGame } from "./state";
+import { act, fetchGame, game, inviteCode, myMove, resetGame, setInvite } from "./state";
 import { Arena } from "./arena";
 import { Draft } from "./draft";
 import { Intro } from "./intro";
@@ -16,7 +16,7 @@ import { Emotes } from "./emotes";
 /** Rounds whose result this player has moved past, per game (so a replayed reveal doesn't show again). */
 const seenRounds = new Map<string, number>();
 
-export function GameScreen({ id }: { id: string }) {
+export function GameScreen({ id, code }: { id: string; code?: string }) {
   const g = useStore(game);
   const [err, setErr] = useState<string | null>(null);
   const [seen, setSeenState] = useState<number | null>(seenRounds.get(id) ?? null);
@@ -24,10 +24,11 @@ export function GameScreen({ id }: { id: string }) {
 
   useEffect(() => {
     resetGame();
+    setInvite(code);
     let alive = true, timer = 0;
     const poll = async () => {
       try { await fetchGame(id); } catch (e) {
-        if (e instanceof ApiError && (e.status === 404 || e.status === 403)) { alive = false; setErr(e.status === 404 ? "That game doesn't exist." : "That's not your game."); }
+        if (e instanceof ApiError && (e.status === 404 || e.status === 403)) { alive = false; setErr(e.status === 404 ? "That game doesn't exist." : code ? "That invite doesn't work anymore." : "That's not your game."); }
       }
     };
     const loop = async () => {
@@ -39,7 +40,7 @@ export function GameScreen({ id }: { id: string }) {
     loop();
     const vis = () => { if (document.visibilityState === "visible") { clearTimeout(timer); loop(); } };
     document.addEventListener("visibilitychange", vis);
-    return () => { alive = false; clearTimeout(timer); document.removeEventListener("visibilitychange", vis); document.title = "Battler · FRC Packs"; resetGame(); };
+    return () => { alive = false; clearTimeout(timer); document.removeEventListener("visibilitychange", vis); document.title = "Battler · FRC Packs"; resetGame(); setInvite(); };
   }, [id]);
 
   // On first load, don't replay old rounds; do play the current round's reveal.
@@ -89,11 +90,12 @@ function JoinLink({ g }: { g: GameView }) {
   if (g.status !== "OPEN" || !host) return <Empty>This game is already full. <a href="#play">Find another</a></Empty>;
   const join = async () => {
     setBusy(true);
-    try { await call("POST", `/api/battler/games/${g.id}/join`); await fetchGame(g.id, false); } catch (e) { toast(explain(e), true); setBusy(false); }
+    const q = inviteCode() ? `?code=${encodeURIComponent(inviteCode())}` : "";
+    try { await call("POST", `/api/battler/games/${g.id}/join${q}`); await fetchGame(g.id, false); } catch (e) { toast(explain(e), true); setBusy(false); }
   };
   return (
     <div class="b-panel center">
-      <h2>{host.name} wants a game</h2>
+      <h2>{host.name} invited you</h2>
       <p class="b-dim">{host.elo} Elo · 5 rounds</p>
       <button type="button" class="b-btn" onClick={join} disabled={busy}>{busy ? <Spinner small /> : "Join"}</button>
       <a class="b-link" href="#home">Not now</a>
@@ -102,20 +104,52 @@ function JoinLink({ g }: { g: GameView }) {
 }
 
 function Waiting({ g }: { g: GameView }) {
+  return g.mode === "private" ? <Hosting g={g} /> : <Queue g={g} />;
+}
+
+/** Quick Play: waiting in the queue for the next player. Asks the server to match again every few seconds, which also
+    pairs two players who queued at the same moment. */
+function Queue({ g }: { g: GameView }) {
+  const [since] = useState(() => Date.now());
+  const [, tick] = useState(0);
+  useEffect(() => {
+    const t = setInterval(async () => {
+      tick((n) => n + 1);
+      try {
+        const r = await call<GameView>("POST", "/api/battler/quick");
+        if (r.id !== g.id) location.hash = `#game/${r.id}`;
+      } catch { /* the next try */ }
+    }, 4000);
+    return () => clearInterval(t);
+  }, [g.id]);
+  const s = Math.floor((Date.now() - since) / 1000);
+  return (
+    <div class="b-panel center b-wait">
+      <Spinner />
+      <h2>Finding an opponent</h2>
+      <p class="b-dim b-small">{Math.floor(s / 60)}:{String(s % 60).padStart(2, "0")}</p>
+      <button type="button" class="b-btn ghost" onClick={() => act({ kind: "cancel" })}>Cancel</button>
+    </div>
+  );
+}
+
+/** A private match: the code and an invite link for the one person it's meant for. */
+function Hosting({ g }: { g: GameView }) {
+  const url = `${location.origin}/battle.html#game/${g.id}/${g.code ?? ""}`;
   const share = async () => {
-    const url = `${location.origin}/battle.html#game/${g.id}`;
     try {
-      if (navigator.share) await navigator.share({ title: "Battler", text: "Play me in the Battler", url });
+      if (navigator.share) await navigator.share({ title: "Battler", text: `Play me in the Battler. Code ${g.code}`, url });
       else { await navigator.clipboard.writeText(url); toast("Invite link copied."); }
     } catch { /* closed the share sheet */ }
   };
   return (
     <div class="b-panel center b-wait">
-      <Spinner />
-      <h2>Waiting for an opponent</h2>
-      <p class="b-dim b-small">Called off after 30 minutes with nobody.</p>
-      <button type="button" class="b-btn" onClick={share}>Invite</button>
-      <button type="button" class="b-link" onClick={() => act({ kind: "cancel" })}>Cancel game</button>
+      <h2>Private match</h2>
+      <p class="b-dim b-small">Only someone with this code can join.</p>
+      <b class="b-bigcode" aria-label={`Code ${(g.code ?? "").split("").join(" ")}`}>{g.code}</b>
+      <button type="button" class="b-btn" onClick={share}>Send invite</button>
+      <p class="b-dim b-small"><Spinner small /> Waiting for them to join</p>
+      <button type="button" class="b-link" onClick={() => act({ kind: "cancel" })}>Cancel</button>
     </div>
   );
 }

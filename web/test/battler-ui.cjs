@@ -1,8 +1,9 @@
 // Two phones play a whole Battler game through the page, against a local server started with DEV_TOOLS=1:
 //   node test/battler-ui.cjs [http://127.0.0.1:3000] [screenshot dir]
 // Sets both players up through the API (accounts, packs, a ready deck for B), then does everything else by tapping: A
-// builds a deck in the deck builder, hosts; B joins from the lobby; both pick decks, draft, and play five rounds (tap and
-// drag cards, move a robot, swap from the bench, lock, watch or skip the reveal) to the final screen.
+// builds a deck in the deck builder and hosts a private match; a third player can't see or join it without the code; B
+// joins with the code; both pick decks, draft, and play five rounds (tap and drag cards, move a robot, swap from the
+// bench, lock, watch or skip the reveal) to the final screen. Then A queues for Quick Play and B's Quick Play pairs them.
 //
 // Also checks the page stays smooth: no robot photo is re-created while the other player acts (a sign of a screen being
 // rebuilt, which flickers), no long frames during the reveal, no layout shifts, no console errors. Screenshots of every
@@ -125,15 +126,27 @@ async function main() {
   const deckOk = await a.evaluate(() => !document.querySelector('.b-problems'));
   assert(deckOk, 'the tapped deck is ready');
 
-  // Host and join.
+  // A hosts a private match. The server keeps it to whoever has the code: a third player can't see or join it.
   await a.goto(BASE + '/battle.html#play');
-  await a.click('text=Host a game');
-  await a.waitForSelector('.b-wait');
-  await shot(a, 'waiting');
+  await shot(a, 'play');
+  await a.click('text=Host a private match');
+  await a.waitForSelector('.b-bigcode');
+  await shot(a, 'private-host');
+  const code = (await a.textContent('.b-bigcode')).trim(), gid = (await a.evaluate(() => location.hash)).split('/')[1];
+  const C = client();
+  const { code: inv } = await C.call('POST', '/api/dev/invite', {});
+  await C.call('POST', '/api/signup', { code: inv, username: 'cal' + tag, password: 'password123', firstName: 'Cal' });
+  const refused = async (pr) => { try { await pr; return false; } catch (e) { return / -> 403 /.test(String(e.message)); } };
+  assert(await refused(C.call('GET', `/api/battler/games/${gid}`)), 'a private match is hidden without its code');
+  assert(await refused(C.call('POST', `/api/battler/games/${gid}/join`)), 'a private match cannot be joined without its code');
+  assert(await refused(C.call('POST', `/api/battler/games/${gid}/join?code=ZZZZZZ`)), 'or with the wrong code');
+  // B joins with the code.
   await b.goto(BASE + '/battle.html#play');
-  await b.waitForSelector('.b-row button');
-  await shot(b, 'lobby');
-  await b.click('.b-row button');
+  await b.fill('.b-code', code);
+  await b.click('.b-codejoin button');
+  await b.waitForSelector('text=invited you');
+  await shot(b, 'private-invite');
+  await b.click('.b-panel >> text=Join');
   for (const p of [a, b]) await p.waitForSelector('.b-deckline');
   await shot(a, 'deck-pick');
   await a.click('.b-deckline:not(.off) >> nth=0');
@@ -247,6 +260,16 @@ async function main() {
   await b.waitForSelector('.b-final', { timeout: 30000 });
   await shot(a, 'final', true);
   await shot(b, 'final-b', true);
+
+  // Quick Play: A queues in the page, B queues through the API and lands in A's game.
+  await a.goto(BASE + '/battle.html#play');
+  await a.click('.b-quick');
+  await a.waitForSelector('text=Finding an opponent');
+  await shot(a, 'quick-queue');
+  const qa = (await a.evaluate(() => location.hash)).split('/')[1], qb = await B.call('POST', '/api/battler/quick');
+  assert(qb.id === qa, 'Quick Play pairs the next player with whoever is waiting');
+  await a.waitForSelector('.b-deckline', { timeout: 10000 });
+  await B.call('POST', `/api/battler/games/${qa}/act`, { rev: qb.rev, action: { kind: 'forfeit' } });
 
   // Desktop.
   const desk = await browser.newContext({ viewport: { width: 1280, height: 860 } });
