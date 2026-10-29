@@ -115,11 +115,41 @@ export const sfx = {
     });
     buzz([45, 160, 35, 340, 45, 160, 35]);
   },
+  /** A Mythic is an event: a sub-bass drop under a hard hit, a rising fanfare that lands on a big held chord ringing
+      out through an echo, and sparkles falling over it; the strongest buzz and rumble in the game. */
   mythic: () => {
-    chord([523, 659, 784, 988, 1046, 1318, 1568, 1976], 0.06, "triangle", 0.055);
-    blip(131, 1.8, "sine", 0.1); blip(196, 1.6, "sine", 0.06, 0.05);
-    [2637, 3136, 2349, 3520, 2794].forEach((f, i) => blip(f, 0.09, "sine", 0.025, 0.55 + i * 0.11));
-    buzz([60, 40, 60, 40, 220]);
+    buzz([90, 40, 90, 40, 220, 60, 340]);
+    if (muted()) return;
+    const a = actx();
+    if (!a) return;
+    const t0 = a.currentTime, bus = a.createGain(), echo = a.createDelay(1), fb = a.createGain(), tone = a.createBiquadFilter();
+    echo.delayTime.value = 0.19; fb.gain.value = 0.34; tone.type = "lowpass"; tone.frequency.value = 2800;
+    bus.connect(a.destination); bus.connect(echo); echo.connect(tone); tone.connect(fb); fb.connect(echo); tone.connect(a.destination);
+    const note = (f: number, at: number, d: number, type: OscillatorType, v: number, to?: number) => {
+      const o = a.createOscillator(), g = a.createGain(), t = t0 + at;
+      o.type = type; o.frequency.setValueAtTime(f, t); if (to) o.frequency.exponentialRampToValueAtTime(to, t + d);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+      o.connect(g); g.connect(bus); o.start(t); o.stop(t + d + 0.05);
+    };
+    note(110, 0, 1.5, "sine", 0.6, 26); // the drop
+    note(55, 0, 0.9, "triangle", 0.25, 30);
+    noise(0.6, 0.55, 900); noise(0.3, 0.35, 4200);
+    [523, 784, 1047, 1319].forEach((f, i) => note(f, 0.06 + i * 0.08, 0.32, "sawtooth", 0.05)); // the sting
+    [523, 659, 784, 1047, 1319, 1568].forEach((f) => { note(f, 0.38, 2.8, "triangle", 0.045); note(f * 1.005, 0.38, 2.8, "sawtooth", 0.011); });
+    for (let i = 0; i < 14; i++) note(2093 * Math.pow(2, Math.random() * 1.2), 0.7 + i * 0.12, 0.3, "sine", 0.028);
+  },
+  /** Each letter of MYTHIC landing. */
+  stamp: (i: number) => { blip(170 + i * 34, 0.14, "square", 0.08); blip(85 + i * 17, 0.18, "sine", 0.18); noise(0.08, 0.3, 700 + i * 260); buzz(20); },
+  /** A swell played backwards into the flip of a Mythic, `s` seconds long. */
+  swell: (s: number) => {
+    noise(s, 0.32, 2600, true);
+    if (muted()) return;
+    const a = actx();
+    if (!a) return;
+    const t = a.currentTime, o = a.createOscillator(), g = a.createGain();
+    o.type = "sawtooth"; o.frequency.setValueAtTime(90, t); o.frequency.exponentialRampToValueAtTime(520, t + s);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.07, t + s * 0.95); g.gain.exponentialRampToValueAtTime(0.0001, t + s + 0.03);
+    o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + s + 0.08);
   },
   riser: () => {
     if (muted()) return;

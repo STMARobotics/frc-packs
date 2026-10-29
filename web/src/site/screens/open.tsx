@@ -12,6 +12,7 @@ import { back, Card, cx, Face, plural, push } from "../ui";
 import { buzz, sfx } from "../sfx";
 import { openCard } from "./cardview";
 import { usePad } from "../pad";
+import { createRip, type Rip } from "../rip";
 
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const N = 10; // packs on the wheel
@@ -61,15 +62,12 @@ const nudge = (el?: HTMLElement | null) => el?.animate([{ transform: "none" }, {
 
 // ---------- the pack ----------
 
-/** Pieces the pack's top strip rips in. */
-const SLICES = 12;
-
 export function PackArt({ k, odds }: { k: Kind; odds?: boolean }) {
   return (
     <div class={cx("op-pack", `k-${k}`)}>
       {odds && [-3, -2, -1, 0, 1, 2, 3].map((z) => <i class="op-pedge" style={{ "--z": z }} />)}
       <div class="op-pface op-pfront">
-        {odds ? <div class="op-ptop op-sliced">{Array.from({ length: SLICES }, (_, i) => <i class="op-slice" style={{ "--i": i }} />)}</div> : <div class="op-ptop" />}
+        {odds ? <canvas class="op-ripcv" aria-hidden="true" /> : <div class="op-ptop" />}
         <div class="op-pbody">
           <span class="op-pyr">{RECIPE?.season ?? 2026}</span>
           <span class="op-pmark"><i /><i /><i /></span>
@@ -224,7 +222,6 @@ function Flow({ resume }: { resume?: Opening }) {
   const openReq = useRef<Promise<Result> | null>(null);
   const stage = useRef<HTMLDivElement>(null), fxEl = useRef<HTMLDivElement>(null), cv = useRef<HTMLCanvasElement>(null), flashEl = useRef<HTMLDivElement>(null);
   const grip = useRef<HTMLDivElement>(null), stackEl = useRef<HTMLDivElement>(null), sumEl = useRef<HTMLDivElement>(null);
-  const stackAt = useRef<DOMRect | null>(null);
   const fx = useRef<ReturnType<typeof particles> | null>(null);
   const timers = useRef<number[]>([]);
   const charge = useRef<number[]>([]);
@@ -392,7 +389,7 @@ function Flow({ resume }: { resume?: Opening }) {
     setPromo((p) => (p.includes(i) ? p : [...p, i]));
     setCharging(i); setMood("op-m-dark"); setBusy(true);
     sfx.heartbeat();
-    charge.current = [later(1000, sfx.riser), later(1500, () => flip(i))];
+    charge.current = [later(450, () => sfx.swell(1.05)), later(1500, () => flip(i))]; // a backwards swell lands on the flip
   };
   const flip = (i: number) => {
     charge.current.forEach(clearTimeout);
@@ -423,12 +420,12 @@ function Flow({ resume }: { resume?: Opening }) {
       [0, 180, 420].forEach((d, i) => later(d, () => spawn(cx("op-mring", i === 1 && "op-gold"), { left: `${x}px`, top: `${y}px` }, 1300)));
       [0, 350, 800].forEach((d) => later(d, () => spawn("op-mshock", { left: `${x}px`, top: `${y}px` }, 1500)));
       spawn("op-mtitle", { "--ty": `${y - r.height * 0.12}px` }, 2900, [..."MYTHIC"].map((ch, i) => `<span style="--i:${i}">${ch}</span>`).join(""));
+      [..."MYTHIC"].forEach((_, i) => later(330 + i * 70, () => sfx.stamp(i))); // each letter lands with a hit
       const nm = document.createElement("div");
       nm.innerHTML = `<b></b><span>Team ${t.num}</span>`;
       nm.querySelector("b")!.textContent = t.name;
       spawn("op-mname", { "--ny": `${y + r.height * 0.46}px` }, 3400, nm.innerHTML);
     }
-    buzz([60, 40, 120, 60, 260]);
     fx.current?.burst(x, y, 90, null, 15);
     later(300, () => { fx.current?.burst(x - 70, y - 50, 50, "#ffd34d", 11); fx.current?.burst(x + 70, y - 50, 50, "#ffd34d", 11); });
     later(750, () => fx.current?.burst(x, y - 90, 90, null, 13));
@@ -497,7 +494,6 @@ function Flow({ resume }: { resume?: Opening }) {
   // ----- the summary -----
   const summary = (sk: Deal | null) => {
     charge.current.forEach(clearTimeout);
-    stackAt.current = stackEl.current?.getBoundingClientRect() ?? null;
     deck!.forEach((c) => { if (!c.test) stash(c); });
     const o = op.current;
     op.current = null;
@@ -521,10 +517,17 @@ function Flow({ resume }: { resume?: Opening }) {
   };
   useLayoutEffect(() => {
     if (phase !== "summary" || !sumEl.current) return;
-    const kids = [...sumEl.current.children] as HTMLElement[], fromR = stackAt.current;
-    if (fromR) kids.forEach((el, i) => flyFrom(el, fromR, 560, i * 70));
+    // The cards come up into place one after another, each with a soft snap, the best one last.
+    const kids = [...sumEl.current.children] as HTMLElement[];
+    if (!RM) {
+      sumEl.current.previousElementSibling?.animate([{ opacity: 0, transform: "translateY(8px)" }, { opacity: 1, transform: "none" }], { duration: 320, easing: "ease-out", fill: "backwards" });
+      kids.forEach((el, i) => {
+        el.animate([{ opacity: 0, transform: "translateY(18px) scale(.94)" }, { opacity: 1, transform: "none" }], { duration: 360, delay: 120 + i * 90, easing: "cubic-bezier(.2, .8, .3, 1)", fill: "backwards" });
+        later(120 + i * 90 + 200, () => sfx.snap(0.35));
+      });
+    }
     if (skipped) {
-      sfx.flip(skipped.tier);
+      if (skipped.tier === "mythic") sfx.mythic(); else sfx.flip(skipped.tier);
       later(RM ? 0 : 520, () => {
         const el = kids[kids.length - 1];
         if (!el) return;
@@ -768,7 +771,7 @@ const OPEN_AT = 0.72;
 
 function Hold(p: HoldProps) {
   const lift = useRef<HTMLDivElement>(null), shakeEl = useRef<HTMLDivElement>(null), rotEl = useRef<HTMLDivElement>(null);
-  const tell = useRef<HTMLElement>(null), rim = useRef<HTMLElement>(null), line = useRef<HTMLElement>(null), beam = useRef<HTMLElement>(null);
+  const rip = useRef<Rip | null>(null), torn = useRef({ len: 0, dir: 1, t: 0 });
   const rot = useRef({ y: 0, x: 0 });
   const g = useRef<{ x: number; y: number; ry: number; cut: boolean; w: number; left: number; moved: boolean; id: number; notch: number; dir: number } | null>(null);
   const [away, setAway] = useState(false);
@@ -781,19 +784,12 @@ function Hold(p: HoldProps) {
     r.style.setProperty("--sx", (-Math.sin((rot.current.y * Math.PI) / 180) * 60).toFixed(1));
     setAway(!facingFront());
   };
-  /** The light leaking out of the tear in the best card's color, brighter the further it's torn. */
-  const glow = (t: number) => {
-    if (tell.current) tell.current.style.opacity = t.toFixed(3);
-    if (rim.current) rim.current.style.opacity = Math.min(1, t * 2).toFixed(3);
-    if (beam.current) beam.current.style.opacity = Math.min(1, t * 1.4).toFixed(3);
-  };
-  /** How much of the strip is torn (share of the width) and from which side (1 from the left, -1 from the right). */
-  const tear = (len: number, dir: number) => {
-    const el = p.grip.current;
-    if (!el) return;
-    el.style.setProperty("--tear", len.toFixed(3));
-    el.style.setProperty("--dir", String(dir));
-    el.style.setProperty("--fw", dir > 0 ? "1" : "0");
+  /** The wrapper torn this far (share of the width, from the side it started: 1 the left, -1 the right), with the best
+      card's light coming out of the gap at `t` (0 to 1). */
+  const tear = (len: number, dir: number, t: number) => {
+    torn.current = { len, dir, t };
+    p.grip.current?.style.setProperty("--dir", String(dir));
+    rip.current?.set(len, dir, t, TIERS[p.best ?? "common"].color);
   };
 
   // It lands in your hand with some weight: from the wheel, or dropped in from above.
@@ -806,9 +802,14 @@ function Hold(p: HoldProps) {
     holdApi.turn = () => { rot.current.y += 180; paint(false); sfx.whoosh(); };
     holdApi.front = facingFront;
     holdApi.face = () => { rot.current.y = Math.round(rot.current.y / 360) * 360; rot.current.x = 0; paint(false); };
-    return () => { holdApi.turn = holdApi.front = holdApi.face = undefined; sfx.strainStop(); };
+    const pack = rotEl.current?.querySelector<HTMLElement>(".op-pack"), cv = pack?.querySelector<HTMLCanvasElement>(".op-ripcv");
+    if (pack && cv) rip.current = createRip(cv, pack, RM);
+    return () => { holdApi.turn = holdApi.front = holdApi.face = undefined; sfx.strainStop(); rip.current?.stop(); };
   }, []);
-  useEffect(() => { if (p.torn) glow(1); }, [p.torn]);
+  // Opened (by the swipe or the Open button): the light at full as the wrapper comes away.
+  useEffect(() => { if (p.torn) { const c = torn.current; tear(Math.max(c.len, 0.3), c.dir, 1); setTimeout(() => rip.current?.stop(), 700); } }, [p.torn]);
+  // The best card's color arrives from the server after the pack is picked up.
+  useEffect(() => { const c = torn.current; if (c.len) tear(c.len, c.dir, c.t); }, [p.best]);
 
   const down = (e: PointerEvent) => {
     if (!p.active) return;
@@ -830,16 +831,14 @@ function Hold(p: HoldProps) {
       if (!s.dir) return;
       const len = Math.floor(Math.max(0, (at - from) * s.dir) / NOTCH + 1e-6) * NOTCH, t = Math.min(1, len / OPEN_AT);
       if (len === s.notch) return;
-      const start = s.dir > 0 ? from : from - len;
-      if (line.current) line.current.style.transform = `translateX(${start * 100}%) scaleX(${len})`;
       p.grip.current!.classList.add("op-swiping");
-      tear(len ? (s.dir > 0 ? from : 1 - from) + len : 0, s.dir); // the torn edge, measured from the side it started
-      glow(t);
+      tear(len ? (s.dir > 0 ? from : 1 - from) + len : 0, s.dir, t); // the torn edge, measured from the side it started
       sfx.strain(t);
       if (len > s.notch) {
         sfx.tear(t);
         buzz(Math.round(6 + t * 18));
-        const a = RM ? 0 : 1 + t * 5;
+        rip.current?.jolt(t);
+        const a = RM ? 0 : 1 + t * 4;
         shakeEl.current?.animate([{ transform: `translate(${(Math.random() * 2 - 1) * a}px, ${a * 0.6}px) rotate(${(Math.random() * 2 - 1) * a * 0.2}deg)` }, { transform: "none" }], { duration: 120, easing: "ease-out" });
       } else {
         sfx.untear(t);
@@ -859,12 +858,10 @@ function Hold(p: HoldProps) {
     if (!s || e.pointerId !== s.id) return;
     g.current = null;
     if (s.cut) {
-      // Let go part way: the strip springs back and the light goes out.
+      // Let go part way: the wrapper lies back down and the light goes out.
       p.grip.current!.classList.remove("op-swiping");
-      if (line.current) line.current.style.transform = "scaleX(0)";
-      tear(0, s.dir || 1);
+      tear(0, s.dir || 1, 0);
       if (s.notch) { sfx.strainStop(); sfx.settle(); }
-      glow(0);
       return;
     }
     if (!s.moved) rot.current.y += 180; // a tap turns it over
@@ -873,18 +870,13 @@ function Hold(p: HoldProps) {
     paint(false);
     sfx.whoosh();
   };
-  const tc = TIERS[p.best ?? "common"].color;
   return (
-    <div class={cx("op-hold", `k-${p.k}`, p.torn && "op-torn", p.dropping && "op-drop", away && "op-away")} style={{ "--tell": tc }}>
+    <div class={cx("op-hold", `k-${p.k}`, p.torn && "op-torn", p.dropping && "op-drop", away && "op-away")}>
       <div ref={p.grip} class="op-grip" onPointerDown={down} onPointerMove={move} onPointerUp={upH} onPointerCancel={upH}>
-        <i ref={tell} class="op-tell" />
         <div ref={lift} class={cx("op-lift", !p.from && "op-in")}>
           <div ref={shakeEl} class="op-shake">
-            <i ref={rim} class="op-rim" />
             <div ref={rotEl} class="op-rot"><PackArt k={p.k} odds /></div>
-            <i ref={beam} class="op-beam" aria-hidden="true" />
             <i class="op-cutzone" aria-hidden="true" />
-            <i ref={line} class="op-cutline" />
           </div>
         </div>
       </div>
