@@ -170,9 +170,9 @@ mod tests {
         }
         assert_eq!(dupes, 0, "no team twice in one pack");
         assert_eq!(last_ok, n, "last card is always Rare or better");
-        // 1 in 400 without pity: 500 expected in 200k.
-        assert!((380..=640).contains(&myth), "mythic packs {myth}");
-        // Without the pity meter, Legendary+ is about 8.9% of packs (0.25% + 7% last slot + 2% from slots 1-4).
+        // 1 in 250 without pity: 800 expected in 200k.
+        assert!((680..=920).contains(&myth), "mythic packs {myth}");
+        // Without the pity meter, Legendary+ is about 9% of packs (0.4% + 7% last slot + 2% from slots 1-4).
         let rate = f64::from(leg_plus) / f64::from(n);
         assert!((0.08..0.10).contains(&rate), "legendary+ rate {rate}");
     }
@@ -196,16 +196,17 @@ mod tests {
         let pack = cmp26();
         let mut rng = StdRng::seed_from_u64(1);
         for _ in 0..2000 {
-            let c = roll(&pack, &mut rng, &Opts { pity: Pity { m: 199, l: 0 }, ..Default::default() });
-            assert_eq!(c[4].tier, Tier::Mythic, "pack 200 is always a Mythic");
+            let c = roll(&pack, &mut rng, &Opts { pity: Pity { m: 299, l: 0 }, ..Default::default() });
+            assert_eq!(c[4].tier, Tier::Mythic, "pack 300 is always a Mythic");
             let c = roll(&pack, &mut rng, &Opts { pity: Pity { m: 0, l: 19 }, ..Default::default() });
             assert!(c[4].tier.rank() <= Tier::Legendary.rank(), "20th dry pack is Legendary or better");
             let c = roll(&pack, &mut rng, &Opts { first: true, ..Default::default() });
             assert!(c[4].tier.rank() <= Tier::Legendary.rank(), "first pack ends in Legendary or better");
         }
         let o = &pack.recipe.odds;
-        assert_eq!(mythic_chance(o, false, 10), 1.0 / 400.0);
-        assert!((mythic_chance(o, false, 175) - 0.5).abs() < 1e-9);
+        assert_eq!(mythic_chance(o, false, 10), 1.0 / 250.0);
+        assert_eq!(mythic_chance(o, false, 200), 1.0 / 250.0, "no help until after pack 200");
+        assert!((mythic_chance(o, false, 250) - 0.5).abs() < 1e-9);
         assert_eq!(mythic_chance(o, true, 10), 0.2);
     }
 
@@ -222,11 +223,13 @@ mod tests {
             leg_plus += i32::from(c.iter().any(|x| x.tier.rank() <= Tier::Legendary.rank()));
             rare_plus_slots += c[..4].iter().filter(|x| x.tier.rank() <= Tier::Rare.rank()).count();
         }
-        // Mythic 4x: 1 in 100, so about 1000 in 100k.
-        assert!((850..=1150).contains(&myth), "boosted mythic packs {myth}");
+        // Mythic 4x: 1 in 62.5, so about 1600 in 100k.
+        assert!((1420..=1780).contains(&myth), "boosted mythic packs {myth}");
         let rate = f64::from(leg_plus) / f64::from(n);
         assert!((0.50..0.60).contains(&rate), "boosted legendary+ rate {rate}");
-        assert!(rare_plus_slots > n as usize, "more than one Rare+ in slots 1-4 per pack on average");
+        // Slots 1-4 draw Rare+ at 25% each (vs 7.5% in a standard pack): one per pack on average.
+        let per = rare_plus_slots as f64 / f64::from(n);
+        assert!((0.98..1.02).contains(&per), "about one Rare+ in slots 1-4 per pack, got {per}");
     }
 
     #[test]
@@ -247,7 +250,7 @@ mod tests {
             }
         }
         assert!(worst_gap < 20, "longest dry run {worst_gap}");
-        assert!(worst_m < 200, "longest run without a Mythic {worst_m}");
+        assert!(worst_m < 300, "longest run without a Mythic {worst_m}");
         let rate = f64::from(leg) / 100_000.0;
         assert!((0.09..0.12).contains(&rate), "legendary+ rate with the meter {rate}");
     }
@@ -268,8 +271,8 @@ mod tests {
         assert_eq!(promised(o, &full_l), Some(Tier::Legendary));
         assert!(!keeps(o, &full_l, &rare) && keeps(o, &full_l, &leg));
         assert_eq!(promised(o, &Opts { first: true, ..Default::default() }), Some(Tier::Legendary));
-        // Boosted packs reach a certain Mythic sooner (4x): 175 + 50/4.
-        let boosted = Opts { boosted: true, pity: Pity { m: 187, l: 0 }, ..Default::default() };
+        // Boosted packs reach a certain Mythic sooner (4x): 200 + 100/4.
+        let boosted = Opts { boosted: true, pity: Pity { m: 224, l: 0 }, ..Default::default() };
         assert_eq!(promised(o, &boosted), Some(Tier::Mythic));
         for _ in 0..500 {
             assert!(keeps(o, &full_m, &roll(&pack, &mut rand::rng(), &full_m)));
@@ -411,10 +414,12 @@ mod tests {
         let mean_gap = f64::from(gaps.iter().sum::<u32>()) / gaps.len() as f64;
         let share = |f: &dyn Fn(u32) -> bool| 100.0 * gaps.iter().filter(|g| f(**g)).count() as f64 / gaps.len() as f64;
         report.push(format!(
-            "with the meter: a Mythic every {mean_gap:.1} packs on average; {:.1}% by pack 150 (luck), {:.1}% on 151-199 (the meter climbing), {:.1}% at 200; median {}, 10th-90th percentile {}-{}",
+            "with the meter: a Mythic every {mean_gap:.1} packs on average; {:.1}% by pack {} (luck), {:.1}% while the meter climbs, {:.1}% at {}; median {}, 10th-90th percentile {}-{}",
             share(&|g| g <= o.soft),
+            o.soft,
             share(&|g| g > o.soft && g < o.hard),
             share(&|g| g >= o.hard),
+            o.hard,
             gaps[gaps.len() / 2],
             gaps[gaps.len() / 10],
             gaps[gaps.len() * 9 / 10],

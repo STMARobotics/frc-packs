@@ -163,6 +163,7 @@ pub fn new_profile(username: &str, password_hash: &str, invite: Option<&str>, ad
         created_at: now,
         // A new account's cards are made with the current rarities, so it never needs bringing up to date.
         retier: crate::retier::VERSION,
+        announced: crate::announce::SEEN,
         ..Default::default()
     }
 }

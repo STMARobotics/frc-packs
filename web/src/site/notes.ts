@@ -15,6 +15,7 @@ export const NOTES: Release[] = [
       "A new look on every screen, built for your phone.",
       "Packs rip the way you swipe them, and rewind if you let go.",
       "Mythics glow teal, special editions shine gold.",
+      "A fairer Mythic meter: every pack is 1 in 250 for a Mythic (was 1 in 400), the meter helps after 200 packs and makes sure of one by 300.",
       "New constellation pack art.",
       "Battle: Quick Play, private matches with a code, and wagers between friends.",
       "Profiles are pages of their own: pick cards for your picture and banner, write a bio, pin your showcase.",

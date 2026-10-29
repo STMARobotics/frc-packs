@@ -67,6 +67,9 @@ pub struct Profile {
     /// A note for the player, shown once the next time they open the game (then cleared).
     #[serde(default)]
     pub notice: Option<String>,
+    /// How many one-time announcements they've been given (see `announce`).
+    #[serde(default)]
+    pub announced: i32,
     /// Packs and parts taken in through trades lately (the last 24 hours count against the daily limit).
     #[serde(default)]
     pub intake: Vec<Intake>,

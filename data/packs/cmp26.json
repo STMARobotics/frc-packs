@@ -16,10 +16,10 @@
    "rare": 0.93,
    "legendary": 0.07
   },
-  "mythicBase": 0.0025,
+  "mythicBase": 0.004,
   "demoMythic": 0.2,
-  "soft": 150,
-  "hard": 200,
+  "soft": 200,
+  "hard": 300,
   "legEvery": 20,
   "boosted": {
    "slots": {

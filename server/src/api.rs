@@ -461,6 +461,7 @@ async fn session(State(s): State<Shared>, headers: HeaderMap) -> ApiResult<Json<
     match auth::session(&s.db, &headers).await? {
         Some(u) if !u.disabled && (!s.admin_only || u.is_admin) => {
             crate::retier::ensure(&s, u.id).await?;
+            crate::announce::ensure(&s, u.id).await?;
             Ok(Json(load_state(&s, u.id).await?))
         }
         Some(u) if !u.disabled => Err(err(StatusCode::FORBIDDEN, "admin_only")),
@@ -618,6 +619,7 @@ async fn login(
     let token = accounts::new_session(&mut tx, p.id);
     tx.commit(&s.db).await?;
     crate::retier::ensure(&s, p.id).await?;
+    crate::announce::ensure(&s, p.id).await?;
     let state = load_state(&s, p.id).await?;
     Ok(signed_in(&s, &token, state))
 }
@@ -750,6 +752,7 @@ async fn change_first_name(
 
 async fn state(State(s): State<Shared>, user: User) -> ApiResult<Json<StateOut>> {
     crate::retier::ensure(&s, user.id).await?;
+    crate::announce::ensure(&s, user.id).await?;
     state_json(&s, user.id).await
 }
 

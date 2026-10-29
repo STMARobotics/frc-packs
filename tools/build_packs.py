@@ -103,8 +103,9 @@ ODDS = {
     # Slots 1 to 4, per card. The last slot is always Rare or better.
     "slots": {"common": 0.705, "uncommon": 0.22, "rare": 0.07, "legendary": 0.005},
     "last": {"rare": 0.93, "legendary": 0.07},
-    # Mythic meter: 1 in 400 per pack, climbing after 150 packs without one, guaranteed at 200.
-    "mythicBase": 1 / 400, "demoMythic": 0.2, "soft": 150, "hard": 200,
+    # Mythic meter: 1 in 250 per pack, climbing after 200 packs without one, guaranteed at 300 (was 1/400, 150, 200
+    # until 2026-10-29: most Mythics came on packs 151-165, so players who started together got them together).
+    "mythicBase": 1 / 250, "demoMythic": 0.2, "soft": 200, "hard": 300,
     # Legendary or better at least every 20 packs.
     "legEvery": 20,
     # Boosted packs (crafted from parts): better slots, a better last card, and 4x the Mythic chance.
