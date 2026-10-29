@@ -62,6 +62,43 @@ const nudge = (el?: HTMLElement | null) => el?.animate([{ transform: "none" }, {
 
 // ---------- the pack ----------
 
+/** Each pack's constellation: its stars (x, y, size) and the lines joining them (pairs of star indexes). Made up, and
+    drawn on a 100 x 100 sky. */
+const SKIES: Record<"std" | "gold" | "myth", { stars: [number, number, number][]; lines: [number, number][] }> = {
+  // The Arrow: a long rising line with a fletched tail.
+  std: {
+    stars: [[16, 78, 1.6], [30, 66, 2.2], [44, 55, 1.8], [57, 44, 2.6], [70, 33, 2], [84, 21, 3.2], [75, 48, 1.5], [64, 22, 1.5], [22, 88, 1.2], [10, 66, 1.2]],
+    lines: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [5, 7], [0, 8], [0, 9]],
+  },
+  // The Crown: five points over a band.
+  gold: {
+    stars: [[12, 70, 1.8], [24, 38, 2.4], [37, 58, 1.6], [50, 22, 3.4], [63, 58, 1.6], [76, 38, 2.4], [88, 70, 1.8], [50, 74, 1.4], [31, 74, 1.2], [69, 74, 1.2]],
+    lines: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [0, 8], [8, 7], [7, 9], [9, 6]],
+  },
+  // The Comet: a bright head with a long, sweeping tail of stars.
+  myth: {
+    stars: [[78, 24, 3.8], [68, 34, 2.4], [56, 42, 2], [44, 52, 1.8], [33, 60, 1.6], [22, 70, 1.4], [12, 80, 1.2], [86, 34, 1.6], [70, 14, 1.6], [60, 56, 1.3], [38, 40, 1.3]],
+    lines: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [0, 7], [0, 8], [2, 9], [3, 10]],
+  },
+};
+/** Faint background stars, the same on every pack (a fixed scatter). */
+const FIELD: [number, number, number][] = Array.from({ length: 36 }, (_, i) => {
+  const r = (n: number) => ((Math.sin(i * 12.9898 + n * 78.233) * 43758.5453) % 1 + 1) % 1;
+  return [r(1) * 100, r(2) * 100, 0.35 + r(3) * 0.6];
+});
+
+/** The pack's art: a quiet star map, glowing in the pack's color. Still: nothing on it moves. */
+function Sky({ k }: { k: Kind }) {
+  const sky = SKIES[k === "test" ? "std" : k];
+  return (
+    <svg class="op-sky" viewBox="0 0 100 100" aria-hidden="true">
+      {FIELD.map(([x, y, r]) => <circle class="op-dust" cx={x} cy={y} r={r} />)}
+      {sky.lines.map(([a, b]) => <line x1={sky.stars[a][0]} y1={sky.stars[a][1]} x2={sky.stars[b][0]} y2={sky.stars[b][1]} />)}
+      {sky.stars.map(([x, y, r]) => <circle class="op-star" cx={x} cy={y} r={r} />)}
+    </svg>
+  );
+}
+
 export function PackArt({ k, odds }: { k: Kind; odds?: boolean }) {
   return (
     <div class={cx("op-pack", `k-${k}`)}>
@@ -70,7 +107,7 @@ export function PackArt({ k, odds }: { k: Kind; odds?: boolean }) {
         {odds ? <canvas class="op-ripcv" aria-hidden="true" /> : <div class="op-ptop" />}
         <div class="op-pbody">
           <span class="op-pyr">{RECIPE?.season ?? 2026}</span>
-          <span class="op-pmark"><i /><i /><i /></span>
+          <Sky k={k} />
           <b class="op-pname">{(RECIPE?.name ?? "Championship").replace(/^\d{4}\s*/, "")}</b>
           <span class="op-pkind">{k === "std" ? "5 cards" : k === "myth" ? "3 Mythics" : NAME[k]}</span>
           <i class="op-psheen" />

@@ -2,10 +2,10 @@
    transform and opacity animate; the cards only move when you touch them. */
 
 /* ---------- the pack ---------- */
-.op-pack { --pa: #8fe9ff; --pb: #3c6cf0; --pc: #141a46; --pth: 2.6cqw; position: relative; width: 100%; aspect-ratio: 5 / 7.6; container-type: inline-size; transform-style: preserve-3d; }
-.op-pack.k-gold { --pa: #ffe58a; --pb: #e9a32a; --pc: #5e3207; }
-.op-pack.k-myth { --pa: #9dfff2; --pb: #a15cff; --pc: #2c0d55; }
-.op-pack.k-test { --pa: #e3c9ff; --pb: #8a5cff; --pc: #23104a; }
+.op-pack { --pa: #8fe9ff; --pb: #3c6cf0; --pc: #141a46; --glow: #8fe9ff; --pth: 2.6cqw; position: relative; width: 100%; aspect-ratio: 5 / 7.6; container-type: inline-size; transform-style: preserve-3d; }
+.op-pack.k-gold { --pa: #ffe58a; --pb: #e9a32a; --pc: #5e3207; --glow: #fff0b0; }
+.op-pack.k-myth { --pa: #a6fff2; --pb: #17b8a5; --pc: #04262e; --glow: #3cffdc; }
+.op-pack.k-test { --pa: #e3c9ff; --pb: #8a5cff; --pc: #23104a; --glow: #e3c9ff; }
 .op-pface { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
 .op-pfront { transform: translateZ(var(--pth)); }
 .op-pback { transform: rotateY(180deg) translateZ(var(--pth)); }
@@ -24,10 +24,11 @@
     linear-gradient(90deg, rgba(0, 0, 0, .42), transparent 13%, transparent 87%, rgba(0, 0, 0, .42)),
     linear-gradient(180deg, rgba(255, 255, 255, .1), transparent 20%, transparent 85%, rgba(0, 0, 0, .3)); }
 .op-pyr { position: relative; z-index: 1; margin-right: -.5em; font: 700 5cqw var(--body); letter-spacing: .5em; color: rgba(255, 255, 255, .85); }
-.op-pmark { position: relative; z-index: 1; flex: 1; min-height: 0; width: 100%; display: grid; place-items: center; }
-.op-pmark i { grid-area: 1 / 1; width: 44cqw; aspect-ratio: 1; border: 1.6cqw solid rgba(255, 255, 255, .85); border-radius: 5cqw; transform: rotate(45deg); }
-.op-pmark i:nth-child(2) { width: 28cqw; border-width: 1.2cqw; border-color: rgba(255, 255, 255, .5); background: rgba(255, 255, 255, .12); }
-.op-pmark i:nth-child(3) { width: 11cqw; border: 0; background: #fff; box-shadow: 0 0 6cqw rgba(255, 255, 255, .9); }
+/* The art: a star map in the pack's color. Fine lines, bright stars with a soft glow, faint dust behind. Static. */
+.op-sky { position: relative; z-index: 1; flex: 1; min-height: 0; width: 100%; overflow: visible; }
+.op-sky line { stroke: rgba(255, 255, 255, .5); stroke-width: .45; stroke-linecap: round; }
+.op-sky .op-star { fill: #fff; filter: drop-shadow(0 0 1.2px var(--glow)) drop-shadow(0 0 3.5px var(--glow)); }
+.op-sky .op-dust { fill: rgba(255, 255, 255, .32); }
 .op-pname { position: relative; z-index: 1; font: 400 11cqw/1 var(--display); color: #fff; text-align: center; text-shadow: 0 1cqw 0 rgba(0, 0, 0, .25); }
 .op-pkind { position: relative; z-index: 1; padding: 1.4cqw 4cqw; border-radius: 99px; background: rgba(0, 0, 0, .3); color: #fff; font: 700 4.2cqw var(--body); letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
 .op-psheen { position: absolute; inset: 0 -60%; z-index: 1; pointer-events: none; background: linear-gradient(105deg, transparent 42%, rgba(255, 255, 255, .26) 50%, transparent 58%);
@@ -52,7 +53,7 @@
 .op-cap { margin: 0; font: 400 19px var(--display); }
 .op-kinds { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 .op-kind { --pa: #8fe9ff; --pb: #3c6cf0; display: grid; grid-template-columns: auto auto; align-items: center; column-gap: 7px; min-height: 46px; padding: 6px 14px 6px 10px; border: 0; border-radius: 12px; background: var(--s1); color: var(--dim); font: 700 11px var(--body); text-align: left; box-shadow: inset 0 0 0 1px var(--ln); cursor: pointer; }
-.op-kind.k-gold { --pa: #ffe58a; --pb: #e9a32a; } .op-kind.k-myth { --pa: #9dfff2; --pb: #a15cff; } .op-kind.k-test { --pa: #e3c9ff; --pb: #8a5cff; }
+.op-kind.k-gold { --pa: #ffe58a; --pb: #e9a32a; } .op-kind.k-myth { --pa: #a6fff2; --pb: #17b8a5; } .op-kind.k-test { --pa: #e3c9ff; --pb: #8a5cff; }
 .op-kind i { grid-row: span 2; width: 13px; height: 19px; border-radius: 3px; background: linear-gradient(165deg, var(--pa), var(--pb)); }
 .op-kind b { font: 400 17px/1 var(--display); color: var(--tx); }
 .op-kind span { grid-column: 2; line-height: 1; }
