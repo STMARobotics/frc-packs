@@ -5,6 +5,11 @@
 // the strip flies off the way it was torn and the pack drops away, in front of the cards rising out of it. Then a
 // burst of light on each card that turns over.
 //
+// The cards are drawn here too, from pictures of the real DOM cards (faces.ts). Each DOM card stays in place and keeps
+// doing everything it does (its transitions, the drag, the flip, the fly-off, the summary), just invisible; this draws
+// its picture wherever CSS puts it, in true 3D, with light that changes as it turns. Until a card's picture is ready,
+// the DOM card shows, and looks the same.
+//
 // Only loaded when a pack is opened (open.tsx imports it on demand), and only used where WebGL works and motion isn't
 // reduced. It draws only while something moves: nothing runs while the pack sits in your hand.
 import {
@@ -12,6 +17,7 @@ import {
   PlaneGeometry, Points, Scene, ShaderMaterial, type Texture, TextureLoader, WebGLRenderer,
 } from "three";
 import { wrapper } from "../rip";
+import { snap } from "./faces";
 
 export type Kind = "std" | "gold" | "myth" | "test";
 
@@ -64,6 +70,12 @@ export interface PackGL {
   hide(): void;
   /** A burst of light over a card turning over (`r` on screen), with sparks for the best ones. */
   flare(r: DOMRect, color: string, sparks: boolean): void;
+  /** Draws these DOM elements (the cards' faces, backs and ribbons) from pictures of themselves, wherever CSS puts
+      them; each one's DOM copy is hidden (data-gl-on) once it's drawn. The key names the picture, so copies of the same
+      card share one. False if pictures can't be made here (the DOM cards stay). */
+  mirror(els: [HTMLElement, string][]): boolean;
+  /** Something moved that no animation tells about (a drag). */
+  wake(): void;
   dispose(): void;
 }
 
@@ -312,6 +324,124 @@ export function createPackGL(canvas: HTMLCanvasElement, host: HTMLElement): Pack
     }));
   };
 
+  // ---------- the cards ----------
+  type Mirror = { el: HTMLElement; key: string; chain: HTMLElement[]; mesh: Mesh; shadow: Mesh; u: { op: { value: number }; dim: { value: number }; sh: { value: number }; w: { value: number }; h: { value: number } }; shown: boolean; calm: boolean };
+  const mirrors = new Map<HTMLElement, Mirror>(), waiting = new Set<HTMLElement>();
+  const cardPics = new Map<string, Promise<Texture | null>>();
+  let snaps: Promise<unknown> = Promise.resolve(), snapsOk = true;
+  /** One picture at a time, each after a breath, so the page keeps moving while they're made. */
+  const cardPic = (key: string, el: HTMLElement) => {
+    let p = cardPics.get(key);
+    if (!p) {
+      p = snaps.then(() => new Promise((r) => setTimeout(r, 16))).then(() => (el.isConnected ? snap(el) : null)).then(
+        (cv) => { if (!cv) { cardPics.delete(key); return null; } const t = new CanvasTexture(cv); t.minFilter = LinearFilter; t.generateMipmaps = false; return t; },
+        () => { snapsOk = false; cardPics.delete(key); return null; },
+      );
+      snaps = p;
+      cardPics.set(key, p);
+    }
+    return p;
+  };
+  /** Keeps the last dozen pictures, minus any still being drawn. */
+  const trim = () => {
+    if (cardPics.size <= 12) return;
+    const used = new Set([...mirrors.values()].map((m) => m.key));
+    for (const [k, p] of cardPics) {
+      if (cardPics.size <= 12) break;
+      if (used.has(k)) continue;
+      cardPics.delete(k);
+      p.then((t) => t?.dispose());
+    }
+  };
+  const cardVert = `varying vec2 vUv; varying float vNz; varying float vNx;
+    void main() { vUv = uv; vec3 n = normalize(normalMatrix * vec3(0.0, 0.0, 1.0)); vNz = n.z; vNx = n.x; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`;
+  // Exactly the picture when it faces you; turned, it darkens a little and a soft light runs across it.
+  const cardFrag = `uniform sampler2D map; uniform float op; uniform float dim; varying vec2 vUv; varying float vNz; varying float vNx;
+    void main() {
+      vec4 c = texture2D(map, vUv);
+      if (c.a < 0.01) discard;
+      float turned = 1.0 - clamp(vNz, 0.0, 1.0);
+      vec3 col = c.rgb * (1.0 - turned * 0.35);
+      col += exp(-pow(vUv.x + (1.0 - vUv.y) * 0.3 - 0.65 + vNx * 1.4, 2.0) * 18.0) * turned * 0.5;
+      gl_FragColor = vec4(col * (1.0 - dim), c.a * op);
+    }`;
+  // A soft shadow under it, as its CSS box-shadow was (only where it had one).
+  const shadowFrag = `uniform float op; uniform float dim; uniform float sh; uniform float w; uniform float h; varying vec2 vUv;
+    void main() {
+      vec2 p = (vUv - 0.5) * vec2(w + 60.0, h + 60.0);
+      float r = w * 0.055;
+      vec2 q = abs(p) - vec2(w, h) * 0.5 + r;
+      float d = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r;
+      gl_FragColor = vec4(0.0, 0.0, 0.0, 0.5 * sh * op * (1.0 - dim * 0.5) * (1.0 - smoothstep(-22.0, 22.0, d)));
+    }`;
+  const plane = new PlaneGeometry(1, 1);
+  const addMirror = (el: HTMLElement, key: string, tex: Texture) => {
+    const chain: HTMLElement[] = [];
+    for (let x: HTMLElement | null = el; x && x !== host; x = x.parentElement) chain.unshift(x);
+    const mu = { op: { value: 1 }, dim: { value: 0 }, sh: { value: 0 }, w: { value: 1 }, h: { value: 1 } };
+    const mesh = new Mesh(plane, new ShaderMaterial({ uniforms: { map: { value: tex }, ...mu }, transparent: true, depthTest: false, depthWrite: false, vertexShader: cardVert, fragmentShader: cardFrag }));
+    const shadow = new Mesh(plane, new ShaderMaterial({ uniforms: mu, transparent: true, depthTest: false, depthWrite: false, vertexShader: VERT, fragmentShader: shadowFrag }));
+    mesh.matrixAutoUpdate = shadow.matrixAutoUpdate = false;
+    mesh.visible = shadow.visible = false;
+    scene.add(shadow, mesh);
+    mirrors.set(el, { el, key, chain, mesh, shadow, u: mu, shown: false, calm: false });
+    // Painted in page order, like the DOM: later on top. All of them under the pack.
+    [...mirrors.values()].sort((a, b) => (a.el.compareDocumentPosition(b.el) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1))
+      .forEach((m, i) => { m.shadow.renderOrder = -1000 + i * 2; m.mesh.renderOrder = -999 + i * 2; });
+    trim();
+    wake();
+  };
+  const dropMirror = (m: Mirror) => {
+    scene.remove(m.mesh, m.shadow);
+    (m.mesh.material as ShaderMaterial).dispose(); (m.shadow.material as ShaderMaterial).dispose();
+    delete m.el.dataset.glOn;
+    mirrors.delete(m.el);
+  };
+  /** Where an element's box sits in the opening, as laid out (before any transforms). */
+  const laid = (el: HTMLElement, memo: Map<HTMLElement, [number, number]>) => {
+    let r = memo.get(el);
+    if (!r) {
+      let x = 0, y = 0;
+      for (let e: HTMLElement | null = el; e && e !== host; e = e.offsetParent as HTMLElement | null) { x += e.offsetLeft; y += e.offsetTop; }
+      memo.set(el, (r = [x, y]));
+    }
+    return r;
+  };
+  const toGL = new DOMMatrix().translate(0, 0, 0);
+  /** Puts each card where CSS has it: every transform from the opening down to the element, each about its own
+      origin, then flipped into WebGL's axes (y up, from the middle). True if any of them is animating. */
+  const placeCards = () => {
+    const memo = new Map<HTMLElement, [number, number]>();
+    const dimEl = host.querySelector<HTMLElement>(".op-dim"), dim = dimEl ? +getComputedStyle(dimEl).opacity * 0.9 : 0;
+    let busy = !!dimEl && moving([dimEl]);
+    toGL.setMatrixValue(`translate(${-W / 2}px, ${H / 2}px) scale(1, -1)`);
+    for (const m of mirrors.values()) {
+      if (!m.el.isConnected) { dropMirror(m); continue; }
+      let M = new DOMMatrix(), op = 1, lit = false;
+      for (const x of m.chain) {
+        const cs = getComputedStyle(x);
+        op *= +cs.opacity;
+        if (x.classList.contains("op-charging")) lit = true;
+        if (cs.transform && cs.transform !== "none") {
+          const [lx, ly] = laid(x, memo), [ox, oy, oz = 0] = cs.transformOrigin.split(" ").map(parseFloat);
+          M = M.translate(lx + ox, ly + oy, oz).multiply(new DOMMatrix(cs.transform)).translate(-(lx + ox), -(ly + oy), -oz);
+        }
+      }
+      const cs = getComputedStyle(m.el), [lx, ly] = laid(m.el, memo), w = m.el.offsetWidth, h = m.el.offsetHeight;
+      const base = toGL.multiply(M).translate(lx, ly);
+      m.mesh.matrix.fromArray(base.translate(w / 2, h / 2).scale(w, -h, 1).toFloat32Array());
+      m.shadow.matrix.fromArray(base.translate(w / 2, h / 2 + 12, -1).scale(w + 60, -(h + 60), 1).toFloat32Array());
+      m.mesh.matrixWorldNeedsUpdate = m.shadow.matrixWorldNeedsUpdate = true;
+      m.u.op.value = op; m.u.dim.value = lit ? 0 : dim; m.u.w.value = w; m.u.h.value = h;
+      m.u.sh.value = cs.boxShadow && cs.boxShadow !== "none" ? 1 : 0;
+      m.mesh.visible = m.shadow.visible = true;
+      const anim = moving(m.chain);
+      busy ||= anim;
+      m.calm = !anim;
+    }
+    return busy;
+  };
+
   // ---------- drawing only while something moves ----------
   type Tween = { t0: number; ms: number; fn: (k: number) => void };
   const tweens: Tween[] = [];
@@ -339,6 +469,7 @@ export function createPackGL(canvas: HTMLCanvasElement, host: HTMLElement): Pack
       u.sheen.value = -Math.sin((rot.y * Math.PI) / 180) * 60;
       if (grip?.isConnected) { place(); busy ||= moving(follow) || moving([host.querySelector<HTMLElement>(".op-stage") ?? host]); }
     }
+    if (mirrors.size) busy = placeCards() || busy;
     for (let i = flares.length - 1; i >= 0; i--) {
       const f = flares[i], k = Math.min(1, (now - f.t0) / f.ms);
       (f.m.material as ShaderMaterial).uniforms.k.value = k;
@@ -351,6 +482,8 @@ export function createPackGL(canvas: HTMLCanvasElement, host: HTMLElement): Pack
       if (k >= 1) { scene.remove(s.p); s.p.geometry.dispose(); (s.p.material as ShaderMaterial).dispose(); sparks.splice(i, 1); } else busy = true;
     }
     renderer.render(scene, camera);
+    // A card's DOM copy hides in the same frame its picture is first drawn.
+    for (const m of mirrors.values()) if (!m.shown && m.mesh.visible) { m.shown = true; m.el.dataset.glOn = ""; }
     if (busy) raf = requestAnimationFrame(frame); else last = 0;
   };
   function wake() { if (!raf && !lost) raf = requestAnimationFrame(frame); }
@@ -435,12 +568,28 @@ export function createPackGL(canvas: HTMLCanvasElement, host: HTMLElement): Pack
       }
       wake();
     },
+    mirror(els) {
+      if (!snapsOk || lost) return false;
+      for (const [el, key] of els) {
+        if (mirrors.has(el) || waiting.has(el)) continue;
+        waiting.add(el);
+        cardPic(key, el).then((tex) => {
+          waiting.delete(el);
+          if (tex && el.isConnected && !mirrors.has(el)) addMirror(el, key, tex);
+        });
+      }
+      wake();
+      return true;
+    },
+    wake,
     dispose() {
       cancelAnimationFrame(raf);
+      for (const m of [...mirrors.values()]) dropMirror(m);
+      for (const p of cardPics.values()) p.then((t) => t?.dispose());
       removeEventListener("resize", resize);
       for (const f of flares) (f.m.material as ShaderMaterial).dispose();
       scene.traverse((o) => { if (o instanceof Mesh || o instanceof Points) { o.geometry.dispose(); (o.material as ShaderMaterial).dispose(); } });
-      hintTex.dispose();
+      hintTex.dispose(); plane.dispose();
       for (const p of pics.values()) p.then((t) => t.dispose(), () => {});
       renderer.dispose();
     },

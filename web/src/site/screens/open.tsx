@@ -3,8 +3,8 @@
 // tear it; the light leaking out is the best card's color), the five cards one at a time (Rare and better wait face
 // down until you flip them, and a Mythic gets a moment of its own), and the summary. The server decides everything; a
 // pack torn but not finished is picked up again from the Open tab. Where WebGL works (and motion isn't reduced), the
-// pack in your hand is drawn in 3D by gl/pack.ts, loaded when you first tap a pack; until then, and everywhere else,
-// the DOM pack does it all.
+// pack in your hand and then the cards are drawn in 3D by gl/pack.ts, loaded when you first tap a pack; until then,
+// and everywhere else, the DOM pack and cards do it all.
 import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
 import { api, type Opening, type State, type Tier } from "../../api";
 import { useStore } from "../../lib/store";
@@ -358,10 +358,14 @@ function Flow({ resume }: { resume?: Opening }) {
     }
     return openReq.current;
   };
+  /** A full swipe (or the Open button). The pack bursts open straight away: its best card's rarity is known from when
+      it was picked up, so nothing waits on the server. The cards rise out as soon as the server's answer is in (it was
+      asked while the swipe was still going), usually while the wrapper is still flying off. */
   const cut = async () => {
     if (ph.current !== "hold") return;
     go("cutting");
-    const before = st.get()!.streak;
+    const before = st.get()!.streak, shown = best;
+    if (shown) burstOpen(shown);
     try {
       const r = await startOpen();
       openReq.current = null;
@@ -374,7 +378,7 @@ function Flow({ resume }: { resume?: Opening }) {
       if (r.streakReward) later(2600, () => { sfx.promote(); banner(`${s.days}-day streak! A boosted pack is yours`, 4000); });
       else if (!before.today && s.today && s.days > 1) later(2600, () => banner(`${s.days}-day streak!`, 2600));
       await photosReady(o.cards.map((c) => c.num), 450);
-      if (alive.current) rip(o.cards, 0);
+      if (alive.current) (shown ? deal : rip)(o.cards, 0);
     } catch (e) {
       openReq.current = null;
       if (!alive.current) return;
@@ -383,23 +387,29 @@ function Flow({ resume }: { resume?: Opening }) {
       // The server may have opened it and only the answer got lost: pick that pack up instead of opening another.
       try {
         const s = await api.state();
-        if (kr.current !== "test" && usable(s.pending)) { applyState(s); op.current = { id: s.pending.id, sets: s.pending.sets }; return rip(s.pending.cards, s.pending.revealed); }
+        if (kr.current !== "test" && usable(s.pending)) { applyState(s); op.current = { id: s.pending.id, sets: s.pending.sets }; return (shown ? deal : rip)(s.pending.cards, s.pending.revealed); }
       } catch { /* show the first error */ }
+      if (shown) { setTorn(false); setRound((x) => x + 1); } // it comes back whole, to try again
       go("hold");
       fail(e);
     }
   };
-  const rip = (cards: Deal[], first: number) => {
-    const b = cards[4].tier, big = b === "legendary" || b === "mythic", r = grip.current!.getBoundingClientRect();
+  /** The pack tears open: a burst in the best card's color, the light, the wrapper coming away. */
+  const burstOpen = (b: Tier) => {
+    const big = b === "legendary" || b === "mythic", r = grip.current!.getBoundingClientRect();
     sfx.burst(b);
     shake(true);
     flash(TIERS[b].color, 650);
     setBest(b); setTorn(true);
     burst(r, big ? 60 : 40, TIERS[b].color, 7, 0.12);
     ripFx(r, TIERS[b].color, big);
+  };
+  /** The cards come out. */
+  const deal = (cards: Deal[], first: number) => {
     setDeck(cards); setIdx(first); at.current = first; setUp([]); setPromo([]); setGone([]);
     go("deal");
   };
+  const rip = (cards: Deal[], first: number) => { burstOpen(cards[4].tier); deal(cards, first); };
 
   // The cards rise out of the torn pack, fanned, and settle into a stack while the empty pack drops away.
   useLayoutEffect(() => {
@@ -426,6 +436,21 @@ function Flow({ resume }: { resume?: Opening }) {
     };
     requestAnimationFrame(wait);
   }, [phase]);
+
+  // The cards in WebGL too, once the pack is out of the way: each face, back and ribbon on the stack and in the summary.
+  // Runs after every render, so cards and ribbons that appear are picked up.
+  useLayoutEffect(() => {
+    const g = glRef.current, f = flowEl.current;
+    if (!g || !f || (phase !== "stack" && phase !== "summary")) return;
+    const els: [HTMLElement, string][] = [];
+    for (const c of f.querySelectorAll<HTMLElement>("[data-glk]")) {
+      const face = c.querySelector<HTMLElement>(".face.front");
+      if (face) els.push([face, `face ${c.dataset.glk}`]);
+    }
+    for (const b of f.querySelectorAll<HTMLElement>(".op-back")) els.push([b, "back"]);
+    for (const r of f.querySelectorAll<HTMLElement>(".op-ribbon")) els.push([r, `ribbon ${r.className} ${r.textContent} ${r.offsetWidth}`]);
+    g.mirror(els);
+  });
 
   // ----- the stack -----
   useEffect(() => { if (phase === "stack") stackEl.current?.focus({ preventScroll: true }); }, [phase]); // Enter and arrow keys deal
@@ -527,6 +552,7 @@ function Flow({ resume }: { resume?: Opening }) {
     if (!isUp(at.current)) dx *= 0.25; // face-down cards resist; tap to flip them
     d.el.classList.add("op-drag");
     d.el.style.transform = `translate(${dx}px, ${dy * 0.3}px) rotate(${dx * 0.06}deg)`;
+    glRef.current?.wake();
   };
   const sUp = (e: PointerEvent) => {
     const d = drag.current;
@@ -570,12 +596,12 @@ function Flow({ resume }: { resume?: Opening }) {
   };
   useLayoutEffect(() => {
     if (phase !== "summary" || !sumEl.current) return;
-    // The cards come up into place one after another, each with a soft snap, the best one last.
+    // The cards come up into their places in the fan one after another, each with a soft snap, the best one last.
     const kids = [...sumEl.current.children] as HTMLElement[];
     if (!RM) {
       sumEl.current.previousElementSibling?.animate([{ opacity: 0, transform: "translateY(8px)" }, { opacity: 1, transform: "none" }], { duration: 320, easing: "ease-out", fill: "backwards" });
       kids.forEach((el, i) => {
-        el.animate([{ opacity: 0, transform: "translateY(18px) scale(.94)" }, { opacity: 1, transform: "none" }], { duration: 360, delay: 120 + i * 90, easing: "cubic-bezier(.2, .8, .3, 1)", fill: "backwards" });
+        (el.firstElementChild as HTMLElement).animate([{ opacity: 0, transform: "translateY(18px) scale(.94)" }, { opacity: 1, transform: "none" }], { duration: 360, delay: 120 + i * 90, easing: "cubic-bezier(.2, .8, .3, 1)", fill: "backwards" });
         later(120 + i * 90 + 200, () => sfx.snap(0.35));
       });
     }
@@ -655,7 +681,7 @@ function Flow({ resume }: { resume?: Opening }) {
                 {[4, 3, 2, 1, 0].map((i) => {
                   const g = gone.find((x) => x.i === i);
                   if (i < idx && !g) return null;
-                  return <StackCard key={i} c={deck[i]} k={i - idx} up={isUp(i)} promo={promo.includes(i)} charging={charging === i} aura={aura === i} gone={g?.dir} w={cw} />;
+                  return <StackCard key={i} c={deck[i]} k={i - idx} up={isUp(i)} flipped={up.includes(i)} promo={promo.includes(i)} charging={charging === i} aura={aura === i} gone={g?.dir} w={cw} />;
                 })}
               </div>
             )}
@@ -670,7 +696,8 @@ function Flow({ resume }: { resume?: Opening }) {
             </div>
             <div ref={sumEl} class="op-sum-cards">
               {deck.map((c, i) => (
-                <button type="button" class={cx("op-sc", i === 4 && faceDown(c.tier) && "op-best")} onClick={() => { if (!c.test) openCard(c.num); }} aria-label={`${BY_NUM.get(c.num)!.name}, ${TIERS[c.tier].label}`}>
+                <button type="button" class={cx("op-sc", i === 4 && faceDown(c.tier) && "op-best")} style={{ "--i": i - 2, "--tc": TIERS[c.tier].color }} data-glk={`${c.num}-${c.test ? "TEST" : c.serial}`}
+                  onClick={() => { if (!c.test) openCard(c.num); }} aria-label={`${BY_NUM.get(c.num)!.name}, ${TIERS[c.tier].label}`}>
                   <Card num={c.num} serial={c.test ? "TEST" : c.serial} w="var(--op-sw)">
                     <span class={cx("op-ribbon", !c.isNew && "op-dupe")}>{c.test ? "TEST" : c.isNew ? "NEW" : `COPY #${c.copy}`}</span>
                   </Card>
@@ -705,11 +732,12 @@ function Flow({ resume }: { resume?: Opening }) {
   );
 }
 
-function StackCard({ c, k, up, promo, charging, aura, gone, w }: { c: Deal; k: number; up: boolean; promo: boolean; charging: boolean; aura: boolean; gone?: number; w: string }) {
+function StackCard({ c, k, up, flipped, promo, charging, aura, gone, w }: { c: Deal; k: number; up: boolean; flipped: boolean; promo: boolean; charging: boolean; aura: boolean; gone?: number; w: string }) {
   const t = BY_NUM.get(c.num)!;
   const glow = TIERS[c.tier].color;
   return (
-    <div class={cx("op-card", k === 0 && gone === undefined && "op-top", up && "op-up", !up && "op-tease", charging && "op-charging", aura && "op-aura", gone !== undefined && "op-gone")}
+    <div class={cx("op-card", k === 0 && gone === undefined && "op-top", up && "op-up", flipped && "op-flipped", !up && "op-tease", charging && "op-charging", aura && "op-aura", gone !== undefined && "op-gone")}
+      data-glk={`${c.num}-${c.test ? "TEST" : c.serial}`}
       style={{ "--cw": w, "--k": Math.max(0, k), "--tc": glow, transform: gone !== undefined ? `translate(${gone * 130}vw, -10vh) rotate(${gone * 30}deg)` : undefined }}>
       <i class="op-glow" />
       <i class="op-leak"><i /></i>

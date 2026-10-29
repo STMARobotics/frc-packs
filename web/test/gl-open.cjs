@@ -1,8 +1,9 @@
 // The WebGL pack, at phone size, against a local server started with DEV_TOOLS=1:
 //   node test/gl-open.cjs [http://127.0.0.1:3000] [screenshot dir]
 // Opens packs by hand (swipe across the top, tap through the cards) and checks: the WebGL pack takes over from the DOM
-// one, a part-way tear lets go and closes, a full tear opens the pack and deals the cards, the summary shows, no page
-// errors, and nothing draws while the pack just sits in your hand. Then the same with reduced motion: the DOM pack,
+// one, a part-way tear lets go and closes, a full tear opens the pack and deals the cards, the cards switch to WebGL
+// (on the stack and in the summary's fan), the summary shows, no page errors, and nothing draws while the pack or
+// the cards just sit there. Then the same with reduced motion: the DOM pack,
 // no WebGL. Screenshots of each moment go to the screenshot dir.
 const { chromium } = require('playwright');
 const path = require('node:path');
@@ -82,6 +83,10 @@ async function run(browser, width, reduced) {
   for (const [ms, n] of [[120, '5-open'], [250, '6-flying'], [300, '7-rising'], [500, '8-dealt']]) { await p.waitForTimeout(ms); await shot(n); }
   await p.waitForSelector('.op-stack', { timeout: 8000 });
   assert(true, `${tag}: a full tear opens the pack and deals the cards`);
+  if (!reduced) {
+    await p.waitForSelector('.op-stack [data-gl-on]', { state: 'attached', timeout: 8000 });
+    assert(true, `${tag}: the cards switch to WebGL`);
+  }
   // Tap through: flip, then deal; screenshot each flip.
   for (let i = 0; i < 12 && !(await p.locator('.op-sum').count()); i++) {
     const down = await p.locator('.op-card.op-top.op-tease').count();
@@ -89,9 +94,22 @@ async function run(browser, width, reduced) {
     if (down) { await p.waitForTimeout(470); await shot(`9-flip-${i}`); await p.waitForTimeout(2200); } else await p.waitForTimeout(500);
   }
   await p.waitForSelector('.op-sum', { timeout: 8000 });
-  await p.waitForTimeout(1200);
+  await p.waitForTimeout(1600);
   await shot('10-summary');
   assert(true, `${tag}: the summary shows`);
+  const drawn = await p.locator('.op-sum [data-gl-on]').count();
+  if (reduced) assert(drawn === 0, `${tag}: reduced motion keeps the DOM cards`);
+  else {
+    assert(drawn >= 5, `${tag}: the summary's cards are drawn in WebGL (${drawn})`);
+    const frames = await p.evaluate(() => new Promise((res) => {
+      const gl = document.querySelector('.op-glcv').getContext('webgl2') || document.querySelector('.op-glcv').getContext('webgl');
+      let n = 0;
+      const draw = gl.drawElements.bind(gl);
+      gl.drawElements = (...a) => { n++; return draw(...a); };
+      setTimeout(() => res(n), 1000);
+    }));
+    assert(frames === 0, `${tag}: no drawing while the summary sits there (${frames} draws)`);
+  }
   assert(!errors.length, `${tag}: no page errors${errors.length ? ': ' + errors.join(' | ') : ''}`);
   await ctx.close();
 }
