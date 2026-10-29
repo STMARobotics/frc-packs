@@ -42,8 +42,24 @@ export function applyState(s: State) {
 export function applyCollection(c: Collection) {
   const m: Record<number, number[]> = {};
   for (const x of c.cards) m[x.num] = x.serials;
+  // The server lists the cards of a pack still being revealed; each joins the binder when it's dealt, so the binder
+  // can't spoil what's coming.
+  const p = st.get()?.pending;
+  p?.cards.forEach((x, i) => {
+    if (i < p.revealed || !m[x.num]) return;
+    m[x.num] = m[x.num].filter((n) => n !== x.serial);
+    if (!m[x.num].length) delete m[x.num];
+  });
   inv.set(m);
   sets.set(new Set(c.sets));
+}
+
+/** A card from a pack joins the binder (marked new if it's a team you didn't have). */
+export function stash(c: { num: number; serial: number; isNew: boolean }) {
+  const m = inv.get(), have = m[c.num] ?? [];
+  if (have.includes(c.serial)) return;
+  inv.set({ ...m, [c.num]: [...have, c.serial] });
+  if (c.isNew) setPrefs((x) => { x.unseen[c.num] = 1; });
 }
 
 export const packOf = (s: State) => s.packs.find((p) => p.id === PACK) ?? { id: PACK, sealed: 0, boosted: 0, mythic: 0, opened: 0, pity: { m: 0, l: 0 } };

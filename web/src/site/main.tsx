@@ -5,6 +5,7 @@
 import "../style.css";
 import "./site.css";
 import "./trade.css";
+import "./open.css";
 import { render } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { api, ApiError, explain } from "../api";
@@ -19,10 +20,11 @@ import { openProfile } from "./screens/profile";
 import { setupPwa } from "./pwa";
 import { TradeTab } from "./screens/trade";
 import { SocialTab } from "./screens/social";
+import { OpenHome } from "./screens/open";
 
 type Tab = "open" | "binder" | "trade" | "social";
 const TABS: Tab[] = ["open", "binder", "trade", "social"];
-const tabOf = (): Tab => { const h = location.hash.slice(1) as Tab; return TABS.includes(h) ? h : "binder"; };
+const tabOf = (): Tab => { const h = location.hash.slice(1) as Tab; return TABS.includes(h) ? h : "open"; };
 
 function useTab(): [Tab, (t: Tab) => void] {
   const [t, setT] = useState(tabOf);
@@ -84,7 +86,7 @@ function App() {
       </header>
       <main class="s-main">
         {/* A tab stays mounted (hidden) once visited, so coming back to it shows the same cards, not rebuilt ones. */}
-        {seen.has("open") && <div hidden={tab !== "open"}><StatusBar /><Later what="Opening packs" /></div>}
+        {seen.has("open") && <div hidden={tab !== "open"}><StatusBar /><OpenHome /></div>}
         {seen.has("binder") && <div hidden={tab !== "binder"}><Binder active={tab === "binder"} /></div>}
         {seen.has("trade") && <div hidden={tab !== "trade"}><TradeTab active={tab === "trade"} /></div>}
         {seen.has("social") && <div hidden={tab !== "social"}><SocialTab active={tab === "social"} /></div>}
@@ -102,11 +104,6 @@ function App() {
       </nav>
     </>
   );
-}
-
-/** A section that hasn't moved to the new version yet. */
-function Later({ what }: { what: string }) {
-  return <div class="s-empty"><b>{what}</b> hasn't moved to the new version yet. <a href="/">Use it on the current site</a>.</div>;
 }
 
 render(<><App /><LayerHost /><ToastHost /></>, document.getElementById("app")!);

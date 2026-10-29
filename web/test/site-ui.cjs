@@ -118,6 +118,49 @@ async function main() {
   await p.click('.st-daily-h');
   await shot('open-status');
 
+  // Open a pack: swipe across the top to tear it, deal the five (flipping the face-down ones), then the summary.
+  const tapThrough = async (max) => {
+    for (let i = 0; i < max && !(await p.$('.op-sum')); i++) { await p.click('.op-stack', { position: { x: 60, y: 120 } }); await p.waitForTimeout(950); }
+  };
+  await A.call('POST', '/api/dev/pack', { pack: 'cmp26' });
+  await A.call('POST', '/api/dev/pack', { pack: 'cmp26' });
+  await p.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+  await p.waitForFunction(() => document.querySelector('.op-count')?.textContent === '×2');
+  await p.click('.op-hero');
+  await p.waitForSelector('.op-grip');
+  await p.waitForTimeout(600);
+  await shot('pack-in-hand');
+  const g = await p.locator('.op-grip').boundingBox(), gy = g.y + g.height * 0.13;
+  await p.mouse.move(g.x + g.width * 0.08, gy);
+  await p.mouse.down();
+  for (let i = 1; i <= 16; i++) { await p.mouse.move(g.x + g.width * (0.08 + i * 0.05), gy); await p.waitForTimeout(20); }
+  await p.mouse.up();
+  await p.waitForSelector('.op-stack:not(.op-dealing)');
+  await p.waitForTimeout(400);
+  await shot('pack-stack');
+  await tapThrough(12);
+  await p.waitForSelector('.op-sum');
+  await shot('pack-summary');
+  assert((await A.call('GET', '/api/state')).pending === null, 'the opened pack is finished on the server');
+  // Halfway through the next one, leave: the Open tab picks it up again where it was.
+  await p.click('.op-sum-b >> text=Open another');
+  await p.waitForSelector('.op-grip');
+  await p.waitForTimeout(600);
+  await p.click('.op-holdbtns >> text=Open');
+  await p.waitForSelector('.op-stack:not(.op-dealing)');
+  await p.waitForTimeout(400);
+  await tapThrough(2);
+  await p.reload();
+  await p.waitForSelector('.op-hero');
+  assert((await p.textContent('.op-cap')) === 'Finish opening', 'a half-opened pack is offered again');
+  await p.click('.op-hero');
+  await p.waitForSelector('.op-stack');
+  await tapThrough(12);
+  await p.waitForSelector('.op-sum');
+  await p.click('.op-sum-b >> text=Done');
+  await p.waitForSelector('.s-layer', { state: 'detached' });
+  assert((await A.call('GET', '/api/state')).pending === null, 'the picked-up pack is finished on the server');
+
   // Social, then a trade: A offers B a card for one of B's; B accepts in their own browser.
   await p.click('.s-tabbar >> text=Social');
   await p.waitForSelector('.s-social');
