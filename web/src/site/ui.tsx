@@ -149,6 +149,8 @@ export function TiltCard({ num, serial, w }: { num: number; serial?: number | st
 interface Layer { id: number; render: () => ComponentChildren; kind: "card" | "page" | "open" }
 export const layers = store<Layer[]>([]);
 let layerN = 0;
+// Reloading with a screen open leaves its history entry behind; the screen is gone, so that entry is the page again.
+if (history.state?.layer) history.replaceState(null, "");
 
 export function push(render: () => ComponentChildren, kind: Layer["kind"] = "page") {
   const l = { id: ++layerN, render, kind };
