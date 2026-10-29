@@ -20,13 +20,12 @@ def star4(cx, cy, r, w=0.24):
 
 # Each mark is drawn on a 64x64 grid. `ink` is the main colour (white on the navy tile, currentColor when bare).
 def seam(ink, uid):
+    # Simplified (2026-10-29): the light wedge is gone; the pack, the teal seam, the lifted lid and the spark stay.
     return f"""
-  <defs><linearGradient id="g{uid}" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="{TEAL}" stop-opacity=".85"/><stop offset="1" stop-color="{TEAL}" stop-opacity="0"/></linearGradient></defs>
-  <path d="M21 20 L43 20 L50 2 L14 2 Z" fill="url(#g{uid})"/>
-  <rect x="18" y="21" width="28" height="38" rx="4.5" fill="{ink}"/>
-  <rect x="19" y="19.2" width="26" height="2.6" rx="1.3" fill="{TEAL}"/>
-  <rect x="18" y="8" width="28" height="7.5" rx="3" fill="{ink}" transform="rotate(-9 32 12)"/>
-  <path d="{star4(32, 40, 8, .3)}" fill="{TEAL}"/>"""
+  <rect x="17" y="23" width="30" height="35" rx="5" fill="{ink}"/>
+  <rect x="17" y="19.5" width="30" height="2.8" rx="1.4" fill="{TEAL}"/>
+  <rect x="17" y="8.5" width="30" height="7" rx="3" fill="{ink}" transform="rotate(-10 17 15.5)"/>
+  <path d="{star4(32, 40.5, 7.5, .3)}" fill="{TEAL}"/>"""
 
 
 def five_stars(ink, uid):
@@ -65,7 +64,7 @@ def peel(ink, uid):
 
 
 MARKS = [
-    ("seam", "Seam", seam, "A pack with its top torn off along one clean line, light spilling out. It is the game's signature moment, and the same single seam as the pack opening."),
+    ("seam", "Seam (simplified, chosen)", seam, "A pack with its top lifted off along one teal seam, and a teal spark on the front. Four shapes: the light wedge is gone, so it stays crisp from 512 px down to a 16 px tab icon."),
     ("five-stars", "Five Stars", five_stars, "Five stars traced into a P, from the constellation pack art: five cards in a pack, the last and best one teal."),
     ("fan", "Fan", fan, "Three cards fanned like a hand, the front one edged in Mythic teal. Reads as a card game at any size."),
     ("spark-card", "Spark Card", spark_card, "A card with a teal spark at its heart: the moment of the pull. The simplest of the five."),
@@ -158,8 +157,8 @@ p {{ margin: 0; }}
   </header>
   {"".join(rows)}
   <section class="pick">
-    <h2>My pick: Seam</h2>
-    <p>It is the only one that could only be FRC Packs: the one clean tear and the light coming out of the top are exactly what happens when you open a pack in the app. It stays a clear shape at 16 px (a block with a bright line and a lifted lid), it works in one colour, and it animates naturally: the lid can lift as a pack opens, or as a loading state. Runner-up: Spark Card, the simplest and the most legible, but it could belong to many card games.</p>
+    <h2>Chosen: Seam, simplified</h2>
+    <p>The one clean tear is exactly what happens when you open a pack in the app, so the mark could only be FRC Packs. Simplified to four shapes, it stays clear at 16 px, works in one colour (the notification badge is the white silhouette with the spark cut out), and can animate: the lid can lift as a pack opens. It is now the favicon, the app icon and the header mark.</p>
   </section>
 </main>
 """
