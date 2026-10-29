@@ -7,14 +7,13 @@ const server = process.env.API_URL ?? "http://127.0.0.1:3000";
 
 export default defineConfig({
   build: {
-    // Pages: the game, the admin panel (the server serves it at /admin), the Battler (/battle.html) and the game's new
-    // version (/next.html) while it's being rebuilt.
+    // Pages: the game, the admin panel (the server serves it at /admin) and the Battler (/battle.html). An old
+    // /next.html link gets the game: the server answers any unknown page with index.html.
     rollupOptions: {
       input: {
         main: resolve(import.meta.dirname, "index.html"),
         admin: resolve(import.meta.dirname, "admin.html"),
         battle: resolve(import.meta.dirname, "battle.html"),
-        next: resolve(import.meta.dirname, "next.html"),
       },
     },
   },

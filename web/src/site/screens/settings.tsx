@@ -47,8 +47,8 @@ function Settings() {
     if (ver === "update") return location.reload();
     setVer("checking");
     try {
-      const h = await (await fetch(`/next.html?v=${Date.now()}`, { cache: "no-store" })).text();
-      const m = h.match(/\/assets\/next-[^"']+\.js/), have = document.querySelector('script[type="module"][src*="/assets/"]')?.getAttribute("src");
+      const h = await (await fetch(`/?v=${Date.now()}`, { cache: "no-store" })).text();
+      const m = h.match(/\/assets\/main-[^"']+\.js/), have = document.querySelector('script[type="module"][src*="/assets/"]')?.getAttribute("src");
       setVer(!m || !have || have.includes(m[0]) ? "latest" : "update");
     } catch { setVer("error"); }
   };

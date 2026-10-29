@@ -1,6 +1,6 @@
-// The new site (/next.html) at phone size, against a local server started with DEV_TOOLS=1:
+// The site at phone size, against a local server started with DEV_TOOLS=1:
 //   node test/site-ui.cjs [http://127.0.0.1:3000] [screenshot dir]
-// Makes an account with some packs opened through the API, then visits every screen that has moved to the new version,
+// Makes an account with some packs opened through the API, then visits every screen,
 // tapping through it, and checks: no page errors, and no card photos re-created while you move around the binder.
 // Then a signed-out browser joins with an invite link, signs out and signs back in.
 const { chromium } = require('playwright');
@@ -52,7 +52,7 @@ async function main() {
   let n = 0;
   const shot = async (name, full = false) => { await p.waitForTimeout(250); await p.screenshot({ path: path.join(OUT, `${String(++n).padStart(2, '0')}-${name}.png`), fullPage: full }); };
 
-  await p.goto(BASE + '/next.html#binder');
+  await p.goto(BASE + '/#binder');
   await p.waitForSelector('.s-grid .s-cell');
   await p.waitForTimeout(600);
   await shot('binder');
@@ -196,7 +196,7 @@ async function main() {
   await ctxB.addInitScript(() => localStorage.setItem('frcpacks.beta', '1'));
   const b = await ctxB.newPage();
   b.on('pageerror', (e) => errors.push('B: ' + e));
-  await b.goto(BASE + '/next.html#trade');
+  await b.goto(BASE + '/#trade');
   await b.waitForSelector('.td-offer');
   await b.screenshot({ path: path.join(OUT, `${String(++n).padStart(2, '0')}-trade-incoming-b.png`) });
   await b.click('.td-offer >> text=Accept');
@@ -212,7 +212,7 @@ async function main() {
   const cshot = (name) => c.screenshot({ path: path.join(OUT, `${String(++n).padStart(2, '0')}-${name}.png`) });
   const { code } = await client().call('POST', '/api/dev/invite', {});
   const name = 'sic' + tag;
-  await c.goto(BASE + '/next.html?invite=' + code);
+  await c.goto(BASE + '/?invite=' + code);
   await c.waitForSelector('.au-terms');
   await cshot('join-terms');
   await c.click('.au-terms >> text=I agree');

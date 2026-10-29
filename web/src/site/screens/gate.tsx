@@ -15,7 +15,7 @@ const TERMS = "frcpacks.betaTerms";
 
 /** Shown until someone signs in or joins; `guest` is a browser with cards from before accounts existed. */
 export function SignIn({ guest, onDone }: { guest: boolean; onDone: (s: State) => void }) {
-  // A link like /next.html?invite=ABCD-EFGH-JKMN opens the join form with the code filled in.
+  // A link like /?invite=ABCD-EFGH-JKMN opens the join form with the code filled in.
   const [invite] = useState(() => new URLSearchParams(location.search).get("invite") ?? "");
   const [join, setJoin] = useState(guest || !!invite);
   const [agreed, setAgreed] = useState(() => { try { return sessionStorage.getItem(TERMS) === "1"; } catch { return false; } });
