@@ -21,6 +21,7 @@ import { Avatar } from "./ui";
 import { openProfile } from "./screens/profile";
 import { setupPwa } from "./pwa";
 import { setupPad } from "./pad";
+import { openFeedback } from "./screens/settings";
 import { TradeTab } from "./screens/trade";
 import { SocialTab } from "./screens/social";
 import { OpenHome } from "./screens/open";
@@ -88,7 +89,7 @@ function App() {
   return (
     <>
       <header class="s-top">
-        <span class="s-brand">FRC Packs</span>
+        <span class="s-brand">FRC Packs <i class="s-beta">Beta</i></span>
         <span class="s-top-r">
           <span class="s-pill" title="Parts">⚙ {s!.parts}</span>
           <span class="s-pill" title="Sealed packs">▣ {packs.sealed}</span>
@@ -97,7 +98,7 @@ function App() {
       </header>
       <main class="s-main">
         {/* A tab stays mounted (hidden) once visited, so coming back to it shows the same cards, not rebuilt ones. */}
-        {seen.has("open") && <div hidden={tab !== "open"}><StatusBar /><OpenHome /></div>}
+        {seen.has("open") && <div hidden={tab !== "open"}><FeedbackBar /><StatusBar /><OpenHome /></div>}
         {seen.has("binder") && <div hidden={tab !== "binder"}><Binder active={tab === "binder"} /></div>}
         {seen.has("trade") && <div hidden={tab !== "trade"}><TradeTab active={tab === "trade"} /></div>}
         {seen.has("social") && <div hidden={tab !== "social"}><SocialTab active={tab === "social"} /></div>}
@@ -118,4 +119,20 @@ function App() {
 }
 
 setupPad();
+/** "Found a bug or have an idea?" in one line at the top of Open, until it's waved away (it comes back after a week). */
+const FB_KEY = "frcpacks.fbbar";
+function FeedbackBar() {
+  const [hidden, setHidden] = useState(() => { try { return Date.now() < +(localStorage.getItem(FB_KEY) || 0); } catch { return false; } });
+  if (hidden) return null;
+  const hide = () => { setHidden(true); try { localStorage.setItem(FB_KEY, String(Date.now() + 7 * 86_400_000)); } catch { /* fine */ } };
+  return (
+    <div class="s-fbbar">
+      <button type="button" class="s-fbbar-go" onClick={() => openFeedback()}>
+        <b>Found a bug or have an idea?</b> <span>Accepted ones earn a pack</span>
+      </button>
+      <button type="button" class="s-fbbar-x" onClick={hide} aria-label="Hide for a week">×</button>
+    </div>
+  );
+}
+
 render(<><OwnerNotice /><App /><LayerHost /><ToastHost /></>, document.getElementById("app")!);

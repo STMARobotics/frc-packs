@@ -181,6 +181,7 @@
 .sg-form { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 10px 14px; background: var(--s2); }
 .sg-form .s-input { flex: 1 1 180px; }
 .sg-form.col { flex-direction: column; align-items: stretch; padding: 0; background: none; }
+.sg-form.col .s-input { flex: none; }
 
 /* the Open tab's status */
 .s-status { display: grid; grid-template-columns: auto 1fr; gap: 8px; padding-top: 8px; }
@@ -232,3 +233,11 @@ body.s-page.pad :focus { outline: 3px solid var(--ac); outline-offset: 3px; }
 .cw-copy-bdg { display: flex; flex-wrap: wrap; gap: 4px; }
 .cw-copy-bdg i { font-style: normal; }
 .cw-copy-act { display: grid; gap: 6px; flex: none; }
+
+/* The Beta tag, and the feedback strip on the Open tab. */
+.s-beta { display: inline-block; vertical-align: 3px; margin-left: 4px; padding: 1px 7px; border-radius: 99px; background: var(--gold); color: #2a1c00; font: 700 10px var(--body); font-style: normal; letter-spacing: .12em; text-transform: uppercase; }
+.s-fbbar { display: flex; align-items: center; margin: 0 0 10px; padding-left: 14px; border-radius: 99px; background: var(--s1); box-shadow: inset 0 0 0 1px var(--ln); }
+.s-fbbar-go { flex: 1; min-width: 0; padding: 9px 0; border: 0; background: none; color: inherit; text-align: left; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 14px; }
+.s-fbbar-go b { font-weight: 600; }
+.s-fbbar-go span { color: var(--dim); }
+.s-fbbar-x { flex: none; width: 40px; height: 38px; border: 0; border-radius: 99px; background: none; color: var(--dim); font-size: 20px; cursor: pointer; }
