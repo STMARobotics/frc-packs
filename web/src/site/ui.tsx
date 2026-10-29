@@ -230,6 +230,17 @@ export function Tabs<V extends string>({ value, options, onChange }: { value: V;
 
 /** A player's picture: the robot on the card they picked (`team`; left out, it's looked up for you and for anyone in
     the Social list), else their initials on a color of their own. */
+/** The FRC Packs mark (Seam): a pack with its top lifted off along one teal seam, a teal spark on the front. The pack
+    takes the text colour. The same drawing makes the favicon and app icons (tools/brand_icons.cjs). */
+export const Logo = ({ cls }: { cls?: string }) => (
+  <svg class={cx("s-logo", cls)} viewBox="0 0 64 64" aria-hidden="true">
+    <rect x="17" y="23" width="30" height="35" rx="5" fill="currentColor" />
+    <rect x="17" y="19.5" width="30" height="2.8" rx="1.4" fill="#3cffdc" />
+    <rect x="17" y="8.5" width="30" height="7" rx="3" fill="currentColor" transform="rotate(-10 17 15.5)" />
+    <path d="M32 33 C32.75 38.25 34.25 39.75 39.5 40.5 C34.25 41.25 32.75 42.75 32 48 C31.25 42.75 29.75 41.25 24.5 40.5 C29.75 39.75 31.25 38.25 32 33 Z" fill="#3cffdc" />
+  </svg>
+);
+
 export function Avatar({ name, big, team }: { name: string; big?: "big" | "huge" | boolean; team?: number | null }) {
   const me = useStore(st), so = useStore(social);
   const lower = (name || "").toLowerCase();

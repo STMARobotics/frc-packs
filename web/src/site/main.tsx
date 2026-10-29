@@ -14,10 +14,9 @@ import { api, ApiError, explain, type State } from "../api";
 import { useStore } from "../lib/store";
 import { PACK, setRecipe } from "./data";
 import { applyCollection, applyState, loadSpecials, loadTrades, packOf, prefs, st, sync, trades } from "./state";
-import { closeAll, cx, LayerHost, Spinner, ToastHost } from "./ui";
+import { Avatar, closeAll, cx, LayerHost, Logo, Spinner, ToastHost } from "./ui";
 import { Binder } from "./screens/binder";
 import { StatusBar } from "./screens/status";
-import { Avatar } from "./ui";
 import { VERSION } from "./notes";
 import { openProfile, ProfilePage, profileRoute } from "./screens/profile";
 import { setupPwa } from "./pwa";
@@ -96,7 +95,7 @@ function App() {
   return (
     <>
       <header class="s-top">
-        <span class="s-brand">FRC Packs <i class="s-beta">Beta</i></span>
+        <span class="s-brand"><Logo />FRC Packs <i class="s-beta">Beta</i></span>
         <span class="s-top-r">
           <span class="s-pill" title="Parts">⚙ {s!.parts}</span>
           <span class="s-pill" title="Sealed packs">▣ {packs.sealed}</span>

@@ -4,7 +4,7 @@
 import type { ComponentChildren } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { api, ApiError, explain, type State } from "../../api";
-import { back, layers, push } from "../ui";
+import { back, layers, Logo, push } from "../ui";
 import { PackArt } from "./open";
 import { NOTES, VERSION } from "../notes";
 import { openFeedback, openNotes, Release } from "./settings";
@@ -55,7 +55,7 @@ export function SignIn({ guest, onDone }: { guest: boolean; onDone: (s: State) =
         <span class="au-p r"><PackArt k="myth" /></span>
         <span class="au-p c"><PackArt k="std" /></span>
       </div>
-      <h1 class="au-brand">FRC Packs</h1>
+      <h1 class="au-brand"><Logo />FRC Packs</h1>
       <div class="au-card">
         <div class="s-tabs" role="tablist">
           <button type="button" role="tab" aria-selected={!join} onClick={() => tab(false)}>Sign in</button>

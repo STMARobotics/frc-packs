@@ -22,6 +22,16 @@ every ~2 days in between, and hotfixes whenever something big breaks. Every rele
 - **Optimization and accessibility pass.**
 - **Season tooling:** the pipeline for next season's pack, and the beta reset plan for 1.0.
 
+- **Cost optimization (later).** AWS was about $0.02–0.04 a day, rising to about $0.10 on 2026-10-28 with ~30 players.
+  Most of it is DynamoDB on-demand read and write requests, plus API Gateway HTTP requests. To look at:
+  - Provisioned capacity inside the free tier (25 read and 25 write units) instead of on-demand. This is a `cdk/`
+    change, so it needs Andy's review, and a flag to Cassie before anyone touches it.
+  - Fewer client requests: less polling (Social refreshes every 8 s while open), and no full state refetch after every
+    action.
+  - Caching data that's mostly read (the social list, profiles, the pack recipe).
+  - "Good matches" reads every player's collection when its 30-second cache is cold. Precompute or update it as cards
+    change instead.
+
 ## Ideas, not scheduled
 
 - Impact and Hall of Fame special editions from The Blue Alliance's award data.

@@ -71,7 +71,11 @@
 
 /* top bar and tabs */
 .s-top { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; margin: 0 -16px; padding: calc(10px + env(safe-area-inset-top)) 16px 10px; background: rgba(11, 14, 23, .92); }
-.s-brand { font: 400 22px var(--display); }
+.s-brand { display: inline-flex; align-items: center; font: 400 22px var(--display); white-space: nowrap; }
+/* The drawing has empty space at its sides (it's centred on a square), so it sits tight against the name. */
+.s-logo { flex: none; width: 1.3em; height: 1.3em; margin: 0 -0.08em 0 -0.32em; color: var(--tx); }
+.s-brand .s-beta { margin-left: 6px; }
+@media (max-width: 349px) { .s-brand .s-beta { display: none; } }
 .s-top-r { display: flex; align-items: center; gap: 8px; }
 .s-pill { padding: 6px 10px; border-radius: 999px; background: var(--s1); font: 700 13px var(--body); font-variant-numeric: tabular-nums; }
 .s-avbtn { padding: 0; border: 0; background: none; cursor: pointer; border-radius: 50%; }
