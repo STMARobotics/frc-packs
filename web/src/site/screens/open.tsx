@@ -61,12 +61,15 @@ const nudge = (el?: HTMLElement | null) => el?.animate([{ transform: "none" }, {
 
 // ---------- the pack ----------
 
+/** Pieces the pack's top strip rips in. */
+const SLICES = 12;
+
 export function PackArt({ k, odds }: { k: Kind; odds?: boolean }) {
   return (
     <div class={cx("op-pack", `k-${k}`)}>
       {odds && [-3, -2, -1, 0, 1, 2, 3].map((z) => <i class="op-pedge" style={{ "--z": z }} />)}
       <div class="op-pface op-pfront">
-        <div class="op-ptop" />
+        {odds ? <div class="op-ptop op-sliced">{Array.from({ length: SLICES }, (_, i) => <i class="op-slice" style={{ "--i": i }} />)}</div> : <div class="op-ptop" />}
         <div class="op-pbody">
           <span class="op-pyr">{RECIPE?.season ?? 2026}</span>
           <span class="op-pmark"><i /><i /><i /></span>
@@ -263,9 +266,9 @@ function Flow({ resume }: { resume?: Opening }) {
     fxEl.current?.appendChild(el);
     setTimeout(() => el.remove(), ms);
   };
-  const ripFx = (r: DOMRect, color: string, rainbow: boolean, big: boolean) => {
+  const ripFx = (r: DOMRect, color: string, big: boolean) => {
     if (RM) return;
-    spawn(cx("op-rip", rainbow && "op-rainbow"), { left: `${r.left}px`, top: `${r.top + r.height * 0.13 - r.width / 2}px`, width: `${r.width}px`, height: `${r.width}px`, "--c": color }, 1000,
+    spawn("op-rip", { left: `${r.left}px`, top: `${r.top + r.height * 0.13 - r.width / 2}px`, width: `${r.width}px`, height: `${r.width}px`, "--c": color }, 1000,
       `${big ? '<i class="op-rip-rays"></i>' : ""}<i class="op-rip-ring"></i><i class="op-rip-slash"></i>`);
   };
   const topRect = () => stackEl.current?.querySelector(".op-card.op-top")?.getBoundingClientRect() ?? stackEl.current!.getBoundingClientRect();
@@ -341,10 +344,10 @@ function Flow({ resume }: { resume?: Opening }) {
     const b = cards[4].tier, big = b === "legendary" || b === "mythic", r = grip.current!.getBoundingClientRect();
     sfx.burst(b);
     shake(true);
-    flash(b === "mythic" ? "#ffe9a8" : TIERS[b].color, 650);
+    flash(TIERS[b].color, 650);
     setBest(b); setTorn(true);
-    burst(r, big ? 60 : 40, b === "mythic" ? null : TIERS[b].color, 7, 0.12);
-    ripFx(r, b === "mythic" ? "#ffd34d" : TIERS[b].color, b === "mythic", big);
+    burst(r, big ? 60 : 40, TIERS[b].color, 7, 0.12);
+    ripFx(r, TIERS[b].color, big);
     setDeck(cards); setIdx(first); at.current = first; setUp([]); setPromo([]); setGone([]);
     go("deal");
   };
@@ -379,19 +382,8 @@ function Flow({ resume }: { resume?: Opening }) {
   useEffect(() => { if (phase === "stack") stackEl.current?.focus({ preventScroll: true }); }, [phase]); // Enter and arrow keys deal
   const top = deck && idx < 5 ? deck[idx] : null;
   const isUp = (i: number) => !faceDown(deck![i].tier) || up.includes(i);
-  // A face-down card on top hints at what it is; a Mythic first glows like a Legendary, then turns.
-  useEffect(() => {
-    if (phase !== "stack" || !top || isUp(idx)) return;
-    sfx.tease(top.tier);
-    if (top.tier !== "mythic" || promo.includes(idx)) return;
-    const i = idx;
-    later(RM ? 0 : 900, () => {
-      if (at.current !== i) return;
-      setPromo((p) => (p.includes(i) ? p : [...p, i]));
-      sfx.promote();
-      burst(topRect(), 40, null, 7);
-    });
-  }, [phase, idx]);
+  // A face-down card on top glows in its rarity's color (a Mythic teal) and hums.
+  useEffect(() => { if (phase === "stack" && top && !isUp(idx)) sfx.tease(top.tier); }, [phase, idx]);
 
   const reveal = (i: number) => {
     const c = deck![i];
@@ -657,7 +649,7 @@ function Flow({ resume }: { resume?: Opening }) {
 
 function StackCard({ c, k, up, promo, charging, aura, gone, w }: { c: Deal; k: number; up: boolean; promo: boolean; charging: boolean; aura: boolean; gone?: number; w: string }) {
   const t = BY_NUM.get(c.num)!;
-  const glow = TIERS[c.tier === "mythic" && !promo && !up ? "legendary" : c.tier].color;
+  const glow = TIERS[c.tier].color;
   return (
     <div class={cx("op-card", k === 0 && gone === undefined && "op-top", up && "op-up", !up && "op-tease", charging && "op-charging", aura && "op-aura", gone !== undefined && "op-gone")}
       style={{ "--cw": w, "--k": Math.max(0, k), "--tc": glow, transform: gone !== undefined ? `translate(${gone * 130}vw, -10vh) rotate(${gone * 30}deg)` : undefined }}>
@@ -771,15 +763,15 @@ interface HoldProps { k: Kind; best: Tier | null; from: DOMRect | null; active: 
 const holdApi: { turn?: () => void; front?: () => boolean; face?: () => void } = {};
 /** The tear catches every this much of the pack's width, with a tick, a buzz and a jolt. */
 const NOTCH = 0.04;
+/** How much of the strip has to be torn (as a share of the pack's width) to open it. */
+const OPEN_AT = 0.72;
 
 function Hold(p: HoldProps) {
   const lift = useRef<HTMLDivElement>(null), shakeEl = useRef<HTMLDivElement>(null), rotEl = useRef<HTMLDivElement>(null);
   const tell = useRef<HTMLElement>(null), rim = useRef<HTMLElement>(null), line = useRef<HTMLElement>(null), beam = useRef<HTMLElement>(null);
   const rot = useRef({ y: 0, x: 0 });
-  const g = useRef<{ x: number; y: number; ry: number; cut: boolean; w: number; left: number; moved: boolean; id: number; notch: number } | null>(null);
+  const g = useRef<{ x: number; y: number; ry: number; cut: boolean; w: number; left: number; moved: boolean; id: number; notch: number; dir: number } | null>(null);
   const [away, setAway] = useState(false);
-  const [rainbow, setRainbow] = useState(false);
-  const rb = useRef(false);
   const facingFront = () => { const d = ((rot.current.y % 360) + 360) % 360; return Math.min(d, 360 - d) < 35; };
   const paint = (live: boolean) => {
     const r = rotEl.current;
@@ -789,15 +781,20 @@ function Hold(p: HoldProps) {
     r.style.setProperty("--sx", (-Math.sin((rot.current.y * Math.PI) / 180) * 60).toFixed(1));
     setAway(!facingFront());
   };
-  /** The light leaking out of the tear, brighter the further it's torn. A Mythic starts Legendary and turns rainbow past halfway. */
+  /** The light leaking out of the tear in the best card's color, brighter the further it's torn. */
   const glow = (t: number) => {
     if (tell.current) tell.current.style.opacity = t.toFixed(3);
     if (rim.current) rim.current.style.opacity = Math.min(1, t * 2).toFixed(3);
     if (beam.current) beam.current.style.opacity = Math.min(1, t * 1.4).toFixed(3);
-    if (p.best === "mythic" && t > 0.55 && !rb.current) { rb.current = true; setRainbow(true); sfx.promote(); }
   };
-  /** How far the strip has peeled back (0 to 1). */
-  const peel = (t: number) => p.grip.current?.style.setProperty("--peel", t.toFixed(3));
+  /** How much of the strip is torn (share of the width) and from which side (1 from the left, -1 from the right). */
+  const tear = (len: number, dir: number) => {
+    const el = p.grip.current;
+    if (!el) return;
+    el.style.setProperty("--tear", len.toFixed(3));
+    el.style.setProperty("--dir", String(dir));
+    el.style.setProperty("--fw", dir > 0 ? "1" : "0");
+  };
 
   // It lands in your hand with some weight: from the wheel, or dropped in from above.
   useLayoutEffect(() => {
@@ -811,12 +808,12 @@ function Hold(p: HoldProps) {
     holdApi.face = () => { rot.current.y = Math.round(rot.current.y / 360) * 360; rot.current.x = 0; paint(false); };
     return () => { holdApi.turn = holdApi.front = holdApi.face = undefined; sfx.strainStop(); };
   }, []);
-  useEffect(() => { if (p.torn) { glow(1); if (p.best === "mythic") setRainbow(true); } }, [p.torn, p.best]);
+  useEffect(() => { if (p.torn) glow(1); }, [p.torn]);
 
   const down = (e: PointerEvent) => {
     if (!p.active) return;
     const r = p.grip.current!.getBoundingClientRect(), y = (e.clientY - r.top) / r.height;
-    g.current = { x: e.clientX, y: e.clientY, ry: rot.current.y, cut: facingFront() && y < 0.26, w: r.width, left: r.left, moved: false, id: e.pointerId, notch: 0 };
+    g.current = { x: e.clientX, y: e.clientY, ry: rot.current.y, cut: facingFront() && y < 0.26, w: r.width, left: r.left, moved: false, id: e.pointerId, notch: 0, dir: 0 };
     try { p.grip.current!.setPointerCapture(e.pointerId); } catch { /* fine */ }
   };
   const move = (e: PointerEvent) => {
@@ -825,24 +822,32 @@ function Hold(p: HoldProps) {
     const dx = e.clientX - s.x, dy = e.clientY - s.y;
     if (Math.abs(dx) + Math.abs(dy) > 6) s.moved = true;
     if (s.cut) {
-      // The tear follows your finger but catches as it goes: it jumps notch by notch, each with a tick, a buzz and a
-      // jolt that get stronger, and the pack strains (a rising hum) the further it's torn.
+      // The strip rips under your finger, from the side you started on: it catches notch by notch, each catch with a
+      // tick, a buzz and a jolt that get stronger, while the pack strains (a rising hum) and the best card's light
+      // shows through. Drag back and it closes up again, the sounds running backwards.
       const at = Math.max(0, Math.min(1, (e.clientX - s.left) / s.w)), from = Math.max(0, Math.min(1, (s.x - s.left) / s.w));
-      const len = Math.floor(Math.abs(at - from) / NOTCH) * NOTCH, t = Math.min(1, len / 0.6);
-      if (line.current) line.current.style.transform = `translateX(${Math.min(from, at) * 100}%) scaleX(${len})`;
+      if (!s.dir && Math.abs(at - from) > 0.02) s.dir = at > from ? 1 : -1;
+      if (!s.dir) return;
+      const len = Math.floor(Math.max(0, (at - from) * s.dir) / NOTCH + 1e-6) * NOTCH, t = Math.min(1, len / OPEN_AT);
+      if (len === s.notch) return;
+      const start = s.dir > 0 ? from : from - len;
+      if (line.current) line.current.style.transform = `translateX(${start * 100}%) scaleX(${len})`;
       p.grip.current!.classList.add("op-swiping");
+      tear(len ? (s.dir > 0 ? from : 1 - from) + len : 0, s.dir); // the torn edge, measured from the side it started
       glow(t);
-      peel(t);
+      sfx.strain(t);
       if (len > s.notch) {
-        s.notch = len;
         sfx.tear(t);
-        sfx.strain(t);
         buzz(Math.round(6 + t * 18));
         const a = RM ? 0 : 1 + t * 5;
         shakeEl.current?.animate([{ transform: `translate(${(Math.random() * 2 - 1) * a}px, ${a * 0.6}px) rotate(${(Math.random() * 2 - 1) * a * 0.2}deg)` }, { transform: "none" }], { duration: 120, easing: "ease-out" });
+      } else {
+        sfx.untear(t);
+        buzz(Math.round(4 + t * 10));
       }
-      if (len > 0.45) p.onEarly(); // ask the server now, so the cards are ready when the tear finishes
-      if (len > 0.6) { g.current = null; p.onCut(); }
+      s.notch = len;
+      if (t > 0.6) p.onEarly(); // ask the server now, so the cards are ready when the tear finishes
+      if (t >= 1) { g.current = null; p.onCut(); }
     } else {
       rot.current.y = s.ry + dx * 0.7;
       rot.current.x = Math.max(-18, Math.min(18, -dy * 0.15));
@@ -857,9 +862,9 @@ function Hold(p: HoldProps) {
       // Let go part way: the strip springs back and the light goes out.
       p.grip.current!.classList.remove("op-swiping");
       if (line.current) line.current.style.transform = "scaleX(0)";
-      peel(0);
+      tear(0, s.dir || 1);
       if (s.notch) { sfx.strainStop(); sfx.settle(); }
-      if (!rb.current) glow(0);
+      glow(0);
       return;
     }
     if (!s.moved) rot.current.y += 180; // a tap turns it over
@@ -868,9 +873,9 @@ function Hold(p: HoldProps) {
     paint(false);
     sfx.whoosh();
   };
-  const tc = TIERS[p.best === "mythic" ? "legendary" : p.best ?? "common"].color;
+  const tc = TIERS[p.best ?? "common"].color;
   return (
-    <div class={cx("op-hold", `k-${p.k}`, p.torn && "op-torn", p.dropping && "op-drop", rainbow && "op-rainbow", away && "op-away")} style={{ "--tell": tc }}>
+    <div class={cx("op-hold", `k-${p.k}`, p.torn && "op-torn", p.dropping && "op-drop", away && "op-away")} style={{ "--tell": tc }}>
       <div ref={p.grip} class="op-grip" onPointerDown={down} onPointerMove={move} onPointerUp={upH} onPointerCancel={upH}>
         <i ref={tell} class="op-tell" />
         <div ref={lift} class={cx("op-lift", !p.from && "op-in")}>

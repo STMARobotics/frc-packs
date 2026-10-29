@@ -19,12 +19,13 @@ function blip(f: number, d: number, type: OscillatorType = "sine", v = 0.1, when
   g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
   o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + d + 0.02);
 }
-function noise(d: number, v: number, lo: number) {
+/** A burst of noise that fades out, or (`back`) fades in and cuts off, like the same sound played backwards. */
+function noise(d: number, v: number, lo: number, back = false) {
   if (muted()) return;
   const a = actx();
   if (!a) return;
   const n = Math.floor(a.sampleRate * d), buf = a.createBuffer(1, n, a.sampleRate), data = buf.getChannelData(0);
-  for (let i = 0; i < n; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / n);
+  for (let i = 0; i < n; i++) data[i] = (Math.random() * 2 - 1) * (back ? i / n : 1 - i / n);
   const s = a.createBufferSource(); s.buffer = buf;
   const bp = a.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = lo; bp.Q.value = 0.7;
   const g = a.createGain(); g.gain.value = v;
@@ -77,6 +78,8 @@ export const sfx = {
   strainStop: humStop,
   /** The tear catching another notch, sharper the further it's gone. */
   tear: (t: number) => { noise(0.045, 0.16 + t * 0.2, 1800 + t * 3200); blip(260 + t * 420, 0.03, "square", 0.02 + t * 0.02); },
+  /** The tear closing back up a notch: the same tick played backwards, falling instead of rising. */
+  untear: (t: number) => { noise(0.06, 0.14 + t * 0.16, 1500 + t * 2600, true); blip(240 + t * 360, 0.035, "square", 0.015 + t * 0.015); },
   /** A card snapping into place. */
   snap: (v = 1) => { blip(1700, 0.03, "square", 0.04 * v); noise(0.035, 0.16 * v, 5200); buzz(Math.round(5 + 8 * v)); },
   /** Let go part way: it settles back. */

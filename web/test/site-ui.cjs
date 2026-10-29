@@ -133,9 +133,9 @@ async function main() {
   await p.waitForTimeout(600);
   await shot('pack-in-hand');
   const g = await p.locator('.op-grip').boundingBox(), gy = g.y + g.height * 0.13;
-  await p.mouse.move(g.x + g.width * 0.08, gy);
+  await p.mouse.move(g.x + g.width * 0.06, gy);
   await p.mouse.down();
-  for (let i = 1; i <= 16; i++) { await p.mouse.move(g.x + g.width * (0.08 + i * 0.05), gy); await p.waitForTimeout(20); }
+  for (let i = 1; i <= 18; i++) { await p.mouse.move(g.x + g.width * (0.06 + i * 0.05), gy); await p.waitForTimeout(20); }
   await p.mouse.up();
   await p.waitForSelector('.op-stack:not(.op-dealing)');
   await p.waitForTimeout(400);

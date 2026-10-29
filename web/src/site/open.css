@@ -116,12 +116,28 @@
 }
 .op-shake { position: relative; }
 /* As it's torn the strip peels back a little, and the best card's light shines up out of the tear. */
-.op-pfront .op-ptop { transform: rotate(calc(var(--peel, 0) * -7deg)) translateY(calc(var(--peel, 0) * -12%)); }
-.op-grip.op-swiping .op-ptop { transition: none; }
+/* The strip in your hand is 12 pieces along a jagged seam (fixed, never animated). Each piece peels up and away once
+   the tear passes it, from the side the swipe started on (--dir, --fw), and shows a pale torn edge underneath; drag
+   back and they close again. --tear is how far the tear has come, as a share of the width. */
+.op-ptop.op-sliced { overflow: visible; clip-path: none; background: none; box-shadow: none; transform-origin: 50% 100%; }
+.op-ptop.op-sliced::after { display: none; }
+.op-slice { --o: calc(var(--i) * var(--fw, 1) + (11 - var(--i)) * (1 - var(--fw, 1))); --l: clamp(0, calc(var(--tear, 0) * 12 - var(--o)), 1);
+  --d: max(0, calc(var(--tear, 0) * 12 - var(--o) - .5));
+  position: absolute; top: 0; bottom: 0; left: calc(var(--i) * 100% / 12); width: calc(100% / 12 + 1px); transform-origin: calc(var(--fw, 1) * 100%) 100%;
+  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .06) 0 2px, transparent 2px 9px), linear-gradient(165deg, var(--pa), var(--pb) 48%, var(--pc));
+  background-size: auto, 1200% 100%; background-position: 0 0, calc(var(--i) * 100% / 11) 0;
+  clip-path: polygon(0 0, 100% 0, 100% 78%, 75% 100%, 50% 80%, 25% 100%, 0 82%);
+  /* The torn part rises as one strip hinged at the tear: each piece pivots on its edge nearest the tear and lifts by
+     how far behind the tear it is, so the pieces stay joined. */
+  transform: translateY(calc(var(--d) * -11%)) rotate(calc(min(var(--d), 1) * var(--dir, 1) * -16deg)); transition: transform .35s cubic-bezier(.2, 1.4, .4, 1); }
+.op-slice::after { content: ""; position: absolute; left: 0; right: 0; top: 40%; height: 2px; background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .55) 0 6px, transparent 6px 11px); }
+.op-slice::before { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 28%; background: #f3f6ff; opacity: calc(var(--l) * .9);
+  clip-path: polygon(0 30%, 25% 62%, 50% 34%, 75% 64%, 100% 28%, 100% 78%, 75% 100%, 50% 80%, 25% 100%, 0 82%); }
+.op-grip.op-swiping .op-slice { transition: none; }
+.op-hold.op-torn .op-slice { --l: 1; }
 .op-beam { position: absolute; left: 4%; right: 4%; top: -14%; height: 28%; z-index: 4; pointer-events: none; opacity: 0; transition: opacity .25s;
   background: radial-gradient(60% 50% at 50% 100%, var(--tell), transparent 70%); }
 .op-grip.op-swiping .op-beam { transition: none; }
-.op-hold.op-rainbow .op-beam { background: radial-gradient(60% 50% at 50% 100%, #fff, #38ffd2 30%, #ff3d9a 55%, transparent 75%); }
 .op-hold.op-drop .op-beam { opacity: 0 !important; transition: opacity .4s; }
 .op-rim { position: absolute; inset: 12% 1% 0; border-radius: 4%; box-shadow: 0 0 30px 8px var(--tell); opacity: 0; pointer-events: none; transition: opacity .25s; }
 .op-rot { position: relative; transform-style: preserve-3d; transform: perspective(900px); transition: transform .5s cubic-bezier(.2, 1.3, .4, 1); }
@@ -133,9 +149,7 @@
 .op-hold.op-torn .op-cutline { opacity: 0; transition: opacity .2s; }
 .op-hold.op-torn .op-tell { opacity: .95 !important; }
 .op-hold.op-torn .op-rim { opacity: 1 !important; }
-.op-hold.op-rainbow .op-tell { background: conic-gradient(#ff3d9a, #ffe14a, #38ffd2, #4d7bff, #c04dff, #ff3d9a); filter: blur(34px); animation: op-turn 1.6s linear infinite; }
-.op-hold.op-rainbow .op-rim { box-shadow: 0 0 30px 8px #38ffd2, 0 0 60px 10px rgba(255, 61, 154, .6); }
-.op-hold.op-torn .op-pfront .op-ptop { transform: translate(18%, -60%) rotate(22deg); opacity: 0; }
+.op-hold.op-torn .op-pfront .op-ptop { transform: translate(calc(var(--dir, 1) * 30%), -70%) rotate(calc(var(--dir, 1) * 22deg)); opacity: 0; }
 .op-hold.op-drop .op-pbody, .op-hold.op-drop .op-pedge { transform: translateY(115%) rotate(4deg); opacity: 0; transition: transform .55s cubic-bezier(.55, 0, .8, .4), opacity .55s; }
 .op-hold.op-drop .op-tell, .op-hold.op-drop .op-rim { opacity: 0 !important; transition: opacity .5s; }
 .op-holdbtns { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; padding-top: 8px; }
@@ -208,8 +222,6 @@
 .op-rip .op-rip-ring { width: 30%; aspect-ratio: 1; margin: -15% 0 0 -15%; border: 4px solid var(--c); border-radius: 50%; box-shadow: 0 0 22px var(--c), inset 0 0 22px var(--c); animation: op-shock .65s cubic-bezier(.15, .8, .3, 1) both; }
 .op-rip .op-rip-rays { width: 260%; aspect-ratio: 1; margin: -130% 0 0 -130%; border-radius: 50%; background: repeating-conic-gradient(var(--c) 0 4deg, transparent 4deg 20deg);
   -webkit-mask: radial-gradient(closest-side, #000 15%, transparent); mask: radial-gradient(closest-side, #000 15%, transparent); animation: op-rays .9s ease-out both; }
-.op-rip.op-rainbow .op-rip-rays { background: repeating-conic-gradient(#ff3d9a 0 4deg, transparent 4deg 12deg, #38ffd2 12deg 16deg, transparent 16deg 24deg, #ffe14a 24deg 28deg, transparent 28deg 36deg); }
-.op-rip.op-rainbow .op-rip-ring { border-color: #fff; box-shadow: 0 0 22px #38ffd2, inset 0 0 22px #ff3d9a; }
 @keyframes op-slash { 0% { transform: scaleX(0); opacity: 1; } 45% { transform: scaleX(1); opacity: 1; } 100% { transform: scaleX(1.1) scaleY(.2); opacity: 0; } }
 @keyframes op-shock { from { transform: scale(.2); opacity: 1; } to { transform: scale(4.5); opacity: 0; } }
 @keyframes op-rays { 0% { transform: rotate(0) scale(.3); opacity: 0; } 25% { opacity: .55; } 100% { transform: rotate(40deg) scale(1); opacity: 0; } }
