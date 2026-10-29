@@ -1,7 +1,8 @@
 // How long the pack takes to burst open after a full swipe, against a local server started with DEV_TOOLS=1, with a
 // phone-like delay added to the server's answer to "open" (and a third of it to each photo), and a quick thumb swipe:
 //   node test/tear-gap.cjs [http://127.0.0.1:3000] [delay ms]
-// Prints, over a few packs: from the swipe completing to the burst (the pack torn open), and to the cards rising.
+// Prints, over a few packs: from the swipe completing to the burst (the pack torn open), to the cards rising, and to the
+// cards being drawn in WebGL (from pictures made while the pack was in hand, if there was time).
 const { chromium } = require('playwright');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -39,7 +40,8 @@ const VERSION = fs.readFileSync(path.join(__dirname, '../src/site/notes.ts'), 'u
         const now = performance.now();
         if (!window.__t.torn && document.querySelector('.op-hold.op-torn')) window.__t.torn = now;
         if (!window.__t.deal && document.querySelector('.op-stack')) window.__t.deal = now;
-      }).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['class'] });
+        if (!window.__t.gl && document.querySelector('.op-stack [data-gl-on]')) window.__t.gl = now;
+      }).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['class', 'data-gl-on'] });
     });
     const g = await p.locator('.op-grip').boundingBox(), y = g.y + g.height * 0.1;
     await p.mouse.move(g.x + g.width * 0.06, y);
@@ -52,13 +54,14 @@ const VERSION = fs.readFileSync(path.join(__dirname, '../src/site/notes.ts'), 'u
     }
     await p.mouse.up();
     await p.waitForSelector('.op-stack');
-    await p.waitForTimeout(300);
+    await p.waitForSelector('.op-stack [data-gl-on]', { state: 'attached', timeout: 10000 }).catch(() => {});
+    await p.waitForTimeout(100);
     const t = await p.evaluate(() => window.__t);
-    rows.push([t.torn - t.done, t.deal - t.done]);
+    rows.push([t.torn - t.done, t.deal - t.done, t.gl - t.done]);
     await p.click('text=Reveal all');
     await p.waitForSelector('.op-sum');
     await p.waitForTimeout(1200);
   }
-  for (const [b, d] of rows) console.log(`burst after ${b.toFixed(0)} ms, cards rising after ${d.toFixed(0)} ms`);
+  for (const [b, d, g] of rows) console.log(`burst after ${b.toFixed(0)} ms, cards rising after ${d.toFixed(0)} ms, cards in WebGL after ${g.toFixed(0)} ms`);
   await browser.close();
 })().catch((e) => { console.error(e); process.exit(1); });

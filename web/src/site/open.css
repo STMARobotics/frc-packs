@@ -128,6 +128,8 @@
 /* Turning a card over lifts it toward you on the way round. */
 .op-card.op-flipped.op-top .op-cscale { animation: op-lift .8s cubic-bezier(.3, .7, .3, 1); }
 @keyframes op-lift { 40% { transform: translateZ(70px); } }
+/* The pack in hand's cards, out of sight, for the WebGL opening's pictures of them (open.tsx, Bake). */
+.op-bake { position: fixed; left: -300vw; top: 0; width: var(--op-cw); aspect-ratio: 5 / 7; pointer-events: none; }
 /* A card drawn in WebGL (gl/pack.ts draws it from its picture; data-gl-on is set then): its DOM copy keeps its place,
    unseen. */
 [data-gl-on] { visibility: hidden; }

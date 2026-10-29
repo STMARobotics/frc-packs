@@ -411,7 +411,10 @@ export const api = {
   claim: () => call<State>("POST", "/api/claim"),
   /** Pick up a pack: its cards are decided now; only the best rarity comes back, for the glow. */
   /** `boosted` picks the kind: true for a boosted pack, false for a standard one; left out, boosted goes first. */
-  hand: (pack: string, boosted?: boolean, mythic = false) => call<{ best: Tier; boosted: boolean }>("POST", "/api/hand", { pack, boosted, mythic }),
+  /** Picks up a pack: it's minted now, and its cards (best last, with their serial numbers) come back, so the opening
+      can be ready before the tear. */
+  hand: (pack: string, boosted?: boolean, mythic = false) =>
+    call<{ best: Tier; boosted: boolean; cards?: { num: number; tier: Tier; serial: number }[] }>("POST", "/api/hand", { pack, boosted, mythic }),
   open: (pack: string, boosted?: boolean, mythic = false) => act<{ opening: Opening; state: State; streakReward: boolean }>("/api/open", { pack, boosted, mythic }),
   progress: (id: number, revealed: number) => call<void>("POST", `/api/openings/${id}/progress`, { revealed }),
   collection: (pack: string) => call<Collection>("GET", `/api/collection/${encodeURIComponent(pack)}`),

@@ -628,6 +628,15 @@ async fn delete_user(
         }
         tx.commit(db).await?;
     }
+    // Packs in hand: their serial numbers go back into circulation too.
+    {
+        let mut tx = Tx::new();
+        for h in db.query(&pk, "HAND#").await? {
+            tx.delete_if("", &pk, &get_s(&h, "sk").unwrap_or_default(), None);
+            crate::api::release_held(&mut tx, &h);
+        }
+        tx.commit(db).await?;
+    }
     // Their special cards are deleted, so those numbers can be granted again.
     for sp in crate::specials::load(db, id).await? {
         db.delete(&format!("SP#{}", sp.id), "SPECIAL").await?;

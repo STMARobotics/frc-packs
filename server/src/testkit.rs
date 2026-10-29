@@ -62,6 +62,18 @@ pub async fn set_packs(db: &Db, user: Uuid, pack: &str, sealed: i32, boosted: i3
     change(db, user, move |_, tx| model::save_pack(tx, user, &before, &after, WHY)).await;
 }
 
+/// Gives a player this many more Mythic packs (boosted packs with three Mythics).
+pub async fn set_mythic_packs(db: &Db, user: Uuid, pack: &str, mythic: i32) {
+    let before = model::pack_row(db, user, pack).await.unwrap();
+    let after = PackRow {
+        sealed: before.sealed + mythic,
+        boosted: before.boosted + mythic,
+        mythic: before.mythic + mythic,
+        ..before.clone()
+    };
+    change(db, user, move |_, tx| model::save_pack(tx, user, &before, &after, WHY)).await;
+}
+
 pub async fn add_sealed(db: &Db, user: Uuid, pack: &str, more: i32) {
     let before = model::pack_row(db, user, pack).await.unwrap();
     set_packs(db, user, pack, before.sealed + more, before.boosted).await;

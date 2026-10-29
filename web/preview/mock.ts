@@ -68,7 +68,8 @@ function answer(method: string, path: string, body: Record<string, unknown>): Re
   if (path === "/api/hand") {
     const kind = `${!!body.boosted}${!!body.mythic}`;
     if (!held || held.kind !== kind) held = { kind, cards: deal(!!body.boosted, !!body.mythic) };
-    return json({ best: held.cards[4].tier, boosted: !!body.boosted });
+    // Minted when picked up, like the real server: the cards come back now, with their serial numbers.
+    return json({ best: held.cards[4].tier, boosted: !!body.boosted, cards: held.cards.map(({ num, tier, serial }) => ({ num, tier, serial })) });
   }
   if (path === "/api/open") {
     const kind = `${!!body.boosted}${!!body.mythic}`;

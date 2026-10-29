@@ -261,7 +261,11 @@ function Flow({ resume }: { resume?: Opening }) {
   const [say, setSay] = useState<{ text: string; n: number } | null>(null);
   const [skipped, setSkipped] = useState<Deal | null>(null);
   const op = useRef<{ id: number; sets: string[] } | null>(resume ? { id: resume.id, sets: resume.sets } : null);
-  const hand = useRef<{ n: number; cards?: { num: number; tier: Tier }[] }>({ n: 0 });
+  /** The pack in hand: its cards, known (with their serial numbers) from the moment it's picked up. */
+  const hand = useRef<{ n: number; cards?: { num: number; tier: Tier; serial?: number }[] }>({ n: 0 });
+  /** Those cards as they'll be dealt, drawn out of sight while the pack is in your hand, so the WebGL opening's
+      pictures of them are made before the tear. */
+  const [bake, setBake] = useState<Deal[] | null>(null);
   const openReq = useRef<Promise<Result> | null>(null);
   const stage = useRef<HTMLDivElement>(null), fxEl = useRef<HTMLDivElement>(null), cv = useRef<HTMLCanvasElement>(null), flashEl = useRef<HTMLDivElement>(null);
   const grip = useRef<HTMLDivElement>(null), stackEl = useRef<HTMLDivElement>(null), sumEl = useRef<HTMLDivElement>(null);
@@ -330,13 +334,30 @@ function Flow({ resume }: { resume?: Opening }) {
     const n = ++hand.current.n, kk = kr.current;
     hand.current.cards = undefined;
     openReq.current = null;
-    setBest(null);
+    setBest(null); setBake(null);
+    // The pack's cards: their photos start downloading and their pictures get made while it's in your hand.
+    const got = (cards: { num: number; tier: Tier; serial?: number }[]) => {
+      hand.current.cards = cards;
+      setBest(cards[4].tier);
+      photosReady(cards.map((c) => c.num), 0);
+      setBake(dealt(cards));
+    };
     if (kk === "test") {
-      api.admin.testPack(PACK, false).then((r) => { if (n !== hand.current.n) return; hand.current.cards = r.cards; setBest(r.cards[4].tier); }, fail);
+      api.admin.testPack(PACK, false).then((r) => { if (n === hand.current.n) got(r.cards); }, fail);
       return;
     }
-    api.hand(PACK, ...flags(kk)).then((r) => { if (n === hand.current.n) setBest(r.best); }, (e) => { if (n === hand.current.n && e?.code === "no_packs") outOfPacks(); });
+    api.hand(PACK, ...flags(kk)).then((r) => {
+      if (n !== hand.current.n) return;
+      if (r.cards?.length === 5) got(r.cards); else setBest(r.best);
+    }, (e) => { if (n === hand.current.n && e?.code === "no_packs") outOfPacks(); });
   }
+  /** The pack in hand's cards as they'll be dealt: new or another copy, by what you have now (the server's answer
+      has the last word once it's in). */
+  const dealt = (cards: { num: number; tier: Tier; serial?: number }[]): Deal[] => cards.map((c) => {
+    if (kr.current === "test") return { ...c, serial: 0, isNew: false, copy: 0, test: true };
+    const have = inv.get()[c.num]?.length ?? 0;
+    return { num: c.num, tier: c.tier, serial: c.serial ?? 0, isNew: have === 0, copy: have + 1 };
+  });
   const toHand = (r: DOMRect | null) => {
     setFrom(r); setTorn(false); setDropping(false); setRound((x) => x + 1);
     go("hold");
@@ -354,18 +375,22 @@ function Flow({ resume }: { resume?: Opening }) {
           ? Promise.resolve({ opening: { id: 0, pack: PACK, revealed: 0, sets: [], cards: cs.map((c) => ({ ...c, serial: 0, isNew: false, copy: 0, test: true })) }, state: null, streakReward: false })
           : Promise.reject(new Error("The test pack isn't ready yet. Try again."));
       } else openReq.current = api.open(PACK, ...flags(kk)) as Promise<Result>;
+      openReq.current.catch(() => {});
       openReq.current.then((r) => photosReady(r.opening.cards.map((c) => c.num), 0), () => {});
     }
     return openReq.current;
   };
-  /** A full swipe (or the Open button). The pack bursts open straight away: its best card's rarity is known from when
-      it was picked up, so nothing waits on the server. The cards rise out as soon as the server's answer is in (it was
-      asked while the swipe was still going), usually while the wrapper is still flying off. */
+  /** A full swipe (or the Open button). The pack was minted when it was picked up, so its cards are already known
+      (and their photos and pictures ready): it bursts open and they rise out straight away, while the server records
+      the opening. Without them (an answer still on its way), it bursts by the best card's rarity and the cards rise
+      when the server's answer is in. */
   const cut = async () => {
     if (ph.current !== "hold") return;
     go("cutting");
-    const before = st.get()!.streak, shown = best;
-    if (shown) burstOpen(shown);
+    const before = st.get()!.streak, shown = best, held = hand.current.cards;
+    const ready = held?.length === 5 && (kr.current === "test" || held.every((c) => c.serial)) ? dealt(held) : null;
+    if (ready) rip(ready, 0);
+    else if (shown) burstOpen(shown);
     try {
       const r = await startOpen();
       openReq.current = null;
@@ -377,6 +402,7 @@ function Flow({ resume }: { resume?: Opening }) {
       const s = st.get()!.streak;
       if (r.streakReward) later(2600, () => { sfx.promote(); banner(`${s.days}-day streak! A boosted pack is yours`, 4000); });
       else if (!before.today && s.today && s.days > 1) later(2600, () => banner(`${s.days}-day streak!`, 2600));
+      if (ready) return setDeck(o.cards); // already out: the server's word on what's new, and copies in the game
       await photosReady(o.cards.map((c) => c.num), 450);
       if (alive.current) (shown ? deal : rip)(o.cards, 0);
     } catch (e) {
@@ -387,9 +413,14 @@ function Flow({ resume }: { resume?: Opening }) {
       // The server may have opened it and only the answer got lost: pick that pack up instead of opening another.
       try {
         const s = await api.state();
-        if (kr.current !== "test" && usable(s.pending)) { applyState(s); op.current = { id: s.pending.id, sets: s.pending.sets }; return (shown ? deal : rip)(s.pending.cards, s.pending.revealed); }
+        if (kr.current !== "test" && usable(s.pending)) {
+          applyState(s); op.current = { id: s.pending.id, sets: s.pending.sets };
+          return ready ? setDeck(s.pending.cards) : (shown ? deal : rip)(s.pending.cards, s.pending.revealed);
+        }
       } catch { /* show the first error */ }
-      if (shown) { setTorn(false); setRound((x) => x + 1); } // it comes back whole, to try again
+      // It comes back whole, to try again.
+      if (ready) { setDeck(null); setIdx(0); at.current = 0; setUp([]); setDropping(false); }
+      if (ready || shown) { setTorn(false); setRound((x) => x + 1); }
       go("hold");
       fail(e);
     }
@@ -437,20 +468,17 @@ function Flow({ resume }: { resume?: Opening }) {
     requestAnimationFrame(wait);
   }, [phase]);
 
-  // The cards in WebGL too, once the pack is out of the way: each face, back and ribbon on the stack and in the summary.
-  // Runs after every render, so cards and ribbons that appear are picked up.
+  // The cards in WebGL too: each face, back and ribbon, rising out of the pack (their pictures were made while it was
+  // in your hand), on the stack and in the summary. Runs after every render, so cards and ribbons that appear are
+  // picked up.
   useLayoutEffect(() => {
     const g = glRef.current, f = flowEl.current;
-    if (!g || !f || (phase !== "stack" && phase !== "summary")) return;
+    if (!g || !f || (phase !== "deal" && phase !== "stack" && phase !== "summary")) return;
     const els: [HTMLElement, string][] = [];
-    for (const c of f.querySelectorAll<HTMLElement>("[data-glk]")) {
-      const face = c.querySelector<HTMLElement>(".face.front");
-      if (face) els.push([face, `face ${c.dataset.glk}`]);
-    }
-    for (const b of f.querySelectorAll<HTMLElement>(".op-back")) els.push([b, "back"]);
-    for (const r of f.querySelectorAll<HTMLElement>(".op-ribbon")) els.push([r, `ribbon ${r.className} ${r.textContent} ${r.offsetWidth}`]);
-    g.mirror(els);
+    g.mirror(pictured(f).filter(([el]) => !el.closest(".op-bake")));
   });
+  // No pictures made while the pack is torn open and the cards come out: they're made before, or after.
+  useEffect(() => { gl?.quiet("opening", phase === "cutting" || phase === "deal"); }, [gl, phase]);
 
   // ----- the stack -----
   useEffect(() => { if (phase === "stack") stackEl.current?.focus({ preventScroll: true }); }, [phase]); // Enter and arrow keys deal
@@ -723,11 +751,38 @@ function Flow({ resume }: { resume?: Opening }) {
           </div>
         )}
       </div>
+      {gl && bake && holding && <Bake cards={bake} gl={gl} w={cw} />}
       <canvas ref={glCv} class="op-glcv" aria-hidden="true" />
       <div class={cx("op-say", !!say && "op-show")} role="status" aria-live="polite">{say?.text}</div>
       <div ref={fxEl} class="op-fxl" aria-hidden="true" />
       <canvas ref={cv} class="op-fx" aria-hidden="true" />
       <div ref={flashEl} class="op-flash" />
+    </div>
+  );
+}
+
+/** What the WebGL opening draws from pictures, inside `root`: each card's face (keyed by team and serial number, so
+    copies share one), the card back, and the ribbons. */
+function pictured(root: HTMLElement): [HTMLElement, string][] {
+  const els: [HTMLElement, string][] = [];
+  for (const c of root.querySelectorAll<HTMLElement>("[data-glk]")) {
+    const face = c.querySelector<HTMLElement>(".face.front");
+    if (face) els.push([face, `face ${c.dataset.glk}`]);
+    const back = c.querySelector<HTMLElement>(".op-back");
+    if (back) els.push([back, "back"]);
+  }
+  for (const r of root.querySelectorAll<HTMLElement>(".op-ribbon")) els.push([r, `ribbon ${r.className} ${r.textContent} ${r.offsetWidth}`]);
+  return els;
+}
+
+/** The pack in hand's cards, as the stack will show them, out of sight: their pictures for the WebGL opening are
+    made from these while you hold the pack (the top card first), so the cards that rise out are ready. */
+function Bake({ cards, gl, w }: { cards: Deal[]; gl: PackGL; w: string }) {
+  const el = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => { gl.prebake(pictured(el.current!)); }, [cards, gl]);
+  return (
+    <div ref={el} class="op-bake" aria-hidden="true">
+      {cards.map((c) => <StackCard c={c} k={0} up flipped={false} promo={false} charging={false} aura={false} w={w} />)}
     </div>
   );
 }
@@ -897,6 +952,7 @@ function Hold(p: HoldProps) {
   }, [p.gl]);
   useEffect(() => () => glp.current?.hide(), []);
   useEffect(() => { drawn?.hint(!away && !swiping && !p.torn); }, [drawn, away, swiping, p.torn]);
+  useEffect(() => { p.gl?.quiet("swipe", swiping); }, [p.gl, swiping]);
   useEffect(() => { if (p.dropping) drawn?.drop(); }, [drawn, p.dropping]);
 
   // It lands in your hand with some weight: from the wheel, or dropped in from above.

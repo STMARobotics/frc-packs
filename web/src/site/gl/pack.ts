@@ -74,6 +74,14 @@ export interface PackGL {
       them; each one's DOM copy is hidden (data-gl-on) once it's drawn. The key names the picture, so copies of the same
       card share one. False if pictures can't be made here (the DOM cards stay). */
   mirror(els: [HTMLElement, string][]): boolean;
+  /** Makes these elements' pictures ahead of time (the pack in hand's cards, drawn out of sight), for mirror() to use. */
+  prebake(els: [HTMLElement, string][]): void;
+  /** Holds off making pictures while `why` is on (a swipe, the pack opening), so nothing stutters. */
+  quiet(why: string, on: boolean): void;
+  /** Makes these elements' pictures ahead of time (the pack in hand's cards, drawn out of sight), for mirror() to use. */
+  prebake(els: [HTMLElement, string][]): void;
+  /** Holds off making pictures while `why` is on (a swipe, the pack opening), so nothing stutters. */
+  quiet(why: string, on: boolean): void;
   /** Something moved that no animation tells about (a drag). */
   wake(): void;
   dispose(): void;
@@ -329,11 +337,14 @@ export function createPackGL(canvas: HTMLCanvasElement, host: HTMLElement): Pack
   const mirrors = new Map<HTMLElement, Mirror>(), waiting = new Set<HTMLElement>();
   const cardPics = new Map<string, Promise<Texture | null>>();
   let snaps: Promise<unknown> = Promise.resolve(), snapsOk = true;
+  const hush = new Set<string>();
+  /** Waits for a breath, and for nothing that must stay smooth to be going on. */
+  const calm = () => new Promise<void>((res) => { const f = () => (hush.size ? setTimeout(f, 80) : res()); setTimeout(f, 16); });
   /** One picture at a time, each after a breath, so the page keeps moving while they're made. */
   const cardPic = (key: string, el: HTMLElement) => {
     let p = cardPics.get(key);
     if (!p) {
-      p = snaps.then(() => new Promise((r) => setTimeout(r, 16))).then(() => (el.isConnected ? snap(el) : null)).then(
+      p = snaps.then(calm).then(() => (el.isConnected ? snap(el) : null)).then(
         (cv) => { if (!cv) { cardPics.delete(key); return null; } const t = new CanvasTexture(cv); t.minFilter = LinearFilter; t.generateMipmaps = false; return t; },
         () => { snapsOk = false; cardPics.delete(key); return null; },
       );
@@ -580,6 +591,13 @@ export function createPackGL(canvas: HTMLCanvasElement, host: HTMLElement): Pack
       }
       wake();
       return true;
+    },
+    prebake(els) {
+      if (!snapsOk || lost) return;
+      for (const [el, key] of els) cardPic(key, el);
+    },
+    quiet(why, on) {
+      if (on) hush.add(why); else hush.delete(why);
     },
     wake,
     dispose() {

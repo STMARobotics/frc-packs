@@ -90,7 +90,7 @@ pub async fn ensure(st: &Shared, user: Uuid) -> ApiResult<bool> {
         }
     }
     // Then the player: stats, packs in hand rolled again, and the parts and note, on their version.
-    let hands: Vec<String> = db.query(&upk(user), "HAND#").await?.iter().filter_map(|it| get_s(it, "sk")).collect();
+    let hands = db.query(&upk(user), "HAND#").await?;
     let paid: ApiResult<Option<i64>> = retry!(async {
         let Some(mut p) = model::profile(db, user).await? else { return Ok(None) };
         if p.retier >= want {
@@ -100,8 +100,9 @@ pub async fn ensure(st: &Shared, user: Uuid) -> ApiResult<bool> {
         for (pack, stats) in &new_stats {
             model::save_stats(&mut tx, user, pack, stats);
         }
-        for sk in &hands {
-            tx.delete_if("", &upk(user), sk, None);
+        for h in &hands {
+            tx.delete_if("", &upk(user), &get_s(h, "sk").unwrap_or_default(), None);
+            crate::api::release_held(&mut tx, h); // their serial numbers go back into circulation
         }
         let parts = p.parts;
         // The October 2026 change (version 1) paid everyone who lost a Mythic; after that, only what the admin chose.

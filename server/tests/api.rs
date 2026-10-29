@@ -262,6 +262,115 @@ async fn pack_in_hand_is_fixed_and_opens_as_promised() {
     assert_eq!(pend["cards"], o.body["opening"]["cards"], "resume shows the same cards");
 }
 
+/// Picking a pack up mints it: the five cards, best last, with their serial numbers, the same on every pick-up and
+/// exactly what opens. They only count as in the game once opened.
+#[tokio::test]
+async fn picking_up_mints_the_pack_and_it_opens_as_minted() {
+    let (app, db) = need_db!(setup(true));
+    let (c, _) = player(&app, &db).await;
+    let h1 = call(&app, "POST", "/api/hand", Some(&c), Some(json!({ "pack": PACK }))).await;
+    assert_eq!(h1.status, StatusCode::OK, "{}", h1.body);
+    let held = h1.body["cards"].as_array().unwrap().clone();
+    assert_eq!(held.len(), 5);
+    assert!(held.iter().all(|x| x["serial"].as_i64().unwrap() >= 1), "every card has its serial already");
+    assert_eq!(held[4]["tier"], h1.body["best"]);
+    let h2 = call(&app, "POST", "/api/hand", Some(&c), Some(json!({ "pack": PACK }))).await;
+    assert_eq!(h2.body["cards"], h1.body["cards"], "putting it back changes nothing, serials included");
+    let teams: Vec<i32> = held.iter().map(|x| x["num"].as_i64().unwrap() as i32).collect();
+    let live_before: i64 = teams_live(&db, &teams).await;
+    let o = call(&app, "POST", "/api/open", Some(&c), Some(json!({ "pack": PACK }))).await;
+    assert_eq!(o.status, StatusCode::OK, "{}", o.body);
+    let opened: Vec<(Value, Value, Value)> = o.body["opening"]["cards"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|x| (x["num"].clone(), x["tier"].clone(), x["serial"].clone()))
+        .collect();
+    let minted: Vec<(Value, Value, Value)> =
+        held.iter().map(|x| (x["num"].clone(), x["tier"].clone(), x["serial"].clone())).collect();
+    assert_eq!(opened, minted, "the pack opens exactly as it was minted");
+    assert_eq!(teams_live(&db, &teams).await, live_before + 5, "the cards enter the game when opened");
+    // The next pick-up is a new pack, with new serial numbers.
+    let h3 = call(&app, "POST", "/api/hand", Some(&c), Some(json!({ "pack": PACK }))).await;
+    assert_ne!(h3.body["cards"], h1.body["cards"]);
+}
+
+async fn teams_live(db: &Db, teams: &[i32]) -> i64 {
+    let mut n = 0;
+    for t in teams {
+        let it = db.get(&format!("PRINT#{PACK}#{t}"), "PRINT").await.unwrap().unwrap_or_default();
+        n += frc_packs_server::db::get_n(&it, "live").unwrap_or(0);
+    }
+    n
+}
+
+/// A pack picked up before serials were minted at pick-up (only its cards stored) still works: the next pick-up
+/// mints its serials, keeping its cards; or it opens with new serials, as before.
+#[tokio::test]
+async fn a_pack_in_hand_from_before_minting_still_opens() {
+    let (app, db) = need_db!(setup(true));
+    let (c, _) = player(&app, &db).await;
+    let user = user_id(&db, &c).await;
+    let hand = json!([
+        { "num": team_of("common", 0), "tier": "common" }, { "num": team_of("common", 1), "tier": "common" },
+        { "num": team_of("uncommon", 0), "tier": "uncommon" }, { "num": team_of("rare", 0), "tier": "rare" },
+        { "num": team_of("legendary", 0), "tier": "legendary" }
+    ]);
+    kit::set_hand(&db, user, PACK, false, &hand).await;
+    let h = call(&app, "POST", "/api/hand", Some(&c), Some(json!({ "pack": PACK }))).await;
+    assert_eq!(h.status, StatusCode::OK, "{}", h.body);
+    let nums: Vec<i64> = h.body["cards"].as_array().unwrap().iter().map(|x| x["num"].as_i64().unwrap()).collect();
+    let want: Vec<i64> = hand.as_array().unwrap().iter().map(|x| x["num"].as_i64().unwrap()).collect();
+    assert_eq!(nums, want, "the same cards, now with serials");
+    let o = call(&app, "POST", "/api/open", Some(&c), Some(json!({ "pack": PACK }))).await;
+    assert_eq!(
+        o.body["opening"]["cards"].as_array().unwrap().iter().map(|x| x["serial"].clone()).collect::<Vec<_>>(),
+        h.body["cards"].as_array().unwrap().iter().map(|x| x["serial"].clone()).collect::<Vec<_>>()
+    );
+    // Straight to opening, never picked up again: serials are minted at the opening.
+    kit::set_hand(&db, user, PACK, false, &json!([
+        { "num": team_of("common", 2), "tier": "common" }, { "num": team_of("common", 3), "tier": "common" },
+        { "num": team_of("uncommon", 1), "tier": "uncommon" }, { "num": team_of("uncommon", 2), "tier": "uncommon" },
+        { "num": team_of("rare", 1), "tier": "rare" }
+    ]))
+    .await;
+    let o = call(&app, "POST", "/api/open", Some(&c), Some(json!({ "pack": PACK }))).await;
+    assert_eq!(o.status, StatusCode::OK, "{}", o.body);
+    assert_eq!(o.body["opening"]["cards"][4]["num"], team_of("rare", 1));
+    assert!(o.body["opening"]["cards"].as_array().unwrap().iter().all(|x| x["serial"].as_i64().unwrap() >= 1));
+}
+
+/// A minted pack in hand that's rolled again gives its serial numbers back, for the next packs to take.
+#[tokio::test]
+async fn a_pack_rolled_again_gives_its_serials_back() {
+    let (app, db) = need_db!(setup(true));
+    let (c, _) = player(&app, &db).await;
+    let h = call(&app, "POST", "/api/hand", Some(&c), Some(json!({ "pack": PACK }))).await;
+    // Demo luck changes the odds, so the pack in hand is rolled again.
+    call(&app, "POST", "/api/dev/demo", Some(&c), Some(json!({ "on": true }))).await;
+    for x in h.body["cards"].as_array().unwrap() {
+        let (team, serial) = (x["num"].as_i64().unwrap() as i32, x["serial"].as_i64().unwrap() as i32);
+        assert!(kit::free_serial(&db, PACK, team, serial).await, "team {team} No. {serial} is back in circulation");
+    }
+}
+
+/// A Mythic pack is minted at pick-up too: three Mythics, the same ones it opens with.
+#[tokio::test]
+async fn a_mythic_pack_is_minted_at_pick_up() {
+    let (app, db) = need_db!(setup(true));
+    let (c, _) = player(&app, &db).await;
+    let user = user_id(&db, &c).await;
+    kit::set_mythic_packs(&db, user, PACK, 1).await;
+    let h = call(&app, "POST", "/api/hand", Some(&c), Some(json!({ "pack": PACK, "mythic": true }))).await;
+    assert_eq!(h.status, StatusCode::OK, "{}", h.body);
+    assert_eq!(h.body["cards"].as_array().unwrap().iter().filter(|x| x["tier"] == "mythic").count(), 3);
+    let o = call(&app, "POST", "/api/open", Some(&c), Some(json!({ "pack": PACK, "mythic": true }))).await;
+    assert_eq!(o.status, StatusCode::OK, "{}", o.body);
+    let pick =
+        |v: &Value| v.as_array().unwrap().iter().map(|x| (x["num"].clone(), x["serial"].clone())).collect::<Vec<_>>();
+    assert_eq!(pick(&o.body["opening"]["cards"]), pick(&h.body["cards"]));
+}
+
 #[tokio::test]
 async fn reveal_progress_and_resume() {
     let (app, db) = need_db!(setup(true));
@@ -408,8 +517,11 @@ async fn completing_a_division_awards_a_pack() {
     }
     let last = members[members.len() - 1];
     let others: Vec<&Value> =
-        teams.iter().filter(|t| t["div"] != div.as_str() && t["tier"] == "common").take(4).collect();
+        teams.iter().filter(|t| t["div"] != div.as_str() && t["tier"] == "common").take(3).collect();
     let mut hand: Vec<Value> = others.iter().map(|t| json!({ "num": t["num"], "tier": "common" })).collect();
+    // A first pack ends in Legendary or better, so the pack in hand has one (from another division) to be kept.
+    let leg = teams.iter().find(|t| t["div"] != div.as_str() && t["tier"] == "legendary").unwrap();
+    hand.push(json!({ "num": leg["num"], "tier": "legendary" }));
     hand.push(json!({ "num": last["num"], "tier": last["tier"] }));
     kit::set_hand(&db, user, PACK, false, &Value::Array(hand)).await;
     let o = call(&app, "POST", "/api/open", Some(&c), Some(json!({ "pack": PACK }))).await;
@@ -2600,10 +2712,9 @@ async fn beta_testers_send_feedback_and_the_admin_sorts_it() {
         call(&app, "POST", "/api/admin/feedback/999999999/status", Some(&admin), Some(st.clone())).await.status,
         StatusCode::NOT_FOUND
     );
-    assert_eq!(
-        call(&app, "POST", &format!("/api/admin/feedback/{id}/status"), Some(&admin), Some(st)).await.status,
-        StatusCode::NO_CONTENT
-    );
+    let done = call(&app, "POST", &format!("/api/admin/feedback/{id}/status"), Some(&admin), Some(st)).await;
+    assert_eq!(done.status, StatusCode::OK);
+    assert_eq!(done.body["rewarded"], true, "the sender earned a pack");
     let mine = call(&app, "GET", "/api/feedback/mine", Some(&ca), None).await.body;
     assert_eq!(
         (mine[0]["status"].as_str(), mine[0]["note"].as_str()),
