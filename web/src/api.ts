@@ -469,7 +469,8 @@ export const api = {
   craft: () => act<State>("/api/craft"),
   /** Spend 10,000 parts on a Mythic pack (three Mythics). */
   craftMythic: () => act<State>("/api/craft/mythic"),
-  recipe: (pack: string) => call<Recipe>("GET", `/packs/${encodeURIComponent(pack)}.json`),
+  /** The pack recipe. `v` (the app version) makes each release fetch it fresh: the file is cached for hours. */
+  recipe: (pack: string, v = "") => call<Recipe>("GET", `/packs/${encodeURIComponent(pack)}.json${v ? `?v=${encodeURIComponent(v)}` : ""}`),
   dev: {
     demo: (on: boolean) => call<State>("POST", "/api/dev/demo", { on }),
     pack: (pack: string) => call<State>("POST", "/api/dev/pack", { pack }),

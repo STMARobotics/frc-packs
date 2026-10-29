@@ -18,6 +18,7 @@ import { closeAll, cx, LayerHost, Spinner, ToastHost } from "./ui";
 import { Binder } from "./screens/binder";
 import { StatusBar } from "./screens/status";
 import { Avatar } from "./ui";
+import { VERSION } from "./notes";
 import { openProfile, ProfilePage, profileRoute } from "./screens/profile";
 import { setupPwa } from "./pwa";
 import { setupPad } from "./pad";
@@ -61,7 +62,7 @@ function App() {
   const boot = async (signed?: State) => {
     setPhase("loading");
     try {
-      const [state, recipe] = await Promise.all([signed ?? api.session(), api.recipe(PACK)]);
+      const [state, recipe] = await Promise.all([signed ?? api.session(), api.recipe(PACK, VERSION)]);
       setRecipe(recipe, state.tiers);
       applyState(state);
       applyCollection(await api.collection(PACK));

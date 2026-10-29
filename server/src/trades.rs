@@ -1018,14 +1018,25 @@ async fn holdings(db: &Db, pack: &str, people: &[Profile]) -> ApiResult<std::syn
     {
         return Ok(h.clone());
     }
+    // Sixteen players at a time, so a cold read stays quick with many players.
     let mut out = Holdings::new();
-    for p in people {
-        let mut counts = std::collections::HashMap::new();
-        for c in model::cards(db, p.id, pack).await? {
-            *counts.entry(c.team).or_insert(0) += 1;
+    for chunk in people.chunks(16) {
+        let mut set = tokio::task::JoinSet::new();
+        for p in chunk {
+            let (db, id, pack) = (db.clone(), p.id, pack.to_string());
+            set.spawn(async move {
+                let mut counts = std::collections::HashMap::new();
+                for c in model::cards(&db, id, &pack).await? {
+                    *counts.entry(c.team).or_insert(0) += 1;
+                }
+                let wish = crate::profiles::wishlist(&db, id, &pack).await?;
+                ApiResult::Ok((id, counts, wish))
+            });
         }
-        let wish = crate::profiles::wishlist(db, p.id, pack).await?;
-        out.insert(p.id, (counts, wish));
+        while let Some(r) = set.join_next().await {
+            let (id, counts, wish) = r.map_err(|e| ApiError::from(crate::db::DbError::Other(e.to_string())))??;
+            out.insert(id, (counts, wish));
+        }
     }
     let h = std::sync::Arc::new(out);
     *HOLDINGS.lock().unwrap() = Some((std::time::Instant::now(), pack.to_string(), h.clone()));
