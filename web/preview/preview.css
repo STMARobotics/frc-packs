@@ -1,0 +1,7 @@
+/* The preview's own bar (mock.ts), in the app's colors. */
+.pv-bar { display: grid; justify-items: center; gap: 6px; margin-top: 6px; max-width: 100%; padding: 8px 10px; border-radius: 14px; background: rgba(19, 24, 38, .94); box-shadow: inset 0 0 0 1px #2a3450, 0 8px 24px rgba(0, 0, 0, .45);
+  font: 700 11px "Chakra Petch", ui-sans-serif, system-ui, sans-serif; color: #8b94ab; letter-spacing: .08em; text-transform: uppercase; }
+.pv-bar div { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.pv-bar button { min-height: 32px; padding: 0 11px; border: 0; border-radius: 99px; background: #1b2234; color: #c9d0e0; font: 700 13px "Chakra Petch", ui-sans-serif, system-ui, sans-serif; letter-spacing: 0; text-transform: none; cursor: pointer; }
+.pv-bar button[aria-pressed="true"] { background: #4fd8ff; color: #04131b; }
+.pv-bar button:focus-visible { outline: 2px solid #4fd8ff; outline-offset: 2px; }

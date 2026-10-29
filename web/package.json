@@ -9,11 +9,13 @@
     "test": "node test/e2e.cjs"
   },
   "devDependencies": {
+    "@types/three": "^0.186.0",
     "playwright": "^1.64.0",
     "typescript": "^7.0.2",
     "vite": "^8.3.4"
   },
   "dependencies": {
-    "preact": "^10.29.8"
+    "preact": "^10.29.8",
+    "three": "^0.186.1"
   }
 }

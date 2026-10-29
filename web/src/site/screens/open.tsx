@@ -2,7 +2,9 @@
 // over the tabs: the wheel of 10 (a setting), the pack in your hand (turn it over for the odds, swipe across the top to
 // tear it; the light leaking out is the best card's color), the five cards one at a time (Rare and better wait face
 // down until you flip them, and a Mythic gets a moment of its own), and the summary. The server decides everything; a
-// pack torn but not finished is picked up again from the Open tab.
+// pack torn but not finished is picked up again from the Open tab. Where WebGL works (and motion isn't reduced), the
+// pack in your hand is drawn in 3D by gl/pack.ts, loaded when you first tap a pack; until then, and everywhere else,
+// the DOM pack does it all.
 import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
 import { api, type Opening, type State, type Tier } from "../../api";
 import { useStore } from "../../lib/store";
@@ -13,8 +15,12 @@ import { buzz, sfx } from "../sfx";
 import { openCard } from "./cardview";
 import { usePad } from "../pad";
 import { createRip, type Rip } from "../rip";
+import type { PackGL } from "../gl/pack";
 
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
+/** The WebGL pack's code (and Three.js with it), fetched the first time a pack is tapped. */
+let glCode: Promise<typeof import("../gl/pack")> | null = null;
+const loadGL = () => (RM ? null : (glCode ??= import("../gl/pack").catch(() => (glCode = null) as never)));
 const N = 10; // packs on the wheel
 
 export type Kind = "std" | "gold" | "myth" | "test";
@@ -165,7 +171,7 @@ export function OpenHome() {
   const untilt = () => { btn.current?.style.removeProperty("--gx"); btn.current?.style.removeProperty("--gy"); };
   return (
     <section class="op-home">
-      <button ref={btn} type="button" data-pad-first class={cx("op-hero", !n && !left && "op-empty")} onClick={go} onPointerMove={tilt} onPointerLeave={untilt}
+      <button ref={btn} type="button" data-pad-first class={cx("op-hero", !n && !left && "op-empty")} onClick={go} onPointerDown={loadGL} onPointerMove={tilt} onPointerLeave={untilt}
         aria-label={left ? "Finish opening your last pack" : `${NAME[cur]} pack, ${cur === "test" ? "unlimited" : n} to open`}>
         <span class="op-hero-in"><PackArt k={left ? "std" : cur} /></span>
         {!left && cur !== "test" && <em class={cx("op-count", cur !== "std" && "op-gold")}>×{n}</em>}
@@ -260,6 +266,9 @@ function Flow({ resume }: { resume?: Opening }) {
   const stage = useRef<HTMLDivElement>(null), fxEl = useRef<HTMLDivElement>(null), cv = useRef<HTMLCanvasElement>(null), flashEl = useRef<HTMLDivElement>(null);
   const grip = useRef<HTMLDivElement>(null), stackEl = useRef<HTMLDivElement>(null), sumEl = useRef<HTMLDivElement>(null);
   const fx = useRef<ReturnType<typeof particles> | null>(null);
+  const flowEl = useRef<HTMLDivElement>(null), glCv = useRef<HTMLCanvasElement>(null);
+  const [gl, setGl] = useState<PackGL | null>(null);
+  const glRef = useRef<PackGL | null>(null);
   const timers = useRef<number[]>([]);
   const charge = useRef<number[]>([]);
   const alive = useRef(true);
@@ -269,10 +278,16 @@ function Flow({ resume }: { resume?: Opening }) {
     fx.current = particles(cv.current!);
     if (ph.current === "hold") pickUp();
     if (resume) toast("Picking up your last pack", false, 2000);
+    loadGL()?.then((m) => {
+      if (!alive.current) return;
+      glRef.current = m.createPackGL(glCv.current!, flowEl.current!);
+      setGl(glRef.current);
+    });
     return () => {
       alive.current = false;
       timers.current.forEach(clearTimeout);
       fx.current?.stop();
+      glRef.current?.dispose();
       if (op.current?.id) sync(); // left halfway: the Open tab offers to finish it
     };
   }, []);
@@ -437,6 +452,7 @@ function Flow({ resume }: { resume?: Opening }) {
     later(380, () => {
       if (ph.current !== "stack") return;
       const r = topRect(), [n, pow] = BURST[c.tier];
+      if (faceDown(c.tier)) glRef.current?.flare(r, TIERS[c.tier].color, c.tier !== "rare");
       if (c.tier === "rare") { burst(r, n, TIERS.rare.color, pow); shake(false); }
       else if (c.tier === "legendary") {
         burst(r, n, TIERS.legendary.color, pow); burst(r, 60, null, 9); shake(true); flash();
@@ -569,6 +585,7 @@ function Flow({ resume }: { resume?: Opening }) {
         const el = kids[kids.length - 1];
         if (!el) return;
         const r = el.getBoundingClientRect(), [n, pow] = BURST[skipped.tier];
+        glRef.current?.flare(r, TIERS[skipped.tier].color, skipped.tier !== "rare");
         burst(r, n, skipped.tier === "mythic" ? null : TIERS[skipped.tier].color, pow);
         if (skipped.tier === "legendary" || skipped.tier === "mythic") { flash(); shake(true); banner(`${TIERS[skipped.tier].label.toUpperCase()} · ${BY_NUM.get(skipped.num)!.name} (${skipped.num})`, 3000); }
       });
@@ -621,7 +638,7 @@ function Flow({ resume }: { resume?: Opening }) {
     if (miss > 0 && miss <= 3 && (!near || miss < near.miss)) near = { d, miss };
   }
   return (
-    <div class={cx("op-flow", mood)} style={ray ? { "--ray": ray } : undefined}>
+    <div ref={flowEl} class={cx("op-flow", mood)} style={ray ? { "--ray": ray } : undefined}>
       <i class="op-rays" />
       <div ref={stage} class="op-stage">
         <i class="op-dim" />
@@ -629,7 +646,7 @@ function Flow({ resume }: { resume?: Opening }) {
         {(holding || stacked) && (
           <div class="op-main">
             {holding && (
-              <Hold key={round} k={k} best={best} from={from} active={phase === "hold"} torn={torn} dropping={dropping} grip={grip}
+              <Hold key={round} k={k} gl={gl} best={best} from={from} active={phase === "hold"} torn={torn} dropping={dropping} grip={grip}
                 onEarly={startOpen} onCut={cut} onLand={() => { sfx.thud(1); shake(false); }} />
             )}
             {stacked && (
@@ -679,6 +696,7 @@ function Flow({ resume }: { resume?: Opening }) {
           </div>
         )}
       </div>
+      <canvas ref={glCv} class="op-glcv" aria-hidden="true" />
       <div class={cx("op-say", !!say && "op-show")} role="status" aria-live="polite">{say?.text}</div>
       <div ref={fxEl} class="op-fxl" aria-hidden="true" />
       <canvas ref={cv} class="op-fx" aria-hidden="true" />
@@ -796,7 +814,7 @@ function Wheel({ k, onPick, onBack }: { k: Kind; onPick: (r: DOMRect) => void; o
 
 // ---------- the pack in your hand ----------
 
-interface HoldProps { k: Kind; best: Tier | null; from: DOMRect | null; active: boolean; torn: boolean; dropping: boolean; grip: { current: HTMLDivElement | null }; onEarly: () => void; onCut: () => void; onLand: () => void }
+interface HoldProps { k: Kind; gl: PackGL | null; best: Tier | null; from: DOMRect | null; active: boolean; torn: boolean; dropping: boolean; grip: { current: HTMLDivElement | null }; onEarly: () => void; onCut: () => void; onLand: () => void }
 
 /** Turns the pack in your hand (it shows the odds on the back) and tears it with a swipe across the top. Exposed so
     the buttons under it can do the same. */
@@ -812,6 +830,10 @@ function Hold(p: HoldProps) {
   const rot = useRef({ y: 0, x: 0 });
   const g = useRef<{ x: number; y: number; ry: number; cut: boolean; w: number; left: number; moved: boolean; id: number; notch: number; dir: number } | null>(null);
   const [away, setAway] = useState(false);
+  const [swiping, setSwiping] = useState(false);
+  /** The WebGL pack, once it's drawing this one (the DOM pack is then invisible, but still takes the touches). */
+  const [drawn, setDrawn] = useState<PackGL | null>(null);
+  const glp = useRef<PackGL | null>(null);
   const facingFront = () => { const d = ((rot.current.y % 360) + 360) % 360; return Math.min(d, 360 - d) < 35; };
   const paint = (live: boolean) => {
     const r = rotEl.current;
@@ -819,6 +841,7 @@ function Hold(p: HoldProps) {
     r.classList.toggle("op-live", live);
     r.style.transform = `perspective(900px) rotateX(${rot.current.x}deg) rotateY(${rot.current.y}deg)`;
     r.style.setProperty("--sx", (-Math.sin((rot.current.y * Math.PI) / 180) * 60).toFixed(1));
+    glp.current?.turn(rot.current.x, rot.current.y, live);
     setAway(!facingFront());
   };
   /** The wrapper torn this far (share of the width, from the side it started: 1 the left, -1 the right), with the best
@@ -826,8 +849,27 @@ function Hold(p: HoldProps) {
   const tear = (len: number, dir: number, t: number) => {
     torn.current = { len, dir, t };
     p.grip.current?.style.setProperty("--dir", String(dir));
-    rip.current?.set(len, dir, t, TIERS[p.best ?? "common"].color);
+    const c = TIERS[p.best ?? "common"].color;
+    if (glp.current) glp.current.tear(len, dir, t, c); else rip.current?.set(len, dir, t, c);
   };
+  const jolt = (t: number) => { if (glp.current) glp.current.jolt(t); else rip.current?.jolt(t); };
+  // The WebGL pack takes over as soon as it's ready, if the pack hasn't been touched yet: it looks the same, so the
+  // switch can't be seen.
+  useEffect(() => {
+    const gl = p.gl;
+    if (!gl || glp.current || torn.current.len || g.current || p.torn || !p.grip.current || !lift.current || !shakeEl.current) return;
+    let live = true;
+    gl.show(p.k, p.grip.current, [lift.current, shakeEl.current]).then((ok) => {
+      if (!live || !ok) return;
+      gl.turn(rot.current.x, rot.current.y, true);
+      // Hide the DOM pack once the WebGL one has drawn a frame.
+      requestAnimationFrame(() => requestAnimationFrame(() => { if (live) { glp.current = gl; setDrawn(gl); } }));
+    });
+    return () => { live = false; };
+  }, [p.gl]);
+  useEffect(() => () => glp.current?.hide(), []);
+  useEffect(() => { drawn?.hint(!away && !swiping && !p.torn); }, [drawn, away, swiping, p.torn]);
+  useEffect(() => { if (p.dropping) drawn?.drop(); }, [drawn, p.dropping]);
 
   // It lands in your hand with some weight: from the wheel, or dropped in from above.
   useLayoutEffect(() => {
@@ -844,7 +886,13 @@ function Hold(p: HoldProps) {
     return () => { holdApi.turn = holdApi.front = holdApi.face = undefined; sfx.strainStop(); rip.current?.stop(); };
   }, []);
   // Opened (by the swipe or the Open button): the light at full as the wrapper comes away.
-  useEffect(() => { if (p.torn) { const c = torn.current; tear(Math.max(c.len, 0.3), c.dir, 1); setTimeout(() => rip.current?.stop(), 700); } }, [p.torn]);
+  useEffect(() => {
+    if (!p.torn) return;
+    const c = torn.current;
+    tear(Math.max(c.len, 0.3), c.dir, 1);
+    glp.current?.open();
+    setTimeout(() => rip.current?.stop(), 700);
+  }, [p.torn]);
   // The best card's color arrives from the server after the pack is picked up.
   useEffect(() => { const c = torn.current; if (c.len) tear(c.len, c.dir, c.t); }, [p.best]);
 
@@ -869,12 +917,13 @@ function Hold(p: HoldProps) {
       const len = Math.floor(Math.max(0, (at - from) * s.dir) / NOTCH + 1e-6) * NOTCH, t = Math.min(1, len / OPEN_AT);
       if (len === s.notch) return;
       p.grip.current!.classList.add("op-swiping");
+      setSwiping(true);
       tear(len ? (s.dir > 0 ? from : 1 - from) + len : 0, s.dir, t); // the torn edge, measured from the side it started
       sfx.strain(t);
       if (len > s.notch) {
         sfx.tear(t);
         buzz(Math.round(6 + t * 18));
-        rip.current?.jolt(t);
+        jolt(t);
         const a = RM ? 0 : 1 + t * 4;
         shakeEl.current?.animate([{ transform: `translate(${(Math.random() * 2 - 1) * a}px, ${a * 0.6}px) rotate(${(Math.random() * 2 - 1) * a * 0.2}deg)` }, { transform: "none" }], { duration: 120, easing: "ease-out" });
       } else {
@@ -897,6 +946,7 @@ function Hold(p: HoldProps) {
     if (s.cut) {
       // Let go part way: the wrapper lies back down and the light goes out.
       p.grip.current!.classList.remove("op-swiping");
+      setSwiping(false);
       tear(0, s.dir || 1, 0);
       if (s.notch) { sfx.strainStop(); sfx.settle(); }
       return;
@@ -908,7 +958,7 @@ function Hold(p: HoldProps) {
     sfx.whoosh();
   };
   return (
-    <div class={cx("op-hold", `k-${p.k}`, p.torn && "op-torn", p.dropping && "op-drop", away && "op-away")}>
+    <div class={cx("op-hold", `k-${p.k}`, p.torn && "op-torn", p.dropping && "op-drop", away && "op-away", drawn && "op-gl")}>
       <div ref={p.grip} class="op-grip" onPointerDown={down} onPointerMove={move} onPointerUp={upH} onPointerCancel={upH}>
         <div ref={lift} class={cx("op-lift", !p.from && "op-in")}>
           <div ref={shakeEl} class="op-shake">

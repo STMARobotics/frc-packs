@@ -4,3 +4,6 @@ server/target/
 web/dist/
 *.log
 .env
+
+# The opening preview's build (tools/open_preview.cjs)
+web/preview/out/

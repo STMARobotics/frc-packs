@@ -125,6 +125,10 @@
 .op-hold.op-torn .op-ripcv { transform: translate(calc(var(--dir, 1) * 26%), -24%) rotate(calc(var(--dir, 1) * 14deg)); opacity: 0; }
 .op-hold.op-torn .op-pfront .op-ptop { transform: translate(calc(var(--dir, 1) * 30%), -70%) rotate(calc(var(--dir, 1) * 22deg)); opacity: 0; }
 .op-hold.op-drop .op-pbody, .op-hold.op-drop .op-pedge { transform: translateY(115%) rotate(4deg); opacity: 0; transition: transform .55s cubic-bezier(.55, 0, .8, .4), opacity .55s; }
+/* The WebGL pack (gl/pack.ts) is drawn on a canvas over the whole opening, in front of the cards rising out of it. The
+   DOM pack under it goes invisible but still takes the touches. */
+.op-glcv { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; pointer-events: none; }
+.op-hold.op-gl .op-pack, .op-hold.op-gl .op-cutzone { opacity: 0; }
 .op-holdbtns { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; padding-top: 8px; }
 
 /* ---------- the stack of five ---------- */
