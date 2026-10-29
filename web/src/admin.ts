@@ -312,6 +312,25 @@ function manage(u: AdminUser): HTMLElement {
         }, "cta small"),
       ),
     );
+    if (u.bio) {
+      panel.append(
+        h("div", { class: "mrow" }, h("span", {}, "Bio"), h("span", { class: "meta" }, u.bio),
+          button("Clear", async (b) => {
+            if (!window.confirm(`Clear ${u.username}'s bio?`)) return;
+            b.disabled = true;
+            try {
+              await api.admin.clearBio(u.id);
+              say(`Cleared ${u.username}'s bio.`);
+              await loadUsers();
+            } catch (e) {
+              fail(e);
+            } finally {
+              b.disabled = false;
+            }
+          }, "small"),
+        ),
+      );
+    }
     const nameIn = h("input", { class: "input", value: u.username, "aria-label": `New username for ${u.username}`, maxlength: "20", autocapitalize: "none", spellcheck: "false" });
     panel.append(
       h("div", { class: "mrow" }, h("span", {}, "Rename"), nameIn,

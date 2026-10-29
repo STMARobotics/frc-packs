@@ -1,5 +1,5 @@
-// Social: the activity feed (Mythic and Legendary pulls, finished sets, trades) and every player, ranked. Checks for news
-// every few seconds while it's on screen.
+// Social: the activity feed (Mythic and Legendary pulls, finished sets, trades) and everyone, ranked and searchable;
+// tapping a name opens their profile page. Checks for news every few seconds while it's on screen.
 import { useEffect, useRef, useState } from "preact/hooks";
 import type { SocialPlayer } from "../../api";
 import { useStore } from "../../lib/store";
@@ -8,7 +8,6 @@ import { ago, loadSocial, social, st } from "../state";
 import { Avatar, Card, cx, Spinner, Tabs } from "../ui";
 import { openCard } from "./cardview";
 import { openProfile } from "./profile";
-import { tradeFor } from "./trade";
 
 type By = "teams" | "mythics" | "legendaries" | "trades";
 
@@ -17,6 +16,7 @@ export function SocialTab({ active }: { active: boolean }) {
   const me = useStore(st)!.account.username.toLowerCase();
   const [pg, setPg] = useState<"act" | "ppl">("act");
   const [by, setBy] = useState<By>("teams");
+  const [q, setQ] = useState("");
   useEffect(() => {
     if (!active) return;
     loadSocial();
@@ -24,24 +24,27 @@ export function SocialTab({ active }: { active: boolean }) {
     return () => clearInterval(t);
   }, [active]);
   if (!d) return <div class="s-center small"><Spinner /></div>;
-  const rows = d.players.slice().sort((a, b) => b[by] - a[by] || b.teams - a.teams);
+  const v = q.trim().toLowerCase();
+  const ranked = d.players.slice().sort((a, b) => b[by] - a[by] || b.teams - a.teams);
+  const rows = ranked.map((p, i) => [p, i] as const).filter(([p]) => !v || p.name.toLowerCase().includes(v) || (p.firstName ?? "").toLowerCase().includes(v));
   return (
     <div class="s-screen s-social">
       <Tabs value={pg} onChange={setPg} options={[["act", "Activity"], ["ppl", "Players"]]} />
       {pg === "act" ? <Activity /> : (
         <>
+          <input class="s-input" type="search" placeholder="Find a player" value={q} onInput={(e) => setQ(e.currentTarget.value)} autoCapitalize="none" spellcheck={false} aria-label="Find a player" />
           <div class="s-chips">{(["teams", "mythics", "legendaries", "trades"] as By[]).map((b) => (
             <button type="button" class={cx("s-chip", by === b && "on")} aria-pressed={by === b} onClick={() => setBy(b)}>{b[0].toUpperCase() + b.slice(1)}</button>
           ))}</div>
           <div class="s-list">
-            {rows.map((p, i) => (
-              <div key={p.name} class="so-row">
+            {rows.map(([p, i]) => (
+              <button type="button" key={p.name} class={cx("so-row", p.name.toLowerCase() === me && "me")} onClick={() => openProfile(p.name)}>
                 <i>{i + 1}</i>
-                <button type="button" class="so-who" onClick={() => openProfile(p.name)}><Avatar name={p.name} /><Who p={p} /></button>
+                <span class="so-who"><Avatar name={p.name} team={p.avatar} /><Who p={p} /></span>
                 <span class="so-n"><b>{p[by]}</b><small>{by}</small></span>
-                {p.name.toLowerCase() !== me && <button type="button" class="s-chipbtn" onClick={() => tradeFor(p.name)}>Trade</button>}
-              </div>
+              </button>
             ))}
+            {!rows.length && <p class="s-dim">No player matches that.</p>}
           </div>
         </>
       )}
@@ -49,7 +52,7 @@ export function SocialTab({ active }: { active: boolean }) {
   );
 }
 
-export function Who({ p }: { p: SocialPlayer }) {
+export function Who({ p }: { p: Pick<SocialPlayer, "name" | "firstName" | "badge"> }) {
   return <span class="so-name">{p.firstName ? <>{p.firstName} <small>{p.name}</small></> : p.name}{p.badge && <em class="s-badge">{p.badge}</em>}</span>;
 }
 
@@ -75,18 +78,21 @@ function Activity() {
         <div key={key(e)} class={cx("so-ev", fresh(e) && "fresh")}>
           {e.kind === "pull" && e.team && BY_NUM.has(e.team) ? (
             <>
-              <span class="fe-t"><b>{e.who}</b> pulled <b style={{ color: TIERS[e.tier as "mythic"].color }}>{TIERS[e.tier as "mythic"].label}</b> · {BY_NUM.get(e.team)!.name}{e.serial && e.serial <= 10 ? <span class="s-bdg g">No. {e.serial}</span> : null}<time>{ago(e.at)}</time></span>
+              <span class="fe-t"><Name n={e.who} /> pulled <b style={{ color: TIERS[e.tier as "mythic"].color }}>{TIERS[e.tier as "mythic"].label}</b> · {BY_NUM.get(e.team)!.name}{e.serial && e.serial <= 10 ? <span class="s-bdg g">No. {e.serial}</span> : null}<time>{ago(e.at)}</time></span>
               <button type="button" class="fe-c" aria-label={`See ${BY_NUM.get(e.team)!.name}`} onClick={() => openCard(e.team!, undefined, { serial: e.serial ?? undefined, from: `${e.who}'s pull.` })}>
                 <Card num={e.team} serial={e.serial ?? undefined} w="56px" />
               </button>
             </>
           ) : e.kind === "set" ? (
-            <span class="fe-t">🏆 <b>{e.who}</b> finished the <b>{e.division}</b> set<time>{ago(e.at)}</time></span>
+            <span class="fe-t">🏆 <Name n={e.who} /> finished the <b>{e.division}</b> set<time>{ago(e.at)}</time></span>
           ) : (
-            <span class="fe-t">⇄ <b>{e.who}</b> traded {names(e.gave)} to <b>{e.other}</b> for {names(e.got)}<time>{ago(e.at)}</time></span>
+            <span class="fe-t">⇄ <Name n={e.who} /> traded {names(e.gave)} to <Name n={e.other ?? ""} /> for {names(e.got)}<time>{ago(e.at)}</time></span>
           )}
         </div>
       ))}
     </div>
   );
 }
+
+/** A player's name in the feed: tap it for their profile. */
+const Name = ({ n }: { n: string }) => <button type="button" class="fe-name" onClick={() => openProfile(n)}>{n}</button>;

@@ -18,7 +18,7 @@ import { closeAll, cx, LayerHost, Spinner, ToastHost } from "./ui";
 import { Binder } from "./screens/binder";
 import { StatusBar } from "./screens/status";
 import { Avatar } from "./ui";
-import { openProfile } from "./screens/profile";
+import { openProfile, ProfilePage, profileRoute } from "./screens/profile";
 import { setupPwa } from "./pwa";
 import { setupPad } from "./pad";
 import { openFeedback } from "./screens/settings";
@@ -29,22 +29,28 @@ import { betaWelcome, gameNotice, OwnerNotice, SignIn, whatsNew } from "./screen
 
 type Tab = "open" | "binder" | "trade" | "social";
 const TABS: Tab[] = ["open", "binder", "trade", "social"];
-const tabOf = (): Tab => { const h = location.hash.slice(1) as Tab; return TABS.includes(h) ? h : "open"; };
+// A profile (#u/<name>) is a page of its own, under the Social tab.
+const tabOf = (): Tab => { if (profileRoute()) return "social"; const h = location.hash.slice(1) as Tab; return TABS.includes(h) ? h : "open"; };
 
-function useTab(): [Tab, (t: Tab) => void] {
+function useTab(): [Tab, (t: Tab) => void, string | null] {
   const [t, setT] = useState(tabOf);
+  const [who, setWho] = useState(profileRoute);
   useEffect(() => {
-    const f = () => setT(tabOf());
+    const f = () => { setT(tabOf()); setWho(profileRoute()); };
     addEventListener("hashchange", f);
-    return () => removeEventListener("hashchange", f);
+    addEventListener("popstate", f);
+    return () => { removeEventListener("hashchange", f); removeEventListener("popstate", f); };
   }, []);
-  const go = (n: Tab) => closeAll(() => { if (location.hash !== `#${n}`) history.replaceState(history.state, "", `#${n}`); setT(n); scrollTo(0, 0); });
-  return [t, go];
+  const go = (n: Tab) => closeAll(() => {
+    if (location.hash !== `#${n}`) history.replaceState(history.state?.pf ? null : history.state, "", `#${n}`);
+    setT(n); setWho(null); scrollTo(0, 0);
+  });
+  return [t, go, who];
 }
 
 function App() {
   const [phase, setPhase] = useState<"loading" | "ready" | "signin" | "guest" | string>("loading");
-  const [tab, go] = useTab();
+  const [tab, go, who] = useTab();
   const s = useStore(st);
   const p = useStore(prefs);
   const tr = useStore(trades);
@@ -98,10 +104,11 @@ function App() {
       </header>
       <main class="s-main">
         {/* A tab stays mounted (hidden) once visited, so coming back to it shows the same cards, not rebuilt ones. */}
-        {seen.has("open") && <div hidden={tab !== "open"}><FeedbackBar /><StatusBar /><OpenHome /></div>}
-        {seen.has("binder") && <div hidden={tab !== "binder"}><Binder active={tab === "binder"} /></div>}
-        {seen.has("trade") && <div hidden={tab !== "trade"}><TradeTab active={tab === "trade"} /></div>}
-        {seen.has("social") && <div hidden={tab !== "social"}><SocialTab active={tab === "social"} /></div>}
+        {who && <ProfilePage key={who} name={who} />}
+        {seen.has("open") && <div hidden={!!who || tab !== "open"}><FeedbackBar /><StatusBar /><OpenHome /></div>}
+        {seen.has("binder") && <div hidden={!!who || tab !== "binder"}><Binder active={tab === "binder"} /></div>}
+        {seen.has("trade") && <div hidden={!!who || tab !== "trade"}><TradeTab active={tab === "trade"} /></div>}
+        {seen.has("social") && <div hidden={!!who || tab !== "social"}><SocialTab active={!who && tab === "social"} /></div>}
       </main>
       <nav class="s-tabbar" aria-label="Sections">
         {(["open", "binder", "trade", "social"] as Tab[]).map((t) => (

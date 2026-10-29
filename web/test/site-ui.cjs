@@ -142,7 +142,7 @@ async function main() {
   await p.click('.s-avbtn');
   await p.waitForSelector('.s-profile .pr-stats');
   await shot('profile', true);
-  await p.click('.s-profile >> text=Settings');
+  await p.click('.pp-acts button[aria-label=Settings]');
   await p.waitForSelector('.s-settings');
   await shot('settings', true);
   await p.goBack(); await p.goBack();
@@ -264,7 +264,7 @@ async function main() {
   await c.click('.au-sheet >> text=Got it');
   await c.waitForSelector('.s-layer', { state: 'detached' });
   await c.click('.s-avbtn');
-  await c.click('.s-profile >> text=Settings');
+  await c.click('.pp-acts button[aria-label=Settings]');
   await c.click('.s-settings button >> text=Sign out');
   await c.waitForSelector('.au-form input[name=password]');
   await c.fill('input[name=username]', name);
@@ -291,7 +291,7 @@ async function main() {
   await c.waitForTimeout(3500);
   assert(!(await c.$('.au-sheet')), 'the update notes show once');
   await c.click('.s-avbtn');
-  await c.click('.s-profile >> text=Settings');
+  await c.click('.pp-acts button[aria-label=Settings]');
   assert(await c.$(`.s-settings >> text=Version ${VERSION}`), 'Settings shows the version');
 
   console.log({ photosWhenSearching: before, photosTabSwitch: tabImgs, photosOnSync: syncImgs });

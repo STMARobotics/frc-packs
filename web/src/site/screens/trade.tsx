@@ -1,9 +1,10 @@
-// The trading post: pick a player, put up to 5 of your cards (and packs, parts, special editions) and up to 5 of theirs
-// on the table, and send the offer. Each card on the table is one particular copy (serial and all); "any" lets the
-// server pick your newest copy, so you keep your earliest serial longest. Offers for you, sent offers and history each
-// have a tab.
+// The trading post: pick a player (good matches first: people with spares you need who need yours, with a fair offer
+// already on the table), put up to 5 of your cards (and packs, parts, special editions) and up to 5 of theirs on the
+// table, and send the offer. Each card on the table is one particular copy (serial and all); "any" lets the server pick
+// your newest copy, so you keep your earliest serial longest. An offer for you can be accepted, declined or answered
+// with a counter-offer. Offers for you, sent offers and history each have a tab.
 import { useEffect, useState } from "preact/hooks";
-import { api, type CardRef, type Special, type Trade } from "../../api";
+import { api, type CardRef, type Special, type Trade, type TradeMatch } from "../../api";
 import { store, useStore } from "../../lib/store";
 import { BY_NUM, byRarity, ORDER, PACK, TIERS, type T } from "../data";
 import { ago, applyCollection, applyState, fail, heldCopies, inv, loadSocial, packOf, setPrefs, social, specials as mySpecials, st, toast, trades } from "../state";
@@ -29,16 +30,18 @@ interface Draft {
   give: Pick[]; get: Pick[];
   giveGoods: Goods; getGoods: Goods;
   giveSpecials: number[]; getSpecials: number[];
+  /** The offer this one answers (declined once this one is sent). */
+  counter: number;
 }
 const none = (): Goods => ({ packs: 0, boosted: 0, parts: 0 });
-const empty = (name = ""): Draft => ({ name, theirs: null, theirWish: [], theirGoods: null, theirSpecials: [], give: [], get: [], giveGoods: none(), getGoods: none(), giveSpecials: [], getSpecials: [] });
+const empty = (name = ""): Draft => ({ name, theirs: null, theirWish: [], theirGoods: null, theirSpecials: [], give: [], get: [], giveGoods: none(), getGoods: none(), giveSpecials: [], getSpecials: [], counter: 0 });
 
 const draft = store<Draft>(empty());
 const pane = store<"new" | "in" | "out" | "past">("new");
 const edit = (f: (d: Draft) => void) => { const d = structuredClone(draft.get()); f(d); draft.set(d); };
 
-/** Loads a player onto the other side of the table. */
-async function choose(name: string, want?: number, give?: number) {
+/** Loads a player onto the other side of the table, with these cards of theirs and yours on it. */
+async function choose(name: string, wants: Pick[] = [], gives: Pick[] = []) {
   const same = draft.get().name.toLowerCase() === name.toLowerCase();
   if (!same) draft.set({ ...empty(name), give: draft.get().give, giveGoods: draft.get().giveGoods, giveSpecials: draft.get().giveSpecials });
   try {
@@ -49,8 +52,8 @@ async function choose(name: string, want?: number, give?: number) {
       for (const c of col.cards) if (BY_NUM.has(c.num)) d.theirs[c.num] = c.serials;
       d.theirWish = prof.wishlist;
       d.theirGoods = { packs: prof.packs, boosted: prof.boosted, parts: prof.parts };
-      if (want && d.theirs[want] && d.get.length < MAX && !d.get.some((p) => p.num === want)) d.get.push({ num: want, serial: 0 });
-      if (give && inv.get()[give]?.length && d.give.length < MAX && !d.give.some((p) => p.num === give)) d.give.push({ num: give, serial: 0 });
+      for (const w of wants) if (d.theirs[w.num] && d.get.length < MAX && !d.get.some((p) => p.num === w.num)) d.get.push(w);
+      for (const g of gives) if (inv.get()[g.num]?.length && d.give.length < MAX && !d.give.some((p) => p.num === g.num)) d.give.push(g);
     });
     api.playerSpecials(name).then((l) => { if (draft.get().name === name) edit((d) => { d.theirSpecials = l; }); }, () => {});
   } catch (e) {
@@ -64,7 +67,48 @@ async function choose(name: string, want?: number, give?: number) {
 export function tradeFor(name: string, want?: number, give?: number) {
   pane.set("new");
   location.hash = "#trade";
-  choose(name, want, give);
+  choose(name, want ? [{ num: want, serial: 0 }] : [], give ? [{ num: give, serial: 0 }] : []);
+}
+
+/** A fair first offer from two lists of spares: up to 3 of theirs (wanted and rarest first), each matched with one of
+    yours of the same rarity, or the nearest one. */
+export function suggest(theyHave: number[], youHave: number[]): { get: number[]; give: number[] } {
+  const rank = (n: number) => ORDER.indexOf(BY_NUM.get(n)!.tier);
+  const get = theyHave.filter((n) => BY_NUM.has(n)).slice(0, 3);
+  const left = youHave.filter((n) => BY_NUM.has(n));
+  const give: number[] = [];
+  for (const g of get) {
+    if (!left.length) break;
+    let bi = 0;
+    for (let i = 1; i < left.length; i++) if (Math.abs(rank(left[i]) - rank(g)) < Math.abs(rank(left[bi]) - rank(g))) bi = i;
+    give.push(left.splice(bi, 1)[0]);
+  }
+  return { get: get.slice(0, give.length), give };
+}
+
+/** The trading post with a fair offer to this player already on the table (see `suggest`). */
+export function tradeSuggested(name: string, theyHave: number[], youHave: number[]) {
+  const { get, give } = suggest(theyHave, youHave);
+  pane.set("new");
+  location.hash = "#trade";
+  draft.set(empty());
+  choose(name, get.map((num) => ({ num, serial: 0 })), give.map((num) => ({ num, serial: 0 })));
+}
+
+/** Answers an offer with another: the same cards on the table, to change before sending. Sending it declines theirs. */
+function counterOffer(t: Trade) {
+  const goods = (packs: number, boosted: number, parts: number): Goods => ({ packs, boosted, parts });
+  draft.set({
+    ...empty(t.with),
+    give: t.youGive.map((c) => ({ num: c.num, serial: c.serial })),
+    giveGoods: goods(t.youGivePacks, t.youGiveBoosted, t.youGiveParts),
+    giveSpecials: t.youGiveSpecials.map((x) => x.id),
+    getGoods: goods(t.youGetPacks, t.youGetBoosted, t.youGetParts),
+    getSpecials: t.youGetSpecials.map((x) => x.id),
+    counter: t.id,
+  });
+  pane.set("new");
+  choose(t.with, t.youGet.map((c) => ({ num: c.num, serial: c.serial })));
 }
 /** From your binder: that card on your side; then pick who to trade with. */
 /** Starts a trade offering this card (`serial`: that copy in particular, else any). */
@@ -124,9 +168,9 @@ function NewTrade() {
         giveParts: d.giveGoods.parts, wantParts: d.getGoods.parts, giveSpecials: d.giveSpecials, wantSpecials: d.getSpecials,
         giveSerials: d.give.map((p) => p.serial), wantSerials: d.get.map((p) => p.serial),
       });
-      trades.set(t);
+      trades.set(d.counter ? await api.declineTrade(d.counter).catch(() => t) : t);
       sfx.whoosh();
-      toast(`Offer sent to ${d.name}. It's under Sent until they answer.`);
+      toast(d.counter ? `Counter-offer sent to ${d.name}.` : `Offer sent to ${d.name}. It's under Sent until they answer.`);
       const name = d.name;
       draft.set(empty());
       choose(name);
@@ -138,8 +182,9 @@ function NewTrade() {
     <>
       <div class="td-who">
         <button type="button" class="td-whob" onClick={() => openProfile(d.name)}><Avatar name={d.name} /><b>{d.name}</b></button>
-        <button type="button" class="s-chipbtn" onClick={() => draft.set({ ...empty(), give: d.give, giveGoods: d.giveGoods, giveSpecials: d.giveSpecials })}>Change</button>
+        <button type="button" class="s-chipbtn" onClick={() => draft.set({ ...empty(), give: d.give, giveGoods: d.giveGoods, giveSpecials: d.giveSpecials })}>{d.counter ? "Cancel" : "Change"}</button>
       </div>
+      {d.counter > 0 && <p class="td-match">A counter-offer. Sending it declines theirs.</p>}
       {(iWant > 0 || theyWant > 0) && <p class="td-match">{[iWant ? `${d.name} has ${iWant} from your wishlist` : "", theyWant ? `you have ${theyWant} they want` : ""].filter(Boolean).join(" · ")}</p>}
       <div class="td-table">
         <Side label="You give" picks={d.give} goods={d.giveGoods} specials={mySpecials.get().filter((x) => d.giveSpecials.includes(x.id))} side="give" />
@@ -152,7 +197,7 @@ function NewTrade() {
         </div>
       )}
       <button type="button" class="s-btn wide" disabled={!giving || !getting || busy} onClick={send}>
-        {busy ? <Spinner small /> : !giving && !getting ? "Put something on the table" : !giving ? "Add something you give" : !getting ? "Add something you want" : `Send offer to ${d.name}`}
+        {busy ? <Spinner small /> : !giving && !getting ? "Put something on the table" : !giving ? "Add something you give" : !getting ? "Add something you want" : d.counter ? `Send counter-offer to ${d.name}` : `Send offer to ${d.name}`}
       </button>
     </>
   );
@@ -169,18 +214,35 @@ function PickPlayer() {
     const t = setTimeout(() => api.players(v).then((n) => setSugg(n.filter((x) => x.toLowerCase() !== me)), () => {}), 200);
     return () => clearTimeout(t);
   }, [q]);
+  const [matches, setMatches] = useState<TradeMatch[] | null>(null);
+  useEffect(() => { api.tradeMatches(PACK).then(setMatches, () => setMatches([])); }, []);
   const players = (so?.players ?? []).filter((p) => p.name.toLowerCase() !== me && (!q.trim() || p.name.toLowerCase().includes(q.trim().toLowerCase()) || (p.firstName ?? "").toLowerCase().includes(q.trim().toLowerCase())));
   const known = new Set(players.map((p) => p.name.toLowerCase()));
   return (
     <>
       <input class="s-input" type="search" placeholder="Who do you want to trade with?" value={q} onInput={(e) => setQ(e.currentTarget.value)}
         onKeyDown={(e) => { if (e.key === "Enter" && q.trim()) choose(sugg[0] ?? q.trim()); }} autoCapitalize="none" spellcheck={false} aria-label="Player" />
+      {!q.trim() && matches && matches.length > 0 && (
+        <section class="td-matches">
+          <h2 class="s-h2">Good matches</h2>
+          <div class="s-list">
+            {matches.slice(0, 5).map((m) => (
+              <button key={m.name} type="button" class="td-person td-mrow" onClick={() => tradeSuggested(m.name, m.theyHave, m.youHave)}>
+                <Avatar name={m.name} team={m.avatar} />
+                <span class="td-mwho"><Who p={{ name: m.name, firstName: m.firstName, badge: m.badge }} /><small>Has {m.theyHave.length} you need · needs {m.youHave.length} of yours</small></span>
+                <span class="td-mcards" aria-hidden="true">{m.theyHave.slice(0, 3).map((n) => <i style={{ "--tc": TIERS[BY_NUM.get(n)?.tier ?? "common"].color }} />)}</span>
+              </button>
+            ))}
+          </div>
+          <h2 class="s-h2">Everyone</h2>
+        </section>
+      )}
       <div class="s-list">
         {sugg.filter((n) => !known.has(n.toLowerCase())).map((n) => (
           <button type="button" class="td-person" onClick={() => choose(n)}><Avatar name={n} /><span class="so-name">{n}</span></button>
         ))}
         {players.map((p) => (
-          <button key={p.name} type="button" class="td-person" onClick={() => choose(p.name)}><Avatar name={p.name} /><Who p={p} /><small>{p.teams} teams</small></button>
+          <button key={p.name} type="button" class="td-person" onClick={() => choose(p.name)}><Avatar name={p.name} team={p.avatar} /><Who p={p} /><small>{p.teams} teams</small></button>
         ))}
         {!so && <div class="s-center small"><Spinner /></div>}
       </div>
@@ -396,9 +458,9 @@ function Offer({ t, kind }: { t: Trade; kind: "in" | "out" }) {
       </header>
       <Row label="You give" cards={t.youGive} goods={{ packs: t.youGivePacks, boosted: t.youGiveBoosted, parts: t.youGiveParts }} specials={t.youGiveSpecials} whose="you" />
       <Row label="You get" cards={t.youGet} goods={{ packs: t.youGetPacks, boosted: t.youGetBoosted, parts: t.youGetParts }} specials={t.youGetSpecials} whose={t.with} />
-      <div class="s-row2">
+      <div class={cx("s-row2", kind === "in" && "td-acts3")}>
         {kind === "in"
-          ? <><button type="button" class="s-btn" disabled={busy} onClick={accept}>Accept</button><button type="button" class="s-btn ghost" disabled={busy} onClick={() => run(async () => trades.set(await api.declineTrade(t.id)))}>Decline</button></>
+          ? <><button type="button" class="s-btn" disabled={busy} onClick={accept}>Accept</button><button type="button" class="s-btn ghost" disabled={busy} onClick={() => counterOffer(t)}>Counter</button><button type="button" class="s-btn ghost" disabled={busy} onClick={() => run(async () => trades.set(await api.declineTrade(t.id)))}>Decline</button></>
           : <button type="button" class="s-btn ghost" disabled={busy} onClick={() => run(async () => trades.set(await api.cancelTrade(t.id)))}>Cancel offer</button>}
       </div>
     </article>

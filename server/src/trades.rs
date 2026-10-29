@@ -34,6 +34,7 @@ pub fn routes() -> Router<Shared> {
     Router::new()
         .route("/players", get(players))
         .route("/social/{pack}", get(social))
+        .route("/trade-matches/{pack}", get(matches))
         .route("/players/{name}/collection/{pack}", get(player_collection))
         .route("/trades", get(list).post(offer))
         .route("/trades/{id}/accept", post(accept))
@@ -883,6 +884,7 @@ struct SocialPlayer {
     name: String,
     first_name: Option<String>,
     badge: Option<String>,
+    avatar: Option<i32>,
     teams: i64,
     mythics: i64,
     legendaries: i64,
@@ -938,6 +940,7 @@ async fn social(State(s): State<Shared>, _user: User, Path(pack): Path<String>) 
                 name: p.username.clone().unwrap_or_default(),
                 first_name: p.first_name.clone(),
                 badge: p.badge.clone(),
+                avatar: p.avatar,
                 teams: st.teams,
                 mythics: st.mythic_teams,
                 legendaries: st.legendary_teams,
@@ -983,4 +986,105 @@ async fn social(State(s): State<Shared>, _user: User, Path(pack): Path<String>) 
         .collect();
     activity.truncate(30);
     Ok(Json(SocialOut { players, recent, activity }))
+}
+
+// ---------- trade matches ----------
+
+/// One player worth trading with: their spare copies of teams you don't have, and yours of teams they don't.
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct MatchOut {
+    name: String,
+    first_name: Option<String>,
+    badge: Option<String>,
+    avatar: Option<i32>,
+    /// Teams they have two or more of and you have none of; the ones on your wishlist first, then the rarest.
+    they_have: Vec<i32>,
+    /// Teams you have two or more of and they have none of; the ones on their wishlist first, then the rarest.
+    you_have: Vec<i32>,
+}
+
+/// Everyone's copies per team and wishlist, read at most every 30 seconds (one read per player), and again as soon as
+/// someone new joins.
+type Holdings = std::collections::HashMap<Uuid, (std::collections::HashMap<i32, u32>, Vec<i32>)>;
+static HOLDINGS: std::sync::Mutex<Option<(std::time::Instant, String, std::sync::Arc<Holdings>)>> =
+    std::sync::Mutex::new(None);
+
+async fn holdings(db: &Db, pack: &str, people: &[Profile]) -> ApiResult<std::sync::Arc<Holdings>> {
+    if let Some((at, p, h)) = &*HOLDINGS.lock().unwrap()
+        && p == pack
+        && at.elapsed() < std::time::Duration::from_secs(30)
+        && people.iter().all(|x| h.contains_key(&x.id))
+    {
+        return Ok(h.clone());
+    }
+    let mut out = Holdings::new();
+    for p in people {
+        let mut counts = std::collections::HashMap::new();
+        for c in model::cards(db, p.id, pack).await? {
+            *counts.entry(c.team).or_insert(0) += 1;
+        }
+        let wish = crate::profiles::wishlist(db, p.id, pack).await?;
+        out.insert(p.id, (counts, wish));
+    }
+    let h = std::sync::Arc::new(out);
+    *HOLDINGS.lock().unwrap() = Some((std::time::Instant::now(), pack.to_string(), h.clone()));
+    Ok(h)
+}
+
+/// The spares one side has that the other lacks, wanted ones first, then the rarest.
+fn spares(
+    pack: &Pack,
+    has: &std::collections::HashMap<i32, u32>,
+    lacks: &std::collections::HashMap<i32, u32>,
+    wants: &[i32],
+) -> Vec<i32> {
+    let mut out: Vec<i32> =
+        has.iter().filter(|(t, n)| **n >= 2 && lacks.get(t).copied().unwrap_or(0) == 0).map(|(t, _)| *t).collect();
+    let rank = |t: &i32| pack.team_tier.get(t).map_or(9, |x| x.rank());
+    out.sort_by_key(|t| (!wants.contains(t), rank(t), *t));
+    out
+}
+
+/// Players worth trading with, best first: each has spares you need and needs spares of yours (at most 20).
+async fn matches(State(s): State<Shared>, user: User, Path(pack): Path<String>) -> ApiResult<Json<Vec<MatchOut>>> {
+    let pack = api::pack(&s, &pack).await?;
+    let db = &s.db;
+    let people = all_players(db).await?;
+    let h = holdings(db, pack.id(), &people).await?;
+    // Your own copies right now, not the cached ones.
+    let mut mine = std::collections::HashMap::new();
+    for c in model::cards(db, user.id, pack.id()).await? {
+        *mine.entry(c.team).or_insert(0) += 1;
+    }
+    let my_wish = crate::profiles::wishlist(db, user.id, pack.id()).await?;
+    let mut out: Vec<(usize, usize, MatchOut)> = people
+        .iter()
+        .filter(|p| p.id != user.id)
+        .filter_map(|p| {
+            let (theirs, their_wish) = h.get(&p.id)?;
+            let they_have = spares(&pack, theirs, &mine, &my_wish);
+            let you_have = spares(&pack, &mine, theirs, their_wish);
+            if they_have.is_empty() || you_have.is_empty() {
+                return None;
+            }
+            let wished = they_have.iter().filter(|t| my_wish.contains(t)).count()
+                + you_have.iter().filter(|t| their_wish.contains(t)).count();
+            let even = they_have.len().min(you_have.len());
+            Some((
+                wished,
+                even,
+                MatchOut {
+                    name: p.username.clone().unwrap_or_default(),
+                    first_name: p.first_name.clone(),
+                    badge: p.badge.clone(),
+                    avatar: p.avatar,
+                    they_have,
+                    you_have,
+                },
+            ))
+        })
+        .collect();
+    out.sort_by(|a, b| (b.0, b.1).cmp(&(a.0, a.1)).then_with(|| a.2.name.to_lowercase().cmp(&b.2.name.to_lowercase())));
+    Ok(Json(out.into_iter().take(20).map(|m| m.2).collect()))
 }

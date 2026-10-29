@@ -67,18 +67,21 @@ async function main() {
     decks[c.label] = d.deck.id;
   }
 
+  // A private game: found by its code, joined with it.
   const g0 = await A.call('POST', '/api/battler/games');
-  const lobby = await B.call('GET', '/api/battler/lobby');
-  assert(lobby.games.some((g) => g.id === g0.id), 'the open game is in the lobby');
+  const found = await B.call('GET', `/api/battler/code/${g0.code}`);
+  assert(found.id === g0.id, 'the game is found by its code');
+  const nocode = await B.call('POST', `/api/battler/games/${g0.id}/join`).catch((e) => e);
+  assert(nocode instanceof Error, 'joining a private game needs its code');
   const busy = await A.call('POST', '/api/battler/games').catch((e) => e);
   assert(busy instanceof Error && busy.status === 409, 'one game at a time');
-  const self = await A.call('POST', `/api/battler/games/${g0.id}/join`).catch((e) => e);
+  const self = await A.call('POST', `/api/battler/games/${g0.id}/join?code=${g0.code}`).catch((e) => e);
   assert(self instanceof Error, "can't join your own game");
-  let gb = await B.call('POST', `/api/battler/games/${g0.id}/join`);
+  let gb = await B.call('POST', `/api/battler/games/${g0.id}/join?code=${g0.code}`);
   assert(gb.status === 'DECKS', 'both seated: pick decks');
   const C = client('C');
   await signup(C, 'btc' + tag);
-  const third = await C.call('POST', `/api/battler/games/${g0.id}/join`).catch((e) => e);
+  const third = await C.call('POST', `/api/battler/games/${g0.id}/join?code=${g0.code}`).catch((e) => e);
   assert(third instanceof Error && third.status === 409, 'a third player is refused');
 
   const id = g0.id;

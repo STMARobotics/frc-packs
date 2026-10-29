@@ -34,6 +34,7 @@ pub fn routes() -> Router<Shared> {
         .route("/reports/{id}/resolve", post(resolve_report))
         .route("/users/{id}/rename", post(rename_user))
         .route("/users/{id}/badge", post(set_badge))
+        .route("/users/{id}/clear-bio", post(clear_bio))
         .route("/users/{id}/ledger", get(ledger))
         .route("/test-pack", post(test_pack))
         .route("/audit", get(audit))
@@ -282,6 +283,16 @@ async fn set_badge(
     Ok(StatusCode::NO_CONTENT)
 }
 
+/// Clears a player's bio (one that's offensive; they can write a new one).
+async fn clear_bio(State(s): State<Shared>, _admin: Admin, Path(id): Path<Uuid>) -> ApiResult<StatusCode> {
+    change_user(&s.db, id, "clear bio", |p, _| {
+        p.bio = None;
+        Ok(())
+    })
+    .await?;
+    Ok(StatusCode::NO_CONTENT)
+}
+
 #[derive(Deserialize)]
 struct RenameReq {
     username: String,
@@ -427,6 +438,7 @@ struct UserOut {
     cards: i64,
     last_opened_at: Option<i64>,
     badge: Option<String>,
+    bio: Option<String>,
 }
 
 async fn users(State(s): State<Shared>, _admin: Admin) -> ApiResult<Json<Vec<UserOut>>> {
@@ -457,6 +469,7 @@ async fn users(State(s): State<Shared>, _admin: Admin) -> ApiResult<Json<Vec<Use
             cards,
             last_opened_at: last,
             badge: p.badge.clone(),
+            bio: p.bio.clone(),
         });
     }
     out.sort_by_key(|u| (!u.admin, u.username.is_none(), u.username.as_ref().map(|n| n.to_lowercase()), u.created_at));

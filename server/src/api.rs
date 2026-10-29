@@ -254,6 +254,10 @@ struct AccountOut {
     badge: Option<String>,
     /// When the username can next be changed (ms), if it can't be right now.
     rename_at: Option<i64>,
+    /// Profile: bio, and the teams picked for the picture and banner.
+    bio: Option<String>,
+    avatar: Option<i32>,
+    banner: Option<i32>,
 }
 
 #[derive(Serialize)]
@@ -418,6 +422,9 @@ pub async fn load_state(s: &Shared, user: Uuid) -> ApiResult<StateOut> {
             first_name: p.first_name.clone(),
             badge: p.badge.clone(),
             rename_at: p.username_changed_at.map(|t| t + RENAME_DAYS * 86_400_000).filter(|t| *t > now),
+            bio: p.bio.clone(),
+            avatar: p.avatar,
+            banner: p.banner,
         },
         now,
         next_claim_at: next,

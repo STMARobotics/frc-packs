@@ -46,6 +46,15 @@ pub struct Profile {
     pub level_claimed: i32,
     #[serde(default)]
     pub showcase: Vec<i32>,
+    /// A line or two about themselves, on their profile.
+    #[serde(default)]
+    pub bio: Option<String>,
+    /// The team whose card is their picture, and the one across the top of their profile (picked from cards they
+    /// owned at the time; they stay if the card is traded away later).
+    #[serde(default)]
+    pub avatar: Option<i32>,
+    #[serde(default)]
+    pub banner: Option<i32>,
     pub username_changed_at: Option<i64>,
     pub invite_code: Option<String>,
     pub created_at: i64,

@@ -17,6 +17,8 @@ export const NOTES: Release[] = [
       "Mythics glow teal, special editions shine gold.",
       "New constellation pack art.",
       "Battle: Quick Play, private matches with a code, and wagers between friends.",
+      "Profiles are pages of their own: pick cards for your picture and banner, write a bio, pin your showcase.",
+      "Trading: good matches with a fair offer ready to send, \"You need\" on anyone's cards, and counter-offers.",
       "Copies: see every copy of a card, its serial and where it came from, and trade or scrap the exact one you want.",
       "A bug report or idea that gets accepted earns you a free pack.",
       "Patch notes, right here.",

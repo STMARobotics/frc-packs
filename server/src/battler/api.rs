@@ -73,15 +73,15 @@ fn refused(code: &'static str) -> ApiError {
 // ---------- profiles, ownership, effects ----------
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
-struct BtProfile {
-    elo: i32,
-    games: i32,
-    wins: i32,
-    losses: i32,
-    draws: i32,
+pub(crate) struct BtProfile {
+    pub elo: i32,
+    pub games: i32,
+    pub wins: i32,
+    pub losses: i32,
+    pub draws: i32,
 }
 
-async fn bt_profile(db: &Db, uid: Uuid) -> ApiResult<BtProfile> {
+pub(crate) async fn bt_profile(db: &Db, uid: Uuid) -> ApiResult<BtProfile> {
     Ok(db.get_as(&upk(uid), "BTPROF").await?.unwrap_or(BtProfile { elo: START_ELO, ..Default::default() }))
 }
 

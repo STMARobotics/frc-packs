@@ -73,6 +73,10 @@ export interface Account {
   badge?: string | null;
   /** When the username can next be changed (ms), if not now. */
   renameAt?: number | null;
+  bio?: string | null;
+  /** Teams picked for the profile picture and banner. */
+  avatar?: number | null;
+  banner?: number | null;
 }
 
 export type TierName = "mythic" | "legendary" | "rare" | "uncommon" | "common";
@@ -154,6 +158,18 @@ export interface Feedback {
 
 export interface Profile {
   username: string;
+  firstName: string | null;
+  badge: string | null;
+  bio: string | null;
+  /** Teams picked for the picture and the banner. */
+  avatar: number | null;
+  banner: number | null;
+  /** Teams owned of each rarity, Mythic first. */
+  tiers: [number, number, number, number, number];
+  /** Battler record, once they've played. */
+  battle: { rating: number; games: number; wins: number; losses: number } | null;
+  /** Latest Mythic and Legendary pulls. */
+  pulls: { num: number; tier: TierName; serial: number; at: number }[];
   me: boolean;
   joined: number;
   teams: number;
@@ -238,6 +254,7 @@ export interface AdminUser {
   cards: number;
   lastOpenedAt: number | null;
   badge: string | null;
+  bio?: string | null;
 }
 
 export interface Copy { serial: number; obtained: "pack" | "trade" | "wager" | string; at: number; first: boolean; held: boolean }
@@ -373,10 +390,12 @@ async function act<T>(path: string, body?: unknown): Promise<T> {
 }
 
 export interface Special { id: number; edition: string; team: number; name: string; title: string; serial: number; total: number }
-export interface SocialPlayer { name: string; firstName: string | null; badge: string | null; teams: number; mythics: number; legendaries: number; trades: number }
+export interface SocialPlayer { name: string; firstName: string | null; badge: string | null; avatar?: number | null; teams: number; mythics: number; legendaries: number; trades: number }
 export interface SocialTrade { from: string; to: string; gave: { num: number }[] | null; got: { num: number }[] | null; gavePacks: number; gotPacks: number; at: number }
 export interface SocialEvent { kind: "pull" | "set"; who: string; team: number | null; tier: string | null; serial: number | null; division: string | null; at: number }
 export interface Social { players: SocialPlayer[]; recent: SocialTrade[]; activity: SocialEvent[] }
+/** A player worth trading with: their spares you lack, and yours they lack (wanted ones first). */
+export interface TradeMatch { name: string; firstName: string | null; badge: string | null; avatar: number | null; theyHave: number[]; youHave: number[] }
 
 export const api = {
   /** The signed-in account's state. Fails with 401 `sign_in`, or `guest` for a guest account from before sign-in. */
@@ -425,6 +444,11 @@ export const api = {
   pushUnsubscribe: (endpoint: string) => call<void>("POST", "/api/push/unsubscribe", { endpoint }),
   /** A player's profile: showcase, stats, rarest cards, wishlist. */
   profile: (name: string, pack: string) => call<Profile>("GET", `/api/players/${encodeURIComponent(name)}/profile/${encodeURIComponent(pack)}`),
+  /** Save your bio, picture and banner (teams you own, or null). */
+  editProfile: (pack: string, bio: string, avatar: number | null, banner: number | null) =>
+    call<{ bio: string | null; avatar: number | null; banner: number | null }>("POST", "/api/profile", { pack, bio, avatar, banner }),
+  /** Players worth trading with, best first. */
+  tradeMatches: (pack: string) => call<TradeMatch[]>("GET", `/api/trade-matches/${encodeURIComponent(pack)}`),
   /** Put a team on your wishlist or take it off; returns the whole list. */
   setFavorite: (pack: string, team: number, on: boolean) => call<number[]>("POST", "/api/favorites", { pack, team, on }),
   setWish: (pack: string, team: number, on: boolean) => call<number[]>("POST", "/api/wishlist", { pack, team, on }),
@@ -461,6 +485,7 @@ export const api = {
     resetPassword: (id: string) => call<{ password: string }>("POST", `/api/admin/users/${id}/password`),
     badge: (id: string, badge: string) => call<void>("POST", `/api/admin/users/${id}/badge`, { badge }),
     rename: (id: string, username: string) => call<void>("POST", `/api/admin/users/${id}/rename`, { username }),
+    clearBio: (id: string) => call<void>("POST", `/api/admin/users/${id}/clear-bio`, {}),
     reports: () => call<Report[]>("GET", "/api/admin/reports"),
     feedback: () => call<Feedback[]>("GET", "/api/admin/feedback"),
     feedbackStatus: (id: number, status: FeedbackStatus, note: string) =>
@@ -509,6 +534,7 @@ export function explain(e: unknown): string {
     extras_held: "Those copies are in a pack you're still opening or in a trade offer. Finish the pack or cancel the offer first.",
     unknown_player: "There's no player with that username.",
     not_owned: "One of those cards isn't available to trade any more.",
+    bad_bio: "Keep your bio to 160 characters and 3 lines.",
     trade_stale: "One of the cards in that trade isn't there any more, so the trade was called off.",
     trade_gone: "That trade was already answered or called off.",
     too_many_offers: "You have 20 offers waiting. Cancel some first.",

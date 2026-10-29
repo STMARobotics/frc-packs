@@ -3,7 +3,7 @@ import type { ComponentChildren } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { store, useStore } from "../lib/store";
 import { BY_NUM, RECIPE, STARS, TIERS, type T } from "./data";
-import { toastMsg } from "./state";
+import { social, st, toastMsg } from "./state";
 import type { Tier } from "../api";
 
 export const cx = (...c: (string | false | null | undefined | 0)[]) => c.filter(Boolean).join(" ");
@@ -228,9 +228,19 @@ export function Tabs<V extends string>({ value, options, onChange }: { value: V;
   );
 }
 
-export function Avatar({ name, big }: { name: string; big?: boolean }) {
+/** A player's picture: the robot on the card they picked (`team`; left out, it's looked up for you and for anyone in
+    the Social list), else their initials on a color of their own. */
+export function Avatar({ name, big, team }: { name: string; big?: "big" | "huge" | boolean; team?: number | null }) {
+  const me = useStore(st), so = useStore(social);
+  const lower = (name || "").toLowerCase();
+  const pick = team !== undefined ? team : me?.account.username.toLowerCase() === lower ? me.account.avatar : so?.players.find((p) => p.name.toLowerCase() === lower)?.avatar;
+  const t = pick ? BY_NUM.get(pick) : undefined;
+  const size = big === true ? "big" : big || undefined;
+  if (t?.photo) {
+    return <span class={cx("s-av", "ph", size)} style={{ "--tc": TIERS[t.tier].color }}><img alt="" draggable={false} decoding="async" src={`/photos/${t.num}.webp`} /></span>;
+  }
   const ini = (name || "?").replace(/[^A-Za-z0-9]/g, "").slice(0, 2).toUpperCase() || "?";
   let h = 0;
   for (const c of name || "") h = (h * 31 + c.charCodeAt(0)) >>> 0;
-  return <span class={cx("s-av", big && "big")} style={{ "--h": h % 360 }}>{ini}</span>;
+  return <span class={cx("s-av", size)} style={{ "--h": h % 360 }}>{ini}</span>;
 }

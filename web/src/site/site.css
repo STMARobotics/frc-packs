@@ -77,6 +77,9 @@
 .s-avbtn { padding: 0; border: 0; background: none; cursor: pointer; border-radius: 50%; }
 .s-av { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: hsl(var(--h) 60% 45%); color: #fff; font: 400 14px var(--display); }
 .s-av.big { width: 64px; height: 64px; font-size: 26px; }
+.s-av.huge { width: 92px; height: 92px; font-size: 36px; }
+.s-av.ph { overflow: hidden; background: var(--s2); box-shadow: 0 0 0 2px var(--tc); }
+.s-av.ph img { width: 100%; height: 100%; object-fit: cover; }
 .s-tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; display: flex; justify-content: center; gap: 2px; padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); background: rgba(14, 18, 30, .96); box-shadow: 0 -1px 0 var(--ln); }
 .s-tabbar > * { position: relative; flex: 1; max-width: 120px; display: grid; justify-items: center; gap: 2px; padding: 6px 0; border: 0; border-radius: 12px; background: none; color: var(--dim); font: 700 11px var(--body); text-decoration: none; cursor: pointer; transition: color .15s; }
 .s-tabbar .on { color: var(--tx); }
@@ -250,3 +253,62 @@ body.s-page.pad :focus { outline: 3px solid var(--ac); outline-offset: 3px; }
 .pn-rel h2 b { font: 400 20px var(--display); }
 .pn-rel h2 small { font: 600 12px var(--body); color: var(--dim); letter-spacing: .04em; }
 .pn-rel ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; line-height: 1.4; }
+
+/* A profile page (profile.tsx): banner, picture over its edge, name, bio, the trade match, stats, tabs. */
+.pp { display: grid; gap: 14px; padding-bottom: 24px; animation: s-in .2s var(--ease); }
+.pp-bar { padding-top: 4px; }
+.pp-banner { position: relative; height: 128px; margin: 0 -16px; overflow: hidden; background: linear-gradient(135deg, color-mix(in srgb, var(--tc, var(--ac)) 45%, #0b0f1a), #0b0f1a); }
+.pp-banner img { width: 100%; height: 100%; object-fit: cover; filter: saturate(1.1); }
+.pp-banner::after { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 40%, rgba(8, 11, 18, .75)); pointer-events: none; }
+.pp-back { position: absolute; top: 10px; left: 12px; z-index: 1; background: rgba(8, 11, 18, .55); backdrop-filter: blur(6px); }
+.pp-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; margin-top: -58px; position: relative; z-index: 1; }
+.pp-top .s-av { box-shadow: 0 0 0 4px var(--bg), 0 0 0 6px var(--tc, transparent); }
+.pp-acts { display: flex; gap: 8px; padding-bottom: 4px; }
+.pp-id { display: grid; gap: 2px; margin-top: -6px; }
+.pp-id h1 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 28px; }
+.pp-id h1 .s-badge { margin: 0; font-family: var(--body); }
+.pp-id p { margin: 0; font-size: 13.5px; }
+.pp-bio { margin-top: 6px !important; font-size: 15px !important; line-height: 1.45; white-space: pre-line; color: var(--tx); overflow-wrap: anywhere; }
+.pp-match { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; padding: 12px 14px; border: 0; border-radius: 14px; background: rgba(255, 211, 107, .1); box-shadow: inset 0 0 0 1px rgba(255, 211, 107, .3); color: var(--tx); font: inherit; text-align: left; cursor: pointer; }
+.pp-match span { font-size: 14px; color: var(--dim); }
+.pp-match span b { color: var(--gold); font-size: 16px; }
+.pp-match em { margin-left: auto; font-style: normal; font-weight: 700; color: var(--gold); }
+.pp-match:active { transform: scale(.98); }
+.pp-stats div { padding: 8px 2px; }
+.pp section { display: grid; gap: 8px; }
+.pp-pulls { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+.pp-pull { display: grid; justify-items: center; gap: 4px; flex: none; padding: 0; border: 0; background: none; color: var(--dim); font: 500 11px var(--body); cursor: pointer; }
+.pp-tiers { display: grid; gap: 6px; }
+.pp-tiers div { display: grid; grid-template-columns: 84px 1fr 64px; align-items: center; gap: 10px; font-size: 13px; }
+.pp-tiers span { color: var(--tc); font-weight: 600; }
+.pp-tiers i { height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--tc) calc(var(--f) * 100%), var(--s2) 0); }
+.pp-tiers b { text-align: right; font-variant-numeric: tabular-nums; }
+.pp-tiers small { color: var(--dim); font-weight: 500; }
+.pp-battle, .pp-of { margin: 0; font-size: 13px; }
+.pp-have { left: 4px; right: auto; font-size: 10px; background: var(--gold); color: #241800; }
+
+/* Editing your profile (profile.tsx). */
+.ed { display: grid; gap: 14px; align-content: start; }
+.ed-prev { position: relative; display: grid; justify-items: start; gap: 6px; padding-bottom: 4px; }
+.ed-prev .pp-banner { width: 100%; height: 88px; margin: 0; border-radius: 14px; }
+.ed-prev .s-av { margin: -36px 0 0 14px; position: relative; box-shadow: 0 0 0 4px var(--bg); }
+.ed-prev b { margin-left: 14px; font: 400 20px var(--display); }
+.ed-rows { display: grid; gap: 2px; border-radius: 16px; overflow: hidden; }
+.ed-row { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 0; background: var(--s1); color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.ed-row span { flex: 1; display: grid; gap: 2px; min-width: 0; }
+.ed-row small { color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ed-row i { font-style: normal; color: var(--dim); font-size: 20px; }
+.ed-bio { display: grid; gap: 6px; }
+.ed-bio span { display: flex; justify-content: space-between; }
+.ed-bio small { color: var(--dim); }
+.ed-bio small.bad { color: var(--bad, #ff6b6b); }
+.ed-bio textarea { resize: none; }
+.ed-note { margin: 0; font-size: 13px; }
+.ed-pick { display: grid; gap: 12px; align-content: start; }
+.ed-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 8px; }
+.ed-tile { position: relative; aspect-ratio: 1; padding: 0; border: 0; border-radius: 12px; overflow: hidden; background: var(--s2); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--tc) 55%, transparent); color: #fff; cursor: pointer; }
+.ed-tile img { width: 100%; height: 100%; object-fit: cover; }
+.ed-tile > span { display: grid; place-items: center; height: 100%; font: 400 18px var(--display); color: var(--dim); }
+.ed-tile b { position: absolute; left: 0; right: 0; bottom: 0; padding: 2px 6px; background: linear-gradient(transparent, rgba(0, 0, 0, .8)); font: 700 12px var(--body); text-align: left; }
+.ed-tile.on { box-shadow: inset 0 0 0 3px var(--ac); }
+.ed-tile em { position: absolute; top: 4px; right: 4px; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--ac); color: #001018; font: 700 12px var(--body); font-style: normal; }

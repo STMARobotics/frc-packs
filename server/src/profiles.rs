@@ -1,5 +1,6 @@
-//! Player profiles: a showcase of up to 3 pinned cards, collection stats, rarest pulls and a wishlist. Other players
-//! see them from the trading post; the wishlist also tells trade partners what you're after.
+//! Player profiles: a picture and a banner picked from your cards, a short bio, a showcase of up to 3 pinned cards,
+//! collection and battle stats, rarest and recent pulls and a wishlist. Anyone signed in can see them; the wishlist
+//! also tells trade partners what you're after.
 
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
@@ -20,10 +21,14 @@ use crate::retry;
 
 pub const SHOWCASE: usize = 3;
 pub const WISHLIST: i64 = 50;
+/// A bio's length, in characters and lines.
+pub const BIO_CHARS: usize = 160;
+pub const BIO_LINES: usize = 3;
 
 pub fn routes() -> Router<Shared> {
     Router::new()
         .route("/players/{name}/profile/{pack}", get(profile))
+        .route("/profile", post(edit_profile))
         .route("/wishlist", post(set_wish))
         .route("/favorites", post(set_favorite))
         .route("/showcase", post(set_showcase))
@@ -43,9 +48,37 @@ struct Card {
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
+struct Pull {
+    num: i32,
+    tier: Tier,
+    serial: i32,
+    at: i64,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct Battle {
+    rating: i32,
+    games: i32,
+    wins: i32,
+    losses: i32,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 struct ProfileOut {
     username: String,
+    first_name: Option<String>,
     badge: Option<String>,
+    bio: Option<String>,
+    avatar: Option<i32>,
+    banner: Option<i32>,
+    /// Teams owned of each rarity, Mythic first.
+    tiers: [i64; 5],
+    /// Their Battler record, once they've played.
+    battle: Option<Battle>,
+    /// Their latest Mythic and Legendary pulls (at most 6).
+    pulls: Vec<Pull>,
     me: bool,
     joined: i64,
     /// Different teams owned, out of `total` in the pack.
@@ -97,15 +130,47 @@ async fn profile(
         .take(SHOWCASE)
         .filter_map(|t| best.get(t).map(|c| Card { num: c.num, tier: c.tier, serial: c.serial }))
         .collect();
+    let mut tiers = [0i64; 5];
+    for c in best.values() {
+        tiers[c.tier.rank()] += 1;
+    }
     let mut owned: Vec<Card> = best.into_values().collect();
     // Rarest: best tier first, then the team's standing in the pack (the recipe lists teams best first), then serial.
     let order: std::collections::HashMap<i32, usize> =
         pack.recipe.teams.iter().enumerate().map(|(i, t)| (t.num, i)).collect();
     owned.sort_by_key(|c| (c.tier.rank(), order.get(&c.num).copied().unwrap_or(usize::MAX), c.serial));
     owned.truncate(3);
+    let name = p.username.clone().unwrap_or_default();
+    let bt = crate::battler::api::bt_profile(db, id).await?;
+    let pulls: Vec<Pull> = db
+        .query_desc(&format!("FEED#{}", pack.id()), "", 200)
+        .await?
+        .into_iter()
+        .filter_map(|it| crate::db::from_item::<model::FeedEvent>(it).ok())
+        .filter(|e| e.kind == "pull" && e.who == name)
+        .filter_map(|e| {
+            let num = e.team?;
+            // The team's rarity now, not the one recorded at the time.
+            let tier = *pack.team_tier.get(&num)?;
+            matches!(tier, Tier::Mythic | Tier::Legendary).then_some(Pull {
+                num,
+                tier,
+                serial: e.serial.unwrap_or(0),
+                at: e.at,
+            })
+        })
+        .take(6)
+        .collect();
     Ok(Json(ProfileOut {
-        username: p.username.clone().unwrap_or_default(),
+        username: name.clone(),
+        first_name: p.first_name.clone(),
         badge: p.badge.clone(),
+        bio: p.bio.clone(),
+        avatar: p.avatar,
+        banner: p.banner,
+        tiers,
+        battle: (bt.games > 0).then_some(Battle { rating: bt.elo, games: bt.games, wins: bt.wins, losses: bt.losses }),
+        pulls,
         me: id == user.id,
         joined: p.created_at,
         teams: st.teams,
@@ -226,4 +291,79 @@ async fn set_favorite(State(s): State<Shared>, user: User, Json(req): Json<FavRe
     }
     set_mark(&s.db, user.id, "FAV", pack.id(), req.team, req.on).await?;
     Ok(Json(favorites(&s.db, user.id, pack.id()).await?))
+}
+
+#[derive(Deserialize)]
+struct EditReq {
+    pack: String,
+    #[serde(default)]
+    bio: String,
+    avatar: Option<i32>,
+    banner: Option<i32>,
+}
+
+#[derive(Serialize)]
+struct EditOut {
+    bio: Option<String>,
+    avatar: Option<i32>,
+    banner: Option<i32>,
+}
+
+/// A bio as it's kept: trimmed, at most 160 characters and 3 lines, no control characters but line breaks, and no
+/// blank lines. None when it's empty; an error when it's too long.
+pub fn clean_bio(raw: &str) -> Result<Option<String>, &'static str> {
+    let lines: Vec<&str> = raw.lines().map(str::trim).filter(|l| !l.is_empty()).collect();
+    let bio = lines.join("\n");
+    if bio.chars().count() > BIO_CHARS || lines.len() > BIO_LINES || bio.chars().any(|c| c.is_control() && c != '\n') {
+        return Err("bad_bio");
+    }
+    Ok((!bio.is_empty()).then_some(bio))
+}
+
+/// Saves your bio, picture and banner (both picked from teams you own; none for the default).
+async fn edit_profile(State(s): State<Shared>, user: User, Json(req): Json<EditReq>) -> ApiResult<Json<EditOut>> {
+    let pack = api::pack(&s, &req.pack).await?;
+    let bio = clean_bio(&req.bio).map_err(|e| err(StatusCode::BAD_REQUEST, e))?;
+    for t in [req.avatar, req.banner].into_iter().flatten() {
+        if !pack.team_tier.contains_key(&t) {
+            return Err(err(StatusCode::NOT_FOUND, "unknown_team"));
+        }
+    }
+    let p0 = api::me(&s.db, user.id).await?;
+    // Only a newly picked card has to be owned; one picked before stays even if it was traded away since.
+    for (t, was) in [(req.avatar, p0.avatar), (req.banner, p0.banner)] {
+        if let Some(t) = t
+            && Some(t) != was
+            && model::team_cards(&s.db, user.id, pack.id(), t).await?.is_empty()
+        {
+            return Err(err(StatusCode::CONFLICT, "not_owned"));
+        }
+    }
+    retry!(async {
+        let mut p = api::me(&s.db, user.id).await?;
+        p.bio = bio.clone();
+        p.avatar = req.avatar;
+        p.banner = req.banner;
+        let parts = p.parts;
+        let mut tx = Tx::new();
+        model::save_user(&mut tx, &mut p, parts, "profile");
+        tx.commit(&s.db).await.map_err(ApiError::from)
+    })?;
+    Ok(Json(EditOut { bio, avatar: req.avatar, banner: req.banner }))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::clean_bio;
+
+    #[test]
+    fn bios_are_tidied_and_limited() {
+        assert_eq!(clean_bio("  "), Ok(None));
+        assert_eq!(clean_bio(" Hi! \n\n\n  Team 7028 "), Ok(Some("Hi!\nTeam 7028".into())));
+        assert_eq!(clean_bio(&"a".repeat(160)), Ok(Some("a".repeat(160))));
+        assert!(clean_bio(&"a".repeat(161)).is_err());
+        assert!(clean_bio("a\nb\nc\nd").is_err());
+        assert!(clean_bio("tab\there").is_err());
+        assert!(clean_bio("bell\u{7}").is_err());
+    }
 }
