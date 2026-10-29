@@ -2,11 +2,22 @@
 // players should hear about: everyone who's played before sees the newest one once (screens/notes.tsx), and Settings
 // shows the version and every release. 0.x while in beta: the middle number for a weekly release, the last for the
 // feedback updates and fixes in between.
-export const VERSION = "0.10.0";
+export const VERSION = "0.10.1";
 
 export interface Release { v: string; date: string; title: string; items: string[] }
 
 export const NOTES: Release[] = [
+  {
+    v: "0.10.1",
+    date: "2026-10-29",
+    title: "Opening fixes",
+    items: [
+      "The light shows through the tear again, brighter.",
+      "The pack is solid from every angle when you turn it.",
+      "No more square shadows at the corners of cards and packs, or a foggy edge on glowing cards.",
+      "NEW and COPY tags sit on top of the cards in your pull.",
+    ],
+  },
   {
     v: "0.10.0",
     date: "2026-10-29",

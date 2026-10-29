@@ -13,8 +13,8 @@
 // Only loaded when a pack is opened (open.tsx imports it on demand), and only used where WebGL works and motion isn't
 // reduced. It draws only while something moves: nothing runs while the pack sits in your hand.
 import {
-  BufferAttribute, BufferGeometry, CanvasTexture, CustomBlending, DoubleSide, Group, LinearFilter, Mesh, OneFactor, PerspectiveCamera,
-  PlaneGeometry, Points, Scene, ShaderMaterial, type Texture, TextureLoader, WebGLRenderer,
+  BufferAttribute, BufferGeometry, CanvasTexture, CustomBlending, DoubleSide, ExtrudeGeometry, Group, LinearFilter, Mesh, OneFactor,
+  PerspectiveCamera, PlaneGeometry, Points, Scene, Shape, ShaderMaterial, type Texture, TextureLoader, WebGLRenderer,
 } from "three";
 import { wrapper } from "../rip";
 import { snap } from "./faces";
@@ -35,6 +35,9 @@ const rgb = (hex: string): [number, number, number] => {
   return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
 };
 const vec3 = (c: [number, number, number]) => `vec3(${c.map((x) => x.toFixed(4)).join(", ")})`;
+/** Light added over what's behind it. Written with alpha at least as bright as the color, the form a see-through
+    canvas must hold for every browser to show it (Safari drops color brighter than its alpha). */
+const LIGHT = `vec4(c, max(c.r, max(c.g, c.b)))`;
 
 /** CSS cubic-bezier timing, so the WebGL pack moves like the CSS one did. */
 function bezier(x1: number, y1: number, x2: number, y2: number) {
@@ -134,14 +137,15 @@ export function createPackGL(canvas: HTMLCanvasElement, host: HTMLElement): Pack
     pw: { value: 1 }, ph: { value: 1 }, edge: { value: [0, 0, 0] }, hint: { value: 0 },
   };
   // The faces: the picture of the front (left half) or the back (right half), with the pack's moving sheen on the front.
-  const face = (u0: number, v0: number, v1: number, sheen: boolean) => new ShaderMaterial({
-    uniforms: u, transparent: true,
+  const face = (u0: number, v0: number, v1: number, sheen: boolean, inside = false) => new ShaderMaterial({
+    uniforms: u, transparent: true, ...(inside && { side: DoubleSide }),
     vertexShader: VERT,
     fragmentShader: `uniform sampler2D map; uniform float fade; uniform float sheen; uniform float pw; uniform float ph; varying vec2 vUv;
       void main() {
         vec2 t = vec2(${u0.toFixed(2)} + vUv.x * 0.5, ${v0.toFixed(4)} + vUv.y * ${(v1 - v0).toFixed(4)});
         vec4 c = texture2D(map, t);
         if (c.a < 0.02) discard;
+        ${inside ? `if (!gl_FrontFacing) { gl_FragColor = vec4(vec3(0.44, 0.48, 0.56), c.a * fade); return; }` : ""}
         ${sheen ? `// .op-psheen: a soft band at 105deg, 220% of the pack wide, sliding as the pack turns.
         vec2 p = vec2(vUv.x, t.y);
         float d = (p.x - 0.5) * pw + (p.y - 0.5) * ph * 0.268 - sheen * pw * 2.2 / 100.0;
@@ -150,23 +154,19 @@ export function createPackGL(canvas: HTMLCanvasElement, host: HTMLElement): Pack
       }`,
   });
   const body = new Mesh(new PlaneGeometry(1, 1), face(0, 0, 1 - SEAM, true));
-  const back = new Mesh(new PlaneGeometry(1, 1), face(0.5, 0, 1, false));
+  const back = new Mesh(new PlaneGeometry(1, 1), face(0.5, 0, 1, false, true));
   back.rotation.y = Math.PI;
-  // Edges: layers of the wrapper's dark color between the faces, below the strip (like .op-pedge).
-  const edgeMat = new ShaderMaterial({
-    uniforms: u, transparent: true, vertexShader: VERT,
-    fragmentShader: `uniform vec3 edge; uniform float fade; uniform float pw; uniform float ph; varying vec2 vUv;
-      void main() {
-        // Square at the top, rounded at the bottom corners like the pack.
-        vec2 p = vec2((vUv.x - 0.5) * pw * 0.992, vUv.y * ph * 0.872);
-        float r = pw * 0.04;
-        vec2 q = vec2(abs(p.x) - (pw * 0.496 - r), r - p.y);
-        if (q.x > 0.0 && q.y > 0.0 && length(q) > r) discard;
-        gl_FragColor = vec4(edge, fade);
-      }`,
+  // Its sides: one rounded wall all the way round between the two faces, in the wrapper's dark color, lit a little by
+  // which way it faces, so the pack is a solid pouch from any angle. Only the walls: the faces are the pictures.
+  const wallMat = new ShaderMaterial({
+    uniforms: u, transparent: true,
+    vertexShader: `varying float vLit; void main() { vec3 n = normalize(normalMatrix * normal); vLit = 0.55 + 0.45 * abs(n.z) + 0.25 * max(0.0, n.y);
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+    fragmentShader: `uniform vec3 edge; uniform float fade; varying float vLit; void main() { gl_FragColor = vec4(edge * vLit + 0.04, fade); }`,
   });
-  const edges = Array.from({ length: 7 }, () => new Mesh(new PlaneGeometry(1, 1), edgeMat));
-  // The strip: a band of points along the seam, bent each frame from the wrapper's chain. Its inside is foil-grey.
+  const noCaps = new ShaderMaterial({ visible: false });
+  const walls = new Mesh(new BufferGeometry(), [noCaps, wallMat]);
+  // The strip: a band of points along the seam, bent each frame from the wrapper's chain.
   const R = 3, wrap = wrapper(false), n = wrap.n;
   const sGeo = new BufferGeometry(), sPos = new Float32Array((n + 1) * (R + 1) * 3), sUv = new Float32Array((n + 1) * (R + 1) * 2), sShade = new Float32Array((n + 1) * (R + 1)), sFold = new Float32Array((n + 1) * (R + 1));
   const idx: number[] = [];
@@ -182,15 +182,15 @@ export function createPackGL(canvas: HTMLCanvasElement, host: HTMLElement): Pack
   sGeo.setIndex(idx);
   const sfade = { value: 1 };
   const strip = new Mesh(sGeo, new ShaderMaterial({
-    uniforms: { ...u, sfade }, transparent: true, side: DoubleSide,
+    uniforms: { ...u, sfade }, transparent: true,
     vertexShader: `attribute float shade; attribute float fold; varying vec2 vUv; varying float vShade; varying float vFold;
       void main() { vUv = uv; vShade = shade; vFold = fold; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
-    // Foil: where the peeled strip turns to the light it glints, broken up by its crinkles; inside it's bare metal.
+    // Foil: where the peeled strip turns to the light it glints, broken up by its crinkles.
     fragmentShader: `uniform sampler2D map; uniform float fade; uniform float sfade; varying vec2 vUv; varying float vShade; varying float vFold;
       void main() {
         vec4 c = texture2D(map, vUv);
         if (c.a < 0.02) discard;
-        vec3 col = gl_FrontFacing ? c.rgb * vShade : vec3(0.72, 0.78, 0.86) * vShade;
+        vec3 col = c.rgb * vShade;
         float grain = 0.55 + 0.45 * fract(sin(floor(vUv.x * 180.0) * 91.3 + floor(vUv.y * 40.0) * 17.1) * 437.5);
         float glint = pow(max(0.0, cos(vFold - 0.6)), 16.0) * step(0.05, vFold);
         col += vec3(0.95, 0.98, 1.0) * glint * grain * 0.6;
@@ -209,12 +209,13 @@ export function createPackGL(canvas: HTMLCanvasElement, host: HTMLElement): Pack
         float x = vUv.x * pw * 1.2 - pw * 0.1, y = vUv.y * ph * 0.42;
         float open = smoothstep(x0 - 4.0, x0 + 8.0, x) * (1.0 - smoothstep(x1 - 8.0, x1 + 4.0, x)) * smoothstep(-6.0, 6.0, x) * (1.0 - smoothstep(pw - 6.0, pw + 6.0, x));
         float v = vUv.y;
-        float rise = pow(1.0 - min(1.0, v / 0.72), 2.2) * 0.9;
+        float rise = pow(1.0 - min(1.0, v / 0.8), 1.8) * 1.1;
         float lean = (x - (x0 + x1) * 0.5) * 0.25 * v;
-        float rays = pow(0.5 + 0.5 * cos((x - lean) / 26.0 * 6.2832), 5.0) * (1.0 - v) * 0.45;
+        float rays = pow(0.5 + 0.5 * cos((x - lean) / 26.0 * 6.2832), 5.0) * (1.0 - v) * 0.7;
         float edge = exp(-y * 0.45) * 1.5;
-        float a = clamp(light * fade * open * (rise + rays + edge), 0.0, 1.6);
-        gl_FragColor = vec4(color * a, 0.0);
+        float a = clamp(light * fade * open * (rise + rays + edge), 0.0, 2.0);
+        vec3 c = color * a;
+        gl_FragColor = ${LIGHT};
       }`,
   }));
   // "Cut here": the dashed line and scissors of .op-cutzone, drawn once on a canvas.
@@ -236,7 +237,7 @@ export function createPackGL(canvas: HTMLCanvasElement, host: HTMLElement): Pack
         gl_FragColor = vec4(0.0, 0.0, 0.0, 0.55 * fade * (1.0 - smoothstep(-25.0, 25.0, d)));
       }`,
   }));
-  turner.add(body, back, ...edges, glow, stripBox, hintMesh);
+  turner.add(body, back, walls, glow, stripBox, hintMesh);
   root.add(shadow);
   shadow.renderOrder = -1;
   glow.renderOrder = 2;
@@ -252,7 +253,12 @@ export function createPackGL(canvas: HTMLCanvasElement, host: HTMLElement): Pack
     const T = PW * PTH, HB = PH * (1 - SEAM), seamY = PH / 2 - PH * SEAM;
     body.scale.set(PW, HB, 1); body.position.set(0, -PH / 2 + HB / 2, T);
     back.scale.set(PW, PH, 1); back.position.set(0, 0, -T);
-    edges.forEach((e, i) => { e.scale.set(PW * 0.992, PH * 0.872, 1); e.position.set(0, -PH / 2 + PH * 0.437, (T * (i - 3)) / 4); });
+    const cr = PW * 0.035, ex = PW / 2 - 0.5, ey = PH / 2 - 0.5, sh = new Shape();
+    sh.moveTo(-ex + cr, -ey); sh.lineTo(ex - cr, -ey); sh.quadraticCurveTo(ex, -ey, ex, -ey + cr); sh.lineTo(ex, ey - cr); sh.quadraticCurveTo(ex, ey, ex - cr, ey);
+    sh.lineTo(-ex + cr, ey); sh.quadraticCurveTo(-ex, ey, -ex, ey - cr); sh.lineTo(-ex, -ey + cr); sh.quadraticCurveTo(-ex, -ey, -ex + cr, -ey);
+    walls.geometry.dispose();
+    walls.geometry = new ExtrudeGeometry(sh, { depth: T * 1.96, bevelEnabled: false, curveSegments: 6 });
+    walls.position.set(0, 0, -T * 0.98);
     glow.scale.set(PW * 1.2, PH * 0.42, 1); glow.position.set(0, seamY + PH * 0.21, 0);
     shadow.scale.set(PW + 100, PH + 100, 1); shadow.position.set(0, -24 - (PH * SEAM) / 2, -T * 2);
     // The hint, at the CSS's place: 6% in from each side, from 7% to 17% down.
@@ -322,7 +328,7 @@ export function createPackGL(canvas: HTMLCanvasElement, host: HTMLElement): Pack
     uniforms: { k: { value: 0 } }, transparent: true, depthWrite: false, depthTest: false, blending: CustomBlending, blendSrc: OneFactor, blendDst: OneFactor,
     vertexShader: VERT,
     fragmentShader: `uniform float k; varying vec2 vUv;
-      void main() { float d = length(vUv - 0.5) * 2.0; float a = (1.0 - k) * (exp(-d * d * 6.0) * 0.9 + exp(-d * d * 40.0) * 0.8); gl_FragColor = vec4(mix(${vec3(col)}, vec3(1.0), 0.35) * a, 0.0); }`,
+      void main() { float d = length(vUv - 0.5) * 2.0; float a = (1.0 - k) * (exp(-d * d * 6.0) * 0.9 + exp(-d * d * 40.0) * 0.8); vec3 c = mix(${vec3(col)}, vec3(1.0), 0.35) * a; gl_FragColor = ${LIGHT}; }`,
   });
   const sparks: { p: Points; t0: number }[] = [];
   const sparkPoints = (col: [number, number, number], size: number) => {
@@ -336,7 +342,7 @@ export function createPackGL(canvas: HTMLCanvasElement, host: HTMLElement): Pack
       vertexShader: `attribute vec3 dir; uniform float t; uniform float size; uniform float px; varying float vA;
         void main() { vec3 p = dir * (1.0 - pow(1.0 - t, 3.0)) * size; p.y -= t * t * size * 0.3; vA = (1.0 - t) * step(0.001, t);
           gl_PointSize = (3.0 + 4.0 * (1.0 - t)) * px; gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0); }`,
-      fragmentShader: `varying float vA; void main() { float d = length(gl_PointCoord - 0.5); float a = vA * smoothstep(0.5, 0.1, d); gl_FragColor = vec4(mix(${vec3(col)}, vec3(1.0), 0.4) * a, 0.0); }`,
+      fragmentShader: `varying float vA; void main() { float d = length(gl_PointCoord - 0.5); float a = vA * smoothstep(0.5, 0.1, d); vec3 c = mix(${vec3(col)}, vec3(1.0), 0.4) * a; gl_FragColor = ${LIGHT}; }`,
     }));
   };
 
@@ -404,7 +410,9 @@ export function createPackGL(canvas: HTMLCanvasElement, host: HTMLElement): Pack
     mesh.visible = shadow.visible = false;
     scene.add(shadow, mesh);
     mirrors.set(el, { el, key, chain, mesh, shadow, u: mu, shown: false, calm: false });
-    // Painted in page order, like the DOM: later on top. All of them under the pack.
+    // Painted in page order, like the DOM: later on top. All of them under the pack. Cards that have left the page go
+    // first (they have no order to compare).
+    for (const m of [...mirrors.values()]) if (!m.el.isConnected) dropMirror(m);
     [...mirrors.values()].sort((a, b) => (a.el.compareDocumentPosition(b.el) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1))
       .forEach((m, i) => { m.shadow.renderOrder = -1000 + i * 2; m.mesh.renderOrder = -999 + i * 2; });
     trim();
@@ -534,7 +542,7 @@ export function createPackGL(canvas: HTMLCanvasElement, host: HTMLElement): Pack
     },
     tear(len, dir, light, color) {
       wrap.set(len, dir);
-      u.light.value = light > 0 ? 0.35 + light * 0.75 : 0;
+      u.light.value = light > 0 ? 0.6 + light * 1.1 : 0;
       u.color.value = rgb(color);
       opening();
       settling = true;
@@ -614,7 +622,7 @@ export function createPackGL(canvas: HTMLCanvasElement, host: HTMLElement): Pack
       for (const p of cardPics.values()) p.then((t) => t?.dispose());
       removeEventListener("resize", resize);
       for (const f of flares) (f.m.material as ShaderMaterial).dispose();
-      scene.traverse((o) => { if (o instanceof Mesh || o instanceof Points) { o.geometry.dispose(); (o.material as ShaderMaterial).dispose(); } });
+      scene.traverse((o) => { if (o instanceof Mesh || o instanceof Points) { o.geometry.dispose(); for (const m of [o.material].flat()) m.dispose(); } });
       hintTex.dispose(); plane.dispose();
       for (const p of pics.values()) p.then((t) => t.dispose(), () => {});
       renderer.dispose();

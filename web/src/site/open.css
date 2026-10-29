@@ -196,10 +196,12 @@
 .op-sum-h span { color: var(--dim); font-size: 13px; }
 /* The pull, fanned out like a hand: overlapping along an arc, the best card last and on top. Tap one to see it. */
 .op-sum-cards { --step: min(calc(var(--op-sw) * .62), calc((100vw - 84px - var(--op-sw)) / 4)); /* room for the end cards' tilt and ribbons */ position: relative; width: calc(var(--op-sw) + var(--step) * 4); max-width: 100%; height: calc(var(--op-sw) * 1.4 + 30px); }
-.op-sc { position: absolute; left: calc(50% - var(--op-sw) / 2 + var(--i) * var(--step)); top: calc(var(--i) * var(--i) * 5px); padding: 0; border: 0; border-radius: 8px; background: none; color: inherit; cursor: pointer;
-  transform: rotate(calc(var(--i) * 3deg)); transform-origin: 50% 100%; }
+.op-sc, .op-tag { position: absolute; left: calc(50% - var(--op-sw) / 2 + var(--i) * var(--step)); top: calc(var(--i) * var(--i) * 5px); transform: rotate(calc(var(--i) * 3deg)); transform-origin: 50% 100%; }
+.op-sc { padding: 0; border: 0; border-radius: 8px; background: none; color: inherit; cursor: pointer; }
+/* The tags sit over the whole hand (after every card), each at its card's place. */
+.op-tag { --cw: var(--op-sw); width: var(--op-sw); aspect-ratio: 5 / 7; pointer-events: none; }
 .op-sc:active > * { transform: scale(.97); }
-.op-sc .op-ribbon { animation-delay: .5s; }
+.op-tag .op-ribbon { animation-delay: .5s; }
 .op-sc.op-best::before { content: ""; position: absolute; inset: 0; border-radius: calc(var(--op-sw) * .055); box-shadow: 0 0 0 2px var(--tc), 0 0 26px 2px var(--tc); pointer-events: none; }
 .op-sum-b { width: min(100%, 420px); }
 

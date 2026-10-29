@@ -59,12 +59,24 @@ async function signUp() {
       f.querySelector('.op-psheen')?.remove();
       for (const e of f.closest('.op-pack').querySelectorAll('.op-pedge')) e.style.display = 'none';
       for (const e of document.querySelectorAll('.op-count, .op-cutzone')) e.style.display = 'none';
+      // Nothing behind it: the page's own backgrounds would fill the picture's corners outside the rounded edge.
+      for (let x = f.parentElement; x; x = x.parentElement) x.style.background = 'transparent';
+      // and nothing else on the page showing through: only the face is visible.
+      document.documentElement.style.visibility = 'hidden';
+      f.style.visibility = 'visible';
+      // No outer shadows either: outside the rounded edge they'd darken those corners. WebGL draws the pack's shadow.
+      for (const e of [f, ...f.querySelectorAll('*')]) {
+        const sh = getComputedStyle(e).boxShadow;
+        if (sh && sh !== 'none') e.style.boxShadow = sh.split(/,(?![^(]*\))/).filter((x) => x.includes('inset')).join(',') || 'none';
+      }
     }, sel);
     await p.waitForTimeout(100);
-    return (await p.locator(sel).screenshot({ omitBackground: true })).toString('base64');
+    const shot = (await p.locator(sel).screenshot({ omitBackground: true })).toString('base64');
+    await p.evaluate(() => { document.documentElement.style.visibility = ''; });
+    return shot;
   };
   for (const k of KINDS) {
-    await p.goto(BASE + '/#open');
+    await p.goto(`${BASE}/?kind=${k}#open`); // a fresh page for each kind
     await p.waitForSelector('.op-hero .op-pface');
     if (await p.locator(`.op-kind.k-${k}`).count()) await p.click(`.op-kind.k-${k}`);
     await p.waitForTimeout(150);

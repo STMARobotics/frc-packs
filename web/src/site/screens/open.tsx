@@ -625,7 +625,7 @@ function Flow({ resume }: { resume?: Opening }) {
   useLayoutEffect(() => {
     if (phase !== "summary" || !sumEl.current) return;
     // The cards come up into their places in the fan one after another, each with a soft snap, the best one last.
-    const kids = [...sumEl.current.children] as HTMLElement[];
+    const kids = [...sumEl.current.querySelectorAll<HTMLElement>(":scope > .op-sc")];
     if (!RM) {
       sumEl.current.previousElementSibling?.animate([{ opacity: 0, transform: "translateY(8px)" }, { opacity: 1, transform: "none" }], { duration: 320, easing: "ease-out", fill: "backwards" });
       kids.forEach((el, i) => {
@@ -725,11 +725,13 @@ function Flow({ resume }: { resume?: Opening }) {
             <div ref={sumEl} class="op-sum-cards">
               {deck.map((c, i) => (
                 <button type="button" class={cx("op-sc", i === 4 && faceDown(c.tier) && "op-best")} style={{ "--i": i - 2, "--tc": TIERS[c.tier].color }} data-glk={`${c.num}-${c.test ? "TEST" : c.serial}`}
-                  onClick={() => { if (!c.test) openCard(c.num); }} aria-label={`${BY_NUM.get(c.num)!.name}, ${TIERS[c.tier].label}`}>
-                  <Card num={c.num} serial={c.test ? "TEST" : c.serial} w="var(--op-sw)">
-                    <span class={cx("op-ribbon", !c.isNew && "op-dupe")}>{c.test ? "TEST" : c.isNew ? "NEW" : `COPY #${c.copy}`}</span>
-                  </Card>
+                  onClick={() => { if (!c.test) openCard(c.num); }} aria-label={`${BY_NUM.get(c.num)!.name}, ${TIERS[c.tier].label}, ${tag(c).toLowerCase()}`}>
+                  <Card num={c.num} serial={c.test ? "TEST" : c.serial} w="var(--op-sw)" />
                 </button>
+              ))}
+              {/* The NEW and COPY tags over the whole hand, each where its card is, so the next card never covers one. */}
+              {deck.map((c, i) => (
+                <span class="op-tag" style={{ "--i": i - 2 }} aria-hidden="true"><span class={cx("op-ribbon", !c.isNew && "op-dupe")}>{tag(c)}</span></span>
               ))}
             </div>
           </div>
@@ -775,17 +777,22 @@ function pictured(root: HTMLElement): [HTMLElement, string][] {
   return els;
 }
 
-/** The pack in hand's cards, as the stack will show them, out of sight: their pictures for the WebGL opening are
-    made from these while you hold the pack (the top card first), so the cards that rise out are ready. */
+/** The pack in hand's cards, as the stack will show them, and their tags as the summary will, out of sight: their
+    pictures for the WebGL opening are made from these while you hold the pack (the top card first), so everything
+    that rises out, and the summary after, is ready. */
 function Bake({ cards, gl, w }: { cards: Deal[]; gl: PackGL; w: string }) {
   const el = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => { gl.prebake(pictured(el.current!)); }, [cards, gl]);
   return (
     <div ref={el} class="op-bake" aria-hidden="true">
       {cards.map((c) => <StackCard c={c} k={0} up flipped={false} promo={false} charging={false} aura={false} w={w} />)}
+      {cards.map((c) => <span class="op-tag" style={{ "--i": 0 }}><span class={cx("op-ribbon", !c.isNew && "op-dupe")}>{tag(c)}</span></span>)}
     </div>
   );
 }
+
+/** A card's tag: NEW, or which copy of the team it is. */
+const tag = (c: Deal) => (c.test ? "TEST" : c.isNew ? "NEW" : `COPY #${c.copy}`);
 
 function StackCard({ c, k, up, flipped, promo, charging, aura, gone, w }: { c: Deal; k: number; up: boolean; flipped: boolean; promo: boolean; charging: boolean; aura: boolean; gone?: number; w: string }) {
   const t = BY_NUM.get(c.num)!;
@@ -802,7 +809,7 @@ function StackCard({ c, k, up, flipped, promo, charging, aura, gone, w }: { c: D
           <Face t={t} tier={c.tier} serial={c.test ? "TEST" : c.serial} />
         </div>
       </div>
-      {up && (k === 0 || gone !== undefined) && <span class={cx("op-ribbon", !c.isNew && "op-dupe")}>{c.test ? "TEST" : c.isNew ? "NEW" : `COPY #${c.copy}`}</span>}
+      {up && (k === 0 || gone !== undefined) && <span class={cx("op-ribbon", !c.isNew && "op-dupe")}>{tag(c)}</span>}
     </div>
   );
 }
