@@ -20,6 +20,7 @@ pub mod specials;
 pub mod testkit;
 pub mod tiers;
 pub mod trades;
+pub mod wagers;
 
 use std::path::PathBuf;
 use std::sync::Arc;

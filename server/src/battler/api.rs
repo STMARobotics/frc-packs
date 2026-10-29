@@ -7,6 +7,8 @@
 //! - `BG#<id>` / `GAME`: the whole game as JSON, `ver`; while it's waiting for a second player, GSI1 `BGQUICK` for a
 //!   Quick Play game (the queue) or `BGOPEN` for an old listed one. Private games are in no index.
 //! - `BGCODE#<code>` / `CODE`: the private game a code invites to.
+//! - `BG#<id>` / `WAGER`: a private game's wager (see crate::wagers, which moves the stakes; the Battler only says who
+//!   won).
 //! - `U#<id>` / `BTACTIVE`: the game a player is in (one at a time).
 //! - `U#<id>` / `BTPROF`: rating and record.
 //! - `U#<id>` / `BTDECK#<deck>`: a saved deck.
@@ -52,6 +54,8 @@ pub fn routes() -> Router<Shared> {
         .route("/battler/games/{id}/join", post(join_game))
         .route("/battler/games/{id}/act", post(act))
         .route("/battler/games/{id}/emote", post(emote))
+        .route("/battler/games/{id}/wager", put(set_stake).delete(call_off))
+        .route("/battler/games/{id}/wager/accept", post(accept_wager))
         .route("/battler/history", get(history))
         .route("/battler/admin/effects", get(admin_effects))
         .route("/battler/admin/effects/{team}", put(admin_save_effect))
@@ -415,7 +419,18 @@ async fn save(db: &Db, g: &mut Game, ver: i64, was_over: bool, mut tx: Tx) -> Ap
     }
     tx.put_if("ver", game_item(g, ver + 1), Some(cond));
     tx.commit(db).await?;
+    if g.status.over() && g.wager == game::Wager::Locked {
+        settle_wager(db, g).await?;
+    }
     Ok(())
+}
+
+/// Pays out a finished game's wager: the winner gets both stakes; a draw or a game called off gives each theirs back.
+/// Safe to repeat (it's also tried whenever a finished game is looked at, in case the server stopped in between).
+async fn settle_wager(db: &Db, g: &Game) -> ApiResult<()> {
+    let users = [g.seat(0).uid, g.seat(1).uid];
+    let winner = if g.status == Status::Final { g.outcome.as_ref().and_then(|o| o.winner) } else { None };
+    crate::wagers::settle(db, content::PACK, &g.id, users, winner).await
 }
 
 fn not_found() -> ApiError {
@@ -605,6 +620,22 @@ async fn quick(State(st): State<Shared>, user: User) -> ApiResult<Json<Value>> {
 
 // ---------- playing ----------
 
+/// A game as a player sees it, with the wager on it if there is one.
+async fn game_json(db: &Db, g: &Game, side: Option<usize>) -> ApiResult<Json<Value>> {
+    let mut v = view_json(g.view(side));
+    if g.wager != game::Wager::None
+        && let Some(w) = crate::wagers::load(db, &g.id).await?
+    {
+        let held = |h: &crate::wagers::Held| {
+            json!({ "parts": h.parts, "packs": h.packs, "boosted": h.boosted, "specials": h.specials,
+                "cards": h.cards.iter().map(|c| json!({ "num": c.team, "serial": c.serial, "tier": c.tier })).collect::<Vec<_>>() })
+        };
+        v["stakes"] = json!({ "stakes": w.stakes, "accepted": w.accepted, "status": w.status, "winner": w.winner,
+            "held": [held(&w.held[0]), held(&w.held[1])] });
+    }
+    Ok(Json(v))
+}
+
 fn view_json(mut v: game::GameView<'_>) -> Value {
     v.now = now_ms();
     serde_json::to_value(v).expect("views serialize")
@@ -662,7 +693,10 @@ async fn view_game(
         if side.is_none() && (g.status != Status::Open || !code_ok(&g, q.code.as_deref())) {
             return Err(ApiError::new(StatusCode::FORBIDDEN, "not_your_game"));
         }
-        Ok::<_, ApiError>(Json(view_json(g.view(side))))
+        if g.status.over() && g.wager == game::Wager::Locked {
+            settle_wager(db, &g).await?;
+        }
+        game_json(db, &g, side).await
     })
 }
 
@@ -754,7 +788,7 @@ async fn act(
         };
         r.map_err(refused)?;
         save(db, &mut g, ver, was, Tx::new()).await?;
-        Ok::<_, ApiError>(Json(view_json(g.view(Some(side)))))
+        game_json(db, &g, Some(side)).await
     })
 }
 
@@ -948,4 +982,103 @@ async fn admin_preview(State(st): State<Shared>, _admin: Admin, Json(req): Json<
         "with": with,
         "without": without,
     })))
+}
+
+// ---------- wagers ----------
+//
+// In a private match, before it starts, each player can put up a stake. Changing either stake takes back both
+// acceptances; once both accept, both stakes go into escrow (crate::wagers) and the match starts as soon as both decks
+// are picked. Calling it off takes the stakes off the table.
+
+async fn set_stake(
+    State(st): State<Shared>,
+    user: User,
+    Path(id): Path<String>,
+    Json(stake): Json<crate::wagers::Stake>,
+) -> ApiResult<Json<Value>> {
+    let db = &st.db;
+    let p = crate::api::me(db, user.id).await?;
+    crate::wagers::check(db, content::PACK, &p, &stake).await?;
+    retry!(async {
+        let (mut g, ver) = load(db, &id).await?.ok_or_else(not_found)?;
+        let side = g.side_of(user.id).ok_or(ApiError::new(StatusCode::FORBIDDEN, "not_your_game"))?;
+        let mut w = crate::wagers::load(db, &id).await?.unwrap_or_else(|| crate::wagers::Wager::new(&id));
+        if w.status != "open" {
+            return Err(refused("no_wager_here"));
+        }
+        w.stakes[side] = stake.clone();
+        w.accepted = [false, false];
+        let was = g.status.over();
+        g.set_wager(!w.stakes.iter().all(crate::wagers::Stake::is_empty), now_ms()).map_err(refused)?;
+        let mut tx = Tx::new();
+        crate::wagers::put(&mut tx, &mut w);
+        save(db, &mut g, ver, was, tx).await?;
+        game_json(db, &g, Some(side)).await
+    })
+}
+
+/// Takes both stakes off the table: the match goes ahead without a wager.
+async fn call_off(State(st): State<Shared>, user: User, Path(id): Path<String>) -> ApiResult<Json<Value>> {
+    let db = &st.db;
+    retry!(async {
+        let (mut g, ver) = load(db, &id).await?.ok_or_else(not_found)?;
+        let side = g.side_of(user.id).ok_or(ApiError::new(StatusCode::FORBIDDEN, "not_your_game"))?;
+        let mut w =
+            crate::wagers::load(db, &id).await?.filter(|w| w.status == "open").ok_or(refused("no_wager_here"))?;
+        w.stakes = Default::default();
+        w.accepted = [false, false];
+        let was = g.status.over();
+        g.set_wager(false, now_ms()).map_err(refused)?;
+        let mut tx = Tx::new();
+        crate::wagers::put(&mut tx, &mut w);
+        save(db, &mut g, ver, was, tx).await?;
+        game_json(db, &g, Some(side)).await
+    })
+}
+
+/// Agrees to both stakes as they stand. When both have, the stakes go into escrow in the same write as the game.
+async fn accept_wager(State(st): State<Shared>, user: User, Path(id): Path<String>) -> ApiResult<Json<Value>> {
+    let db = &st.db;
+    retry!(async {
+        let (mut g, ver) = load(db, &id).await?.ok_or_else(not_found)?;
+        let side = g.side_of(user.id).ok_or(ApiError::new(StatusCode::FORBIDDEN, "not_your_game"))?;
+        let mut w =
+            crate::wagers::load(db, &id).await?.filter(|w| w.status == "open").ok_or(refused("no_wager_here"))?;
+        if g.wager != game::Wager::Open {
+            return Err(refused("no_wager_here"));
+        }
+        // A pink slip stakes the deck being brought, so it has to be picked first.
+        if w.stakes[side].pink && g.deck_teams(side).is_none() {
+            return Err(refused("pick_deck_first"));
+        }
+        w.accepted[side] = true;
+        let was = g.status.over();
+        let mut tx = Tx::new();
+        if w.accepted == [true, true] {
+            let uids = [g.seat(0).uid, g.seat(1).uid];
+            let mut held: [crate::wagers::Held; 2] = Default::default();
+            for s in 0..2 {
+                let p = crate::api::me(db, uids[s]).await?;
+                // A brand-new account can't win parts or packs (nor stake them: checked with the stake).
+                if w.stakes[1 - s].has_goods() && crate::wagers::too_new(&p) {
+                    return Err(ApiError::new(
+                        StatusCode::CONFLICT,
+                        if s == side { "too_new" } else { "they_too_new" },
+                    ));
+                }
+                held[s] =
+                    crate::wagers::resolve(db, content::PACK, &p, &w.stakes[s], &g.deck_teams(s).unwrap_or_default())
+                        .await?;
+            }
+            crate::wagers::escrow(db, content::PACK, &mut tx, uids, &held, &format!("wager {id}")).await?;
+            w.held = held;
+            w.status = "locked".into();
+            g.lock_wager(now_ms()).map_err(refused)?;
+        } else {
+            g.set_wager(true, now_ms()).map_err(refused)?; // so the other player sees the acceptance
+        }
+        crate::wagers::put(&mut tx, &mut w);
+        save(db, &mut g, ver, was, tx).await?;
+        game_json(db, &g, Some(side)).await
+    })
 }

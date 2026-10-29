@@ -266,6 +266,19 @@ pub struct Game {
     /// A private game's invite code (empty for the others).
     #[serde(default)]
     pub code: String,
+    /// A wager on the match (see crate::wagers): none, stakes on the table (the match waits for them to be agreed or
+    /// called off), or locked in escrow.
+    #[serde(default)]
+    pub wager: Wager,
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Wager {
+    #[default]
+    None,
+    Open,
+    Locked,
 }
 
 /// The quick-chat emotes a player can send during a game.
@@ -336,6 +349,7 @@ impl Game {
             emote_seq: 0,
             mode: Mode::Open,
             code: String::new(),
+            wager: Wager::None,
         }
     }
 
@@ -401,10 +415,42 @@ impl Game {
         self.seat_mut(side).deck_id = Some(pick.deck_id.clone());
         self.picks[side] = Some(PickSnap { deck_id: pick.deck_id, robots, support: pick.support });
         self.bump();
-        if self.picks.iter().all(Option::is_some) {
+        self.start_if_ready(now);
+        Ok(())
+    }
+
+    /// Starts once both decks are picked, unless a wager is still being agreed.
+    fn start_if_ready(&mut self, now: i64) {
+        if self.status == Status::Decks && self.picks.iter().all(Option::is_some) && self.wager != Wager::Open {
             self.start(now);
         }
+    }
+
+    /// Stakes went on the table (`open`) or came off it. Only in a private match, before it starts.
+    pub fn set_wager(&mut self, open: bool, now: i64) -> Result<(), Refusal> {
+        if self.mode != Mode::Private || self.status != Status::Decks || self.wager == Wager::Locked {
+            return Err("no_wager_here");
+        }
+        self.wager = if open { Wager::Open } else { Wager::None };
+        self.bump();
+        self.start_if_ready(now);
         Ok(())
+    }
+
+    /// Both players agreed and the stakes are in escrow.
+    pub fn lock_wager(&mut self, now: i64) -> Result<(), Refusal> {
+        if self.status != Status::Decks || self.wager != Wager::Open {
+            return Err("no_wager_here");
+        }
+        self.wager = Wager::Locked;
+        self.bump();
+        self.start_if_ready(now);
+        Ok(())
+    }
+
+    /// Robots (by team) in the deck a player picked, for a pink slip.
+    pub fn deck_teams(&self, side: usize) -> Option<Vec<i32>> {
+        self.picks[side].as_ref().map(|p| p.robots.iter().map(|r| r.robot.team).collect())
     }
 
     /// Both decks are in: freeze them, shuffle the Alliance Deck and both Support Decks, deal round 1.
@@ -956,6 +1002,7 @@ pub struct GameView<'a> {
     pub emotes: &'a [Emote],
     pub emote_seq: u64,
     pub mode: Mode,
+    pub wager: Wager,
     /// A private game's invite code, for its players.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub code: Option<&'a str>,
@@ -1056,6 +1103,7 @@ impl Game {
             emotes: &self.emotes,
             emote_seq: self.emote_seq,
             mode: self.mode,
+            wager: self.wager,
             // Only the players see the invite code (someone joining already has it).
             code: (viewer.is_some() && !self.code.is_empty()).then_some(self.code.as_str()),
             now: 0,

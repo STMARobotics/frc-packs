@@ -63,6 +63,7 @@ add up.
 | `CTR` | `CTR` | counters for card, opening, trade, report and special ids |
 | `BG#<id>` | `GAME` | a Battler game, whole, as JSON in `state`, with `ver` (every change is conditioned on it). While waiting for a second player: GSI1 `BGQUICK` for a Quick Play game (the queue), `BGOPEN` for one from before Quick Play; a private game is in no index. |
 | `BGCODE#<code>` | `CODE` | the private Battler game a match code invites to (`game`). |
+| `BG#<id>` | `WAGER` | a private Battler game's wager: both stakes, who accepted, what's in escrow (exact cards), `status` (open, locked, settled, returned), `ver`. Special editions in escrow have the nil owner. |
 | `U#<id>` | `BTACTIVE` | the Battler game a player is in (one at a time) |
 | `U#<id>` | `BTPROF` | Battler rating and record |
 | `U#<id>` | `BTDECK#<deck>` | a saved Battler deck |

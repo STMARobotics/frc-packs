@@ -50,7 +50,12 @@ export interface GameView {
   emotes: EmoteView[]; emote_seq: number; now: number;
   /** How the game found (or is finding) its second player; a private game's code is shown to its players. */
   mode: "open" | "quick" | "private"; code?: string;
+  /** A private match's wager: none, stakes on the table, or locked in escrow; `stakes` has the details. */
+  wager: "none" | "open" | "locked";
+  stakes?: { stakes: [Stake, Stake]; accepted: [boolean, boolean]; status: "open" | "locked" | "settled" | "returned"; winner: number | null; held: [StakeHeld, StakeHeld] };
 }
+export interface Stake { parts: number; packs: number; boosted: number; teams: number[]; specials: number[]; pink: boolean }
+export interface StakeHeld { parts: number; packs: number; boosted: number; specials: number[]; cards: { num: number; serial: number; tier: string }[] }
 export interface HistoryRow { game: string; opponent: string; winner: boolean | null; reason: string; rp: [number, number]; points: [number, number]; elo_before: number; elo_after: number; at: number }
 
 export interface Cond { if: "HAS_PART_TAG" | "STATION" | "CAPTAIN" | "LORE_ACTIVE"; tag?: string; min?: number; station?: number; is?: boolean; of?: "TARGET" | "SOURCE" }

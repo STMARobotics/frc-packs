@@ -12,6 +12,7 @@ import { Draft } from "./draft";
 import { Intro } from "./intro";
 import { Final, Versus } from "./final";
 import { Emotes } from "./emotes";
+import { WagerPanel, WagerResult } from "./wager";
 
 /** Rounds whose result this player has moved past, per game (so a replayed reveal doesn't show again). */
 const seenRounds = new Map<string, number>();
@@ -75,10 +76,10 @@ export function GameScreen({ id, code }: { id: string; code?: string }) {
     case "FINAL":
       body = replay && g.outcome?.reason === "complete"
         ? <Arena g={g} log={g.rounds[g.rounds.length - 1]} onNext={next} />
-        : <Final g={g} />;
+        : <><Final g={g} /><WagerResult g={g} /></>;
       break;
     case "CANCELLED":
-      body = <div class="b-panel center"><h2>Game called off</h2><p class="b-dim">Nobody's rating changed.</p><a class="b-btn" href="#play">Back to Play</a></div>;
+      body = <><div class="b-panel center"><h2>Game called off</h2><p class="b-dim">Nobody's rating changed.</p><a class="b-btn" href="#play">Back to Play</a></div><WagerResult g={g} /></>;
       break;
   }
   return <>{body}<Emotes g={g} /></>;
@@ -168,7 +169,7 @@ function DeckPick({ g }: { g: GameView }) {
         <div class="b-panel center">
           <Spinner />
           <h2>Deck locked in</h2>
-          <p class="b-dim">{op.picked ? "Shuffling…" : `Waiting for ${op.name}`}</p>
+          <p class="b-dim">{op.picked ? (g.wager === "open" ? "Waiting for the wager" : "Shuffling…") : `Waiting for ${op.name}`}</p>
           <button type="button" class="b-link" onClick={leave}>Leave game</button>
         </div>
       ) : (
@@ -184,6 +185,7 @@ function DeckPick({ g }: { g: GameView }) {
           <button type="button" class="b-link" onClick={leave}>Leave game</button>
         </>
       )}
+      {g.mode === "private" && <WagerPanel g={g} />}
     </div>
   );
 }

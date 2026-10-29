@@ -11,6 +11,15 @@ A 1v1, five-round card game played with the robots you own in FRC Packs, at `/ba
    players who queue at the same moment are paired). A private match is hosted for someone in particular: it's in no
    list, and the server only lets someone see or join it with its 6-character code (typed in, or in the invite link).
    One game at a time per player.
+   - **Wagers** (private matches only). Before the match starts, each player can put up a stake: parts, sealed packs,
+     cards (exact copies picked by the server, newest first), special editions, or a pink slip (one copy of every robot
+     in the deck they bring). Both see both stakes, with a meter of how even they are (weighed like the trading post),
+     and both must accept; changing either stake takes back both acceptances, and either player can call it off. Once
+     both accept, both stakes leave the players' collections into escrow in one transaction, and the match starts as
+     soon as both decks are picked. The winner gets both stakes; a draw, or a match called off before anything was
+     played (in the deck pick or the draft), gives each their own back; a forfeit in the pit is a loss. Kept cards can't
+     be staked, and an account under 24 hours old can't stake or win parts or packs (the same rule as trades). The
+     moving of ownership is `server/src/wagers.rs` (the FRC Packs side); the Battler only says who won.
 3. **Start.** Both pick a deck (kept private). The server freezes both decks, effects included, into the game. A short
    intro plays on both screens: versus, the two Alliance Captains (public, and they play every round), the decks
    shuffling, and a toss for who drafts first.
@@ -61,6 +70,9 @@ Played cards are used up only for that game; nothing is ever taken from the FRC 
   results screen (then it moves on).
 - **Ratings once.** The move to FINAL, both new ratings (conditioned on each player's game count) and the history lines
   are one transaction.
+- **Wagers paid once.** Escrow happens in the same transaction as the game moving on; paying out is conditioned on the
+  wager still being locked, and is retried whenever a finished game is looked at, so a stopped server can't lose or
+  double a stake.
 
 ## Tests
 
@@ -68,6 +80,7 @@ Played cards are used up only for that game; nothing is ever taken from the FRC 
 cd server && cargo test --lib battler                       # rules, engine, state machine, cards (31 tests)
 cd web && node test/battler-api.cjs                          # two players, a whole game through the API (needs DEV_TOOLS=1)
 cd web && node test/battler-ui.cjs                           # two phones play a whole game by tapping, with screenshots
+cd web && node test/wager.cjs                                # wagers: stakes, escrow, called off (returned), forfeit (settled)
 ```
 
 ## Decisions and gaps (October 2026)
