@@ -1,0 +1,434 @@
+<title>WebGL Pack Opening</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Chakra+Petch:wght@500;600;700&display=swap">
+<style>
+/* Layout: the pack stage first, then the cost. FRC Packs' own dark look, on purpose. */
+:root {
+  --bg: #0b0e17; --s1: #131826; --ln: #2a3450; --tx: #eef1f8; --dim: #8b94ab;
+  --ac: #4fd8ff; --gold: #ffd36b; --myth: #3cffdc;
+  --display: "Lilita One", "Arial Rounded MT Bold", system-ui, sans-serif;
+  --body: "Chakra Petch", ui-sans-serif, system-ui, sans-serif;
+  color-scheme: dark;
+}
+html, body { background: var(--bg); color: var(--tx); }
+body { font: 500 15px/1.45 var(--body); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 18px 40px; }
+main { max-width: 760px; margin: 0 auto; display: grid; gap: 20px; }
+h1, h2 { font-family: var(--display); font-weight: 400; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(28px, 7vw, 40px); line-height: 1.05; }
+h2 { font-size: 22px; }
+p { margin: 0; }
+.dim { color: var(--dim); }
+.top { display: grid; gap: 6px; }
+.tag { justify-self: start; padding: 2px 9px; border-radius: 99px; background: var(--gold); color: #2a1c00; font: 700 11px var(--body); letter-spacing: .12em; text-transform: uppercase; }
+.pick { display: flex; gap: 8px; flex-wrap: wrap; }
+.pick button, .again { min-height: 40px; padding: 0 14px; border: 0; border-radius: 999px; background: var(--s1); color: var(--dim); font: 700 14px var(--body); box-shadow: inset 0 0 0 1px var(--ln); cursor: pointer; }
+.pick button[aria-pressed="true"] { color: var(--tx); box-shadow: inset 0 0 0 2px var(--ac); }
+.again { background: var(--ac); color: #04131b; box-shadow: none; font: 400 18px var(--display); padding: 0 22px; min-height: 46px; }
+button:focus-visible { outline: 3px solid var(--ac); outline-offset: 2px; }
+.stage { position: relative; width: 100%; max-width: 420px; margin: 0 auto; aspect-ratio: 3 / 4; touch-action: none; user-select: none; -webkit-user-select: none; border-radius: 20px; background: radial-gradient(120% 80% at 50% 35%, #172140, var(--bg) 72%); overflow: hidden; }
+.stage canvas { display: block; width: 100%; height: 100%; }
+.hint { position: absolute; left: 12px; right: 12px; bottom: 12px; text-align: center; color: var(--dim); font-size: 14px; pointer-events: none; }
+.stage .again { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); }
+.meter { text-align: center; font-size: 13px; color: var(--dim); font-variant-numeric: tabular-nums; }
+.meter b { color: var(--tx); }
+.cost { display: grid; gap: 10px; padding: 16px; border-radius: 16px; background: var(--s1); box-shadow: inset 0 0 0 1px var(--ln); }
+.bars { display: grid; gap: 8px; }
+.bar { display: grid; grid-template-columns: 9.5em 1fr 4.5em; align-items: center; gap: 10px; font-size: 13.5px; }
+.bar i { display: block; height: 10px; border-radius: 5px; background: var(--c, var(--ac)); width: calc(var(--v) / 320 * 100%); min-width: 4px; }
+.bar b { text-align: right; font-variant-numeric: tabular-nums; }
+ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+a { color: var(--ac); }
+@media (max-width: 420px) { .bar { grid-template-columns: 7.5em 1fr 4em; font-size: 12.5px; } }
+</style>
+
+<main>
+  <header class="top">
+    <span class="tag">Prototype</span>
+    <h1>Opening a pack, in WebGL</h1>
+    <p class="dim">The real pack and card art, drawn with Three.js. Swipe across the top of the pack to tear it along the seam; the light coming out is the colour of the best card inside. Let go early and it closes again. Then tap through the cards: Rare and better arrive face down.</p>
+  </header>
+
+  <div class="pick" role="group" aria-label="Which pack">
+    <button type="button" id="pack-mythic" aria-pressed="true" data-pack="mythic">A Mythic inside</button>
+    <button type="button" id="pack-legendary" aria-pressed="false" data-pack="legendary">A Legendary inside</button>
+    <button type="button" id="pack-rare" aria-pressed="false" data-pack="rare">A Rare inside</button>
+  </div>
+
+  <div class="stage" id="stage" aria-label="The pack: swipe across the top to open it, then tap to reveal each card">
+    <p class="hint" id="hint">Swipe across the top to tear it open</p>
+    <button type="button" class="again" id="again" hidden>Open another</button>
+  </div>
+  <p class="meter" id="meter" aria-live="polite">&nbsp;</p>
+
+  <section class="cost">
+    <h2>What it costs</h2>
+    <p class="dim">Extra JavaScript a phone downloads (gzipped, production build):</p>
+    <div class="bars">
+      <div class="bar"><span>Today, the whole app</span><i style="--v:51; --c:var(--myth)"></i><b>51 KB</b></div>
+      <div class="bar"><span>+ Three.js</span><i style="--v:118; --c:var(--ac)"></i><b>+118 KB</b></div>
+      <div class="bar"><span>+ this opening's code</span><i style="--v:6; --c:var(--gold)"></i><b>+6 KB</b></div>
+    </div>
+    <p class="dim">Three.js is the same 118 KB as the card prototype, so the card and the opening would share it. Speed is the same story: smooth on a mid-range phone profile, and the real costs are the download, GPU work and battery on low-end phones.</p>
+  </section>
+
+  <section class="cost">
+    <h2>Compared with today's opening</h2>
+    <ul>
+      <li>Today's tear already follows your finger and rewinds. That stays the same here.</li>
+      <li>What WebGL adds: the strip really peels toward you in 3D, the rarity light spills out only where it's open, the cards rise out from inside the pack, and the flips have real depth with a light burst.</li>
+      <li>What it doesn't have yet: the sounds, the haptics, the pull summary and the softbody wobble of today's pack.</li>
+    </ul>
+    <p class="dim">Today's version: open a pack on <a href="https://packs.7028robotics.com/" target="_blank" rel="noopener">packs.7028robotics.com</a>.</p>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script>
+(() => {
+  const TIER = {
+    common: { color: [0.67, 0.72, 0.77], foil: 3, glow: 0.55 },
+    uncommon: { color: [0.5, 0.88, 0.82], foil: 3, glow: 0.7 },
+    rare: { color: [1.0, 0.78, 0.31], foil: 0, glow: 1.0, down: true },
+    legendary: { color: [0.71, 0.47, 1.0], foil: 4, glow: 1.25, down: true },
+    mythic: { color: [0.24, 1.0, 0.86], foil: 1, glow: 1.6, down: true },
+  };
+  // One card of each rarity (the prototype has one face per rarity), worst first: the best comes last.
+  const PACKS = {
+    mythic: ["common", "uncommon", "rare", "legendary", "mythic"],
+    legendary: ["common", "uncommon", "rare", "legendary"],
+    rare: ["common", "uncommon", "rare"],
+  };
+  const PACK_ASPECT = 832 / 1272, SEAM = 0.13, CARD_ASPECT = 930 / 1302;
+
+  const stage = document.getElementById("stage"), hint = document.getElementById("hint"), again = document.getElementById("again");
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+  stage.prepend(renderer.domElement);
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(30, 3 / 4, 0.1, 50);
+  camera.position.set(0, 0, 9);
+  const loader = new THREE.TextureLoader();
+  const tex = (url) => { const t = loader.load(url, () => kick()); t.anisotropy = 8; return t; };
+
+  // ---------- the pack ----------
+  const PH = 3.5, PW = PH * PACK_ASPECT, HS = PH * SEAM, HB = PH - HS, YSEAM = PH / 2 - HS;
+  const packTex = tex("pack.jpg");
+  const packUniforms = { map: { value: packTex }, aspect: { value: PACK_ASPECT }, tear: { value: 0 }, dir: { value: 1 }, W: { value: PW }, fly: { value: 0 }, fade: { value: 1 } };
+  const shapeFrag = `
+    uniform sampler2D map; uniform float aspect; uniform float fade;
+    varying vec2 vPack; varying float vShade;
+    float box(vec2 p, vec2 b, float r) { vec2 q = abs(p) - b + r; return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r; }
+    void main() {
+      vec2 p = (vPack - 0.5) * vec2(aspect, 1.0);
+      float d = box(p, vec2(aspect, 1.0) * 0.5, 0.03);
+      if (d > 0.0) discard;
+      vec3 c = gl_FrontFacing ? texture2D(map, vPack).rgb * vShade : vec3(0.72, 0.78, 0.86) * vShade;
+      gl_FragColor = vec4(c, fade * smoothstep(0.0, -0.004, d));
+    }`;
+  // The body: everything below the seam.
+  const body = new THREE.Mesh(new THREE.PlaneGeometry(PW, HB, 1, 1), new THREE.ShaderMaterial({
+    uniforms: packUniforms, transparent: true,
+    vertexShader: `uniform float aspect; varying vec2 vPack; varying float vShade;
+      void main() { vPack = vec2(uv.x, uv.y * ${(1 - SEAM).toFixed(4)}); vShade = 1.0; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+    fragmentShader: shapeFrag,
+  }));
+  body.position.y = -PH / 2 + HB / 2;
+  // The strip above the seam peels up toward you as far as the tear has gone, hinged on the seam.
+  const strip = new THREE.Mesh(new THREE.PlaneGeometry(PW, HS, 48, 3), new THREE.ShaderMaterial({
+    uniforms: packUniforms, transparent: true, side: THREE.DoubleSide,
+    vertexShader: `uniform float tear; uniform float dir; uniform float W; uniform float fly; varying vec2 vPack; varying float vShade;
+      void main() {
+        vec3 p = position;
+        float u = dir > 0.0 ? p.x + W * 0.5 : W * 0.5 - p.x;
+        float t = clamp((tear * W * 1.3 - u) / (W * 0.3), 0.0, 1.0);
+        t = t * t * (3.0 - 2.0 * t);
+        float a = t * 1.25 + fly * 1.6;
+        float yb = ${(-HS / 2).toFixed(4)}, r = p.y - yb;
+        p.y = yb + r * cos(a) + t * 0.24;
+        p.z = r * sin(a) + t * 0.16;
+        p.x += dir * t * 0.05;
+        p += vec3(dir * fly * 1.6, fly * 2.6, fly * 1.2);
+        vShade = 0.62 + 0.38 * cos(a);
+        vPack = vec2(uv.x, ${(1 - SEAM).toFixed(4)} + uv.y * ${SEAM.toFixed(4)});
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+      }`,
+    fragmentShader: shapeFrag,
+  }));
+  strip.position.y = PH / 2 - HS / 2;
+  strip.renderOrder = 3;
+  // The light from the opening: only above the seam, only where the strip has lifted, in the best card's colour.
+  const glowUniforms = { color: { value: new THREE.Color() }, amt: { value: 0 }, tear: packUniforms.tear, dir: packUniforms.dir, W: packUniforms.W, fade: packUniforms.fade };
+  const GW = PW * 1.25, GH = 1.7;
+  const glow = new THREE.Mesh(new THREE.PlaneGeometry(GW, GH), new THREE.ShaderMaterial({
+    uniforms: glowUniforms, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+    fragmentShader: `uniform vec3 color; uniform float amt; uniform float tear; uniform float dir; uniform float W; uniform float fade; varying vec2 vUv;
+      void main() {
+        float x = (vUv.x - 0.5) * ${GW.toFixed(4)};
+        float u = dir > 0.0 ? x + W * 0.5 : W * 0.5 - x;
+        float open = smoothstep(0.0, 0.3, tear * W * 1.3 - u - W * 0.05);
+        float inside = smoothstep(W * 0.5 + 0.12, W * 0.5 - 0.2, abs(x));
+        float v = vUv.y;
+        float a = amt * fade * open * inside * (pow(1.0 - v, 2.4) * 0.9 + exp(-v * 55.0) * 1.4);
+        gl_FragColor = vec4(color * a, a);
+      }`,
+  }));
+  glow.position.set(0, YSEAM + GH / 2, -0.02);
+  glow.renderOrder = 2;
+  const pack = new THREE.Group();
+  pack.add(body, strip, glow);
+  scene.add(pack);
+
+  // ---------- the cards ----------
+  const CH = 3.3, CW = CH * CARD_ASPECT;
+  const backTex = (() => {
+    const cv = document.createElement("canvas"); cv.width = 620; cv.height = Math.round(620 / CARD_ASPECT);
+    const x = cv.getContext("2d"), w = cv.width, h = cv.height;
+    const g = x.createLinearGradient(0, 0, w, h); g.addColorStop(0, "#14306a"); g.addColorStop(1, "#070b18");
+    x.fillStyle = g; x.fillRect(0, 0, w, h);
+    let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < 160; i++) { x.fillStyle = `rgba(200,230,255,${0.25 + rnd() * 0.6})`; x.beginPath(); x.arc(rnd() * w, rnd() * h, rnd() * 1.6 + 0.4, 0, 7); x.fill(); }
+    const pts = [[0.22, 0.62], [0.33, 0.55], [0.45, 0.5], [0.55, 0.42], [0.66, 0.36], [0.77, 0.3], [0.72, 0.46]];
+    x.strokeStyle = "rgba(220,240,255,.7)"; x.lineWidth = 2; x.beginPath();
+    pts.forEach(([a, b], i) => (i ? x.lineTo(a * w, b * h) : x.moveTo(a * w, b * h))); x.stroke();
+    for (const [a, b] of pts) { x.fillStyle = "#fff"; x.beginPath(); x.arc(a * w, b * h, 7, 0, 7); x.fill(); }
+    x.fillStyle = "#eef1f8"; x.font = `${Math.round(w * 0.11)}px "Lilita One", sans-serif`; x.textAlign = "center"; x.fillText("FRC Packs", w / 2, h * 0.84);
+    return new THREE.CanvasTexture(cv);
+  })();
+  const cardVert = `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`;
+  // The same foil as the card prototype: 0 gold band (Rare), 1 teal-rainbow foil and glints (Mythic), 3 none, 4 violet foil.
+  const cardFrag = `uniform sampler2D map; uniform vec2 tilt; uniform int foil; uniform float aspect;
+    varying vec2 vUv;
+    float box(vec2 p, vec2 b, float r) { vec2 q = abs(p) - b + r; return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r; }
+    vec3 hue(float h) { return clamp(abs(mod(h * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0); }
+    float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+    void main() {
+      vec2 p = (vUv - 0.5) * vec2(aspect, 1.0);
+      float d = box(p, vec2(aspect, 1.0) * 0.5, 0.035);
+      if (d > 0.0) discard;
+      vec3 c = texture2D(map, vUv).rgb, col = c;
+      float lum = dot(c, vec3(0.299, 0.587, 0.114)), tl = length(tilt);
+      float edge = 1.0 - smoothstep(0.0, 0.03, min(min(vUv.x, 1.0 - vUv.x) * aspect, min(vUv.y, 1.0 - vUv.y)));
+      float frame = max(edge, 1.0 - smoothstep(0.055, 0.075, vUv.y));
+      if (foil == 1 || foil == 4) {
+        float h = fract(dot(vUv, vec2(0.55, 0.85)) * 1.3 + tilt.y * 0.9 - tilt.x * 0.6);
+        vec3 f = foil == 1 ? mix(hue(h), vec3(0.24, 1.0, 0.86), 0.35) : mix(hue(h), vec3(0.71, 0.47, 1.0), 0.55);
+        float m = (0.12 + 0.55 * frame + 0.25 * smoothstep(0.35, 0.9, lum)) * (0.45 + 0.9 * tl);
+        col = mix(col, col + f * 0.65, clamp(m, 0.0, 0.85));
+        if (foil == 1) {
+          vec2 gv = vUv * vec2(110.0, 154.0), q = fract(gv) - 0.5;
+          float glint = smoothstep(0.32, 0.0, length(q)) * step(0.975, hash(floor(gv) + floor(tilt * 6.0)));
+          col += vec3(0.85, 1.0, 0.97) * glint * frame * 1.3 * smoothstep(0.05, 0.3, tl);
+        }
+      } else if (foil == 0) {
+        float band = exp(-pow((vUv.x + vUv.y) * 0.5 - (0.5 + tilt.y * 0.7 - tilt.x * 0.4), 2.0) * 90.0);
+        col += vec3(1.0, 0.82, 0.42) * band * (0.25 + 0.6 * frame + 0.3 * lum) * (0.3 + tl);
+      }
+      vec2 lp = vec2(0.5 + tilt.y * 0.55, 0.5 + tilt.x * 0.55);
+      col += exp(-dot(vUv - lp, vUv - lp) * 9.0) * 0.18 * (0.4 + tl);
+      gl_FragColor = vec4(col, smoothstep(0.0, -0.004, d));
+    }`;
+  const faces = Object.fromEntries(Object.keys(TIER).map((t) => [t, tex(`cards/${t}.jpg`)]));
+  function makeCard(tier) {
+    const g = new THREE.Group();
+    const u = { map: { value: faces[tier] }, tilt: { value: new THREE.Vector2() }, foil: { value: TIER[tier].foil }, aspect: { value: CARD_ASPECT } };
+    const front = new THREE.Mesh(new THREE.PlaneGeometry(CW, CH), new THREE.ShaderMaterial({ uniforms: u, vertexShader: cardVert, fragmentShader: cardFrag, transparent: true }));
+    const bu = { map: { value: backTex }, tilt: u.tilt, foil: { value: 3 }, aspect: { value: CARD_ASPECT } };
+    const back = new THREE.Mesh(new THREE.PlaneGeometry(CW, CH), new THREE.ShaderMaterial({ uniforms: bu, vertexShader: cardVert, fragmentShader: cardFrag, transparent: true }));
+    back.rotation.y = Math.PI; back.position.z = -0.004;
+    g.add(front, back);
+    g.userData = { tier, tilt: u.tilt.value, down: !!TIER[tier].down };
+    return g;
+  }
+
+  // A burst of light when a face-down card turns over; Mythics also throw sparks. Both only play when you flip.
+  const burstTex = (() => {
+    const cv = document.createElement("canvas"); cv.width = cv.height = 256;
+    const x = cv.getContext("2d"), g = x.createRadialGradient(128, 128, 0, 128, 128, 128);
+    g.addColorStop(0, "rgba(255,255,255,1)"); g.addColorStop(0.25, "rgba(255,255,255,.55)"); g.addColorStop(1, "rgba(255,255,255,0)");
+    x.fillStyle = g; x.fillRect(0, 0, 256, 256); return new THREE.CanvasTexture(cv);
+  })();
+  const burst = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: burstTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0 }));
+  burst.position.z = 0.2; burst.renderOrder = 5; scene.add(burst);
+  const SPARKS = 90;
+  const sparkGeo = new THREE.BufferGeometry();
+  const dirs = new Float32Array(SPARKS * 3);
+  for (let i = 0; i < SPARKS; i++) { const a = Math.random() * Math.PI * 2, s = 0.6 + Math.random(); dirs.set([Math.cos(a) * s, Math.sin(a) * s, Math.random() * 0.5], i * 3); }
+  sparkGeo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(SPARKS * 3), 3));
+  sparkGeo.setAttribute("dir", new THREE.BufferAttribute(dirs, 3));
+  const sparkU = { t: { value: 0 }, color: { value: new THREE.Color(0.24, 1, 0.86) }, px: { value: renderer.getPixelRatio() } };
+  const sparks = new THREE.Points(sparkGeo, new THREE.ShaderMaterial({
+    uniforms: sparkU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    vertexShader: `attribute vec3 dir; uniform float t; uniform float px; varying float vA;
+      void main() { vec3 p = dir * (1.0 - pow(1.0 - t, 3.0)) * 3.2; p.y -= t * t * 0.8; vA = (1.0 - t) * step(0.001, t);
+        gl_PointSize = (3.0 + 5.0 * (1.0 - t)) * px; gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0); }`,
+    fragmentShader: `uniform vec3 color; varying float vA; void main() { float d = length(gl_PointCoord - 0.5); gl_FragColor = vec4(mix(color, vec3(1.0), 0.4) * vA, vA * smoothstep(0.5, 0.1, d)); }`,
+  }));
+  sparks.position.z = 0.3; sparks.renderOrder = 6; scene.add(sparks);
+
+  // ---------- drawing only while something moves ----------
+  const tweens = [];
+  let running = false, dragging = false;
+  const ease = { out: (k) => 1 - Math.pow(1 - k, 3), inOut: (k) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2), lin: (k) => k };
+  function tween(ms, fn, e = ease.out) { return new Promise((res) => { tweens.push({ t0: performance.now(), ms, fn, e, res }); kick(); }); }
+  let times = [], lastT = 0;
+  function loop(now) {
+    if (lastT) times.push(now - lastT); lastT = now;
+    for (let i = tweens.length - 1; i >= 0; i--) {
+      const tw = tweens[i], k = Math.min(1, (now - tw.t0) / tw.ms);
+      tw.fn(tw.e(k));
+      if (k >= 1) { tweens.splice(i, 1); tw.res(); }
+    }
+    renderer.render(scene, camera);
+    if (tweens.length || dragging) requestAnimationFrame(loop);
+    else { running = false; lastT = 0; report(); }
+  }
+  function kick() { if (!running) { running = true; requestAnimationFrame(loop); } }
+  function report() {
+    if (times.length < 20) return;
+    const s = times.slice(3).sort((a, b) => a - b), avg = s.reduce((a, b) => a + b, 0) / s.length;
+    document.getElementById("meter").innerHTML = `Last animation: <b>${Math.round(1000 / avg)} fps</b>, slowest 5% <b>${s[Math.floor(s.length * 0.95)].toFixed(1)} ms</b>`;
+    window.__anim = { fps: 1000 / avg, p95: s[Math.floor(s.length * 0.95)], frames: s.length };
+    times = [];
+  }
+
+  // ---------- the flow ----------
+  let phase = "pack", which = "mythic", cards = [], top = 0;
+  const best = () => PACKS[which][PACKS[which].length - 1];
+  function reset() {
+    for (const c of cards) scene.remove(c);
+    cards = PACKS[which].map((t, i) => { const c = makeCard(t); c.position.set(0, 0, -0.15 - i * 0.012); c.rotation.y = c.userData.down ? Math.PI : 0; c.visible = false; scene.add(c); return c; });
+    top = 0; phase = "pack";
+    packUniforms.tear.value = 0; packUniforms.fly.value = 0; packUniforms.fade.value = 1; packUniforms.dir.value = 1;
+    glowUniforms.amt.value = 0; glowUniforms.color.value.setRGB(...TIER[best()].color);
+    pack.position.set(0, 0, 0); pack.visible = true;
+    hint.textContent = "Swipe across the top to tear it open"; hint.hidden = false; again.hidden = true;
+    kick();
+  }
+
+  async function open() {
+    phase = "opening"; hint.hidden = true;
+    const t0 = packUniforms.tear.value, peak = TIER[best()].glow;
+    await tween(160, (k) => { packUniforms.tear.value = t0 + (1 - t0) * k; glowUniforms.amt.value = 0.6 + k * peak; });
+    // The strip comes away; the light flares; the cards rise out from inside the pack.
+    for (const c of cards) c.visible = true;
+    await tween(520, (k) => { packUniforms.fly.value = k; glowUniforms.amt.value = 0.6 + peak + Math.sin(k * Math.PI) * 0.8; strip.material.uniforms.fade.value = 1; }, ease.inOut);
+    strip.visible = false;
+    await tween(560, (k) => { cards.forEach((c, i) => { c.position.y = k * 1.5; }); });
+    await tween(480, (k) => { pack.position.y = -k * 5.5; packUniforms.fade.value = 1 - k; }, ease.inOut);
+    pack.visible = false;
+    await tween(520, (k) => { cards.forEach((c, i) => { c.position.y = 1.5 * (1 - k); c.position.z = -0.15 - i * 0.012 + k * 0.5; }); }, ease.inOut);
+    phase = "reveal";
+    hint.textContent = cards[0].userData.down ? "Tap to turn it over" : "Tap for the next card"; hint.hidden = false;
+  }
+
+  async function next() {
+    const c = cards[top];
+    if (!c) return;
+    phase = "busy";
+    if (c.userData.down) {
+      // Turn it over, with a burst in its colour (and sparks for a Mythic).
+      c.userData.down = false;
+      const col = TIER[c.userData.tier].color;
+      burst.material.color.setRGB(...col);
+      if (c.userData.tier === "mythic") sparkU.color.value.setRGB(...col);
+      const sp = c.userData.tier === "mythic";
+      await tween(620, (k) => {
+        c.rotation.y = Math.PI * (1 - k);
+        c.position.z = 0.35 + Math.sin(k * Math.PI) * 0.6;
+        const b = Math.max(0, (k - 0.35) / 0.65);
+        burst.scale.setScalar(1 + b * (sp ? 7 : 5)); burst.material.opacity = b > 0 ? (1 - b) * (sp ? 1 : 0.8) : 0;
+        if (sp) sparkU.t.value = b;
+      }, ease.inOut);
+      burst.material.opacity = 0; sparkU.t.value = 0;
+      hint.textContent = top === cards.length - 1 ? "Tap to see your pull" : "Tap for the next card";
+    } else if (top < cards.length - 1) {
+      // Off to the side; the next one is on top.
+      await tween(360, (k) => { c.position.x = -k * 4.6; c.rotation.z = k * 0.35; }, ease.inOut);
+      c.visible = false; top++;
+      hint.textContent = cards[top].userData.down ? "Tap to turn it over" : "Tap for the next card";
+    } else {
+      // The pull: every card, small, in a row.
+      for (const x of cards) x.visible = true;
+      // A fan that fits the screen: overlapping, the best card last and on top.
+      const n = cards.length, s = 0.4, step = Math.min(CW * s * 1.06, 2.2 / Math.max(1, n - 1)), mid = (n - 1) / 2;
+      const from = cards.map((x) => ({ x: x.position.x, y: x.position.y, z: x.position.z, r: x.rotation.z, ry: x.rotation.y }));
+      await tween(560, (k) => cards.forEach((x, i) => {
+        const tx = (i - mid) * step, ty = -Math.pow(i - mid, 2) * 0.06, tz = 0.3 + i * 0.02, tr = -(i - mid) * 0.09, f = from[i];
+        x.position.set(f.x + (tx - f.x) * k, f.y + (ty - f.y) * k, f.z + (tz - f.z) * k);
+        x.rotation.set(0, f.ry * (1 - k), f.r + (tr - f.r) * k);
+        x.scale.setScalar(1 + (s - 1) * k);
+      }), ease.inOut);
+      for (const x of cards) x.userData.down = false;
+      phase = "done"; hint.hidden = true; again.hidden = false;
+      return;
+    }
+    phase = "reveal";
+  }
+
+  // ---------- input: swipe to tear, tap to reveal, drag to tilt ----------
+  const MAX = 20, GAIN = 0.3, rad = Math.PI / 180;
+  const g = { id: 0, x0: 0, y0: 0, lx: 0, ly: 0, t0: 0, moved: 0, rx: 0, ry: 0, rawX: 0, rawY: 0 };
+  const soft = (v) => MAX * Math.tanh(v / MAX);
+  stage.addEventListener("pointerdown", (e) => {
+    if (e.target === again || (e.pointerType === "mouse" && e.button)) return;
+    g.id = e.pointerId; g.x0 = g.lx = e.clientX; g.y0 = g.ly = e.clientY; g.t0 = performance.now(); g.moved = 0; g.rawX = g.rawY = 0;
+    dragging = true; times = []; lastT = 0; kick();
+    try { stage.setPointerCapture(e.pointerId); } catch (er) { /* fine */ }
+  });
+  stage.addEventListener("pointermove", (e) => {
+    if (!dragging || e.pointerId !== g.id) return;
+    const dx = e.clientX - g.lx, dy = e.clientY - g.ly;
+    g.lx = e.clientX; g.ly = e.clientY; g.moved += Math.abs(dx) + Math.abs(dy);
+    if (phase === "pack") {
+      const tx = e.clientX - g.x0;
+      if (packUniforms.tear.value === 0 && Math.abs(tx) > 6) packUniforms.dir.value = Math.sign(tx);
+      const w = stage.clientWidth * 0.72;
+      packUniforms.tear.value = Math.max(0, Math.min(1, (packUniforms.dir.value * tx) / w));
+      glowUniforms.amt.value = packUniforms.tear.value > 0 ? 0.45 + packUniforms.tear.value * TIER[best()].glow * 0.7 : 0;
+      hint.hidden = packUniforms.tear.value > 0;
+    } else if (phase === "reveal" && cards[top]) {
+      g.rawY += dx * GAIN; g.rawX += dy * GAIN;
+      g.ry = soft(g.rawY); g.rx = soft(g.rawX);
+      const c = cards[top], base = c.userData.down ? Math.PI : 0;
+      c.rotation.set(g.rx * rad, base + g.ry * rad, 0);
+      c.userData.tilt.set(g.rx / MAX, (c.userData.down ? -1 : 1) * g.ry / MAX);
+    }
+  });
+  const up = (e) => {
+    if (!dragging || e.pointerId !== g.id) return;
+    dragging = false;
+    const tap = g.moved < 10 && performance.now() - g.t0 < 450;
+    if (phase === "pack") {
+      if (packUniforms.tear.value >= 0.68) open();
+      else { const t0 = packUniforms.tear.value, a0 = glowUniforms.amt.value; hint.hidden = false; tween(260, (k) => { packUniforms.tear.value = t0 * (1 - k); glowUniforms.amt.value = a0 * (1 - k); }); }
+    } else if (phase === "reveal") {
+      const c = cards[top], rx = g.rx, ry = g.ry, base = c.userData.down ? Math.PI : 0;
+      g.rx = g.ry = 0;
+      if (tap) next();
+      else tween(420, (k) => { const f = 1 - k; c.rotation.set(rx * rad * f, base + ry * rad * f, 0); c.userData.tilt.set(rx / MAX * f, (c.userData.down ? -1 : 1) * ry / MAX * f); }, (k) => 1 - Math.pow(1 - k, 2) * Math.cos(k * 4));
+    }
+    kick();
+  };
+  stage.addEventListener("pointerup", up);
+  stage.addEventListener("pointercancel", up);
+  again.addEventListener("click", reset);
+  for (const b of document.querySelectorAll(".pick button")) b.addEventListener("click", () => {
+    which = b.dataset.pack;
+    for (const x of document.querySelectorAll(".pick button")) x.setAttribute("aria-pressed", String(x === b));
+    reset();
+  });
+
+  function resize() {
+    const r = stage.getBoundingClientRect();
+    renderer.setSize(r.width, r.height, false);
+    camera.aspect = r.width / r.height; camera.updateProjectionMatrix();
+    kick();
+  }
+  addEventListener("resize", resize);
+  resize();
+  reset();
+  window.__state = () => ({ phase, top, tear: packUniforms.tear.value });
+})();
+</script>
