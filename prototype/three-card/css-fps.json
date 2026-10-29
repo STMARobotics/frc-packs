@@ -1,0 +1,26 @@
+{
+ "cards": {
+  "mythic": 2910,
+  "rare": 111
+ },
+ "css": {
+  "111": {
+   "fps": 167.8,
+   "p95ms": 6.1,
+   "over33ms": 0,
+   "frames": 506
+  },
+  "2910": {
+   "fps": 167.6,
+   "p95ms": 6.2,
+   "over33ms": 0,
+   "frames": 504
+  }
+ },
+ "card": {
+  "w": 310,
+  "h": 434,
+  "radius": "0px"
+ },
+ "cssBundle": "see README"
+}

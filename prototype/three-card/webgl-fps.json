@@ -1,0 +1,20 @@
+{
+ "gpu": "ANGLE",
+ "cards": {
+  "111": {
+   "fps": 168.9,
+   "p95ms": 6.1,
+   "over33ms": 0,
+   "frames": 505
+  },
+  "2910": {
+   "fps": 168.5,
+   "p95ms": 6.1,
+   "over33ms": 0,
+   "frames": 503
+  }
+ },
+ "errors": [
+  "Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

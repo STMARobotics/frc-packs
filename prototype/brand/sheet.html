@@ -1,0 +1,383 @@
+<title>FRC Packs Brand Marks</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Chakra+Petch:wght@500;600;700&display=swap">
+<style>
+/* Layout: one row per mark; each row shows the mark on the game's navy and on white, at app-icon, favicon and lockup
+   sizes, so the 16 px test is right next to the big one. */
+:root {
+  --bg: #0b0e17; --s1: #131826; --ln: #2a3450; --tx: #eef1f8; --dim: #8b94ab; --teal: #3cffdc; --paper: #f4f6fb; --ink: #0b0e17;
+  --display: "Lilita One", "Arial Rounded MT Bold", system-ui, sans-serif;
+  --body: "Chakra Petch", ui-sans-serif, system-ui, sans-serif;
+  color-scheme: dark;
+}
+html, body { background: var(--bg); color: var(--tx); }
+body { font: 500 15px/1.45 var(--body); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 22px 40px; }
+main { max-width: 980px; margin: 0 auto; display: grid; gap: 26px; }
+h1, h2 { font-family: var(--display); font-weight: 400; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(30px, 7vw, 44px); line-height: 1.05; }
+p { margin: 0; }
+.intro { display: grid; gap: 8px; max-width: 65ch; }
+.intro p, .row header p { color: var(--dim); }
+.row { display: grid; gap: 12px; }
+.row header { display: grid; gap: 4px; max-width: 70ch; }
+.row h2 { display: flex; align-items: center; gap: 10px; font-size: 26px; }
+.n { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--s1); box-shadow: inset 0 0 0 1px var(--ln); font: 700 15px var(--body); color: var(--dim); }
+.panes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.pane { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; gap: 14px 18px; align-items: center; padding: 18px; border-radius: 18px; min-width: 0; }
+.pane.dark { background: var(--s1); color: var(--tx); box-shadow: inset 0 0 0 1px var(--ln); }
+.pane.light { background: var(--paper); color: var(--ink); }
+.app { grid-row: span 2; width: 128px; height: 128px; filter: drop-shadow(0 8px 18px rgba(0,0,0,.35)); }
+.app svg { width: 100%; height: 100%; display: block; }
+.small { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.small span { display: inline-block; }
+.small svg { display: block; width: 100%; height: 100%; }
+.s32, .t32 { width: 32px; height: 32px; }
+.s16, .t16 { width: 16px; height: 16px; }
+.lock { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.lm { width: 40px; height: 40px; flex: none; }
+.lm svg { width: 100%; height: 100%; display: block; }
+.lock b { font: 400 30px var(--display); white-space: nowrap; }
+.pick { display: grid; gap: 8px; padding: 18px; border-radius: 18px; background: var(--s1); box-shadow: inset 0 0 0 1px var(--ln); max-width: 75ch; }
+.pick h2 { font-size: 24px; color: var(--teal); }
+@media (max-width: 720px) { .panes { grid-template-columns: 1fr; } }
+@media (max-width: 400px) { .app { width: 96px; height: 96px; } .lock b { font-size: 24px; } }
+</style>
+<main>
+  <header class="intro">
+    <h1>FRC Packs brand marks</h1>
+    <p>Five directions for the mark, each from the game's own world: packs, the single-seam rip, the constellation pack art, and Mythic teal as the payoff. None borrows from FIRST's marks. Each is shown as an app icon, at favicon sizes (32 and 16 px, bare and on the tile) and in the wordmark lockup, on the game's navy and on white.</p>
+  </header>
+  
+<section class="row">
+  <header><h2><span class="n">1</span>Seam</h2><p>A pack with its top torn off along one clean line, light spilling out. It is the game's signature moment, and the same single seam as the pack opening.</p></header>
+  <div class="panes">
+    <div class="pane dark">
+      <div class="app"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bgseama" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14306a"/><stop offset="1" stop-color="#0b0e17"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#bgseama)"/>
+  <defs><linearGradient id="gseama" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#3cffdc" stop-opacity=".85"/><stop offset="1" stop-color="#3cffdc" stop-opacity="0"/></linearGradient></defs>
+  <path d="M21 20 L43 20 L50 2 L14 2 Z" fill="url(#gseama)"/>
+  <rect x="18" y="21" width="28" height="38" rx="4.5" fill="#eef1f8"/>
+  <rect x="19" y="19.2" width="26" height="2.6" rx="1.3" fill="#3cffdc"/>
+  <rect x="18" y="8" width="28" height="7.5" rx="3" fill="#eef1f8" transform="rotate(-9 32 12)"/>
+  <path d="M32 32 C32.80 37.60 34.40 39.20 40 40 C34.40 40.80 32.80 42.40 32 48 C31.20 42.40 29.60 40.80 24 40 C29.60 39.20 31.20 37.60 32 32 Z" fill="#3cffdc"/></svg></div>
+      <div class="small"><span class="s32"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor">
+  <defs><linearGradient id="gseamb" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#3cffdc" stop-opacity=".85"/><stop offset="1" stop-color="#3cffdc" stop-opacity="0"/></linearGradient></defs>
+  <path d="M21 20 L43 20 L50 2 L14 2 Z" fill="url(#gseamb)"/>
+  <rect x="18" y="21" width="28" height="38" rx="4.5" fill="currentColor"/>
+  <rect x="19" y="19.2" width="26" height="2.6" rx="1.3" fill="#3cffdc"/>
+  <rect x="18" y="8" width="28" height="7.5" rx="3" fill="currentColor" transform="rotate(-9 32 12)"/>
+  <path d="M32 32 C32.80 37.60 34.40 39.20 40 40 C34.40 40.80 32.80 42.40 32 48 C31.20 42.40 29.60 40.80 24 40 C29.60 39.20 31.20 37.60 32 32 Z" fill="#3cffdc"/></svg></span><span class="s16"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor">
+  <defs><linearGradient id="gseamc" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#3cffdc" stop-opacity=".85"/><stop offset="1" stop-color="#3cffdc" stop-opacity="0"/></linearGradient></defs>
+  <path d="M21 20 L43 20 L50 2 L14 2 Z" fill="url(#gseamc)"/>
+  <rect x="18" y="21" width="28" height="38" rx="4.5" fill="currentColor"/>
+  <rect x="19" y="19.2" width="26" height="2.6" rx="1.3" fill="#3cffdc"/>
+  <rect x="18" y="8" width="28" height="7.5" rx="3" fill="currentColor" transform="rotate(-9 32 12)"/>
+  <path d="M32 32 C32.80 37.60 34.40 39.20 40 40 C34.40 40.80 32.80 42.40 32 48 C31.20 42.40 29.60 40.80 24 40 C29.60 39.20 31.20 37.60 32 32 Z" fill="#3cffdc"/></svg></span><span class="t32"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bgseamd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14306a"/><stop offset="1" stop-color="#0b0e17"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#bgseamd)"/>
+  <defs><linearGradient id="gseamd" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#3cffdc" stop-opacity=".85"/><stop offset="1" stop-color="#3cffdc" stop-opacity="0"/></linearGradient></defs>
+  <path d="M21 20 L43 20 L50 2 L14 2 Z" fill="url(#gseamd)"/>
+  <rect x="18" y="21" width="28" height="38" rx="4.5" fill="#eef1f8"/>
+  <rect x="19" y="19.2" width="26" height="2.6" rx="1.3" fill="#3cffdc"/>
+  <rect x="18" y="8" width="28" height="7.5" rx="3" fill="#eef1f8" transform="rotate(-9 32 12)"/>
+  <path d="M32 32 C32.80 37.60 34.40 39.20 40 40 C34.40 40.80 32.80 42.40 32 48 C31.20 42.40 29.60 40.80 24 40 C29.60 39.20 31.20 37.60 32 32 Z" fill="#3cffdc"/></svg></span><span class="t16"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bgseame" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14306a"/><stop offset="1" stop-color="#0b0e17"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#bgseame)"/>
+  <defs><linearGradient id="gseame" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#3cffdc" stop-opacity=".85"/><stop offset="1" stop-color="#3cffdc" stop-opacity="0"/></linearGradient></defs>
+  <path d="M21 20 L43 20 L50 2 L14 2 Z" fill="url(#gseame)"/>
+  <rect x="18" y="21" width="28" height="38" rx="4.5" fill="#eef1f8"/>
+  <rect x="19" y="19.2" width="26" height="2.6" rx="1.3" fill="#3cffdc"/>
+  <rect x="18" y="8" width="28" height="7.5" rx="3" fill="#eef1f8" transform="rotate(-9 32 12)"/>
+  <path d="M32 32 C32.80 37.60 34.40 39.20 40 40 C34.40 40.80 32.80 42.40 32 48 C31.20 42.40 29.60 40.80 24 40 C29.60 39.20 31.20 37.60 32 32 Z" fill="#3cffdc"/></svg></span></div>
+      <div class="lock"><span class="lm"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor">
+  <defs><linearGradient id="gseamg" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#3cffdc" stop-opacity=".85"/><stop offset="1" stop-color="#3cffdc" stop-opacity="0"/></linearGradient></defs>
+  <path d="M21 20 L43 20 L50 2 L14 2 Z" fill="url(#gseamg)"/>
+  <rect x="18" y="21" width="28" height="38" rx="4.5" fill="currentColor"/>
+  <rect x="19" y="19.2" width="26" height="2.6" rx="1.3" fill="#3cffdc"/>
+  <rect x="18" y="8" width="28" height="7.5" rx="3" fill="currentColor" transform="rotate(-9 32 12)"/>
+  <path d="M32 32 C32.80 37.60 34.40 39.20 40 40 C34.40 40.80 32.80 42.40 32 48 C31.20 42.40 29.60 40.80 24 40 C29.60 39.20 31.20 37.60 32 32 Z" fill="#3cffdc"/></svg></span><b>FRC Packs</b></div>
+    </div>
+    <div class="pane light">
+      <div class="app"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bgseamh" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14306a"/><stop offset="1" stop-color="#0b0e17"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#bgseamh)"/>
+  <defs><linearGradient id="gseamh" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#3cffdc" stop-opacity=".85"/><stop offset="1" stop-color="#3cffdc" stop-opacity="0"/></linearGradient></defs>
+  <path d="M21 20 L43 20 L50 2 L14 2 Z" fill="url(#gseamh)"/>
+  <rect x="18" y="21" width="28" height="38" rx="4.5" fill="#eef1f8"/>
+  <rect x="19" y="19.2" width="26" height="2.6" rx="1.3" fill="#3cffdc"/>
+  <rect x="18" y="8" width="28" height="7.5" rx="3" fill="#eef1f8" transform="rotate(-9 32 12)"/>
+  <path d="M32 32 C32.80 37.60 34.40 39.20 40 40 C34.40 40.80 32.80 42.40 32 48 C31.20 42.40 29.60 40.80 24 40 C29.60 39.20 31.20 37.60 32 32 Z" fill="#3cffdc"/></svg></div>
+      <div class="small"><span class="s32"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor">
+  <defs><linearGradient id="gseami" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#3cffdc" stop-opacity=".85"/><stop offset="1" stop-color="#3cffdc" stop-opacity="0"/></linearGradient></defs>
+  <path d="M21 20 L43 20 L50 2 L14 2 Z" fill="url(#gseami)"/>
+  <rect x="18" y="21" width="28" height="38" rx="4.5" fill="currentColor"/>
+  <rect x="19" y="19.2" width="26" height="2.6" rx="1.3" fill="#3cffdc"/>
+  <rect x="18" y="8" width="28" height="7.5" rx="3" fill="currentColor" transform="rotate(-9 32 12)"/>
+  <path d="M32 32 C32.80 37.60 34.40 39.20 40 40 C34.40 40.80 32.80 42.40 32 48 C31.20 42.40 29.60 40.80 24 40 C29.60 39.20 31.20 37.60 32 32 Z" fill="#3cffdc"/></svg></span><span class="s16"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor">
+  <defs><linearGradient id="gseamj" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#3cffdc" stop-opacity=".85"/><stop offset="1" stop-color="#3cffdc" stop-opacity="0"/></linearGradient></defs>
+  <path d="M21 20 L43 20 L50 2 L14 2 Z" fill="url(#gseamj)"/>
+  <rect x="18" y="21" width="28" height="38" rx="4.5" fill="currentColor"/>
+  <rect x="19" y="19.2" width="26" height="2.6" rx="1.3" fill="#3cffdc"/>
+  <rect x="18" y="8" width="28" height="7.5" rx="3" fill="currentColor" transform="rotate(-9 32 12)"/>
+  <path d="M32 32 C32.80 37.60 34.40 39.20 40 40 C34.40 40.80 32.80 42.40 32 48 C31.20 42.40 29.60 40.80 24 40 C29.60 39.20 31.20 37.60 32 32 Z" fill="#3cffdc"/></svg></span><span class="t32"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bgseamk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14306a"/><stop offset="1" stop-color="#0b0e17"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#bgseamk)"/>
+  <defs><linearGradient id="gseamk" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#3cffdc" stop-opacity=".85"/><stop offset="1" stop-color="#3cffdc" stop-opacity="0"/></linearGradient></defs>
+  <path d="M21 20 L43 20 L50 2 L14 2 Z" fill="url(#gseamk)"/>
+  <rect x="18" y="21" width="28" height="38" rx="4.5" fill="#eef1f8"/>
+  <rect x="19" y="19.2" width="26" height="2.6" rx="1.3" fill="#3cffdc"/>
+  <rect x="18" y="8" width="28" height="7.5" rx="3" fill="#eef1f8" transform="rotate(-9 32 12)"/>
+  <path d="M32 32 C32.80 37.60 34.40 39.20 40 40 C34.40 40.80 32.80 42.40 32 48 C31.20 42.40 29.60 40.80 24 40 C29.60 39.20 31.20 37.60 32 32 Z" fill="#3cffdc"/></svg></span><span class="t16"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bgseaml" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14306a"/><stop offset="1" stop-color="#0b0e17"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#bgseaml)"/>
+  <defs><linearGradient id="gseaml" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#3cffdc" stop-opacity=".85"/><stop offset="1" stop-color="#3cffdc" stop-opacity="0"/></linearGradient></defs>
+  <path d="M21 20 L43 20 L50 2 L14 2 Z" fill="url(#gseaml)"/>
+  <rect x="18" y="21" width="28" height="38" rx="4.5" fill="#eef1f8"/>
+  <rect x="19" y="19.2" width="26" height="2.6" rx="1.3" fill="#3cffdc"/>
+  <rect x="18" y="8" width="28" height="7.5" rx="3" fill="#eef1f8" transform="rotate(-9 32 12)"/>
+  <path d="M32 32 C32.80 37.60 34.40 39.20 40 40 C34.40 40.80 32.80 42.40 32 48 C31.20 42.40 29.60 40.80 24 40 C29.60 39.20 31.20 37.60 32 32 Z" fill="#3cffdc"/></svg></span></div>
+      <div class="lock"><span class="lm"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor">
+  <defs><linearGradient id="gseamo" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#3cffdc" stop-opacity=".85"/><stop offset="1" stop-color="#3cffdc" stop-opacity="0"/></linearGradient></defs>
+  <path d="M21 20 L43 20 L50 2 L14 2 Z" fill="url(#gseamo)"/>
+  <rect x="18" y="21" width="28" height="38" rx="4.5" fill="currentColor"/>
+  <rect x="19" y="19.2" width="26" height="2.6" rx="1.3" fill="#3cffdc"/>
+  <rect x="18" y="8" width="28" height="7.5" rx="3" fill="currentColor" transform="rotate(-9 32 12)"/>
+  <path d="M32 32 C32.80 37.60 34.40 39.20 40 40 C34.40 40.80 32.80 42.40 32 48 C31.20 42.40 29.60 40.80 24 40 C29.60 39.20 31.20 37.60 32 32 Z" fill="#3cffdc"/></svg></span><b>FRC Packs</b></div>
+    </div>
+  </div>
+</section>
+<section class="row">
+  <header><h2><span class="n">2</span>Five Stars</h2><p>Five stars traced into a P, from the constellation pack art: five cards in a pack, the last and best one teal.</p></header>
+  <div class="panes">
+    <div class="pane dark">
+      <div class="app"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bgfive-starsa" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14306a"/><stop offset="1" stop-color="#0b0e17"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#bgfive-starsa)"/>
+  <polyline points="22,55 22,11 43,14 46,29 25,34" fill="none" stroke="#eef1f8" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" opacity=".75"/>
+  <circle cx="22" cy="55" r="4.6" fill="#eef1f8"/><circle cx="22" cy="11" r="4.6" fill="#eef1f8"/><circle cx="43" cy="14" r="4.6" fill="#eef1f8"/><circle cx="46" cy="29" r="4.6" fill="#eef1f8"/>
+  <path d="M25 23.5 C26.05 30.85 28.15 32.95 35.5 34 C28.15 35.05 26.05 37.15 25 44.5 C23.95 37.15 21.85 35.05 14.5 34 C21.85 32.95 23.95 30.85 25 23.5 Z" fill="#3cffdc"/></svg></div>
+      <div class="small"><span class="s32"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor">
+  <polyline points="22,55 22,11 43,14 46,29 25,34" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" opacity=".75"/>
+  <circle cx="22" cy="55" r="4.6" fill="currentColor"/><circle cx="22" cy="11" r="4.6" fill="currentColor"/><circle cx="43" cy="14" r="4.6" fill="currentColor"/><circle cx="46" cy="29" r="4.6" fill="currentColor"/>
+  <path d="M25 23.5 C26.05 30.85 28.15 32.95 35.5 34 C28.15 35.05 26.05 37.15 25 44.5 C23.95 37.15 21.85 35.05 14.5 34 C21.85 32.95 23.95 30.85 25 23.5 Z" fill="#3cffdc"/></svg></span><span class="s16"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor">
+  <polyline points="22,55 22,11 43,14 46,29 25,34" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" opacity=".75"/>
+  <circle cx="22" cy="55" r="4.6" fill="currentColor"/><circle cx="22" cy="11" r="4.6" fill="currentColor"/><circle cx="43" cy="14" r="4.6" fill="currentColor"/><circle cx="46" cy="29" r="4.6" fill="currentColor"/>
+  <path d="M25 23.5 C26.05 30.85 28.15 32.95 35.5 34 C28.15 35.05 26.05 37.15 25 44.5 C23.95 37.15 21.85 35.05 14.5 34 C21.85 32.95 23.95 30.85 25 23.5 Z" fill="#3cffdc"/></svg></span><span class="t32"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bgfive-starsd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14306a"/><stop offset="1" stop-color="#0b0e17"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#bgfive-starsd)"/>
+  <polyline points="22,55 22,11 43,14 46,29 25,34" fill="none" stroke="#eef1f8" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" opacity=".75"/>
+  <circle cx="22" cy="55" r="4.6" fill="#eef1f8"/><circle cx="22" cy="11" r="4.6" fill="#eef1f8"/><circle cx="43" cy="14" r="4.6" fill="#eef1f8"/><circle cx="46" cy="29" r="4.6" fill="#eef1f8"/>
+  <path d="M25 23.5 C26.05 30.85 28.15 32.95 35.5 34 C28.15 35.05 26.05 37.15 25 44.5 C23.95 37.15 21.85 35.05 14.5 34 C21.85 32.95 23.95 30.85 25 23.5 Z" fill="#3cffdc"/></svg></span><span class="t16"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bgfive-starse" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14306a"/><stop offset="1" stop-color="#0b0e17"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#bgfive-starse)"/>
+  <polyline points="22,55 22,11 43,14 46,29 25,34" fill="none" stroke="#eef1f8" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" opacity=".75"/>
+  <circle cx="22" cy="55" r="4.6" fill="#eef1f8"/><circle cx="22" cy="11" r="4.6" fill="#eef1f8"/><circle cx="43" cy="14" r="4.6" fill="#eef1f8"/><circle cx="46" cy="29" r="4.6" fill="#eef1f8"/>
+  <path d="M25 23.5 C26.05 30.85 28.15 32.95 35.5 34 C28.15 35.05 26.05 37.15 25 44.5 C23.95 37.15 21.85 35.05 14.5 34 C21.85 32.95 23.95 30.85 25 23.5 Z" fill="#3cffdc"/></svg></span></div>
+      <div class="lock"><span class="lm"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor">
+  <polyline points="22,55 22,11 43,14 46,29 25,34" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" opacity=".75"/>
+  <circle cx="22" cy="55" r="4.6" fill="currentColor"/><circle cx="22" cy="11" r="4.6" fill="currentColor"/><circle cx="43" cy="14" r="4.6" fill="currentColor"/><circle cx="46" cy="29" r="4.6" fill="currentColor"/>
+  <path d="M25 23.5 C26.05 30.85 28.15 32.95 35.5 34 C28.15 35.05 26.05 37.15 25 44.5 C23.95 37.15 21.85 35.05 14.5 34 C21.85 32.95 23.95 30.85 25 23.5 Z" fill="#3cffdc"/></svg></span><b>FRC Packs</b></div>
+    </div>
+    <div class="pane light">
+      <div class="app"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bgfive-starsh" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14306a"/><stop offset="1" stop-color="#0b0e17"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#bgfive-starsh)"/>
+  <polyline points="22,55 22,11 43,14 46,29 25,34" fill="none" stroke="#eef1f8" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" opacity=".75"/>
+  <circle cx="22" cy="55" r="4.6" fill="#eef1f8"/><circle cx="22" cy="11" r="4.6" fill="#eef1f8"/><circle cx="43" cy="14" r="4.6" fill="#eef1f8"/><circle cx="46" cy="29" r="4.6" fill="#eef1f8"/>
+  <path d="M25 23.5 C26.05 30.85 28.15 32.95 35.5 34 C28.15 35.05 26.05 37.15 25 44.5 C23.95 37.15 21.85 35.05 14.5 34 C21.85 32.95 23.95 30.85 25 23.5 Z" fill="#3cffdc"/></svg></div>
+      <div class="small"><span class="s32"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor">
+  <polyline points="22,55 22,11 43,14 46,29 25,34" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" opacity=".75"/>
+  <circle cx="22" cy="55" r="4.6" fill="currentColor"/><circle cx="22" cy="11" r="4.6" fill="currentColor"/><circle cx="43" cy="14" r="4.6" fill="currentColor"/><circle cx="46" cy="29" r="4.6" fill="currentColor"/>
+  <path d="M25 23.5 C26.05 30.85 28.15 32.95 35.5 34 C28.15 35.05 26.05 37.15 25 44.5 C23.95 37.15 21.85 35.05 14.5 34 C21.85 32.95 23.95 30.85 25 23.5 Z" fill="#3cffdc"/></svg></span><span class="s16"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor">
+  <polyline points="22,55 22,11 43,14 46,29 25,34" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" opacity=".75"/>
+  <circle cx="22" cy="55" r="4.6" fill="currentColor"/><circle cx="22" cy="11" r="4.6" fill="currentColor"/><circle cx="43" cy="14" r="4.6" fill="currentColor"/><circle cx="46" cy="29" r="4.6" fill="currentColor"/>
+  <path d="M25 23.5 C26.05 30.85 28.15 32.95 35.5 34 C28.15 35.05 26.05 37.15 25 44.5 C23.95 37.15 21.85 35.05 14.5 34 C21.85 32.95 23.95 30.85 25 23.5 Z" fill="#3cffdc"/></svg></span><span class="t32"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bgfive-starsk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14306a"/><stop offset="1" stop-color="#0b0e17"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#bgfive-starsk)"/>
+  <polyline points="22,55 22,11 43,14 46,29 25,34" fill="none" stroke="#eef1f8" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" opacity=".75"/>
+  <circle cx="22" cy="55" r="4.6" fill="#eef1f8"/><circle cx="22" cy="11" r="4.6" fill="#eef1f8"/><circle cx="43" cy="14" r="4.6" fill="#eef1f8"/><circle cx="46" cy="29" r="4.6" fill="#eef1f8"/>
+  <path d="M25 23.5 C26.05 30.85 28.15 32.95 35.5 34 C28.15 35.05 26.05 37.15 25 44.5 C23.95 37.15 21.85 35.05 14.5 34 C21.85 32.95 23.95 30.85 25 23.5 Z" fill="#3cffdc"/></svg></span><span class="t16"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bgfive-starsl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14306a"/><stop offset="1" stop-color="#0b0e17"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#bgfive-starsl)"/>
+  <polyline points="22,55 22,11 43,14 46,29 25,34" fill="none" stroke="#eef1f8" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" opacity=".75"/>
+  <circle cx="22" cy="55" r="4.6" fill="#eef1f8"/><circle cx="22" cy="11" r="4.6" fill="#eef1f8"/><circle cx="43" cy="14" r="4.6" fill="#eef1f8"/><circle cx="46" cy="29" r="4.6" fill="#eef1f8"/>
+  <path d="M25 23.5 C26.05 30.85 28.15 32.95 35.5 34 C28.15 35.05 26.05 37.15 25 44.5 C23.95 37.15 21.85 35.05 14.5 34 C21.85 32.95 23.95 30.85 25 23.5 Z" fill="#3cffdc"/></svg></span></div>
+      <div class="lock"><span class="lm"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor">
+  <polyline points="22,55 22,11 43,14 46,29 25,34" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" opacity=".75"/>
+  <circle cx="22" cy="55" r="4.6" fill="currentColor"/><circle cx="22" cy="11" r="4.6" fill="currentColor"/><circle cx="43" cy="14" r="4.6" fill="currentColor"/><circle cx="46" cy="29" r="4.6" fill="currentColor"/>
+  <path d="M25 23.5 C26.05 30.85 28.15 32.95 35.5 34 C28.15 35.05 26.05 37.15 25 44.5 C23.95 37.15 21.85 35.05 14.5 34 C21.85 32.95 23.95 30.85 25 23.5 Z" fill="#3cffdc"/></svg></span><b>FRC Packs</b></div>
+    </div>
+  </div>
+</section>
+<section class="row">
+  <header><h2><span class="n">3</span>Fan</h2><p>Three cards fanned like a hand, the front one edged in Mythic teal. Reads as a card game at any size.</p></header>
+  <div class="panes">
+    <div class="pane dark">
+      <div class="app"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bgfana" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14306a"/><stop offset="1" stop-color="#0b0e17"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#bgfana)"/>
+  <g transform="translate(0 6)">
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="#eef1f8" opacity=".35" transform="rotate(-24 32 50)"/>
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="#eef1f8" opacity=".62" transform="rotate(-8 32 50)"/>
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="#eef1f8" stroke="#3cffdc" stroke-width="2.6" transform="rotate(10 32 50)"/>
+  <path d="M35.2 21.0 C35.85 25.55 37.15 26.85 41.7 27.5 C37.15 28.15 35.85 29.45 35.2 34.0 C34.55 29.45 33.25 28.15 28.700000000000003 27.5 C33.25 26.85 34.55 25.55 35.2 21.0 Z" fill="#3cffdc" transform="rotate(10 32 50)"/>
+  </g></svg></div>
+      <div class="small"><span class="s32"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor">
+  <g transform="translate(0 6)">
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="currentColor" opacity=".35" transform="rotate(-24 32 50)"/>
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="currentColor" opacity=".62" transform="rotate(-8 32 50)"/>
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="currentColor" stroke="#3cffdc" stroke-width="2.6" transform="rotate(10 32 50)"/>
+  <path d="M35.2 21.0 C35.85 25.55 37.15 26.85 41.7 27.5 C37.15 28.15 35.85 29.45 35.2 34.0 C34.55 29.45 33.25 28.15 28.700000000000003 27.5 C33.25 26.85 34.55 25.55 35.2 21.0 Z" fill="#3cffdc" transform="rotate(10 32 50)"/>
+  </g></svg></span><span class="s16"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor">
+  <g transform="translate(0 6)">
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="currentColor" opacity=".35" transform="rotate(-24 32 50)"/>
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="currentColor" opacity=".62" transform="rotate(-8 32 50)"/>
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="currentColor" stroke="#3cffdc" stroke-width="2.6" transform="rotate(10 32 50)"/>
+  <path d="M35.2 21.0 C35.85 25.55 37.15 26.85 41.7 27.5 C37.15 28.15 35.85 29.45 35.2 34.0 C34.55 29.45 33.25 28.15 28.700000000000003 27.5 C33.25 26.85 34.55 25.55 35.2 21.0 Z" fill="#3cffdc" transform="rotate(10 32 50)"/>
+  </g></svg></span><span class="t32"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bgfand" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14306a"/><stop offset="1" stop-color="#0b0e17"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#bgfand)"/>
+  <g transform="translate(0 6)">
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="#eef1f8" opacity=".35" transform="rotate(-24 32 50)"/>
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="#eef1f8" opacity=".62" transform="rotate(-8 32 50)"/>
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="#eef1f8" stroke="#3cffdc" stroke-width="2.6" transform="rotate(10 32 50)"/>
+  <path d="M35.2 21.0 C35.85 25.55 37.15 26.85 41.7 27.5 C37.15 28.15 35.85 29.45 35.2 34.0 C34.55 29.45 33.25 28.15 28.700000000000003 27.5 C33.25 26.85 34.55 25.55 35.2 21.0 Z" fill="#3cffdc" transform="rotate(10 32 50)"/>
+  </g></svg></span><span class="t16"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bgfane" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14306a"/><stop offset="1" stop-color="#0b0e17"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#bgfane)"/>
+  <g transform="translate(0 6)">
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="#eef1f8" opacity=".35" transform="rotate(-24 32 50)"/>
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="#eef1f8" opacity=".62" transform="rotate(-8 32 50)"/>
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="#eef1f8" stroke="#3cffdc" stroke-width="2.6" transform="rotate(10 32 50)"/>
+  <path d="M35.2 21.0 C35.85 25.55 37.15 26.85 41.7 27.5 C37.15 28.15 35.85 29.45 35.2 34.0 C34.55 29.45 33.25 28.15 28.700000000000003 27.5 C33.25 26.85 34.55 25.55 35.2 21.0 Z" fill="#3cffdc" transform="rotate(10 32 50)"/>
+  </g></svg></span></div>
+      <div class="lock"><span class="lm"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor">
+  <g transform="translate(0 6)">
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="currentColor" opacity=".35" transform="rotate(-24 32 50)"/>
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="currentColor" opacity=".62" transform="rotate(-8 32 50)"/>
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="currentColor" stroke="#3cffdc" stroke-width="2.6" transform="rotate(10 32 50)"/>
+  <path d="M35.2 21.0 C35.85 25.55 37.15 26.85 41.7 27.5 C37.15 28.15 35.85 29.45 35.2 34.0 C34.55 29.45 33.25 28.15 28.700000000000003 27.5 C33.25 26.85 34.55 25.55 35.2 21.0 Z" fill="#3cffdc" transform="rotate(10 32 50)"/>
+  </g></svg></span><b>FRC Packs</b></div>
+    </div>
+    <div class="pane light">
+      <div class="app"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bgfanh" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14306a"/><stop offset="1" stop-color="#0b0e17"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#bgfanh)"/>
+  <g transform="translate(0 6)">
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="#eef1f8" opacity=".35" transform="rotate(-24 32 50)"/>
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="#eef1f8" opacity=".62" transform="rotate(-8 32 50)"/>
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="#eef1f8" stroke="#3cffdc" stroke-width="2.6" transform="rotate(10 32 50)"/>
+  <path d="M35.2 21.0 C35.85 25.55 37.15 26.85 41.7 27.5 C37.15 28.15 35.85 29.45 35.2 34.0 C34.55 29.45 33.25 28.15 28.700000000000003 27.5 C33.25 26.85 34.55 25.55 35.2 21.0 Z" fill="#3cffdc" transform="rotate(10 32 50)"/>
+  </g></svg></div>
+      <div class="small"><span class="s32"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor">
+  <g transform="translate(0 6)">
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="currentColor" opacity=".35" transform="rotate(-24 32 50)"/>
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="currentColor" opacity=".62" transform="rotate(-8 32 50)"/>
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="currentColor" stroke="#3cffdc" stroke-width="2.6" transform="rotate(10 32 50)"/>
+  <path d="M35.2 21.0 C35.85 25.55 37.15 26.85 41.7 27.5 C37.15 28.15 35.85 29.45 35.2 34.0 C34.55 29.45 33.25 28.15 28.700000000000003 27.5 C33.25 26.85 34.55 25.55 35.2 21.0 Z" fill="#3cffdc" transform="rotate(10 32 50)"/>
+  </g></svg></span><span class="s16"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor">
+  <g transform="translate(0 6)">
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="currentColor" opacity=".35" transform="rotate(-24 32 50)"/>
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="currentColor" opacity=".62" transform="rotate(-8 32 50)"/>
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="currentColor" stroke="#3cffdc" stroke-width="2.6" transform="rotate(10 32 50)"/>
+  <path d="M35.2 21.0 C35.85 25.55 37.15 26.85 41.7 27.5 C37.15 28.15 35.85 29.45 35.2 34.0 C34.55 29.45 33.25 28.15 28.700000000000003 27.5 C33.25 26.85 34.55 25.55 35.2 21.0 Z" fill="#3cffdc" transform="rotate(10 32 50)"/>
+  </g></svg></span><span class="t32"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bgfank" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14306a"/><stop offset="1" stop-color="#0b0e17"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#bgfank)"/>
+  <g transform="translate(0 6)">
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="#eef1f8" opacity=".35" transform="rotate(-24 32 50)"/>
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="#eef1f8" opacity=".62" transform="rotate(-8 32 50)"/>
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="#eef1f8" stroke="#3cffdc" stroke-width="2.6" transform="rotate(10 32 50)"/>
+  <path d="M35.2 21.0 C35.85 25.55 37.15 26.85 41.7 27.5 C37.15 28.15 35.85 29.45 35.2 34.0 C34.55 29.45 33.25 28.15 28.700000000000003 27.5 C33.25 26.85 34.55 25.55 35.2 21.0 Z" fill="#3cffdc" transform="rotate(10 32 50)"/>
+  </g></svg></span><span class="t16"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bgfanl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14306a"/><stop offset="1" stop-color="#0b0e17"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#bgfanl)"/>
+  <g transform="translate(0 6)">
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="#eef1f8" opacity=".35" transform="rotate(-24 32 50)"/>
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="#eef1f8" opacity=".62" transform="rotate(-8 32 50)"/>
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="#eef1f8" stroke="#3cffdc" stroke-width="2.6" transform="rotate(10 32 50)"/>
+  <path d="M35.2 21.0 C35.85 25.55 37.15 26.85 41.7 27.5 C37.15 28.15 35.85 29.45 35.2 34.0 C34.55 29.45 33.25 28.15 28.700000000000003 27.5 C33.25 26.85 34.55 25.55 35.2 21.0 Z" fill="#3cffdc" transform="rotate(10 32 50)"/>
+  </g></svg></span></div>
+      <div class="lock"><span class="lm"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor">
+  <g transform="translate(0 6)">
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="currentColor" opacity=".35" transform="rotate(-24 32 50)"/>
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="currentColor" opacity=".62" transform="rotate(-8 32 50)"/>
+  <rect x="21" y="13" width="22" height="31" rx="3.5" fill="currentColor" stroke="#3cffdc" stroke-width="2.6" transform="rotate(10 32 50)"/>
+  <path d="M35.2 21.0 C35.85 25.55 37.15 26.85 41.7 27.5 C37.15 28.15 35.85 29.45 35.2 34.0 C34.55 29.45 33.25 28.15 28.700000000000003 27.5 C33.25 26.85 34.55 25.55 35.2 21.0 Z" fill="#3cffdc" transform="rotate(10 32 50)"/>
+  </g></svg></span><b>FRC Packs</b></div>
+    </div>
+  </div>
+</section>
+<section class="row">
+  <header><h2><span class="n">4</span>Spark Card</h2><p>A card with a teal spark at its heart: the moment of the pull. The simplest of the five.</p></header>
+  <div class="panes">
+    <div class="pane dark">
+      <div class="app"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bgspark-carda" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14306a"/><stop offset="1" stop-color="#0b0e17"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#bgspark-carda)"/>
+  <rect x="14" y="7" width="36" height="50" rx="6" fill="#eef1f8"/>
+  <path d="M32 18 C33.21 28.36 35.64 30.79 46 32 C35.64 33.21 33.21 35.64 32 46 C30.79 35.64 28.36 33.21 18 32 C28.36 30.79 30.79 28.36 32 18 Z" fill="#3cffdc"/></svg></div>
+      <div class="small"><span class="s32"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor">
+  <rect x="14" y="7" width="36" height="50" rx="6" fill="currentColor"/>
+  <path d="M32 18 C33.21 28.36 35.64 30.79 46 32 C35.64 33.21 33.21 35.64 32 46 C30.79 35.64 28.36 33.21 18 32 C28.36 30.79 30.79 28.36 32 18 Z" fill="#3cffdc"/></svg></span><span class="s16"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor">
+  <rect x="14" y="7" width="36" height="50" rx="6" fill="currentColor"/>
+  <path d="M32 18 C33.21 28.36 35.64 30.79 46 32 C35.64 33.21 33.21 35.64 32 46 C30.79 35.64 28.36 33.21 18 32 C28.36 30.79 30.79 28.36 32 18 Z" fill="#3cffdc"/></svg></span><span class="t32"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bgspark-cardd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14306a"/><stop offset="1" stop-color="#0b0e17"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#bgspark-cardd)"/>
+  <rect x="14" y="7" width="36" height="50" rx="6" fill="#eef1f8"/>
+  <path d="M32 18 C33.21 28.36 35.64 30.79 46 32 C35.64 33.21 33.21 35.64 32 46 C30.79 35.64 28.36 33.21 18 32 C28.36 30.79 30.79 28.36 32 18 Z" fill="#3cffdc"/></svg></span><span class="t16"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bgspark-carde" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14306a"/><stop offset="1" stop-color="#0b0e17"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#bgspark-carde)"/>
+  <rect x="14" y="7" width="36" height="50" rx="6" fill="#eef1f8"/>
+  <path d="M32 18 C33.21 28.36 35.64 30.79 46 32 C35.64 33.21 33.21 35.64 32 46 C30.79 35.64 28.36 33.21 18 32 C28.36 30.79 30.79 28.36 32 18 Z" fill="#3cffdc"/></svg></span></div>
+      <div class="lock"><span class="lm"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor">
+  <rect x="14" y="7" width="36" height="50" rx="6" fill="currentColor"/>
+  <path d="M32 18 C33.21 28.36 35.64 30.79 46 32 C35.64 33.21 33.21 35.64 32 46 C30.79 35.64 28.36 33.21 18 32 C28.36 30.79 30.79 28.36 32 18 Z" fill="#3cffdc"/></svg></span><b>FRC Packs</b></div>
+    </div>
+    <div class="pane light">
+      <div class="app"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bgspark-cardh" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14306a"/><stop offset="1" stop-color="#0b0e17"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#bgspark-cardh)"/>
+  <rect x="14" y="7" width="36" height="50" rx="6" fill="#eef1f8"/>
+  <path d="M32 18 C33.21 28.36 35.64 30.79 46 32 C35.64 33.21 33.21 35.64 32 46 C30.79 35.64 28.36 33.21 18 32 C28.36 30.79 30.79 28.36 32 18 Z" fill="#3cffdc"/></svg></div>
+      <div class="small"><span class="s32"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor">
+  <rect x="14" y="7" width="36" height="50" rx="6" fill="currentColor"/>
+  <path d="M32 18 C33.21 28.36 35.64 30.79 46 32 C35.64 33.21 33.21 35.64 32 46 C30.79 35.64 28.36 33.21 18 32 C28.36 30.79 30.79 28.36 32 18 Z" fill="#3cffdc"/></svg></span><span class="s16"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor">
+  <rect x="14" y="7" width="36" height="50" rx="6" fill="currentColor"/>
+  <path d="M32 18 C33.21 28.36 35.64 30.79 46 32 C35.64 33.21 33.21 35.64 32 46 C30.79 35.64 28.36 33.21 18 32 C28.36 30.79 30.79 28.36 32 18 Z" fill="#3cffdc"/></svg></span><span class="t32"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bgspark-cardk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14306a"/><stop offset="1" stop-color="#0b0e17"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#bgspark-cardk)"/>
+  <rect x="14" y="7" width="36" height="50" rx="6" fill="#eef1f8"/>
+  <path d="M32 18 C33.21 28.36 35.64 30.79 46 32 C35.64 33.21 33.21 35.64 32 46 C30.79 35.64 28.36 33.21 18 32 C28.36 30.79 30.79 28.36 32 18 Z" fill="#3cffdc"/></svg></span><span class="t16"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bgspark-cardl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14306a"/><stop offset="1" stop-color="#0b0e17"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#bgspark-cardl)"/>
+  <rect x="14" y="7" width="36" height="50" rx="6" fill="#eef1f8"/>
+  <path d="M32 18 C33.21 28.36 35.64 30.79 46 32 C35.64 33.21 33.21 35.64 32 46 C30.79 35.64 28.36 33.21 18 32 C28.36 30.79 30.79 28.36 32 18 Z" fill="#3cffdc"/></svg></span></div>
+      <div class="lock"><span class="lm"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor">
+  <rect x="14" y="7" width="36" height="50" rx="6" fill="currentColor"/>
+  <path d="M32 18 C33.21 28.36 35.64 30.79 46 32 C35.64 33.21 33.21 35.64 32 46 C30.79 35.64 28.36 33.21 18 32 C28.36 30.79 30.79 28.36 32 18 Z" fill="#3cffdc"/></svg></span><b>FRC Packs</b></div>
+    </div>
+  </div>
+</section>
+<section class="row">
+  <header><h2><span class="n">5</span>Peel</h2><p>A card with its corner peeled back on teal: the reveal, and a hint of what's inside.</p></header>
+  <div class="panes">
+    <div class="pane dark">
+      <div class="app"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bgpeela" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14306a"/><stop offset="1" stop-color="#0b0e17"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#bgpeela)"/>
+  <path d="M36 7 L50 7 L50 21 Z" fill="#3cffdc"/>
+  <path d="M20 7 L36 7 L50 21 L50 51 Q50 57 44 57 L20 57 Q14 57 14 51 L14 13 Q14 7 20 7 Z" fill="#eef1f8"/>
+  <path d="M36 7 L36 21 L50 21 Z" fill="#3cffdc" opacity=".45"/>
+  <path d="M36 7 L36 21 L50 21" fill="none" stroke="#eef1f8" stroke-width="1.6" stroke-linejoin="round" opacity=".55"/></svg></div>
+      <div class="small"><span class="s32"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor">
+  <path d="M36 7 L50 7 L50 21 Z" fill="#3cffdc"/>
+  <path d="M20 7 L36 7 L50 21 L50 51 Q50 57 44 57 L20 57 Q14 57 14 51 L14 13 Q14 7 20 7 Z" fill="currentColor"/>
+  <path d="M36 7 L36 21 L50 21 Z" fill="#3cffdc" opacity=".45"/>
+  <path d="M36 7 L36 21 L50 21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" opacity=".55"/></svg></span><span class="s16"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor">
+  <path d="M36 7 L50 7 L50 21 Z" fill="#3cffdc"/>
+  <path d="M20 7 L36 7 L50 21 L50 51 Q50 57 44 57 L20 57 Q14 57 14 51 L14 13 Q14 7 20 7 Z" fill="currentColor"/>
+  <path d="M36 7 L36 21 L50 21 Z" fill="#3cffdc" opacity=".45"/>
+  <path d="M36 7 L36 21 L50 21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" opacity=".55"/></svg></span><span class="t32"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bgpeeld" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14306a"/><stop offset="1" stop-color="#0b0e17"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#bgpeeld)"/>
+  <path d="M36 7 L50 7 L50 21 Z" fill="#3cffdc"/>
+  <path d="M20 7 L36 7 L50 21 L50 51 Q50 57 44 57 L20 57 Q14 57 14 51 L14 13 Q14 7 20 7 Z" fill="#eef1f8"/>
+  <path d="M36 7 L36 21 L50 21 Z" fill="#3cffdc" opacity=".45"/>
+  <path d="M36 7 L36 21 L50 21" fill="none" stroke="#eef1f8" stroke-width="1.6" stroke-linejoin="round" opacity=".55"/></svg></span><span class="t16"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bgpeele" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14306a"/><stop offset="1" stop-color="#0b0e17"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#bgpeele)"/>
+  <path d="M36 7 L50 7 L50 21 Z" fill="#3cffdc"/>
+  <path d="M20 7 L36 7 L50 21 L50 51 Q50 57 44 57 L20 57 Q14 57 14 51 L14 13 Q14 7 20 7 Z" fill="#eef1f8"/>
+  <path d="M36 7 L36 21 L50 21 Z" fill="#3cffdc" opacity=".45"/>
+  <path d="M36 7 L36 21 L50 21" fill="none" stroke="#eef1f8" stroke-width="1.6" stroke-linejoin="round" opacity=".55"/></svg></span></div>
+      <div class="lock"><span class="lm"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor">
+  <path d="M36 7 L50 7 L50 21 Z" fill="#3cffdc"/>
+  <path d="M20 7 L36 7 L50 21 L50 51 Q50 57 44 57 L20 57 Q14 57 14 51 L14 13 Q14 7 20 7 Z" fill="currentColor"/>
+  <path d="M36 7 L36 21 L50 21 Z" fill="#3cffdc" opacity=".45"/>
+  <path d="M36 7 L36 21 L50 21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" opacity=".55"/></svg></span><b>FRC Packs</b></div>
+    </div>
+    <div class="pane light">
+      <div class="app"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bgpeelh" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14306a"/><stop offset="1" stop-color="#0b0e17"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#bgpeelh)"/>
+  <path d="M36 7 L50 7 L50 21 Z" fill="#3cffdc"/>
+  <path d="M20 7 L36 7 L50 21 L50 51 Q50 57 44 57 L20 57 Q14 57 14 51 L14 13 Q14 7 20 7 Z" fill="#eef1f8"/>
+  <path d="M36 7 L36 21 L50 21 Z" fill="#3cffdc" opacity=".45"/>
+  <path d="M36 7 L36 21 L50 21" fill="none" stroke="#eef1f8" stroke-width="1.6" stroke-linejoin="round" opacity=".55"/></svg></div>
+      <div class="small"><span class="s32"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor">
+  <path d="M36 7 L50 7 L50 21 Z" fill="#3cffdc"/>
+  <path d="M20 7 L36 7 L50 21 L50 51 Q50 57 44 57 L20 57 Q14 57 14 51 L14 13 Q14 7 20 7 Z" fill="currentColor"/>
+  <path d="M36 7 L36 21 L50 21 Z" fill="#3cffdc" opacity=".45"/>
+  <path d="M36 7 L36 21 L50 21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" opacity=".55"/></svg></span><span class="s16"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor">
+  <path d="M36 7 L50 7 L50 21 Z" fill="#3cffdc"/>
+  <path d="M20 7 L36 7 L50 21 L50 51 Q50 57 44 57 L20 57 Q14 57 14 51 L14 13 Q14 7 20 7 Z" fill="currentColor"/>
+  <path d="M36 7 L36 21 L50 21 Z" fill="#3cffdc" opacity=".45"/>
+  <path d="M36 7 L36 21 L50 21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" opacity=".55"/></svg></span><span class="t32"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bgpeelk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14306a"/><stop offset="1" stop-color="#0b0e17"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#bgpeelk)"/>
+  <path d="M36 7 L50 7 L50 21 Z" fill="#3cffdc"/>
+  <path d="M20 7 L36 7 L50 21 L50 51 Q50 57 44 57 L20 57 Q14 57 14 51 L14 13 Q14 7 20 7 Z" fill="#eef1f8"/>
+  <path d="M36 7 L36 21 L50 21 Z" fill="#3cffdc" opacity=".45"/>
+  <path d="M36 7 L36 21 L50 21" fill="none" stroke="#eef1f8" stroke-width="1.6" stroke-linejoin="round" opacity=".55"/></svg></span><span class="t16"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bgpeell" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14306a"/><stop offset="1" stop-color="#0b0e17"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#bgpeell)"/>
+  <path d="M36 7 L50 7 L50 21 Z" fill="#3cffdc"/>
+  <path d="M20 7 L36 7 L50 21 L50 51 Q50 57 44 57 L20 57 Q14 57 14 51 L14 13 Q14 7 20 7 Z" fill="#eef1f8"/>
+  <path d="M36 7 L36 21 L50 21 Z" fill="#3cffdc" opacity=".45"/>
+  <path d="M36 7 L36 21 L50 21" fill="none" stroke="#eef1f8" stroke-width="1.6" stroke-linejoin="round" opacity=".55"/></svg></span></div>
+      <div class="lock"><span class="lm"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor">
+  <path d="M36 7 L50 7 L50 21 Z" fill="#3cffdc"/>
+  <path d="M20 7 L36 7 L50 21 L50 51 Q50 57 44 57 L20 57 Q14 57 14 51 L14 13 Q14 7 20 7 Z" fill="currentColor"/>
+  <path d="M36 7 L36 21 L50 21 Z" fill="#3cffdc" opacity=".45"/>
+  <path d="M36 7 L36 21 L50 21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" opacity=".55"/></svg></span><b>FRC Packs</b></div>
+    </div>
+  </div>
+</section>
+  <section class="pick">
+    <h2>My pick: Seam</h2>
+    <p>It is the only one that could only be FRC Packs: the one clean tear and the light coming out of the top are exactly what happens when you open a pack in the app. It stays a clear shape at 16 px (a block with a bright line and a lifted lid), it works in one colour, and it animates naturally: the lid can lift as a pack opens, or as a loading state. Runner-up: Spark Card, the simplest and the most legible, but it could belong to many card games.</p>
+  </section>
+</main>
