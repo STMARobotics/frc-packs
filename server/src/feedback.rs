@@ -1,5 +1,6 @@
 //! Feedback from beta testers: bug reports, feature requests and anything else. Players send it from Settings; the admin
-//! sees it in the panel, sets a status, and players can see how their own are doing.
+//! sees it in the panel, sets a status, and players can see how their own are doing. A bug report or idea the admin
+//! accepts (moves to planned or done) earns its sender a sealed pack, once.
 
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
@@ -11,10 +12,13 @@ use crate::Shared;
 use crate::auth::{Admin, User};
 use crate::db::{Cond, DbError, Item, Tx, get_n, get_s, key, n, pad, s};
 use crate::error::{ApiError, ApiResult};
-use crate::model::now_ms;
+use crate::model::{self, now_ms};
+use crate::push;
 
 pub const KINDS: [&str; 3] = ["bug", "idea", "other"];
 pub const STATUSES: [&str; 4] = ["open", "planned", "done", "wontfix"];
+/// Packs a sender gets when their bug report or idea is accepted.
+pub const REWARD_PACKS: i32 = 1;
 /// Ten a day per player is plenty and stops anyone flooding the admin.
 pub const PER_DAY: usize = 10;
 const TITLE_MAX: usize = 80;
@@ -105,6 +109,8 @@ pub struct FeedbackOut {
     status: String,
     note: String,
     created_at: i64,
+    /// It earned its sender a pack (accepted).
+    rewarded: bool,
     /// Only the admin gets these two.
     #[serde(skip_serializing_if = "Option::is_none")]
     username: Option<String>,
@@ -121,6 +127,7 @@ fn out(it: &Item, admin: bool) -> Option<FeedbackOut> {
         status: get_s(it, "status").unwrap_or_else(|| "open".into()),
         note: get_s(it, "note").unwrap_or_default(),
         created_at: get_n(it, "created_at").unwrap_or(0),
+        rewarded: get_n(it, "rewarded").is_some(),
         username: admin.then(|| get_s(it, "username").unwrap_or_default()),
         context: admin.then(|| get_s(it, "context").unwrap_or_default()),
     })
@@ -154,31 +161,90 @@ struct StatusReq {
     note: String,
 }
 
+#[derive(Serialize)]
+struct StatusOut {
+    /// This change gave the sender their pack (it's only ever given once).
+    rewarded: bool,
+}
+
 async fn set_status(
     State(st): State<Shared>,
     _admin: Admin,
     Path(id): Path<i64>,
     Json(req): Json<StatusReq>,
-) -> ApiResult<StatusCode> {
+) -> ApiResult<Json<StatusOut>> {
     let note = req.note.trim();
     if !STATUSES.contains(&req.status.as_str()) || note.chars().count() > 200 || has_control(note) {
         return Err(err(StatusCode::BAD_REQUEST, "bad_request"));
     }
-    let mut tx = Tx::new();
-    tx.update(
-        "not_found",
-        &format!("FB#{id}"),
-        "FB",
-        Cond::new("SET #st = :st, note = :note, updated_at = :at")
+    let db = &st.db;
+    let free = st.catalog().await.claimable().id().to_string();
+    for _ in 0..5 {
+        let it = db.get(&format!("FB#{id}"), "FB").await?.ok_or(err(StatusCode::NOT_FOUND, "not_found"))?;
+        let kind = get_s(&it, "kind").unwrap_or_default();
+        let title = get_s(&it, "title").unwrap_or_default();
+        let sender = get_s(&it, "user_id").and_then(|u| uuid::Uuid::parse_str(&u).ok());
+        // A bug report or idea accepted for the first time: its sender gets a pack, in the same write as the status, so
+        // it's given exactly once however the status moves later.
+        let reward = matches!(req.status.as_str(), "planned" | "done")
+            && matches!(kind.as_str(), "bug" | "idea")
+            && get_n(&it, "rewarded").is_none();
+        let mut tx = Tx::new();
+        let mut set = Cond::new("SET #st = :st, note = :note, updated_at = :at")
             .name("#st", "status")
             .val(":st", s(req.status.clone()))
             .val(":note", s(note))
-            .val(":at", n(now_ms())),
-        Some("attribute_exists(pk)"),
-    );
-    match tx.commit(&st.db).await {
-        Ok(()) => Ok(StatusCode::NO_CONTENT),
-        Err(DbError::Conflict("not_found")) => Err(err(StatusCode::NOT_FOUND, "not_found")),
-        Err(e) => Err(e.into()),
+            .val(":at", n(now_ms()));
+        let mut cond = "attribute_exists(pk)";
+        let mut sender_profile = None;
+        if reward
+            && let Some(uid) = sender
+            && let Some(mut p) = model::profile(db, uid).await?
+            && !p.disabled
+        {
+            set = Cond::new("SET #st = :st, note = :note, updated_at = :at, rewarded = :at")
+                .name("#st", "status")
+                .val(":st", s(req.status.clone()))
+                .val(":note", s(note))
+                .val(":at", n(now_ms()));
+            cond = "attribute_exists(pk) AND attribute_not_exists(rewarded)";
+            let before = model::pack_row(db, uid, &free).await?;
+            let mut after = before.clone();
+            after.sealed += REWARD_PACKS;
+            model::save_pack(&mut tx, uid, &before, &after, "feedback reward");
+            let what = if kind == "bug" { "bug report" } else { "idea" };
+            let thanks = format!("Your {what} \"{title}\" was accepted. Thank you! Here's a free pack.");
+            p.notice = Some(match p.notice.take() {
+                Some(old) if !old.is_empty() => format!("{old}\n\n{thanks}"),
+                _ => thanks,
+            });
+            let parts = p.parts;
+            model::save_user(&mut tx, &mut p, parts, "feedback reward");
+            sender_profile = Some((uid, what));
+        }
+        tx.update("not_found", &format!("FB#{id}"), "FB", set, Some(cond));
+        match tx.commit(db).await {
+            Ok(()) => {
+                if let Some((uid, what)) = sender_profile {
+                    push::notify(
+                        db,
+                        uid,
+                        push::Note {
+                            title: format!("Your {what} was accepted"),
+                            body: "Thanks! A free pack is waiting for you.".into(),
+                            url: "/#open".into(),
+                            tag: format!("feedback-{id}"),
+                        },
+                    )
+                    .await;
+                }
+                return Ok(Json(StatusOut { rewarded: sender_profile.is_some() }));
+            }
+            // Rewarded meanwhile, or the sender's account changed: look again.
+            Err(DbError::Conflict("not_found" | "ver")) if reward => continue,
+            Err(DbError::Conflict("not_found")) => return Err(err(StatusCode::NOT_FOUND, "not_found")),
+            Err(e) => return Err(e.into()),
+        }
     }
+    Err(ApiError::busy())
 }

@@ -174,7 +174,7 @@ function FeedbackForm() {
       <h2 class="s-h2">Yours</h2>
       {mine === null ? <Spinner small /> : !mine.length ? <p class="s-dim">Nothing sent yet.</p> : (
         <div class="s-list">{mine.map((x) => (
-          <div class="s-row"><div><b>{x.title}</b><span>{x.kind} · {STATUS[x.status] ?? x.status}{x.note ? ` · ${x.note}` : ""}</span></div></div>
+          <div class="s-row"><div><b>{x.title}</b><span>{x.kind} · {STATUS[x.status] ?? x.status}{x.rewarded ? " · +1 pack" : ""}{x.note ? ` · ${x.note}` : ""}</span></div></div>
         ))}</div>
       )}
     </div>

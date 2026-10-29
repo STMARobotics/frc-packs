@@ -145,6 +145,8 @@ export interface Feedback {
   /** A note from the admin, shown next to the status. */
   note: string;
   createdAt: number;
+  /** Accepted: it earned its sender a pack (once). */
+  rewarded: boolean;
   /** Admin only: who sent it and where they were (page, version, device). */
   username?: string;
   context?: string;
@@ -462,7 +464,7 @@ export const api = {
     reports: () => call<Report[]>("GET", "/api/admin/reports"),
     feedback: () => call<Feedback[]>("GET", "/api/admin/feedback"),
     feedbackStatus: (id: number, status: FeedbackStatus, note: string) =>
-      call<void>("POST", `/api/admin/feedback/${id}/status`, { status, note }),
+      call<{ rewarded: boolean }>("POST", `/api/admin/feedback/${id}/status`, { status, note }),
     resolveReport: (id: number) => call<void>("POST", `/api/admin/reports/${id}/resolve`),
     givePacks: (id: string, count: number) => call<void>("POST", `/api/admin/users/${id}/packs`, { count }),
     setAdmin: (id: string, admin: boolean) => call<void>("POST", `/api/admin/users/${id}/admin`, { admin }),

@@ -576,6 +576,7 @@ const KIND: Record<Feedback["kind"], string> = { bug: "Bug", idea: "Idea", other
 const STATUS: Record<FeedbackStatus, string> = { open: "Open", planned: "Planned", done: "Done", wontfix: "Won't do" };
 let feedback: Feedback[] = [];
 let fbShow: FeedbackStatus | "all" = "open";
+const pays = (f: Feedback) => !f.rewarded && (f.kind === "bug" || f.kind === "idea");
 
 function paintFeedback() {
   const open = feedback.filter((f) => f.status === "open").length;
@@ -606,7 +607,8 @@ function paintFeedback() {
     const set = (status: FeedbackStatus) => async (b: HTMLButtonElement) => {
       b.disabled = true;
       try {
-        await api.admin.feedbackStatus(f.id, status, note.value.trim());
+        const r = await api.admin.feedbackStatus(f.id, status, note.value.trim());
+        if (r.rewarded) { f.rewarded = true; say(`${f.username ?? "They"} got a free pack for this.`); }
         f.status = status;
         f.note = note.value.trim();
         paintFeedback();
@@ -622,7 +624,7 @@ function paintFeedback() {
         h(
           "div",
           { class: "item-main" },
-          h("div", { class: "who" }, h("b", {}, f.title), h("span", { class: "badge" }, KIND[f.kind] ?? f.kind), h("span", { class: "badge off" }, STATUS[f.status] ?? f.status)),
+          h("div", { class: "who" }, h("b", {}, f.title), h("span", { class: "badge" }, KIND[f.kind] ?? f.kind), h("span", { class: "badge off" }, STATUS[f.status] ?? f.status), f.rewarded ? h("span", { class: "badge" }, "+1 pack sent") : null),
           f.details ? h("div", { class: "meta fb-details" }, f.details) : null,
           h("div", { class: "meta" }, h("span", {}, `from ${f.username ?? "?"}`), h("span", {}, when(f.createdAt))),
           f.context ? h("div", { class: "meta fb-ctx" }, f.context) : null,
@@ -631,8 +633,9 @@ function paintFeedback() {
         h(
           "div",
           { class: "actions" },
-          f.status !== "planned" ? button("Planned", set("planned")) : null,
-          f.status !== "done" ? button("Done", set("done")) : null,
+          // Accepting a bug report or idea (planned or done) sends its sender a pack, once.
+          f.status !== "planned" ? button(pays(f) ? "Planned · +1 pack" : "Planned", set("planned")) : null,
+          f.status !== "done" ? button(pays(f) ? "Done · +1 pack" : "Done", set("done")) : null,
           f.status !== "wontfix" ? button("Won't do", set("wontfix")) : null,
           f.status !== "open" ? button("Reopen", set("open")) : null,
         ),
