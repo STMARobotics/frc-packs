@@ -135,7 +135,7 @@
 .cw-gap { flex: 1; }
 
 /* the card view */
-.s-cardview { min-height: 100%; max-width: 520px; margin: 0 auto; display: grid; grid-template-rows: auto 1fr auto auto auto; gap: 10px; padding: calc(10px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom)); }
+.s-cardview { min-height: 100%; max-width: 520px; margin: 0 auto; display: grid; grid-template-rows: auto auto 1fr auto auto auto; gap: 10px; padding: calc(10px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom)); }
 .cw-top { display: flex; gap: 8px; }
 .cw-stage { display: grid; place-items: center; min-height: 0; }
 .s-tilt { touch-action: none; cursor: grab; }
@@ -219,3 +219,16 @@
 
 /* Playing with a controller (pad.ts): whatever the d-pad is on gets a clear ring. */
 body.s-page.pad :focus { outline: 3px solid var(--ac); outline-offset: 3px; }
+
+/* A card's copies (cardview.tsx). */
+.cw-copies { width: 100%; max-width: 420px; display: grid; gap: 8px; align-self: start; animation: s-in .2s var(--ease); }
+.cw-sort { display: flex; gap: 6px; }
+.cw-copy { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; background: var(--s1); box-shadow: inset 0 0 0 1px var(--ln); }
+.cw-copy.on { box-shadow: inset 0 0 0 2px var(--ac); }
+.cw-copy.held { opacity: .75; }
+.cw-copy-main { flex: 1; min-width: 0; display: grid; gap: 3px; padding: 0; border: 0; background: none; color: inherit; text-align: left; cursor: pointer; }
+.cw-copy-main b { font: 400 22px var(--display); font-variant-numeric: tabular-nums; }
+.cw-copy-main span { font-size: 13px; color: var(--dim); }
+.cw-copy-bdg { display: flex; flex-wrap: wrap; gap: 4px; }
+.cw-copy-bdg i { font-style: normal; }
+.cw-copy-act { display: grid; gap: 6px; flex: none; }

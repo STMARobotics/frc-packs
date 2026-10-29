@@ -69,6 +69,36 @@ async function main() {
   await shot('card-details');
   await p.goBack();
   await p.waitForSelector('.s-cardview', { state: 'detached' });
+  // Copies: a team you have more than one of lists every copy; one can be shown on the card, and an extra one scrapped.
+  {
+    const col = await A.call('GET', '/api/collection/cmp26'), recipe = await A.call('GET', '/packs/cmp26.json');
+    const tierOf = Object.fromEntries(recipe.teams.map((t) => [t.num, t.tier]));
+    const dup = col.cards.find((c) => c.serials.length >= 2 && tierOf[c.num] !== 'mythic');
+    if (dup) {
+      await p.fill('input[type=search]', String(dup.num));
+      await p.waitForTimeout(300);
+      await p.click('.s-grid .s-cell >> nth=0');
+      await p.waitForSelector('.s-cardview');
+      await p.click('.s-tabs >> text=Copies');
+      await p.waitForSelector('.cw-copy');
+      assert((await p.$$('.cw-copy')).length === dup.serials.length, 'Copies lists every copy');
+      await shot('card-copies');
+      const last = [...dup.serials].sort((x, y) => y - x)[0];
+      await p.click(`.cw-copy-main >> text=No. ${last}`);
+      await p.waitForSelector('.s-tilt');
+      assert((await p.textContent('.s-tilt .sn')).includes(String(last)), 'the picked copy is shown on the card');
+      await p.click('.s-tabs >> text=Copies');
+      const row = p.locator('.cw-copy', { hasText: `No. ${last}` });
+      await row.locator('text=/Scrap/').click();
+      await row.locator('text=Tap again').click();
+      await p.waitForFunction((n) => document.querySelectorAll('.cw-copy').length === n, dup.serials.length - 1, { timeout: 8000 });
+      const after = (await A.call('GET', '/api/collection/cmp26')).cards.find((c) => c.num === dup.num);
+      assert(!after.serials.includes(last) && after.serials.length === dup.serials.length - 1, 'that exact copy was scrapped');
+      await p.click('.cw-top [aria-label=Close]');
+      await p.waitForSelector('.s-cardview', { state: 'detached' });
+      await p.fill('input[type=search]', '');
+    } else console.log('(no duplicate card to check Copies with)');
+  }
   // Filters and search.
   await p.selectOption('.s-filters select >> nth=0', 'common');
   await shot('binder-common');

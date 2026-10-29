@@ -67,9 +67,10 @@ export function tradeFor(name: string, want?: number, give?: number) {
   choose(name, want, give);
 }
 /** From your binder: that card on your side; then pick who to trade with. */
-export function offerFromBinder(num: number) {
+/** Starts a trade offering this card (`serial`: that copy in particular, else any). */
+export function offerFromBinder(num: number, serial = 0) {
   pane.set("new");
-  edit((d) => { if (d.give.length < MAX && !d.give.some((p) => p.num === num)) d.give.push({ num, serial: 0 }); });
+  edit((d) => { if (d.give.length < MAX && !d.give.some((p) => p.num === num && (!serial || p.serial === serial))) d.give.push({ num, serial }); });
   location.hash = "#trade";
 }
 

@@ -238,6 +238,8 @@ export interface AdminUser {
   badge: string | null;
 }
 
+export interface Copy { serial: number; obtained: "pack" | "trade" | "wager" | string; at: number; first: boolean; held: boolean }
+
 export interface Scrapped {
   gained: number;
   scrapped: number;
@@ -394,6 +396,10 @@ export const api = {
   collection: (pack: string) => call<Collection>("GET", `/api/collection/${encodeURIComponent(pack)}`),
   /** Scrap extra copies of one team (the first copy is always kept). */
   scrap: (pack: string, num: number, count: number) => act<Scrapped>("/api/scrap", { pack, num, count }),
+  /** Scraps one particular copy (never a team's first). */
+  scrapCopy: (pack: string, num: number, serial: number) => act<Scrapped>("/api/scrap", { pack, num, count: 1, serial }),
+  /** Every copy you have of one team, oldest first. */
+  copies: (pack: string, num: number) => call<Copy[]>("GET", `/api/copies/${encodeURIComponent(pack)}/${num}`),
   /** Scrap every extra copy of these tiers. */
   scrapExtras: (pack: string, tiers: Tier[]) => act<Scrapped>("/api/scrap/extras", { pack, tiers }),
   /** Players whose username contains `q`, for picking who to trade with. */

@@ -1,11 +1,12 @@
 // A card up close. The same view wherever it's opened from (binder, profile, trade, pack): the card (hold it to turn
-// it), its badges, keep / pin / wishlist, scrapping extras, the main action, and the team's facts behind Details.
-import { useState } from "preact/hooks";
-import { api } from "../../api";
+// it), its badges, keep / pin / wishlist, the main action; Copies lists every copy you have (serial, where it came
+// from, what it's doing) to look at, trade or scrap one in particular; Details has the team's facts.
+import { useEffect, useState } from "preact/hooks";
+import { api, type Copy } from "../../api";
 import { useStore } from "../../lib/store";
 import { BY_NUM, PACK, RECIPE, RP_NAMES, TIERS } from "../data";
-import { fail, heldCopies, inv, st, toast } from "../state";
-import { back, closeAll, cx, push, TiltCard } from "../ui";
+import { ago, fail, heldCopies, inv, st, toast } from "../state";
+import { back, closeAll, cx, push, Spinner, Tabs, TiltCard } from "../ui";
 import { sfx } from "../sfx";
 import { scrapped } from "./workshop";
 import { offerFromBinder } from "./trade";
@@ -37,11 +38,14 @@ function CardView({ num, o }: { num: number; o: CardOpts }) {
   const t = BY_NUM.get(num)!;
   const s = useStore(st)!;
   const mine = useStore(inv)[num] ?? [];
-  const [facts, setFacts] = useState(false);
+  const [view, setView] = useState<"card" | "copies" | "details">("card");
+  const facts = view === "details";
+  /** The copy shown on the card (picked in Copies). */
+  const [pick, setPick] = useState<number | null>(null);
   const [busy, setBusy] = useState("");
   const [armed, setArmed] = useState(0);
   const owned = mine.length > 0;
-  const serial = o.serial ?? (o.from ? undefined : mine[0]);
+  const serial = o.serial ?? (o.from ? undefined : pick != null && mine.includes(pick) ? pick : mine[0]);
   const fav = (s.favorites ?? []).includes(num), wish = (s.wishlist ?? []).includes(num), pin = (s.showcase ?? []).includes(num);
   const names = RP_NAMES[RECIPE.season] ?? ["RP1", "RP2", "RP3"];
 
@@ -73,7 +77,8 @@ function CardView({ num, o }: { num: number; o: CardOpts }) {
     setArmed(0); setBusy("");
   };
 
-  const b = owned && !o.from ? badges(num, mine) : serial ? badges(num, [serial]) : [];
+  const b = owned && !o.from ? (pick != null ? badges(num, [pick]) : badges(num, mine)) : serial ? badges(num, [serial]) : [];
+  const yours = owned && !o.from;
   return (
     <div class={cx("s-cardview", facts && "facts")}>
       <div class="cw-top">
@@ -86,8 +91,9 @@ function CardView({ num, o }: { num: number; o: CardOpts }) {
         <span class="cw-gap" />
         <button type="button" class="s-icon" onClick={back} aria-label="Close">×</button>
       </div>
+      <Tabs value={view} onChange={setView} options={yours ? [["card", "Card"], ["copies", `Copies · ${mine.length}`], ["details", "Details"]] : [["card", "Card"], ["details", "Details"]]} />
       <div class="cw-stage">
-        {facts ? (
+        {view === "copies" ? <Copies num={num} pick={pick} onPick={(x) => { setPick(x); setView("card"); }} /> : facts ? (
           <dl class="cw-facts">
             <dt>Team</dt><dd>{num} · {t.name}</dd>
             <dt>Rarity</dt><dd style={{ color: TIERS[t.tier].color }}>{TIERS[t.tier].label}</dd>
@@ -102,15 +108,14 @@ function CardView({ num, o }: { num: number; o: CardOpts }) {
           </dl>
         ) : <TiltCard num={num} serial={serial} w="min(310px, 80vw, calc((100svh - 250px) / 1.4))" />}
       </div>
-      {b.length > 0 && !facts && <div class="cw-badges">{b.map(([k, l]) => <span class={`s-bdg ${k}`}>{l}</span>)}</div>}
-      <p class="cw-note">{o.from ? `${o.from} ` : ""}{owned ? `You own ${mine.length === 1 ? "1 copy" : `${mine.length} copies`}.` : "You don't have this one yet."}</p>
+      {b.length > 0 && view === "card" && <div class="cw-badges">{b.map(([k, l]) => <span class={`s-bdg ${k}`}>{l}</span>)}</div>}
+      {view !== "copies" && <p class="cw-note">{o.from ? `${o.from} ` : ""}{owned ? `You own ${mine.length === 1 ? "1 copy" : `${mine.length} copies`}.` : "You don't have this one yet."}</p>}
       <div class="cw-bottom">
         <div class="s-row2">
           {o.action ? <button type="button" class="s-btn" onClick={() => closeAll(o.action!.run)}>{o.action.label}</button>
-            : owned && !o.from ? <button type="button" class="s-btn" onClick={() => closeAll(() => offerFromBinder(num))}>Offer in a trade</button> : null}
-          <button type="button" class="s-btn ghost" onClick={() => setFacts(!facts)}>{facts ? "Card" : "Details"}</button>
+            : yours ? <button type="button" class="s-btn" onClick={() => closeAll(() => offerFromBinder(num, pick ?? 0))}>{pick != null ? `Offer No. ${pick} in a trade` : "Offer in a trade"}</button> : null}
         </div>
-        {canScrap && extras > 0 && (
+        {canScrap && extras > 0 && view !== "copies" && (
           <div class="s-row2">
             <button type="button" class={cx("s-chipbtn", armed === 1 && "warn")} disabled={busy === "scrap"} onClick={() => scrap(1)}>{armed === 1 ? "Tap again" : `Scrap 1 · +${each}`}</button>
             {extras > 1 && <button type="button" class={cx("s-chipbtn", armed === extras && "warn")} disabled={busy === "scrap"} onClick={() => scrap(extras)}>{armed === extras ? "Tap again" : `Scrap all ${extras} · +${each * extras}`}</button>}
@@ -122,3 +127,53 @@ function CardView({ num, o }: { num: number; o: CardOpts }) {
   );
 }
 
+
+const FROM: Record<string, string> = { pack: "From a pack", trade: "From a trade", wager: "Won in a wager" };
+type Sort = "serial" | "new" | "old";
+
+/** Every copy you have of a team: its serial and badges, where and when you got it, and whether it's free. Tap one to
+    see it on the card; from here it can be traded, or (an extra copy) scrapped. */
+function Copies({ num, pick, onPick }: { num: number; pick: number | null; onPick: (serial: number) => void }) {
+  const s = useStore(st)!;
+  const have = useStore(inv)[num] ?? [];
+  const t = BY_NUM.get(num)!;
+  const [list, setList] = useState<Copy[] | null>(null);
+  const [sort, setSort] = useState<Sort>("serial");
+  const [armed, setArmed] = useState(0);
+  const [busy, setBusy] = useState(0);
+  useEffect(() => { api.copies(PACK, num).then(setList, (e) => { fail(e); setList([]); }); }, [num, have.length]);
+  if (!list) return <div class="s-center small"><Spinner /></div>;
+  const kept = (s.favorites ?? []).includes(num), each = s.scrapParts[t.tier] ?? 0;
+  const sorted = [...list].sort((a, b) => (sort === "serial" ? a.serial - b.serial : sort === "new" ? b.at - a.at : a.at - b.at));
+  const scrap = async (c: Copy) => {
+    if (armed !== c.serial) { setArmed(c.serial); setTimeout(() => setArmed(0), 3500); return; } // a second tap confirms
+    setBusy(c.serial);
+    try { scrapped(await api.scrapCopy(PACK, num, c.serial)); sfx.tick(); } catch (e) { fail(e); }
+    setArmed(0); setBusy(0);
+  };
+  return (
+    <div class="cw-copies">
+      <div class="cw-sort" role="group" aria-label="Sort copies">
+        {(["serial", "new", "old"] as Sort[]).map((k) => <button type="button" class={cx("s-chip", sort === k && "on")} aria-pressed={sort === k} onClick={() => setSort(k)}>{k === "serial" ? "Serial" : k === "new" ? "Newest" : "Oldest"}</button>)}
+      </div>
+      {sorted.map((c) => {
+        const bd = badges(num, [c.serial]).filter(([k]) => k !== "p");
+        const why = c.first ? "Your first copy: always kept" : kept ? "Kept: never scrapped" : t.tier === "mythic" ? "Mythics are never scrapped" : c.held ? "In a trade offer or a pack being opened" : "";
+        return (
+          <div class={cx("cw-copy", pick === c.serial && "on", c.held && "held")}>
+            <button type="button" class="cw-copy-main" onClick={() => onPick(c.serial)} aria-label={`No. ${c.serial}, show it on the card`}>
+              <b>No. {c.serial}</b>
+              <span>{FROM[c.obtained] ?? "Yours"} · {ago(c.at)}</span>
+              {(bd.length > 0 || c.first) && <span class="cw-copy-bdg">{c.first && <i class="s-bdg">First copy</i>}{bd.map(([k, l]) => <i class={`s-bdg ${k}`}>{l}</i>)}</span>}
+              {why && !c.first && <small class="s-dim">{why}</small>}
+            </button>
+            <div class="cw-copy-act">
+              <button type="button" class="s-chipbtn" disabled={c.held} onClick={() => closeAll(() => offerFromBinder(num, c.serial))}>Trade</button>
+              {!why && <button type="button" class={cx("s-chipbtn", armed === c.serial && "warn")} disabled={busy === c.serial} onClick={() => scrap(c)}>{armed === c.serial ? "Tap again" : `Scrap +${each}`}</button>}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}

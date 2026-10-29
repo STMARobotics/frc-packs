@@ -109,6 +109,7 @@ pub fn routes() -> Router<Shared> {
         .route("/collection/{pack}", get(collection))
         .route("/craft/mythic", post(craft_mythic))
         .route("/scrap", post(scrap))
+        .route("/copies/{pack}/{num}", get(copies))
         .route("/scrap/extras", post(scrap_extras))
         .route("/craft", post(craft))
         .route("/dev/demo", post(dev_demo))
@@ -1208,6 +1209,9 @@ struct ScrapReq {
     num: i32,
     /// How many extra copies to scrap. The first copy you got is never scrapped.
     count: i32,
+    /// Scrap this copy in particular (one that isn't the team's first).
+    #[serde(default)]
+    serial: Option<i32>,
 }
 
 #[derive(Deserialize)]
@@ -1267,6 +1271,7 @@ async fn scrap_copies(
     teams: Option<&[i32]>,
     tiers: &[Tier],
     limit: usize,
+    only: Option<i32>,
     key: &IdemKey,
     kind: &str,
 ) -> ApiResult<Option<(i64, i64, i64)>> {
@@ -1299,6 +1304,10 @@ async fn scrap_copies(
                 extras += copies.len().saturating_sub(1).min(limit);
                 // The first copy that's free to scrap is kept; then the newest ones go, up to `limit`.
                 let free: Vec<&&CardRow> = copies.iter().filter(|c| !held.contains(&c.id)).collect();
+                if let Some(serial) = only {
+                    pick.extend(free.iter().skip(1).filter(|c| c.serial == serial).take(1).map(|c| **c));
+                    continue;
+                }
                 let take = free.len().saturating_sub(1).min(limit);
                 pick.extend(free[free.len() - take..].iter().map(|c| **c));
             }
@@ -1365,6 +1374,43 @@ async fn scrapped(
     Ok(Json(out).into_response())
 }
 
+#[derive(Serialize)]
+struct CopyOut {
+    serial: i32,
+    /// "pack", "trade" or "wager".
+    obtained: String,
+    at: i64,
+    /// The team's first copy (the one that's never scrapped).
+    first: bool,
+    /// In a pack still being revealed or promised in an open trade: can't be scrapped or offered again right now.
+    held: bool,
+}
+
+/// Every copy you have of one team, oldest first: serial, how and when you got it, and whether it's free right now.
+async fn copies(
+    State(s): State<Shared>,
+    user: User,
+    Path((pack_id, num)): Path<(String, i32)>,
+) -> ApiResult<Json<Vec<CopyOut>>> {
+    let pack = pack(&s, &pack_id).await?;
+    let db = &s.db;
+    let p = me(db, user.id).await?;
+    let held = held_cards(db, &p).await?;
+    let rows = model::team_cards(db, user.id, pack.id(), num).await?;
+    let first = rows.iter().find(|c| !held.contains(&c.id)).map(|c| c.id);
+    Ok(Json(
+        rows.iter()
+            .map(|c| CopyOut {
+                serial: c.serial,
+                obtained: c.obtained.clone(),
+                at: c.created_at,
+                first: Some(c.id) == first,
+                held: held.contains(&c.id),
+            })
+            .collect(),
+    ))
+}
+
 /// Scraps extra copies of one team.
 async fn scrap(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Json<ScrapReq>) -> ApiResult<Response> {
     let pack = pack(&s, &req.pack).await?;
@@ -1376,7 +1422,8 @@ async fn scrap(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Jso
         return Ok(done);
     }
     let Some(r) =
-        scrap_copies(&s, user.id, &pack, Some(&[req.num]), &[tier], req.count as usize, &key, "scrap").await?
+        scrap_copies(&s, user.id, &pack, Some(&[req.num]), &[tier], req.count as usize, req.serial, &key, "scrap")
+            .await?
     else {
         return idem_lost(&s.db, user.id, &key, "scrap").await;
     };
@@ -1400,7 +1447,8 @@ async fn scrap_extras(
     if let Some(done) = idem_begin(&s.db, user.id, &key, "scrap_extras").await? {
         return Ok(done);
     }
-    let Some(r) = scrap_copies(&s, user.id, &pack, None, &req.tiers, usize::MAX, &key, "scrap_extras").await? else {
+    let Some(r) = scrap_copies(&s, user.id, &pack, None, &req.tiers, usize::MAX, None, &key, "scrap_extras").await?
+    else {
         return idem_lost(&s.db, user.id, &key, "scrap_extras").await;
     };
     scrapped(&s, user.id, &pack, r, &key, "scrap_extras").await
