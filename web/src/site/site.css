@@ -241,3 +241,12 @@ body.s-page.pad :focus { outline: 3px solid var(--ac); outline-offset: 3px; }
 .s-fbbar-go b { font-weight: 600; }
 .s-fbbar-go span { color: var(--dim); }
 .s-fbbar-x { flex: none; width: 40px; height: 38px; border: 0; border-radius: 99px; background: none; color: var(--dim); font-size: 20px; cursor: pointer; }
+
+/* Patch notes (settings.tsx, and "What's new" in gate.tsx). */
+.pn-page { display: grid; gap: 14px; align-content: start; }
+.pn-rel { display: grid; gap: 8px; }
+.pn-page .pn-rel { padding: 14px 16px; border-radius: 16px; background: var(--s1); box-shadow: inset 0 0 0 1px var(--ln); }
+.pn-rel h2 { display: grid; gap: 2px; margin: 0; }
+.pn-rel h2 b { font: 400 20px var(--display); }
+.pn-rel h2 small { font: 600 12px var(--body); color: var(--dim); letter-spacing: .04em; }
+.pn-rel ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; line-height: 1.4; }

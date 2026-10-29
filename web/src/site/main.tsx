@@ -25,7 +25,7 @@ import { openFeedback } from "./screens/settings";
 import { TradeTab } from "./screens/trade";
 import { SocialTab } from "./screens/social";
 import { OpenHome } from "./screens/open";
-import { betaWelcome, gameNotice, OwnerNotice, SignIn } from "./screens/gate";
+import { betaWelcome, gameNotice, OwnerNotice, SignIn, whatsNew } from "./screens/gate";
 
 type Tab = "open" | "binder" | "trade" | "social";
 const TABS: Tab[] = ["open", "binder", "trade", "social"];
@@ -64,7 +64,7 @@ function App() {
       setupPwa();
       setPhase("ready");
       if (state.notice) setTimeout(() => gameNotice(state.notice), 600);
-      else setTimeout(betaWelcome, 3000);
+      else setTimeout(() => { whatsNew(); betaWelcome(); }, 3000);
     } catch (e) {
       setPhase(e instanceof ApiError && e.status === 401 ? (e.code === "guest" ? "guest" : "signin") : explain(e));
     }

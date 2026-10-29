@@ -1,10 +1,11 @@
 // Settings: your account (name, username, password, sign out), notifications, sound, the pack wheel, feedback, the app
-// version, and the admin and developer tools when they apply.
+// version and patch notes, and the admin and developer tools when they apply.
 import type { ComponentChildren } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { api, explain, type Feedback, type FeedbackKind } from "../../api";
 import { useStore } from "../../lib/store";
 import { PACK } from "../data";
+import { NOTES, VERSION } from "../notes";
 import { applyCollection, applyState, fail, prefs, setPrefs, st, toast } from "../state";
 import { Avatar, back, cx, push, Spinner } from "../ui";
 import { canInstall, install, ios, push as pushState, standalone, togglePush } from "../pwa";
@@ -114,9 +115,10 @@ function Settings() {
       <section class="sg-group"><h2 class="s-h2">About</h2>
         <Line title="Feedback" note="Found a bug or have an idea? We read everything."><button type="button" class="s-chipbtn" onClick={() => openFeedback()}>Send</button></Line>
         {!standalone() && <Line title="Install the app" note={inst ? "Your home screen or desktop, in its own window." : ios ? "In Safari: Share, then Add to Home Screen." : "Use your browser's menu (Install app)."}>{inst && <button type="button" class="s-chipbtn" onClick={install}>Install</button>}</Line>}
-        <Line title="App version" note={ver === "checking" ? "Checking…" : ver === "latest" ? "You have the latest version." : ver === "update" ? "A newer version is ready." : ver === "error" ? "Couldn't check. Try again." : undefined}>
+        <Line title={`Version ${VERSION}`} note={ver === "checking" ? "Checking…" : ver === "latest" ? "You have the latest version." : ver === "update" ? "A newer version is ready." : ver === "error" ? "Couldn't check. Try again." : undefined}>
           <button type="button" class="s-chipbtn" disabled={ver === "checking"} onClick={checkVersion}>{ver === "update" ? "Update" : "Check"}</button>
         </Line>
+        <Line title="Patch notes" note={NOTES[0].title}><button type="button" class="s-chipbtn" onClick={openNotes}>Read</button></Line>
       </section>
 
       {(a.admin || s.devTools) && (
@@ -179,4 +181,24 @@ function FeedbackForm() {
       )}
     </div>
   );
+}
+
+/** One release's notes. */
+export function Release({ r }: { r: (typeof NOTES)[number] }) {
+  return (
+    <section class="pn-rel">
+      <h2><b>{r.title}</b><small>{r.v} · {new Date(r.date + "T12:00").toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}</small></h2>
+      <ul>{r.items.map((x) => <li>{x}</li>)}</ul>
+    </section>
+  );
+}
+
+/** Every release, newest first. */
+export function openNotes() {
+  push(() => (
+    <div class="s-page-in pn-page">
+      <header class="s-head"><button type="button" class="s-icon" onClick={back} aria-label="Back">‹</button><h1>Patch notes</h1></header>
+      {NOTES.map((r) => <Release r={r} />)}
+    </div>
+  ), "page");
 }

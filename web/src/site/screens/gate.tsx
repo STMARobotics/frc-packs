@@ -6,7 +6,8 @@ import { useEffect, useState } from "preact/hooks";
 import { api, ApiError, explain, type State } from "../../api";
 import { back, layers, push } from "../ui";
 import { PackArt } from "./open";
-import { openFeedback } from "./settings";
+import { NOTES, VERSION } from "../notes";
+import { openFeedback, openNotes, Release } from "./settings";
 
 const USERNAME = /^[A-Za-z0-9_]{3,20}$/;
 const TERMS = "frcpacks.betaTerms";
@@ -129,6 +130,20 @@ export function betaWelcome() {
     </Sheet>
     ), "sheet");
   });
+}
+
+const SEEN = "frcpacks.version";
+/** "What's new", once after each update, for anyone who'd played before it (a new device just notes the version: it
+    gets the beta welcome instead). Call it before betaWelcome, which marks the device as having played. */
+export function whatsNew() {
+  let last: string | null, played: boolean;
+  try { last = localStorage.getItem(SEEN); played = !!localStorage.getItem(BETA); localStorage.setItem(SEEN, VERSION); } catch { return; }
+  if (last === VERSION || !played) return;
+  whenFree(() => push(() => (
+    <Sheet title="What's new" buttons={<><button type="button" class="s-btn" onClick={back}>Nice</button><button type="button" class="s-btn ghost" onClick={() => { back(); setTimeout(openNotes, 50); }}>All notes</button></>}>
+      <Release r={NOTES[0]} />
+    </Sheet>
+  ), "sheet"));
 }
 
 let noted = false;

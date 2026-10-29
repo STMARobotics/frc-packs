@@ -10,6 +10,9 @@ const BASE = process.argv[2] || 'http://127.0.0.1:3000';
 const OUT = process.argv[3] || path.join(__dirname, 'shots-site');
 fs.mkdirSync(OUT, { recursive: true });
 const assert = (c, m) => { if (!c) throw new Error('FAILED: ' + m); };
+// The app's version, so "What's new" stays out of the way (it's checked on its own, in the welcome part below).
+const VERSION = fs.readFileSync(path.join(__dirname, '../src/site/notes.ts'), 'utf8').match(/VERSION = "([^"]+)"/)[1];
+const quiet = (v) => { localStorage.setItem('frcpacks.beta', '1'); localStorage.setItem('frcpacks.version', v); };
 
 function client() {
   let cookie = '';
@@ -45,7 +48,7 @@ async function main() {
   const browser = await chromium.launch();
   const ctx = await browser.newContext({ viewport: { width: +(process.env.W || 390), height: +(process.env.H || 844) }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
   await ctx.addCookies([{ name: 'sid', value: A.sid(), url: BASE }]);
-  await ctx.addInitScript(() => localStorage.setItem('frcpacks.beta', '1')); // the welcome is checked on its own below
+  await ctx.addInitScript(quiet, VERSION); // the welcome is checked on its own below
   const p = page = await ctx.newPage();
   p.on('pageerror', (e) => errors.push(String(e)));
   p.on('console', (m) => { if (m.type() === 'error' && !m.text().startsWith('Failed to load resource')) errors.push(m.text()); });
@@ -223,7 +226,7 @@ async function main() {
   await shot('trade-sent');
   const ctxB = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
   await ctxB.addCookies([{ name: 'sid', value: B.sid(), url: BASE }]);
-  await ctxB.addInitScript(() => localStorage.setItem('frcpacks.beta', '1'));
+  await ctxB.addInitScript(quiet, VERSION);
   const b = await ctxB.newPage();
   b.on('pageerror', (e) => errors.push('B: ' + e));
   await b.goto(BASE + '/#trade');
@@ -274,6 +277,22 @@ async function main() {
   await c.waitForSelector('.op-hero');
   await c.waitForTimeout(3500);
   assert(!(await c.$('.au-sheet')), 'the welcome shows once per device');
+  // After an update: "What's new" once, with the way to every release; then the version in Settings.
+  await c.evaluate(() => localStorage.setItem('frcpacks.version', '0.0.0'));
+  await c.reload();
+  await c.waitForSelector('.au-sheet .pn-rel', { timeout: 6000 });
+  await cshot('whats-new');
+  await c.click('.au-sheet >> text=All notes');
+  await c.waitForSelector('.pn-page .pn-rel');
+  await cshot('patch-notes');
+  await c.goBack();
+  await c.reload();
+  await c.waitForSelector('.op-hero');
+  await c.waitForTimeout(3500);
+  assert(!(await c.$('.au-sheet')), 'the update notes show once');
+  await c.click('.s-avbtn');
+  await c.click('.s-profile >> text=Settings');
+  assert(await c.$(`.s-settings >> text=Version ${VERSION}`), 'Settings shows the version');
 
   console.log({ photosWhenSearching: before, photosTabSwitch: tabImgs, photosOnSync: syncImgs });
   console.log('errors:', errors.length ? errors : 'none');
