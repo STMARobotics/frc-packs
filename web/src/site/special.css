@@ -1,17 +1,18 @@
-/* Special editions (screens/special.tsx). Class names start with se-. The light follows your finger while you hold
+/* Special editions (screens/special.tsx). Class names start with se-. A bright prismatic gold foil (gold running into
+   white and rose, unlike a Rare's plain gold) over a black-and-gold inside; teal is only ever a Mythic. The light follows your finger while you hold
    the card; the only thing that runs on its own is a few stars twinkling (opacity). */
 
 .se-tilt { --rx: 0deg; --ry: 0deg; width: var(--sw); transform: perspective(900px) rotateX(var(--rx)) rotateY(var(--ry)); }
 .se { --mx: 50; --my: 50; position: relative; width: 100%; aspect-ratio: 5 / 7; container-type: inline-size; overflow: hidden; isolation: isolate; border-radius: 6% / 4.3%;
-  background: conic-gradient(from 200deg, #19e6d0, #8fd8ff, #c8fff4, #ffe9a8, #19e6d0, #0aa596, #19e6d0); box-shadow: 0 10px 24px rgba(0, 0, 0, .5), 0 0 22px rgba(25, 230, 208, .3); }
-.se-in { position: absolute; inset: 2.4%; display: flex; flex-direction: column; overflow: hidden; border-radius: 4.2% / 3%; color: #eafffb;
-  background: repeating-linear-gradient(115deg, transparent 0 14px, rgba(25, 230, 208, .1) 14px 15px), radial-gradient(circle at 50% 45%, rgba(25, 230, 208, .4), transparent 55%), radial-gradient(120% 90% at 30% 10%, #0e5963, #032f35 60%, #021a1e); }
+  background: conic-gradient(from 200deg, #fff3c4, #ffc94a, #fffaf0, #e9a321, #ffd9ec, #ffe28a, #b9861c, #fff3c4); box-shadow: 0 10px 24px rgba(0, 0, 0, .5), 0 0 22px rgba(255, 200, 90, .3); }
+.se-in { position: absolute; inset: 2.4%; display: flex; flex-direction: column; overflow: hidden; border-radius: 4.2% / 3%; color: #fff4dc;
+  background: repeating-linear-gradient(115deg, transparent 0 14px, rgba(255, 211, 107, .09) 14px 15px), radial-gradient(circle at 50% 45%, rgba(255, 200, 90, .4), transparent 55%), radial-gradient(120% 90% at 30% 10%, #2c2311, #130e06 60%, #070503); }
 .se-hd { position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: flex-start; padding: 4cqw 4.6cqw 0; }
-.se-num { font: 400 15cqw/.9 var(--display); color: #bffff5; text-shadow: 0 0 6cqw rgba(25, 230, 208, .9); }
+.se-num { font: 400 15cqw/.9 var(--display); color: #ffe9a8; text-shadow: 0 0 6cqw rgba(255, 196, 80, .8); }
 .se-num small { display: block; font: 700 3.2cqw var(--body); letter-spacing: .3em; opacity: .85; }
 .se-run { font: 700 3.2cqw/1.5 var(--body); letter-spacing: .18em; text-align: right; }
 .se-run b { display: block; font: 400 6.4cqw var(--display); letter-spacing: .04em; }
-.se-photo { position: relative; z-index: 2; margin: 3cqw 5cqw 0; aspect-ratio: 4 / 3; overflow: hidden; border: .8cqw solid #19e6d0; border-radius: 3cqw; background: #04242a; box-shadow: 0 0 5cqw rgba(25, 230, 208, .55); }
+.se-photo { position: relative; z-index: 2; margin: 3cqw 5cqw 0; aspect-ratio: 4 / 3; overflow: hidden; border: .8cqw solid #ffd36b; border-radius: 3cqw; background: #140f06; box-shadow: 0 0 5cqw rgba(255, 200, 90, .55); }
 .se-photo img { display: block; width: 100%; height: 100%; object-fit: cover; pointer-events: none; -webkit-user-drag: none; }
 .se-bot { position: relative; z-index: 2; margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; gap: 3cqw; padding: 0 4.6cqw 4cqw; }
 .se-nm { min-width: 0; font: 400 6.6cqw/1 var(--display); }
@@ -26,13 +27,13 @@
 @keyframes se-twinkle { to { opacity: .95; } }
 /* The holo sheen behind the photo and the writing, and a glare that slides to where the light is while you hold it. */
 .se-sheen { position: absolute; inset: -30%; z-index: 1; pointer-events: none;
-  background: linear-gradient(125deg, transparent 30%, rgba(124, 255, 236, .16) 42%, rgba(255, 233, 168, .14) 50%, rgba(143, 216, 255, .16) 58%, transparent 70%);
+  background: linear-gradient(125deg, transparent 30%, rgba(255, 233, 168, .18) 42%, rgba(255, 210, 236, .14) 50%, rgba(255, 246, 214, .18) 58%, transparent 70%);
   transform: translate(calc((var(--mx) - 50) * -.4%), calc((var(--my) - 50) * -.4%)); }
 .se-glare { position: absolute; inset: -50%; z-index: 5; pointer-events: none; background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, .16), transparent 18%);
   transform: translate(calc((var(--mx) - 50) * .5%), calc((var(--my) - 50) * .5%)); }
 
 .se-row { display: flex; gap: 12px; overflow-x: auto; margin: -8px -16px 0; padding: 8px 16px 12px; scrollbar-width: none; }
-.se-thumb .se { box-shadow: 0 6px 12px rgba(0, 0, 0, .45), 0 0 8px rgba(25, 230, 208, .3); }
+.se-thumb .se { box-shadow: 0 6px 12px rgba(0, 0, 0, .45), 0 0 8px rgba(255, 211, 107, .35); }
 .se-thumb { flex: none; width: 120px; padding: 0; border: 0; border-radius: 8px; background: none; cursor: pointer; }
 .se-thumb:active .se-tilt { transform: scale(.97); }
 .se-thumb.on { outline: 3px solid var(--gold); outline-offset: 3px; }
