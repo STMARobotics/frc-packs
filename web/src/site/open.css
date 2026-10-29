@@ -10,16 +10,16 @@
 .op-pfront { transform: translateZ(var(--pth)); }
 .op-pback { transform: rotateY(180deg) translateZ(var(--pth)); }
 .op-ptop, .op-pbody { position: absolute; left: 0; right: 0; overflow: hidden;
-  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .06) 0 2px, transparent 2px 9px), linear-gradient(165deg, var(--pa), var(--pb) 48%, var(--pc)); }
-.op-ptop { top: 0; height: 14%; z-index: 2; border-radius: 3cqw 3cqw 0 0; transform-origin: 0 100%; transition: transform .7s cubic-bezier(.3, .7, .2, 1), opacity .7s;
-  clip-path: polygon(0 0, 100% 0, 100% 80%, 96% 100%, 92% 80%, 88% 100%, 84% 80%, 80% 100%, 76% 80%, 72% 100%, 68% 80%, 64% 100%, 60% 80%, 56% 100%, 52% 80%, 48% 100%, 44% 80%, 40% 100%, 36% 80%, 32% 100%, 28% 80%, 24% 100%, 20% 80%, 16% 100%, 12% 80%, 8% 100%, 4% 80%, 0 100%); }
-.op-ptop::after { content: ""; position: absolute; left: 0; right: 0; top: 40%; height: 2px; background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .55) 0 6px, transparent 6px 11px); }
-.op-pbody { top: 12%; bottom: 0; display: flex; flex-direction: column; align-items: center; gap: 3cqw; padding: 9cqw 7cqw 8cqw; border-radius: 0 0 4cqw 4cqw;
+  background: linear-gradient(165deg, var(--pa), var(--pb) 48%, var(--pc)); }
+/* The strip along the top, joined to the body by one clean heat-sealed seam. */
+.op-ptop { top: 0; height: 13%; z-index: 2; border-radius: 3cqw 3cqw 0 0; transform-origin: 0 100%; transition: transform .7s cubic-bezier(.3, .7, .2, 1), opacity .7s; }
+.op-ptop::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: .5cqw; background: rgba(255, 255, 255, .5); box-shadow: 0 .4cqw 0 rgba(0, 0, 0, .22); }
+.op-pbody { top: 13%; bottom: 0; display: flex; flex-direction: column; align-items: center; gap: 3cqw; padding: 9cqw 7cqw 8cqw; border-radius: 0 0 4cqw 4cqw;
   box-shadow: 0 24px 50px rgba(0, 0, 0, .55), inset 0 0 0 1.2cqw rgba(255, 255, 255, .14); transition: transform .65s cubic-bezier(.55, 0, .8, .4), opacity .65s; }
 .op-pback .op-pbody { top: 0; border-radius: 4cqw; justify-content: center; }
-/* A foil pouch: puffy in the middle, darker at the sides, a crimped seal along the bottom. */
+/* A foil pouch: puffy in the middle, darker at the sides, one sealed line near the bottom. */
 .op-pbody::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
-  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .22) 0 1.2cqw, rgba(0, 0, 0, .18) 1.2cqw 2.4cqw) bottom / 100% 4.5% no-repeat,
+  background: linear-gradient(rgba(255, 255, 255, .45), rgba(255, 255, 255, .45)) 0 calc(100% - 3.5cqw) / 100% .5cqw no-repeat,
     radial-gradient(90% 55% at 50% 42%, rgba(255, 255, 255, .2), transparent 70%),
     linear-gradient(90deg, rgba(0, 0, 0, .42), transparent 13%, transparent 87%, rgba(0, 0, 0, .42)),
     linear-gradient(180deg, rgba(255, 255, 255, .1), transparent 20%, transparent 85%, rgba(0, 0, 0, .3)); }
@@ -120,7 +120,7 @@
 .op-hold.op-away .op-cutzone, .op-grip.op-swiping .op-cutzone, .op-hold.op-torn .op-cutzone { opacity: 0; }
 /* The wrapper on a canvas in the pack's front (rip.ts), reaching past the pack so the torn part has room to curl.
    Once it's open, the wrapper comes away the way it was torn. */
-.op-ripcv { position: absolute; left: -15%; top: -30%; width: 130%; height: 44%; z-index: 3; pointer-events: none; transition: transform .6s cubic-bezier(.3, .7, .2, 1), opacity .6s; }
+.op-ripcv { position: absolute; left: -15%; top: -30%; width: 130%; height: 43%; z-index: 3; pointer-events: none; transition: transform .6s cubic-bezier(.3, .7, .2, 1), opacity .6s; }
 .op-hold.op-torn .op-ripcv { transform: translate(calc(var(--dir, 1) * 26%), -24%) rotate(calc(var(--dir, 1) * 14deg)); opacity: 0; }
 .op-hold.op-torn .op-pfront .op-ptop { transform: translate(calc(var(--dir, 1) * 30%), -70%) rotate(calc(var(--dir, 1) * 22deg)); opacity: 0; }
 .op-hold.op-drop .op-pbody, .op-hold.op-drop .op-pedge { transform: translateY(115%) rotate(4deg); opacity: 0; transition: transform .55s cubic-bezier(.55, 0, .8, .4), opacity .55s; }
