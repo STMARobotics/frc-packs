@@ -4,7 +4,7 @@
 import type { ComponentChildren } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { api, ApiError, explain, type State } from "../../api";
-import { back, push } from "../ui";
+import { back, layers, push } from "../ui";
 import { PackArt } from "./open";
 import { openFeedback } from "./settings";
 
@@ -106,11 +106,19 @@ function Sheet({ title, children, buttons }: { title: string; children: Componen
   );
 }
 
+/** Shows `f` once nothing is open over the tabs (not in the middle of opening a pack or looking at a card). */
+function whenFree(f: () => void) {
+  if (!layers.get().length) return f();
+  const stop = layers.sub((l) => { if (!l.length) { stop(); setTimeout(() => whenFree(f), 800); } });
+}
+
 const BETA = "frcpacks.beta"; // the same key as the old page, so nobody sees it twice
 /** The beta welcome, once per device. */
 export function betaWelcome() {
-  try { if (localStorage.getItem(BETA)) return; localStorage.setItem(BETA, "1"); } catch { return; }
-  push(() => (
+  try { if (localStorage.getItem(BETA)) return; } catch { return; }
+  whenFree(() => {
+    try { localStorage.setItem(BETA, "1"); } catch { /* storage can be off */ }
+    push(() => (
     <Sheet title="You're a beta tester" buttons={<><button type="button" class="s-btn" onClick={() => { back(); setTimeout(openFeedback, 50); }}>Send feedback</button><button type="button" class="s-btn ghost" onClick={back}>Got it</button></>}>
       <p>FRC Packs is still being built, and you're one of the first players. Thank you!</p>
       <ul>
@@ -119,7 +127,8 @@ export function betaWelcome() {
         <li>Your cards are safe, but the game may reset before launch.</li>
       </ul>
     </Sheet>
-  ), "sheet");
+    ), "sheet");
+  });
 }
 
 let noted = false;
@@ -127,8 +136,10 @@ let noted = false;
 export function gameNotice(text: string | null | undefined) {
   if (!text || noted) return;
   noted = true;
-  push(() => <Sheet title="A note from FRC Packs" buttons={<button type="button" class="s-btn" onClick={back}>Got it</button>}><p>{text}</p></Sheet>, "sheet");
-  api.noticeSeen().catch(() => {});
+  whenFree(() => {
+    push(() => <Sheet title="A note from FRC Packs" buttons={<button type="button" class="s-btn" onClick={back}>Got it</button>}><p>{text}</p></Sheet>, "sheet");
+    api.noticeSeen().catch(() => {});
+  });
 }
 
 // ---------- the owner's notice ----------

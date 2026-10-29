@@ -34,7 +34,11 @@ const chord = (fs: number[], step: number, type: OscillatorType, v: number) => f
 /** Chrome refuses (and logs an error) if the page vibrates before the first tap. */
 export function buzz(ms: number | number[]) {
   try { if (!muted() && (!navigator.userActivation || navigator.userActivation.hasBeenActive)) navigator.vibrate?.(ms); } catch { /* not supported */ }
+  if (!muted()) rumble?.(ms);
 }
+let rumble: ((ms: number | number[]) => void) | null = null;
+/** A controller in use rumbles along with the phone buzzes (pad.ts). */
+export const setRumble = (f: typeof rumble) => { rumble = f; };
 
 export const sfx = {
   tick: () => blip(900, 0.03, "square", 0.02),

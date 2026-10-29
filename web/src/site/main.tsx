@@ -20,6 +20,7 @@ import { StatusBar } from "./screens/status";
 import { Avatar } from "./ui";
 import { openProfile } from "./screens/profile";
 import { setupPwa } from "./pwa";
+import { setupPad } from "./pad";
 import { TradeTab } from "./screens/trade";
 import { SocialTab } from "./screens/social";
 import { OpenHome } from "./screens/open";
@@ -116,4 +117,5 @@ function App() {
   );
 }
 
+setupPad();
 render(<><OwnerNotice /><App /><LayerHost /><ToastHost /></>, document.getElementById("app")!);

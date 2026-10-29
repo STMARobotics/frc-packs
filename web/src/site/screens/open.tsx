@@ -11,6 +11,7 @@ import { applyState, fail, inv, packOf, prefs, sets, st, stash, sync, toast } fr
 import { back, Card, cx, Face, plural, push } from "../ui";
 import { buzz, sfx } from "../sfx";
 import { openCard } from "./cardview";
+import { usePad } from "../pad";
 
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const N = 10; // packs on the wheel
@@ -126,7 +127,7 @@ export function OpenHome() {
   const untilt = () => { btn.current?.style.removeProperty("--gx"); btn.current?.style.removeProperty("--gy"); };
   return (
     <section class="op-home">
-      <button ref={btn} type="button" class={cx("op-hero", !n && !left && "op-empty")} onClick={go} onPointerMove={tilt} onPointerLeave={untilt}
+      <button ref={btn} type="button" data-pad-first class={cx("op-hero", !n && !left && "op-empty")} onClick={go} onPointerMove={tilt} onPointerLeave={untilt}
         aria-label={left ? "Finish opening your last pack" : `${NAME[cur]} pack, ${cur === "test" ? "unlimited" : n} to open`}>
         <span class="op-hero-in"><PackArt k={left ? "std" : cur} /></span>
         {!left && cur !== "test" && <em class={cx("op-count", cur !== "std" && "op-gold")}>×{n}</em>}
@@ -545,6 +546,26 @@ function Flow({ resume }: { resume?: Opening }) {
     if (prefs.get().wheel2) { setTorn(false); setDropping(false); go("wheel"); } else toHand(null);
   };
 
+  /** Back from the pack in your hand: a pack torn far enough to open gets opened. */
+  const holdBack = () => (openReq.current ? cut() : prefs.get().wheel2 ? go("wheel") : back());
+  /** Open without swiping. Turned over? Face it first, then tear it. */
+  const openNow = () => { if (holdApi.front && !holdApi.front()) { holdApi.face?.(); later(350, cut); } else cut(); };
+  // A controller: A opens or deals, X turns the pack over, Y reveals the rest, B puts the pack back.
+  usePad((b) => {
+    const p = ph.current;
+    if (p === "hold") {
+      if (b === "a") openNow(); else if (b === "x") holdApi.turn?.(); else if (b === "b") holdBack(); else return false;
+      return true;
+    }
+    if (p === "stack") {
+      if (b === "a") tapTop();
+      else if (b === "y") skip();
+      else if ((b === "left" || b === "right") && !busy && deck && at.current < 5 && isUp(at.current)) fling(b === "right" ? 1 : -1);
+      return true; // nothing else (B doesn't leave a pack halfway)
+    }
+    return p === "cutting" || p === "deal";
+  });
+
   // ----- drawing -----
   const holding = phase === "hold" || phase === "cutting" || phase === "deal";
   const stacked = (phase === "deal" || phase === "stack") && deck;
@@ -602,7 +623,7 @@ function Flow({ resume }: { resume?: Opening }) {
         )}
       </div>
       <div class="op-foot">
-        {phase === "hold" && <HoldButtons onBack={() => (openReq.current ? cut() : prefs.get().wheel2 ? go("wheel") : back())} onCut={cut} />}
+        {phase === "hold" && <HoldButtons onBack={holdBack} onOpen={openNow} />}
         {phase === "stack" && deck && (
           <>
             <p class="op-capline">{top && isUp(idx) ? <><b style={{ color: TIERS[top.tier].color }}>{TIERS[top.tier].label}</b>{top.isNew && !top.test ? " · New" : ""}</> : " "}</p>
@@ -716,7 +737,7 @@ function Wheel({ k, onPick, onBack }: { k: Kind; onPick: (r: DOMRect) => void; o
   }, []);
   return (
     <div class="op-wheel">
-      <div ref={wrap} class={cx("op-ringwrap", `k-${k}`)} tabIndex={0} role="listbox" aria-label="Choose a pack. Arrow keys turn the wheel.">
+      <div ref={wrap} class={cx("op-ringwrap", `k-${k}`)} tabIndex={0} data-pad-keys role="listbox" aria-label="Choose a pack. Arrow keys turn the wheel.">
         <i class="op-floor" />
         <div ref={ring} class="op-ring">
           {Array.from({ length: N }, (_, i) => (
@@ -827,16 +848,12 @@ function Hold(p: HoldProps) {
   );
 }
 
-function HoldButtons({ onBack, onCut }: { onBack: () => void; onCut: () => void }) {
-  const open = () => {
-    // Turned over? Face it first, then tear it.
-    if (holdApi.front && !holdApi.front()) { holdApi.face?.(); setTimeout(onCut, 350); } else onCut();
-  };
+function HoldButtons({ onBack, onOpen }: { onBack: () => void; onOpen: () => void }) {
   return (
     <div class="op-holdbtns">
       <button type="button" class="s-btn ghost small" onClick={onBack}>Back</button>
       <button type="button" class="s-btn ghost small" onClick={() => holdApi.turn?.()}>Turn over</button>
-      <button type="button" class="s-btn small" onClick={open}>Open</button>
+      <button type="button" class="s-btn small" onClick={onOpen}>Open</button>
     </div>
   );
 }

@@ -216,3 +216,6 @@
   .s-page *, .s-page *::before, .s-page *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
   .s-spin { animation-duration: .8s !important; }
 }
+
+/* Playing with a controller (pad.ts): whatever the d-pad is on gets a clear ring. */
+body.s-page.pad :focus { outline: 3px solid var(--ac); outline-offset: 3px; }
