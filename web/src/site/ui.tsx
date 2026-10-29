@@ -83,8 +83,23 @@ export function Ghost({ num, w, children }: { num: number; w: string; children?:
 export function TiltCard({ num, serial, w }: { num: number; serial?: number | string; w: string }) {
   const t = BY_NUM.get(num)!;
   const el = useRef<HTMLDivElement>(null);
+  useGrabTilt(el);
+  return (
+    <div ref={el} class="slot flipped s-tilt" style={{ "--cw": w, "--tc": TIERS[t.tier].color }}>
+      <div class="float"><div class="tilt">
+        <div class="flip card" data-tier={t.tier}>
+          <Face t={t} tier={t.tier} serial={serial} />
+        </div>
+      </div></div>
+    </div>
+  );
+}
+
+/** Hold and drag to turn a card: `tilt` (inside `el`) gets --rx/--ry, `light` gets --mx/--my (0 to 100, where the
+    light falls). It springs back when you let go and never moves on its own. */
+export function useGrabTilt(el: { current: HTMLElement | null }, tiltSel = ".tilt", lightSel = ".inner") {
   useEffect(() => {
-    const slot = el.current!, tilt = slot.querySelector<HTMLElement>(".tilt")!, inner = slot.querySelector<HTMLElement>(".inner")!;
+    const slot = el.current!, tilt = slot.querySelector<HTMLElement>(tiltSel)!, inner = slot.querySelector<HTMLElement>(lightSel)!;
     const MAX = 20, GAIN = 0.3;
     const g = { held: false, id: 0, rx: 0, ry: 0, rawX: 0, rawY: 0, vx: 0, vy: 0, lx: 0, ly: 0, lt: 0, raf: 0 };
     const soft = (v: number) => MAX * Math.tanh(v / MAX);
@@ -131,15 +146,6 @@ export function TiltCard({ num, serial, w }: { num: number; serial?: number | st
     slot.addEventListener("lostpointercapture", up);
     return () => { cancelAnimationFrame(g.raf); slot.removeEventListener("pointerdown", down); slot.removeEventListener("pointermove", move); slot.removeEventListener("pointerup", up); slot.removeEventListener("pointercancel", up); slot.removeEventListener("lostpointercapture", up); };
   }, []);
-  return (
-    <div ref={el} class="slot flipped s-tilt" style={{ "--cw": w, "--tc": TIERS[t.tier].color }}>
-      <div class="float"><div class="tilt">
-        <div class="flip card" data-tier={t.tier}>
-          <Face t={t} tier={t.tier} serial={serial} />
-        </div>
-      </div></div>
-    </div>
-  );
 }
 
 // ---------- the screen stack ----------

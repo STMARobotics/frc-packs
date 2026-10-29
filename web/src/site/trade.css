@@ -80,8 +80,6 @@
 .s-stepper button { width: 34px; height: 34px; border: 0; border-radius: 10px; background: var(--s3); color: var(--tx); font-size: 18px; cursor: pointer; }
 .s-stepper button:disabled { opacity: .35; }
 .s-stepper b { min-width: 18px; text-align: center; }
-.s-special.btn { width: 100%; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
-.s-special.on { box-shadow: inset 0 0 0 2px var(--gold); }
 .td-offer, .hi-item { display: grid; gap: 10px; padding: 12px; border-radius: 16px; background: var(--s1); }
 .td-offer header, .hi-item header { display: flex; align-items: center; gap: 10px; }
 .td-offer header p { margin: 0; flex: 1; }

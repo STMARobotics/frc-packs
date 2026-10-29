@@ -1,6 +1,6 @@
 // What the server says about this player (packs, timers, parts, collection, trades), kept in stores the screens read.
 // Everything that matters comes from the server; this only keeps the latest answer and a few display preferences.
-import { api, explain, type Collection, type Social, type State, type Trades } from "../api";
+import { api, explain, type Collection, type Social, type Special, type State, type Trades } from "../api";
 import { store } from "../lib/store";
 import { PACK } from "./data";
 
@@ -9,6 +9,8 @@ export const st = store<State | null>(null);
 export const inv = store<Record<number, number[]>>({});
 export const sets = store<Set<string>>(new Set());
 export const trades = store<Trades>({ incoming: [], outgoing: [], recent: [] });
+/** Your special editions (numbered limited cards). */
+export const specials = store<Special[]>([]);
 /** Every player, the latest trades and the activity feed. */
 export const social = store<Social | null>(null);
 /** Server clock minus this device's, so timers don't depend on the device clock. */
@@ -74,6 +76,7 @@ export async function sync() {
     applyState(s);
     applyCollection(c);
     if (t) trades.set(t);
+    loadSpecials();
   } catch { /* keep what we have */ }
   syncing = false;
 }
@@ -85,6 +88,10 @@ export async function loadSocial() {
     const sig = JSON.stringify(d);
     if (sig !== socialSig) { socialSig = sig; social.set(d); } // nothing redraws when nothing changed
   } catch { /* keep the old one */ }
+}
+
+export async function loadSpecials() {
+  try { specials.set(await api.specials()); } catch { /* keep the old list */ }
 }
 
 export async function loadTrades() {

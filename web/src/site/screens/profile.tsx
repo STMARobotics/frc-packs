@@ -9,6 +9,7 @@ import { Avatar, back, Card, closeAll, push, Spinner } from "../ui";
 import { openCard } from "./cardview";
 import { openSettings } from "./settings";
 import { tradeFor } from "./trade";
+import { SpecialRow } from "./special";
 
 export function openProfile(name: string) {
   push(() => <ProfileView name={name} />, "page");
@@ -25,8 +26,8 @@ function ProfileView({ name }: { name: string }) {
   useEffect(() => {
     api.profile(name, PACK).then((x) => {
       setP(x);
+      api.playerSpecials(name).then(setSpecials, () => {});
       if (!x.me) {
-        api.playerSpecials(name).then(setSpecials, () => {});
         api.playerCollection(name, PACK).then(setCol, () => {});
       }
     }, (e) => { fail(e); back(); });
@@ -77,7 +78,7 @@ function ProfileView({ name }: { name: string }) {
       )}
       {specials.length > 0 && (
         <section><h2 class="s-h2">Special editions</h2>
-          <div class="pr-specials">{specials.map((x) => <div class="s-special"><b>{x.title}</b><span>{x.edition} · {x.serial}/{x.total}</span></div>)}</div>
+          <SpecialRow list={specials} />
         </section>
       )}
       {p.me && <section><h2 class="s-h2">Rarest pulls</h2><div class="pr-row">{p.rarest.length ? row(p.rarest, 3, true) : <p class="s-dim">No cards yet.</p>}</div></section>}

@@ -1,0 +1,46 @@
+/* Special editions (screens/special.tsx). Class names start with se-. The light follows your finger while you hold
+   the card; the only thing that runs on its own is a few stars twinkling (opacity). */
+
+.se-tilt { --rx: 0deg; --ry: 0deg; width: var(--sw); transform: perspective(900px) rotateX(var(--rx)) rotateY(var(--ry)); }
+.se { --mx: 50; --my: 50; position: relative; width: 100%; aspect-ratio: 5 / 7; container-type: inline-size; overflow: hidden; isolation: isolate; border-radius: 6% / 4.3%;
+  background: conic-gradient(from 200deg, #19e6d0, #8fd8ff, #c8fff4, #ffe9a8, #19e6d0, #0aa596, #19e6d0); box-shadow: 0 10px 24px rgba(0, 0, 0, .5), 0 0 22px rgba(25, 230, 208, .3); }
+.se-in { position: absolute; inset: 2.4%; display: flex; flex-direction: column; overflow: hidden; border-radius: 4.2% / 3%; color: #eafffb;
+  background: repeating-linear-gradient(115deg, transparent 0 14px, rgba(25, 230, 208, .1) 14px 15px), radial-gradient(circle at 50% 45%, rgba(25, 230, 208, .4), transparent 55%), radial-gradient(120% 90% at 30% 10%, #0e5963, #032f35 60%, #021a1e); }
+.se-hd { position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: flex-start; padding: 4cqw 4.6cqw 0; }
+.se-num { font: 400 15cqw/.9 var(--display); color: #bffff5; text-shadow: 0 0 6cqw rgba(25, 230, 208, .9); }
+.se-num small { display: block; font: 700 3.2cqw var(--body); letter-spacing: .3em; opacity: .85; }
+.se-run { font: 700 3.2cqw/1.5 var(--body); letter-spacing: .18em; text-align: right; }
+.se-run b { display: block; font: 400 6.4cqw var(--display); letter-spacing: .04em; }
+.se-photo { position: relative; z-index: 2; margin: 3cqw 5cqw 0; aspect-ratio: 4 / 3; overflow: hidden; border: .8cqw solid #19e6d0; border-radius: 3cqw; background: #04242a; box-shadow: 0 0 5cqw rgba(25, 230, 208, .55); }
+.se-photo img { display: block; width: 100%; height: 100%; object-fit: cover; pointer-events: none; -webkit-user-drag: none; }
+.se-bot { position: relative; z-index: 2; margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; gap: 3cqw; padding: 0 4.6cqw 4cqw; }
+.se-nm { min-width: 0; font: 400 6.6cqw/1 var(--display); }
+.se-nm small { display: block; margin-top: 1.4cqw; font: 500 3cqw var(--body); letter-spacing: .16em; text-transform: uppercase; opacity: .8; }
+.se-sn { flex: none; font: 700 3.4cqw var(--body); letter-spacing: .12em; text-align: right; }
+.se-sn b { display: block; font: 400 7cqw var(--display); letter-spacing: .03em; color: #ffe9a8; text-shadow: 0 0 3cqw rgba(255, 225, 120, .7); }
+.se-star { --i: 0; position: absolute; z-index: 3; width: 5cqw; aspect-ratio: 1; pointer-events: none; background: #fff; opacity: .2;
+  clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%); animation: se-twinkle 2.6s ease-in-out infinite alternate; animation-delay: calc(var(--i) * -.45s); }
+.se-star:nth-of-type(1) { left: 8%; top: 46%; } .se-star:nth-of-type(2) { left: 84%; top: 40%; width: 3.5cqw; }
+.se-star:nth-of-type(3) { left: 70%; top: 74%; } .se-star:nth-of-type(4) { left: 20%; top: 78%; width: 3cqw; }
+.se-star:nth-of-type(5) { left: 46%; top: 16%; width: 3cqw; } .se-star:nth-of-type(6) { left: 56%; top: 64%; width: 4cqw; }
+@keyframes se-twinkle { to { opacity: .95; } }
+/* The holo sheen behind the photo and the writing, and a glare that slides to where the light is while you hold it. */
+.se-sheen { position: absolute; inset: -30%; z-index: 1; pointer-events: none;
+  background: linear-gradient(125deg, transparent 30%, rgba(124, 255, 236, .16) 42%, rgba(255, 233, 168, .14) 50%, rgba(143, 216, 255, .16) 58%, transparent 70%);
+  transform: translate(calc((var(--mx) - 50) * -.4%), calc((var(--my) - 50) * -.4%)); }
+.se-glare { position: absolute; inset: -50%; z-index: 5; pointer-events: none; background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, .16), transparent 18%);
+  transform: translate(calc((var(--mx) - 50) * .5%), calc((var(--my) - 50) * .5%)); }
+
+.se-row { display: flex; gap: 12px; overflow-x: auto; margin: -8px -16px 0; padding: 8px 16px 12px; scrollbar-width: none; }
+.se-thumb .se { box-shadow: 0 6px 12px rgba(0, 0, 0, .45), 0 0 8px rgba(25, 230, 208, .3); }
+.se-thumb { flex: none; width: 120px; padding: 0; border: 0; border-radius: 8px; background: none; cursor: pointer; }
+.se-thumb:active .se-tilt { transform: scale(.97); }
+.se-thumb.on { outline: 3px solid var(--gold); outline-offset: 3px; }
+.se-view { min-height: 100%; max-width: 520px; margin: 0 auto; display: grid; grid-template-rows: auto 1fr auto; justify-items: center; gap: 12px; padding: calc(10px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom)); }
+.se-view .s-head { justify-self: end; }
+.se-hold { align-self: center; touch-action: none; cursor: grab; }
+.se-tilt { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.se-note { margin: 0; display: grid; gap: 4px; color: var(--dim); text-align: center; }
+.se-note b { color: var(--tx); font: 400 20px var(--display); }
+
+@media (prefers-reduced-motion: reduce) { .se-star { animation: none; } }

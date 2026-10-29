@@ -163,9 +163,6 @@
 .pr-row.wide, .pr-grid { grid-template-columns: repeat(auto-fill, var(--pw)); }
 .pr-grid { display: grid; gap: 10px; }
 .pr-empty { width: var(--pw); aspect-ratio: 5 / 7; border: 1.5px dashed var(--ln); border-radius: 10px; background: none; color: var(--dim); font: 600 12px var(--body); cursor: pointer; }
-.pr-specials { display: grid; gap: 6px; }
-.s-special { display: flex; justify-content: space-between; padding: 10px 12px; border-radius: 12px; background: linear-gradient(135deg, #3a2d10, var(--s1)); }
-.s-special span { color: var(--dim); font-size: 13px; }
 
 /* settings */
 .sg-acct { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 16px; background: var(--s1); }

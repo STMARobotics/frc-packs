@@ -4,10 +4,11 @@ import { useEffect, useMemo, useState } from "preact/hooks";
 import { api } from "../../api";
 import { useStore } from "../../lib/store";
 import { byRarity, DIV_TEAMS, DIVS, ORDER, POOL, RECIPE, TEAMS, TIERS, type T } from "../data";
-import { applyState, fail, inv, prefs, setPrefs, sets, st, toast } from "../state";
+import { applyState, fail, inv, prefs, setPrefs, sets, specials, st, toast } from "../state";
 import { Card, cx, Ghost, Tabs } from "../ui";
 import { openCard } from "./cardview";
 import { Workshop } from "./workshop";
+import { SpecialRow } from "./special";
 
 const PAGE = 48;
 // Kept between visits to the tab.
@@ -18,6 +19,7 @@ export function Binder({ active }: { active: boolean }) {
   const s = useStore(st)!;
   const done = useStore(sets);
   const p = useStore(prefs);
+  const mine = useStore(specials);
   const [f, setF] = useState(filter);
   const [q, setQ] = useState(query);
   const [miss, setMiss] = useState(missing);
@@ -71,6 +73,7 @@ export function Binder({ active }: { active: boolean }) {
       <Tabs value={pg} onChange={setPg} options={[["cards", "Cards"], ["workshop", "Workshop"]]} />
       {pg === "workshop" ? <Workshop /> : (
         <>
+          <SpecialRow list={mine} />
           <input class="s-input" type="search" placeholder="Search number, name or place" value={q} onInput={(e) => setQ(e.currentTarget.value)} aria-label="Search the binder" />
           <div class="s-filters">
             <select class="s-select" value={isDiv ? "all" : f} onChange={(e) => setF(e.currentTarget.value)} aria-label="Rarity">

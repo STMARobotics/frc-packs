@@ -6,12 +6,13 @@ import { useEffect, useState } from "preact/hooks";
 import { api, type CardRef, type Special, type Trade } from "../../api";
 import { store, useStore } from "../../lib/store";
 import { BY_NUM, byRarity, ORDER, PACK, TIERS, type T } from "../data";
-import { ago, applyCollection, applyState, fail, heldCopies, inv, loadSocial, packOf, setPrefs, social, st, toast, trades } from "../state";
+import { ago, applyCollection, applyState, fail, heldCopies, inv, loadSocial, packOf, setPrefs, social, specials as mySpecials, st, toast, trades } from "../state";
 import { Avatar, back, cx, push, Spinner, Tabs } from "../ui";
 import { sfx } from "../sfx";
 import { openCard } from "./cardview";
 import { openProfile } from "./profile";
 import { Who } from "./social";
+import { SpecialCard } from "./special";
 
 const MAX = 5;
 const PACK_WORTH = 50, SPECIAL_WORTH = 800; // for weighing a trade: a sealed pack counts as 50 parts
@@ -34,7 +35,6 @@ const empty = (name = ""): Draft => ({ name, theirs: null, theirWish: [], theirG
 
 const draft = store<Draft>(empty());
 const pane = store<"new" | "in" | "out" | "past">("new");
-const mySpecials = store<Special[]>([]);
 const edit = (f: (d: Draft) => void) => { const d = structuredClone(draft.get()); f(d); draft.set(d); };
 
 /** Loads a player onto the other side of the table. */
@@ -302,11 +302,11 @@ function Picker({ side, start }: { side: "give" | "get"; start: "cards" | "goods
             </div>
             {specs.length > 0 && <>
               <h2 class="s-h2">Special editions</h2>
-              {specs.map((x) => (
-                <button type="button" class={cx("s-special btn", specOn.includes(x.id) && "on")} aria-pressed={specOn.includes(x.id)} onClick={() => edit((dd) => { const a = mine ? dd.giveSpecials : dd.getSpecials; const i = a.indexOf(x.id); if (i >= 0) a.splice(i, 1); else if (a.length < MAX) a.push(x.id); })}>
-                  <b>{x.title} · {x.name}</b><span>{x.edition} · {x.serial}/{x.total}</span>
+              <div class="se-row">{specs.map((x) => (
+                <button type="button" class={cx("se-thumb", specOn.includes(x.id) && "on")} aria-pressed={specOn.includes(x.id)} aria-label={`${x.title}, No. ${x.serial} of ${x.total}`} onClick={() => edit((dd) => { const a = mine ? dd.giveSpecials : dd.getSpecials; const i = a.indexOf(x.id); if (i >= 0) a.splice(i, 1); else if (a.length < MAX) a.push(x.id); })}>
+                  <SpecialCard sp={x} w="100%" />
                 </button>
-              ))}
+              ))}</div>
             </>}
           </div>
         )
