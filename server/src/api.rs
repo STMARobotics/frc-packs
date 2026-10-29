@@ -328,24 +328,23 @@ pub(crate) async fn pack(s: &Shared, id: &str) -> ApiResult<crate::packs::PackRe
     crate::packs::PackRef::new(s.catalog().await, id).ok_or(err(StatusCode::NOT_FOUND, "unknown_pack"))
 }
 
-async fn roll_for(
-    db: &Db,
-    p: &Profile,
-    pack: &Pack,
-    up: &PackRow,
-    boosted: bool,
-    mythic: bool,
-) -> ApiResult<Vec<Rolled>> {
-    let opened_any: i32 = model::packs(db, p.id).await?.iter().map(|r| r.opened).sum();
-    let opts = Opts {
-        demo: p.demo,
+/// What a pack opened now rolls with: the player's meters, their first pack, and the kind of pack. Demo luck only
+/// counts on a server with DEV_TOOLS on, whatever the profile says.
+async fn opts_for(s: &Shared, p: &Profile, up: &PackRow, boosted: bool, mythic: bool) -> ApiResult<Opts> {
+    let opened_any: i32 = model::packs(&s.db, p.id).await?.iter().map(|r| r.opened).sum();
+    Ok(Opts {
+        demo: p.demo && s.dev_tools,
         first: opened_any == 0,
         pity: Pity { m: up.pity_m.max(0) as u32, l: up.pity_l.max(0) as u32 },
         boosted,
         mythic,
-    };
-    let mut rng = rand::rng();
-    Ok(roll::roll(pack, &mut rng, &opts))
+    })
+}
+
+/// Rolls a pack. The generator is the operating system's randomness through ChaCha12 (`rand::rng`), fresh for each
+/// request thread and reseeded as it goes: nothing about a roll can be predicted from earlier ones.
+fn roll_now(pack: &Pack, o: &Opts) -> Vec<Rolled> {
+    roll::roll(pack, &mut rand::rng(), o)
 }
 
 /// One opening's cards as the reveal shows them: copy number among the player's copies of that team, and copies in
@@ -831,19 +830,27 @@ async fn hand(State(s): State<Shared>, user: User, Json(req): Json<PackReq>) -> 
     }
     let kind = pack_kind(&up, req.boosted)?;
     let sk = hand_sk(pack.id(), kind);
+    let p = me(&s.db, user.id).await?;
+    let opts = opts_for(&s, &p, &up, kind, false).await?;
+    let mut old: Option<String> = None;
     if let Some(it) = s.db.get(&upk(user.id), &sk).await? {
-        let cards: Vec<Rolled> = serde_json::from_str(&get_s(&it, "cards").unwrap_or_default()).unwrap_or_default();
-        if !cards.is_empty() {
+        let raw = get_s(&it, "cards").unwrap_or_default();
+        let cards: Vec<Rolled> = serde_json::from_str(&raw).unwrap_or_default();
+        if !cards.is_empty() && roll::keeps(&pack.recipe.odds, &opts, &cards) {
             return Ok(Json(HandOut { best: roll::best(&cards), boosted: kind }));
         }
+        old = Some(raw);
     }
-    let p = me(&s.db, user.id).await?;
-    let cards = roll_for(&s.db, &p, &pack, &up, kind, false).await?;
+    let cards = roll_now(&pack, &opts);
     let mut it = crate::db::key(upk(user.id), &sk);
     it.insert("cards".into(), sv(serde_json::to_string(&cards).unwrap()));
     let mut tx = Tx::new();
     // Two pick-ups at once: the first one's cards stand.
-    tx.put_if("hand", it, Some(Cond::absent()));
+    let cond = match old {
+        Some(raw) => Cond::new("cards = :old").val(":old", sv(raw)),
+        None => Cond::absent(),
+    };
+    tx.put_if("hand", it, Some(cond));
     match tx.commit(&s.db).await {
         Ok(()) => Ok(Json(HandOut { best: roll::best(&cards), boosted: kind })),
         Err(DbError::Conflict("hand")) => {
@@ -945,6 +952,9 @@ async fn open(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Json
         return Ok(done);
     }
     let mythic = req.mythic;
+    // A pack rolled here (none was in hand) is rolled once: if the write loses a race and runs again, the same cards
+    // come out, so a retry can never quietly swap a roll for another.
+    let fresh: std::sync::Mutex<Option<(Opts, Vec<Rolled>)>> = std::sync::Mutex::new(None);
     let r = retry!(async {
         let db = &s.db;
         let mut p = me(db, user.id).await?;
@@ -966,9 +976,20 @@ async fn open(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Json
                 && c.iter().all(|x| pack.team_tier.get(&x.num) == Some(&x.tier))
                 && c.iter().enumerate().all(|(i, x)| !c[..i].iter().any(|y| y.num == x.num))
         };
+        let opts = opts_for(&s, &p, &before, kind, mythic).await?;
         let mut cards = match &held {
-            Some(c) if valid(c) => c.clone(),
-            _ => roll_for(db, &p, &pack, &before, kind, mythic).await?,
+            Some(c) if valid(c) && roll::keeps(&pack.recipe.odds, &opts, c) => c.clone(),
+            _ => {
+                let mut f = fresh.lock().unwrap();
+                match &*f {
+                    Some((o, c)) if *o == opts => c.clone(),
+                    _ => {
+                        let c = roll_now(&pack, &opts);
+                        *f = Some((opts, c.clone()));
+                        c
+                    }
+                }
+            }
         };
         roll::sort_best_last(&mut cards);
 
