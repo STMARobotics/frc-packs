@@ -1366,7 +1366,8 @@ body.has-notice .app > .top { top: calc(36px + env(safe-area-inset-top)); }
 .ttb .nmp { justify-self: center; max-width: calc(var(--cw) * .46); font-size: calc(var(--cw) * .043 * var(--nl, 1)); display: block; line-height: calc(var(--cw) * .05); text-overflow: ellipsis; }
 .ftb > span { font-family: var(--body); font-weight: 700; }
 .ftb .sn { font-family: var(--display); font-size: calc(var(--cw) * .034); color: #e9f6f4; letter-spacing: .04em; }
-.ftb .rar { font-size: calc(var(--cw) * .038); color: var(--acc); letter-spacing: .06em; }
+/* Five stars, each its own box at the same spacing, so the scale sits in the same place on every rarity. */
+.ftb .rar { font-size: calc(var(--cw) * .038); color: var(--acc); gap: .14em; }
 .ftb .sn.low { color: #ffd34d; text-shadow: 0 0 8px rgba(255,211,77,.7); }
 .ftb .sn.match { color: var(--tide); text-shadow: 0 0 8px rgba(39,211,195,.8); }
 .card[data-tier="mythic"] .inner.v2::after { display: none; }
@@ -1431,6 +1432,7 @@ body.has-notice .app > .top { top: calc(36px + env(safe-area-inset-top)); }
 .inner.b2 .rp i { font-size: calc(var(--cw) * .036); }
 .inner.b2 .rp b { font-size: calc(var(--cw) * .055); }
 .ftb .rar i { font-style: normal; opacity: .22; }
+.ftb .rar i.on { opacity: 1; }
 .inner.b2 .avatar.none { display: grid; place-items: center; font: 400 calc(var(--cw) * .034) / 1 var(--display); color: var(--acc2); }
 .inner.bt .effect p.tbd { color: rgba(255,255,255,.55); font-style: italic; font-weight: 500; }
 .inner.bt b.na { opacity: .4; }

@@ -48,7 +48,7 @@ export function Face({ t, tier, serial }: { t: T; tier: Tier; serial?: number | 
         <div class="effect"><small>UNIQUE EFFECT</small>{bt?.effect ? <p>{bt.effect}</p> : <p class="tbd">{bt ? "Effect coming soon" : "Stats and effect coming soon"}</p>}</div>
       </div>
       <div class="ftb">
-        <span class="rar" aria-label={`${STARS[tier]} of 5 stars`}>{[0, 1, 2, 3, 4].map((i) => (i < STARS[tier] ? "★" : <i>★</i>))}</span>
+        <span class="rar" aria-label={`${STARS[tier]} of 5 stars`}>{[0, 1, 2, 3, 4].map((i) => <i class={i < STARS[tier] ? "on" : undefined}>★</i>)}</span>
         <span class={cx("sn", sn > 0 && sn <= 10 && "low", sn === t.num && "match")}>No. {serial || "------"}</span>
       </div>
     </div>
