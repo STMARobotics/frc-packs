@@ -3,6 +3,16 @@
 Branch `battler-ui-revamp` on STMARobotics/frc-packs. Six commits, all pushed. Nothing went to `main`, and I didn't touch
 AWS or `cdk/`. Nothing is live until you merge.
 
+> **Update, 12:30 UTC:** you chose **option C now, with a notice**, and it's in (`603c96d`). Every pack is now 1 in 250
+> for a Mythic, the meter climbs after pack 200, and a Mythic is certain by pack 300. Players' counts carry over.
+>
+> - **The notice**: `server/src/announce.rs` gives every existing account a one-time note the next time they open the
+>   game. New accounts start past it.
+> - **The re-run million-pack simulation matches the plan**: a Mythic every 143 packs on average, 55% by luck, median
+>   pack 174, with 10–90% between packs 25 and 217. Tier odds, team uniformity, runs and lag correlations all pass.
+> - **Elsewhere**: it's in the 0.9.0 patch notes. The meter on Open now reads "/300", and the pack odds line reads
+>   "1 in 250".
+
 ## TL;DR
 
 - **Everything on the list shipped to the branch**: the Copies view, a free pack for accepted feedback, the feedback
