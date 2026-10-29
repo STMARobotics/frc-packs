@@ -40,7 +40,55 @@ let rumble: ((ms: number | number[]) => void) | null = null;
 /** A controller in use rumbles along with the phone buzzes (pad.ts). */
 export const setRumble = (f: typeof rumble) => { rumble = f; };
 
+/** The pack straining while you tear it: a hum that rises in pitch and volume with `c` (0 to 1). */
+let hum: { o: OscillatorNode; o2: OscillatorNode; g: GainNode; f: BiquadFilterNode } | null = null;
+function humSet(c: number) {
+  if (muted()) return humStop();
+  const a = actx();
+  if (!a) return;
+  if (!hum) {
+    const o = a.createOscillator(), o2 = a.createOscillator(), g = a.createGain(), f = a.createBiquadFilter();
+    o.type = "sawtooth"; o2.type = "square"; f.type = "lowpass"; f.Q.value = 6;
+    g.gain.value = 0.0001;
+    o.connect(f); o2.connect(f); f.connect(g); g.connect(a.destination);
+    o.start(); o2.start();
+    hum = { o, o2, g, f };
+  }
+  const t = a.currentTime;
+  hum.o.frequency.setTargetAtTime(55 + c * c * 170, t, 0.04);
+  hum.o2.frequency.setTargetAtTime(56.5 + c * c * 171, t, 0.04);
+  hum.f.frequency.setTargetAtTime(300 + c * 2200, t, 0.05);
+  hum.g.gain.setTargetAtTime(0.015 + c * c * 0.09, t, 0.05);
+}
+function humStop() {
+  const a = actx();
+  if (!hum || !a) return;
+  const h = hum, t = a.currentTime;
+  hum = null;
+  h.g.gain.setTargetAtTime(0.0001, t, 0.03);
+  h.o.stop(t + 0.2); h.o2.stop(t + 0.2);
+}
+
 export const sfx = {
+  /** Something with weight landing in your hands (`v` 0 to 1 for how heavy). */
+  thud: (v = 1) => { blip(70, 0.25, "sine", 0.32 * v); blip(140, 0.08, "triangle", 0.08 * v); noise(0.12, 0.22 * v, 220); buzz(Math.round(10 + 20 * v)); },
+  /** The pack straining as it's torn: a hum that climbs with `c`; stop it when you let go. */
+  strain: humSet,
+  strainStop: humStop,
+  /** The tear catching another notch, sharper the further it's gone. */
+  tear: (t: number) => { noise(0.045, 0.16 + t * 0.2, 1800 + t * 3200); blip(260 + t * 420, 0.03, "square", 0.02 + t * 0.02); },
+  /** A card snapping into place. */
+  snap: (v = 1) => { blip(1700, 0.03, "square", 0.04 * v); noise(0.035, 0.16 * v, 5200); buzz(Math.round(5 + 8 * v)); },
+  /** Let go part way: it settles back. */
+  settle: () => { blip(120, 0.12, "triangle", 0.1); noise(0.07, 0.12, 380); buzz(12); },
+  /** It bursts open: a deep hit, a crack, and the best card's chord on top. */
+  burst: (best: Tier) => {
+    humStop();
+    blip(48, 0.6, "sine", 0.45); blip(96, 0.3, "triangle", 0.15); noise(0.55, 0.6, 1300); noise(0.25, 0.4, 4000);
+    if (best === "legendary" || best === "mythic") chord([392, 523, 659, 784], 0.05, "triangle", 0.08);
+    else if (best === "rare") chord([523, 659], 0.05, "triangle", 0.07);
+    buzz(best === "mythic" || best === "legendary" ? [90, 40, 140] : [70, 30, 60]);
+  },
   tick: () => blip(900, 0.03, "square", 0.02),
   pick: () => { blip(520, 0.08, "triangle", 0.08); blip(780, 0.1, "triangle", 0.06, 0.06); },
   rip: (best: Tier) => {

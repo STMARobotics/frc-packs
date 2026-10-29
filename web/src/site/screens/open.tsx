@@ -247,7 +247,12 @@ function Flow({ resume }: { resume?: Opening }) {
     const a = big ? 6 : 3;
     stage.current?.animate([{ transform: "none" }, { transform: `translate(${-a}px, ${a / 2}px) rotate(-.4deg)` }, { transform: `translate(${a}px, ${-a / 2}px) rotate(.4deg)` }, { transform: `translate(${-a}px, ${a / 2}px)` }, { transform: `translate(${a / 2}px, ${-a / 3}px)` }, { transform: "none" }], { duration: big ? 850 : 550, easing: "ease-out" });
   };
-  const flash = () => { if (!RM) flashEl.current?.animate([{ opacity: 0.85 }, { opacity: 0 }], { duration: 550, easing: "ease-out" }); };
+  const flash = (color = "#fff", ms = 550) => {
+    const el = flashEl.current;
+    if (RM || !el) return;
+    el.style.background = color;
+    el.animate([{ opacity: 0.85 }, { opacity: 0 }], { duration: ms, easing: "ease-out" });
+  };
   const banner = (text: string, ms = 3200) => { const n = Date.now(); setSay({ text, n }); later(ms, () => setSay((x) => (x?.n === n ? null : x))); };
   /** A short-lived effect element (shockwave, title) in the effects layer, which Preact leaves alone. */
   const spawn = (cls: string, style: Record<string, string>, ms: number, html = "") => {
@@ -321,6 +326,7 @@ function Flow({ resume }: { resume?: Opening }) {
     } catch (e) {
       openReq.current = null;
       if (!alive.current) return;
+      sfx.strainStop();
       if ((e as { code?: string }).code === "no_packs") return outOfPacks();
       // The server may have opened it and only the answer got lost: pick that pack up instead of opening another.
       try {
@@ -333,8 +339,9 @@ function Flow({ resume }: { resume?: Opening }) {
   };
   const rip = (cards: Deal[], first: number) => {
     const b = cards[4].tier, big = b === "legendary" || b === "mythic", r = grip.current!.getBoundingClientRect();
-    sfx.rip(b);
-    shake(false);
+    sfx.burst(b);
+    shake(true);
+    flash(b === "mythic" ? "#ffe9a8" : TIERS[b].color, 650);
     setBest(b); setTorn(true);
     burst(r, big ? 60 : 40, b === "mythic" ? null : TIERS[b].color, 7, 0.12);
     ripFx(r, b === "mythic" ? "#ffd34d" : TIERS[b].color, b === "mythic", big);
@@ -363,7 +370,7 @@ function Flow({ resume }: { resume?: Opening }) {
       setDropping(true);
       anim.play();
       later(380, () => setFan(false));
-      later(720, () => go("stack"));
+      later(720, () => { sfx.thud(0.6); shake(false); go("stack"); });
     };
     requestAnimationFrame(wait);
   }, [phase]);
@@ -411,6 +418,7 @@ function Flow({ resume }: { resume?: Opening }) {
         banner(`LEGENDARY · ${t.name} (${t.num})`, 3000);
       } else if (c.tier === "mythic") mythic(c, r);
     });
+    later(RM ? 0 : 360, () => sfx.snap());
     later(RM ? 400 : 850, () => setBusy(false));
   };
   /** White flash, shockwaves, MYTHIC stamped in gold, the name under it, confetti, and a rainbow aura that stays until
@@ -453,6 +461,7 @@ function Flow({ resume }: { resume?: Opening }) {
       if (p?.id === op.current.id) p.revealed = n; // leaving now picks up from here
     }
     later(RM ? 60 : 380, () => { setGone((g) => g.filter((x) => x.i !== i)); if (n >= 5) summary(null); });
+    if (n < 5) later(RM ? 0 : 140, () => sfx.snap(0.5));
   };
   const tapTop = () => {
     if (charging >= 0) return flip(charging); // tap through a Mythic's build-up
@@ -589,7 +598,7 @@ function Flow({ resume }: { resume?: Opening }) {
           <div class="op-main">
             {holding && (
               <Hold key={round} k={k} best={best} from={from} active={phase === "hold"} torn={torn} dropping={dropping} grip={grip}
-                onEarly={startOpen} onCut={cut} />
+                onEarly={startOpen} onCut={cut} onLand={() => { sfx.thud(1); shake(false); }} />
             )}
             {stacked && (
               <div ref={stackEl} class={cx("op-stack", phase === "deal" && "op-dealing", fan && "op-fan", !!resume && phase === "stack" && "op-rise")} tabIndex={0} role="button"
@@ -755,16 +764,19 @@ function Wheel({ k, onPick, onBack }: { k: Kind; onPick: (r: DOMRect) => void; o
 
 // ---------- the pack in your hand ----------
 
-interface HoldProps { k: Kind; best: Tier | null; from: DOMRect | null; active: boolean; torn: boolean; dropping: boolean; grip: { current: HTMLDivElement | null }; onEarly: () => void; onCut: () => void }
+interface HoldProps { k: Kind; best: Tier | null; from: DOMRect | null; active: boolean; torn: boolean; dropping: boolean; grip: { current: HTMLDivElement | null }; onEarly: () => void; onCut: () => void; onLand: () => void }
 
 /** Turns the pack in your hand (it shows the odds on the back) and tears it with a swipe across the top. Exposed so
     the buttons under it can do the same. */
 const holdApi: { turn?: () => void; front?: () => boolean; face?: () => void } = {};
+/** The tear catches every this much of the pack's width, with a tick, a buzz and a jolt. */
+const NOTCH = 0.04;
 
 function Hold(p: HoldProps) {
-  const lift = useRef<HTMLDivElement>(null), rotEl = useRef<HTMLDivElement>(null), tell = useRef<HTMLElement>(null), rim = useRef<HTMLElement>(null), line = useRef<HTMLElement>(null);
+  const lift = useRef<HTMLDivElement>(null), shakeEl = useRef<HTMLDivElement>(null), rotEl = useRef<HTMLDivElement>(null);
+  const tell = useRef<HTMLElement>(null), rim = useRef<HTMLElement>(null), line = useRef<HTMLElement>(null), beam = useRef<HTMLElement>(null);
   const rot = useRef({ y: 0, x: 0 });
-  const g = useRef<{ x: number; y: number; ry: number; cut: boolean; w: number; left: number; moved: boolean; id: number } | null>(null);
+  const g = useRef<{ x: number; y: number; ry: number; cut: boolean; w: number; left: number; moved: boolean; id: number; notch: number } | null>(null);
   const [away, setAway] = useState(false);
   const [rainbow, setRainbow] = useState(false);
   const rb = useRef(false);
@@ -777,25 +789,34 @@ function Hold(p: HoldProps) {
     r.style.setProperty("--sx", (-Math.sin((rot.current.y * Math.PI) / 180) * 60).toFixed(1));
     setAway(!facingFront());
   };
-  /** The light leaking out of the tear, brighter the further you swipe. A Mythic starts Legendary and turns rainbow past halfway. */
+  /** The light leaking out of the tear, brighter the further it's torn. A Mythic starts Legendary and turns rainbow past halfway. */
   const glow = (t: number) => {
     if (tell.current) tell.current.style.opacity = t.toFixed(3);
     if (rim.current) rim.current.style.opacity = Math.min(1, t * 2).toFixed(3);
+    if (beam.current) beam.current.style.opacity = Math.min(1, t * 1.4).toFixed(3);
     if (p.best === "mythic" && t > 0.55 && !rb.current) { rb.current = true; setRainbow(true); sfx.promote(); }
   };
-  useLayoutEffect(() => { if (p.from && lift.current) flyFrom(lift.current, p.from, 460); }, []);
+  /** How far the strip has peeled back (0 to 1). */
+  const peel = (t: number) => p.grip.current?.style.setProperty("--peel", t.toFixed(3));
+
+  // It lands in your hand with some weight: from the wheel, or dropped in from above.
+  useLayoutEffect(() => {
+    if (p.from && lift.current) flyFrom(lift.current, p.from, 460);
+    const t = setTimeout(p.onLand, RM ? 0 : p.from ? 440 : 380);
+    return () => clearTimeout(t);
+  }, []);
   useEffect(() => {
     holdApi.turn = () => { rot.current.y += 180; paint(false); sfx.whoosh(); };
     holdApi.front = facingFront;
     holdApi.face = () => { rot.current.y = Math.round(rot.current.y / 360) * 360; rot.current.x = 0; paint(false); };
-    return () => { holdApi.turn = holdApi.front = holdApi.face = undefined; };
+    return () => { holdApi.turn = holdApi.front = holdApi.face = undefined; sfx.strainStop(); };
   }, []);
   useEffect(() => { if (p.torn) { glow(1); if (p.best === "mythic") setRainbow(true); } }, [p.torn, p.best]);
 
   const down = (e: PointerEvent) => {
     if (!p.active) return;
     const r = p.grip.current!.getBoundingClientRect(), y = (e.clientY - r.top) / r.height;
-    g.current = { x: e.clientX, y: e.clientY, ry: rot.current.y, cut: facingFront() && y < 0.26, w: r.width, left: r.left, moved: false, id: e.pointerId };
+    g.current = { x: e.clientX, y: e.clientY, ry: rot.current.y, cut: facingFront() && y < 0.26, w: r.width, left: r.left, moved: false, id: e.pointerId, notch: 0 };
     try { p.grip.current!.setPointerCapture(e.pointerId); } catch { /* fine */ }
   };
   const move = (e: PointerEvent) => {
@@ -804,10 +825,22 @@ function Hold(p: HoldProps) {
     const dx = e.clientX - s.x, dy = e.clientY - s.y;
     if (Math.abs(dx) + Math.abs(dy) > 6) s.moved = true;
     if (s.cut) {
-      const at = Math.max(0, Math.min(1, (e.clientX - s.left) / s.w)), from = Math.max(0, Math.min(1, (s.x - s.left) / s.w)), len = Math.abs(at - from);
+      // The tear follows your finger but catches as it goes: it jumps notch by notch, each with a tick, a buzz and a
+      // jolt that get stronger, and the pack strains (a rising hum) the further it's torn.
+      const at = Math.max(0, Math.min(1, (e.clientX - s.left) / s.w)), from = Math.max(0, Math.min(1, (s.x - s.left) / s.w));
+      const len = Math.floor(Math.abs(at - from) / NOTCH) * NOTCH, t = Math.min(1, len / 0.6);
       if (line.current) line.current.style.transform = `translateX(${Math.min(from, at) * 100}%) scaleX(${len})`;
       p.grip.current!.classList.add("op-swiping");
-      glow(Math.min(1, len / 0.6));
+      glow(t);
+      peel(t);
+      if (len > s.notch) {
+        s.notch = len;
+        sfx.tear(t);
+        sfx.strain(t);
+        buzz(Math.round(6 + t * 18));
+        const a = RM ? 0 : 1 + t * 5;
+        shakeEl.current?.animate([{ transform: `translate(${(Math.random() * 2 - 1) * a}px, ${a * 0.6}px) rotate(${(Math.random() * 2 - 1) * a * 0.2}deg)` }, { transform: "none" }], { duration: 120, easing: "ease-out" });
+      }
       if (len > 0.45) p.onEarly(); // ask the server now, so the cards are ready when the tear finishes
       if (len > 0.6) { g.current = null; p.onCut(); }
     } else {
@@ -821,8 +854,11 @@ function Hold(p: HoldProps) {
     if (!s || e.pointerId !== s.id) return;
     g.current = null;
     if (s.cut) {
+      // Let go part way: the strip springs back and the light goes out.
       p.grip.current!.classList.remove("op-swiping");
       if (line.current) line.current.style.transform = "scaleX(0)";
+      peel(0);
+      if (s.notch) { sfx.strainStop(); sfx.settle(); }
       if (!rb.current) glow(0);
       return;
     }
@@ -838,11 +874,14 @@ function Hold(p: HoldProps) {
       <div ref={p.grip} class="op-grip" onPointerDown={down} onPointerMove={move} onPointerUp={upH} onPointerCancel={upH}>
         <i ref={tell} class="op-tell" />
         <div ref={lift} class={cx("op-lift", !p.from && "op-in")}>
-          <i ref={rim} class="op-rim" />
-          <div ref={rotEl} class="op-rot"><PackArt k={p.k} odds /></div>
+          <div ref={shakeEl} class="op-shake">
+            <i ref={rim} class="op-rim" />
+            <div ref={rotEl} class="op-rot"><PackArt k={p.k} odds /></div>
+            <i ref={beam} class="op-beam" aria-hidden="true" />
+            <i class="op-cutzone" aria-hidden="true" />
+            <i ref={line} class="op-cutline" />
+          </div>
         </div>
-        <i class="op-cutzone" aria-hidden="true" />
-        <i ref={line} class="op-cutline" />
       </div>
     </div>
   );

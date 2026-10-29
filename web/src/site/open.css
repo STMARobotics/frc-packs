@@ -103,8 +103,26 @@
 .op-tell { position: absolute; inset: -22% -20%; z-index: -1; border-radius: 50%; background: radial-gradient(closest-side at 50% 35%, var(--tell), transparent); opacity: 0; pointer-events: none; transition: opacity .25s; }
 .op-grip.op-swiping .op-tell, .op-grip.op-swiping .op-rim { transition: none; }
 .op-lift { position: relative; }
-.op-lift.op-in { animation: op-liftin .5s cubic-bezier(.2, 1.25, .4, 1) both; }
-@keyframes op-liftin { from { transform: translateY(80px) scale(.6); opacity: 0; } }
+/* Dropped into your hand from above: it lands, bounces once, settles. */
+.op-lift.op-in { animation: op-drop .7s both; }
+@keyframes op-drop {
+  0% { transform: translateY(-70vh) rotate(-5deg); opacity: 0; animation-timing-function: cubic-bezier(.5, 0, .9, .5); }
+  12% { opacity: 1; }
+  55% { transform: none; animation-timing-function: cubic-bezier(.2, .8, .4, 1); }
+  72% { transform: translateY(-16px) rotate(.6deg); animation-timing-function: cubic-bezier(.5, 0, .9, .5); }
+  86% { transform: none; animation-timing-function: cubic-bezier(.2, .8, .4, 1); }
+  93% { transform: translateY(-4px); }
+  100% { transform: none; }
+}
+.op-shake { position: relative; }
+/* As it's torn the strip peels back a little, and the best card's light shines up out of the tear. */
+.op-pfront .op-ptop { transform: rotate(calc(var(--peel, 0) * -7deg)) translateY(calc(var(--peel, 0) * -12%)); }
+.op-grip.op-swiping .op-ptop { transition: none; }
+.op-beam { position: absolute; left: 4%; right: 4%; top: -14%; height: 28%; z-index: 4; pointer-events: none; opacity: 0; transition: opacity .25s;
+  background: radial-gradient(60% 50% at 50% 100%, var(--tell), transparent 70%); }
+.op-grip.op-swiping .op-beam { transition: none; }
+.op-hold.op-rainbow .op-beam { background: radial-gradient(60% 50% at 50% 100%, #fff, #38ffd2 30%, #ff3d9a 55%, transparent 75%); }
+.op-hold.op-drop .op-beam { opacity: 0 !important; transition: opacity .4s; }
 .op-rim { position: absolute; inset: 12% 1% 0; border-radius: 4%; box-shadow: 0 0 30px 8px var(--tell); opacity: 0; pointer-events: none; transition: opacity .25s; }
 .op-rot { position: relative; transform-style: preserve-3d; transform: perspective(900px); transition: transform .5s cubic-bezier(.2, 1.3, .4, 1); }
 .op-rot.op-live { transition: none; cursor: grabbing; }
