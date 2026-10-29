@@ -146,7 +146,7 @@ export function TiltCard({ num, serial, w }: { num: number; serial?: number | st
 
 /** Screens over the tabs (a card up close, a profile, settings). Each is a history entry, so the phone's back button or
     back swipe closes the top one instead of leaving the app. */
-interface Layer { id: number; render: () => ComponentChildren; kind: "card" | "page" | "open" }
+interface Layer { id: number; render: () => ComponentChildren; kind: "card" | "page" | "open" | "sheet" }
 export const layers = store<Layer[]>([]);
 let layerN = 0;
 // Reloading with a screen open leaves its history entry behind; the screen is gone, so that entry is the page again.

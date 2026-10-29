@@ -1,0 +1,32 @@
+/* Signing in, the once-only messages and the owner's notice (screens/gate.tsx). Class names start with au- and nt-. */
+
+.au { min-height: 100svh; max-width: 400px; margin: 0 auto; display: grid; align-content: center; justify-items: center; gap: 14px; padding: calc(24px + env(safe-area-inset-top)) 0 calc(24px + env(safe-area-inset-bottom)); }
+.s-page #app:has(> .au) { padding-bottom: 0; }
+.au-hero { position: relative; width: 210px; height: 170px; }
+.au-p { position: absolute; bottom: 0; left: 50%; width: 92px; margin-left: -46px; transform-origin: 50% 100%; filter: drop-shadow(0 12px 20px rgba(0, 0, 0, .5)); }
+.au-p.l { transform: translateX(-62px) rotate(-14deg) scale(.86); }
+.au-p.r { transform: translateX(62px) rotate(14deg) scale(.86); }
+.au-p.c { z-index: 1; width: 104px; margin-left: -52px; }
+.au-brand { font-size: 38px; }
+.au-card { width: 100%; display: grid; gap: 12px; padding: 14px; border-radius: 18px; background: var(--s1); box-shadow: inset 0 0 0 1px var(--ln); }
+.au-form { display: grid; gap: 10px; }
+.au-form .s-btn { margin-top: 4px; }
+.au-code { text-transform: uppercase; letter-spacing: .08em; }
+.au-code::placeholder { text-transform: none; letter-spacing: normal; }
+.au-terms > b { font: 400 22px var(--display); }
+.au-terms p { margin: 0; color: var(--dim); }
+.au-terms ul, .au-sheet ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; line-height: 1.4; }
+
+/* A small dialog over the tabs. */
+.s-layer.k-sheet { display: grid; place-items: center; padding: 20px 16px; background: rgba(5, 7, 13, .82); }
+.au-sheet { width: min(100%, 400px); display: grid; gap: 12px; padding: 20px; border-radius: 18px; background: var(--s1); box-shadow: inset 0 0 0 1px var(--ln), 0 20px 50px rgba(0, 0, 0, .5); line-height: 1.45; }
+.au-sheet h2 { font-size: 24px; }
+.au-sheet p { margin: 0; }
+.au-sheet .s-row2 { margin-top: 4px; }
+
+/* The owner's notice: a red bar over everything while it's on, and a message at the start, 10 minutes and 1 minute. */
+.nt-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 400; min-height: 34px; padding: calc(7px + env(safe-area-inset-top)) 12px 7px; background: #d62839; color: #fff; font: 700 13px/1.25 var(--body); text-align: center; box-shadow: 0 2px 12px rgba(0, 0, 0, .45); }
+body.nt-on #app { padding-top: calc(36px + env(safe-area-inset-top)); }
+body.nt-on .s-top { top: calc(36px + env(safe-area-inset-top)); }
+.nt-over { position: fixed; inset: 0; z-index: 500; display: grid; place-items: center; padding: 20px 16px; background: rgba(5, 7, 13, .92); }
+.nt-time { color: #ff8a95; font: 400 20px var(--display); }

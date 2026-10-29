@@ -2,6 +2,7 @@
 //   node test/site-ui.cjs [http://127.0.0.1:3000] [screenshot dir]
 // Makes an account with some packs opened through the API, then visits every screen that has moved to the new version,
 // tapping through it, and checks: no page errors, and no card photos re-created while you move around the binder.
+// Then a signed-out browser joins with an invite link, signs out and signs back in.
 const { chromium } = require('playwright');
 const path = require('node:path');
 const fs = require('node:fs');
@@ -44,6 +45,7 @@ async function main() {
   const browser = await chromium.launch();
   const ctx = await browser.newContext({ viewport: { width: +(process.env.W || 390), height: +(process.env.H || 844) }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
   await ctx.addCookies([{ name: 'sid', value: A.sid(), url: BASE }]);
+  await ctx.addInitScript(() => localStorage.setItem('frcpacks.beta', '1')); // the welcome is checked on its own below
   const p = page = await ctx.newPage();
   p.on('pageerror', (e) => errors.push(String(e)));
   p.on('console', (m) => { if (m.type() === 'error' && !m.text().startsWith('Failed to load resource')) errors.push(m.text()); });
@@ -191,6 +193,7 @@ async function main() {
   await shot('trade-sent');
   const ctxB = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
   await ctxB.addCookies([{ name: 'sid', value: B.sid(), url: BASE }]);
+  await ctxB.addInitScript(() => localStorage.setItem('frcpacks.beta', '1'));
   const b = await ctxB.newPage();
   b.on('pageerror', (e) => errors.push('B: ' + e));
   await b.goto(BASE + '/next.html#trade');
@@ -201,6 +204,46 @@ async function main() {
   await b.click('.s-trade .s-tabs >> text=History');
   await b.waitForSelector('.hi-item.accepted');
   await b.screenshot({ path: path.join(OUT, `${String(++n).padStart(2, '0')}-trade-history-b.png`) });
+
+  // Signed out: join with an invite link (the beta terms first), get the welcome once, sign out, sign back in.
+  const ctxC = await browser.newContext({ viewport: { width: +(process.env.W || 390), height: +(process.env.H || 844) }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+  const c = await ctxC.newPage();
+  c.on('pageerror', (e) => errors.push('C: ' + e));
+  const cshot = (name) => c.screenshot({ path: path.join(OUT, `${String(++n).padStart(2, '0')}-${name}.png`) });
+  const { code } = await client().call('POST', '/api/dev/invite', {});
+  const name = 'sic' + tag;
+  await c.goto(BASE + '/next.html?invite=' + code);
+  await c.waitForSelector('.au-terms');
+  await cshot('join-terms');
+  await c.click('.au-terms >> text=I agree');
+  assert((await c.inputValue('input[name=code]')) === code, 'the invite link fills in the code');
+  await c.click('.au-form >> text=Create account');
+  await c.waitForSelector('.s-msg.bad');
+  await c.fill('input[name=firstName]', 'Cee');
+  await c.fill('input[name=username]', name);
+  await c.fill('input[name=password]', 'password123');
+  await cshot('join-form');
+  await c.click('.au-form >> text=Create account');
+  await c.waitForSelector('.op-hero');
+  assert(!c.url().includes('invite='), 'the invite leaves the address once used');
+  await c.waitForSelector('.au-sheet', { timeout: 6000 });
+  await cshot('beta-welcome');
+  await c.click('.au-sheet >> text=Got it');
+  await c.waitForSelector('.s-layer', { state: 'detached' });
+  await c.click('.s-avbtn');
+  await c.click('.s-profile >> text=Settings');
+  await c.click('.s-settings button >> text=Sign out');
+  await c.waitForSelector('.au-form input[name=password]');
+  await c.fill('input[name=username]', name);
+  await c.fill('input[name=password]', 'wrongpassword');
+  await c.click('.au-form >> text=Sign in');
+  await c.waitForSelector('.s-msg.bad');
+  await cshot('sign-in-wrong');
+  await c.fill('input[name=password]', 'password123');
+  await c.click('.au-form >> text=Sign in');
+  await c.waitForSelector('.op-hero');
+  await c.waitForTimeout(3500);
+  assert(!(await c.$('.au-sheet')), 'the welcome shows once per device');
 
   console.log({ photosWhenSearching: before, photosTabSwitch: tabImgs, photosOnSync: syncImgs });
   console.log('errors:', errors.length ? errors : 'none');

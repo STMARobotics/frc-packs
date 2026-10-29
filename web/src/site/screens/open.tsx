@@ -15,7 +15,7 @@ import { openCard } from "./cardview";
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const N = 10; // packs on the wheel
 
-type Kind = "std" | "gold" | "myth" | "test";
+export type Kind = "std" | "gold" | "myth" | "test";
 const NAME: Record<Kind, string> = { std: "Standard", gold: "Boosted", myth: "Mythic", test: "Test" };
 /** Sealed packs of each kind (a Mythic pack is a boosted pack with three Mythics in it). */
 function counts(): Record<Kind, number> {
@@ -60,16 +60,16 @@ const nudge = (el?: HTMLElement | null) => el?.animate([{ transform: "none" }, {
 
 // ---------- the pack ----------
 
-function PackArt({ k, odds }: { k: Kind; odds?: boolean }) {
+export function PackArt({ k, odds }: { k: Kind; odds?: boolean }) {
   return (
     <div class={cx("op-pack", `k-${k}`)}>
       {odds && [-3, -2, -1, 0, 1, 2, 3].map((z) => <i class="op-pedge" style={{ "--z": z }} />)}
       <div class="op-pface op-pfront">
         <div class="op-ptop" />
         <div class="op-pbody">
-          <span class="op-pyr">{RECIPE.season}</span>
+          <span class="op-pyr">{RECIPE?.season ?? 2026}</span>
           <span class="op-pmark"><i /><i /><i /></span>
-          <b class="op-pname">{RECIPE.name.replace(/^\d{4}\s*/, "")}</b>
+          <b class="op-pname">{(RECIPE?.name ?? "Championship").replace(/^\d{4}\s*/, "")}</b>
           <span class="op-pkind">{k === "std" ? "5 cards" : k === "myth" ? "3 Mythics" : NAME[k]}</span>
           <i class="op-psheen" />
         </div>

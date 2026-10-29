@@ -6,9 +6,10 @@ import "../style.css";
 import "./site.css";
 import "./trade.css";
 import "./open.css";
+import "./gate.css";
 import { render } from "preact";
 import { useEffect, useState } from "preact/hooks";
-import { api, ApiError, explain } from "../api";
+import { api, ApiError, explain, type State } from "../api";
 import { useStore } from "../lib/store";
 import { PACK, setRecipe } from "./data";
 import { applyCollection, applyState, loadTrades, packOf, prefs, st, sync, trades } from "./state";
@@ -21,6 +22,7 @@ import { setupPwa } from "./pwa";
 import { TradeTab } from "./screens/trade";
 import { SocialTab } from "./screens/social";
 import { OpenHome } from "./screens/open";
+import { betaWelcome, gameNotice, OwnerNotice, SignIn } from "./screens/gate";
 
 type Tab = "open" | "binder" | "trade" | "social";
 const TABS: Tab[] = ["open", "binder", "trade", "social"];
@@ -38,7 +40,7 @@ function useTab(): [Tab, (t: Tab) => void] {
 }
 
 function App() {
-  const [phase, setPhase] = useState<"loading" | "ready" | "signin" | string>("loading");
+  const [phase, setPhase] = useState<"loading" | "ready" | "signin" | "guest" | string>("loading");
   const [tab, go] = useTab();
   const s = useStore(st);
   const p = useStore(prefs);
@@ -46,20 +48,26 @@ function App() {
   const [seen] = useState(() => new Set<Tab>());
   seen.add(tab);
 
+  /** Loads the game for this account (`signed` is the answer from signing in, else the session is asked). */
+  const boot = async (signed?: State) => {
+    setPhase("loading");
+    try {
+      const [state, recipe] = await Promise.all([signed ?? api.session(), api.recipe(PACK)]);
+      setRecipe(recipe, state.tiers);
+      applyState(state);
+      applyCollection(await api.collection(PACK));
+      loadTrades();
+      setupPwa();
+      setPhase("ready");
+      if (state.notice) setTimeout(() => gameNotice(state.notice), 600);
+      else setTimeout(betaWelcome, 3000);
+    } catch (e) {
+      setPhase(e instanceof ApiError && e.status === 401 ? (e.code === "guest" ? "guest" : "signin") : explain(e));
+    }
+  };
+
   useEffect(() => {
-    (async () => {
-      try {
-        const [state, recipe] = await Promise.all([api.session(), api.recipe(PACK)]);
-        setRecipe(recipe, state.tiers);
-        applyState(state);
-        applyCollection(await api.collection(PACK));
-        loadTrades();
-        setupPwa();
-        setPhase("ready");
-      } catch (e) {
-        setPhase(e instanceof ApiError && e.status === 401 ? "signin" : explain(e));
-      }
-    })();
+    boot();
     // Another tab or device may have changed things: catch up when the app comes back.
     const back = () => { if (document.visibilityState === "visible") sync(); };
     document.addEventListener("visibilitychange", back);
@@ -67,7 +75,7 @@ function App() {
   }, []);
 
   if (phase === "loading") return <div class="s-center"><Spinner /></div>;
-  if (phase === "signin") return <div class="s-center s-gate"><h1>FRC Packs</h1><p class="s-dim">Sign in to open packs and build your binder.</p><a class="s-btn" href="/">Sign in</a></div>;
+  if (phase === "signin" || phase === "guest") return <SignIn guest={phase === "guest"} onDone={boot} />;
   if (phase !== "ready") return <div class="s-center s-gate"><h1>Couldn't load</h1><p class="s-dim">{phase}</p><button type="button" class="s-btn" onClick={() => location.reload()}>Try again</button></div>;
 
   const me = s!.account;
@@ -106,4 +114,4 @@ function App() {
   );
 }
 
-render(<><App /><LayerHost /><ToastHost /></>, document.getElementById("app")!);
+render(<><OwnerNotice /><App /><LayerHost /><ToastHost /></>, document.getElementById("app")!);

@@ -100,7 +100,7 @@ function Settings() {
             <button type="submit" class="s-btn small" disabled={busy === "form"}>Save</button>
           </form>
         )}
-        <Line title="Sign out"><button type="button" class="s-chipbtn" onClick={async () => { try { await api.logout(); } finally { location.assign("/"); } }}>Sign out</button></Line>
+        <Line title="Sign out"><button type="button" class="s-chipbtn" onClick={async () => { try { await api.logout(); } finally { location.assign(location.pathname); } }}>Sign out</button></Line>
       </section>
 
       <section class="sg-group"><h2 class="s-h2">Game</h2>
