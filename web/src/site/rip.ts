@@ -1,19 +1,20 @@
-// The pack's top strip as one soft wrapper, drawn on a canvas in the pack's front face. The strip is a chain of points
+// The pack's top strip as one foil wrapper, drawn on a canvas in the pack's front face. The strip is a chain of points
 // along its seam. Behind the tear, the torn part folds toward you around the seam (it tips out of the screen, so it
-// foreshortens and darkens) and bends up a little, more the further it is from your finger; the points spring toward
-// that shape, so the wrapper is stiff but gives and flaps a little as you pull, then settles (or lies back down when
-// you let go). The best card's light comes only out of the gap that's been torn open. Nothing runs once settled.
+// foreshortens and darkens) along a sharp crease, staying nearly straight, with a few fixed crinkles in it; the points
+// spring toward that shape stiffly, so the foil snaps into place as you pull with hardly any wobble, then settles (or
+// lies back down when you let go). The best card's light comes only out of the gap that's been torn open. Nothing runs once settled.
 // The chain itself (wrapper()) is shared with the WebGL pack, so both tear the same way.
 
 const N = 40; // points along the seam
-const FOLD = 0.11; // how fast the torn part folds toward you, per point behind the tear (radians)
-const MAX_FOLD = 1.2;
-const CURL = 0.018; // and how fast it bends up in the screen's plane
-const MAX_CURL = 0.3;
+const FOLD = 0.24; // how fast the torn part folds toward you, per point behind the tear (radians): a sharp crease
+const MAX_FOLD = 1.3;
+const CURL = 0.007; // and how fast it bends up in the screen's plane: foil stays nearly straight
+const MAX_CURL = 0.12;
+const CRINKLE = 0.16; // the most a crinkle tips a point's fold either way (radians)
 const STRIP = 0.13; // strip height, as a share of the pack's height (the seam is at its bottom)
 // The canvas reaches past the pack so the lifted strip has room: 15% each side, 30% above.
 const PAD_X = 0.15, PAD_Y = 0.3, CANVAS_H = PAD_Y + STRIP;
-const K = 0.3, DAMP = 0.72; // spring stiffness and damping per frame
+const K = 0.55, DAMP = 0.5; // spring stiffness and damping per frame: stiff, and settles almost at once
 const PX = 250; // a pack's usual width in pixels, for the size of a jolt and for when it counts as settled
 
 export interface Rip {
@@ -47,6 +48,8 @@ export function wrapper(reduced: boolean): Wrapper {
   const vx = new Float32Array(N + 1), vy = new Float32Array(N + 1), vf = new Float32Array(N + 1);
   const tx = new Float32Array(N + 1), ty = new Float32Array(N + 1), tf = new Float32Array(N + 1);
   for (let i = 0; i <= N; i++) px[i] = tx[i] = i * seg;
+  // Crinkles: each point's own small, fixed kink, so the torn foil is never one smooth curve.
+  const crinkle = Float32Array.from({ length: N + 1 }, () => (Math.random() * 2 - 1) * CRINKLE);
   const w: Wrapper = {
     n: N, px, py, pf, tear: 0, dir: 1,
     // Where each point wants to be: flat ahead of the tear, folding toward you (and bending up a little) behind it.
@@ -59,15 +62,15 @@ export function wrapper(reduced: boolean): Wrapper {
       for (let k = Math.floor(hinge); k >= 0; k--) {
         const i = w.dir > 0 ? k : N - k, d = hinge - k, a = Math.min(MAX_CURL, (CURL * (d + dPrev)) / 2), step = (d - dPrev) * seg;
         x -= w.dir * Math.cos(a) * step; y += Math.sin(a) * step;
-        tx[i] = x; ty[i] = y; tf[i] = Math.min(MAX_FOLD, FOLD * d); dPrev = d;
+        tx[i] = x; ty[i] = y; tf[i] = Math.min(MAX_FOLD, FOLD * d) + crinkle[i] * Math.min(1, d / 3); dPrev = d;
       }
     },
     jolt(t) {
       if (reduced) return;
-      // One small ripple through the loose part, strongest a little behind the tear: it gives, then springs back.
-      const hinge = w.tear * N, kick = (0.5 + t * 1.2) * (0.6 + Math.random() * 0.4);
-      for (let k = Math.max(0, Math.floor(hinge) - 12); k <= Math.min(N, hinge); k++) {
-        const i = w.dir > 0 ? k : N - k, s = Math.max(0, Math.sin((Math.PI * (hinge - k)) / 12));
+      // A short, sharp tick through the foil right behind the tear: it gives, then snaps back.
+      const hinge = w.tear * N, kick = (0.3 + t * 0.6) * (0.6 + Math.random() * 0.4);
+      for (let k = Math.max(0, Math.floor(hinge) - 6); k <= Math.min(N, hinge); k++) {
+        const i = w.dir > 0 ? k : N - k, s = Math.max(0, Math.sin((Math.PI * (hinge - k)) / 6));
         vy[i] += (kick * s) / PX; vf[i] += 0.04 * kick * s;
       }
     },

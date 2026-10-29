@@ -40,6 +40,11 @@ every ~2 days in between, and hotfixes whenever something big breaks. Every rele
 
 ## Done
 
+- 0.10.0 (2026-10-29):
+  - the pack opening in 3D (WebGL, loaded only when you open a pack): a foil tear, the cards rising out of the pack,
+    3D flips, the pull fanned out like a hand
+  - packs minted when picked up, so the opening is ready before the tear
+  - the Seam logo; rarity stars aligned on every card
 - 0.9.0 (2026-10-29):
   - the new site, pack opening, Battle modes and wagers
   - profiles as pages, trade matches and counter-offers

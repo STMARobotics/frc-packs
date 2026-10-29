@@ -168,7 +168,7 @@ export function createPackGL(canvas: HTMLCanvasElement, host: HTMLElement): Pack
   const edges = Array.from({ length: 7 }, () => new Mesh(new PlaneGeometry(1, 1), edgeMat));
   // The strip: a band of points along the seam, bent each frame from the wrapper's chain. Its inside is foil-grey.
   const R = 3, wrap = wrapper(false), n = wrap.n;
-  const sGeo = new BufferGeometry(), sPos = new Float32Array((n + 1) * (R + 1) * 3), sUv = new Float32Array((n + 1) * (R + 1) * 2), sShade = new Float32Array((n + 1) * (R + 1));
+  const sGeo = new BufferGeometry(), sPos = new Float32Array((n + 1) * (R + 1) * 3), sUv = new Float32Array((n + 1) * (R + 1) * 2), sShade = new Float32Array((n + 1) * (R + 1)), sFold = new Float32Array((n + 1) * (R + 1));
   const idx: number[] = [];
   for (let i = 0; i <= n; i++) for (let j = 0; j <= R; j++) {
     const v = i * (R + 1) + j;
@@ -178,16 +178,22 @@ export function createPackGL(canvas: HTMLCanvasElement, host: HTMLElement): Pack
   sGeo.setAttribute("position", new BufferAttribute(sPos, 3));
   sGeo.setAttribute("uv", new BufferAttribute(sUv, 2));
   sGeo.setAttribute("shade", new BufferAttribute(sShade, 1));
+  sGeo.setAttribute("fold", new BufferAttribute(sFold, 1));
   sGeo.setIndex(idx);
   const sfade = { value: 1 };
   const strip = new Mesh(sGeo, new ShaderMaterial({
     uniforms: { ...u, sfade }, transparent: true, side: DoubleSide,
-    vertexShader: `attribute float shade; varying vec2 vUv; varying float vShade; void main() { vUv = uv; vShade = shade; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
-    fragmentShader: `uniform sampler2D map; uniform float fade; uniform float sfade; varying vec2 vUv; varying float vShade;
+    vertexShader: `attribute float shade; attribute float fold; varying vec2 vUv; varying float vShade; varying float vFold;
+      void main() { vUv = uv; vShade = shade; vFold = fold; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+    // Foil: where the peeled strip turns to the light it glints, broken up by its crinkles; inside it's bare metal.
+    fragmentShader: `uniform sampler2D map; uniform float fade; uniform float sfade; varying vec2 vUv; varying float vShade; varying float vFold;
       void main() {
         vec4 c = texture2D(map, vUv);
         if (c.a < 0.02) discard;
         vec3 col = gl_FrontFacing ? c.rgb * vShade : vec3(0.72, 0.78, 0.86) * vShade;
+        float grain = 0.55 + 0.45 * fract(sin(floor(vUv.x * 180.0) * 91.3 + floor(vUv.y * 40.0) * 17.1) * 437.5);
+        float glint = pow(max(0.0, cos(vFold - 0.6)), 16.0) * step(0.05, vFold);
+        col += vec3(0.95, 0.98, 1.0) * glint * grain * 0.6;
         gl_FragColor = vec4(col, c.a * fade * sfade);
       }`,
   }));
@@ -277,10 +283,12 @@ export function createPackGL(canvas: HTMLCanvasElement, host: HTMLElement): Pack
         sPos[v * 3 + 1] = y + Math.cos(a) * h * c;
         sPos[v * 3 + 2] = T + h * s;
         sShade[v] = 0.62 + 0.38 * c;
+        sFold[v] = pf[i];
       }
     }
     sGeo.attributes.position.needsUpdate = true;
     (sGeo.attributes.shade as BufferAttribute).needsUpdate = true;
+    (sGeo.attributes.fold as BufferAttribute).needsUpdate = true;
     sGeo.computeBoundingSphere();
   };
   /** The light's open part of the seam, from the tear. */

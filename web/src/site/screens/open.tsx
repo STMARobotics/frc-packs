@@ -446,7 +446,7 @@ function Flow({ resume }: { resume?: Opening }) {
   useLayoutEffect(() => {
     if (phase !== "deal") return;
     const s = stackEl.current!, pr = grip.current?.getBoundingClientRect();
-    const start = pr && new DOMRect(pr.left + pr.width * 0.08, pr.top + pr.height * 0.2, pr.width * 0.84, pr.width * 0.84 * 1.4);
+    const start = pr && new DOMRect(pr.left + pr.width * 0.09, pr.top + pr.height * 0.2, pr.width * 0.82, pr.width * 0.82 * 1.4);
     setFan(true);
     const anim = start && flyFrom(s, start, 720, 0, (dx, dy, sc) => ({ offset: 0.42, transform: `translate(${dx * 0.5}px, ${dy - pr!.height * 0.42}px) scale(${(sc + 1) / 2})` }));
     if (!anim) { setFan(false); go("stack"); return; }
