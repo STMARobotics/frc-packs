@@ -205,6 +205,8 @@
 .st-dots { display: flex; gap: 4px; }
 .st-dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--s3); }
 .st-dots i.ready { background: var(--gold); } .st-dots i.done { background: var(--good); }
+.st-chev { flex: none; color: var(--dim); font-size: 20px; line-height: 1; transform: rotate(90deg); transition: transform .2s var(--ease); }
+.st-daily-h[aria-expanded="true"] .st-chev { transform: rotate(-90deg); }
 .st-daily-b { display: grid; gap: 8px; padding: 0 14px 12px; animation: s-in .2s var(--ease); }
 .st-mission { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 4px 10px; font-size: 14px; }
 .st-mission .s-bar { grid-column: 1; height: 6px; }

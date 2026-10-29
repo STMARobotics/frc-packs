@@ -150,7 +150,15 @@ async function main() {
   // Social tab: someone else's profile.
   await p.click('.s-tabbar >> text=Open');
   await p.waitForSelector('.s-status');
+  // Missions and the streak show without a tap; folding them away sticks.
+  assert(await p.$('.st-daily-b .st-mission'), 'daily missions show on Open');
   await p.click('.st-daily-h');
+  assert(!(await p.$('.st-daily-b')), 'they fold away');
+  await p.reload();
+  await p.waitForSelector('.s-status');
+  assert(!(await p.$('.st-daily-b')), 'and stay folded');
+  await p.click('.st-daily-h');
+  await p.waitForSelector('.st-daily-b .st-mission');
   await shot('open-status');
 
   // Open a pack: swipe across the top to tear it, deal the five (flipping the face-down ones), then the summary.

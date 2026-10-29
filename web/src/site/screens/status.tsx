@@ -55,7 +55,8 @@ export function StatusBar() {
 
 function Daily() {
   const s = useStore(st)!;
-  const [open, setOpen] = useState(() => { try { return localStorage.getItem("frcpacks.daily") === "1"; } catch { return false; } });
+  // Open until you fold it away (then it stays folded on this device).
+  const [open, setOpen] = useState(() => { try { return localStorage.getItem("frcpacks.daily") !== "0"; } catch { return true; } });
   const [busy, setBusy] = useState("");
   const ms = s.missions ?? [], k = s.streak ?? { days: 0, today: false, alive: false, every: 7 };
   const done = ms.filter((m) => m.claimed).length, ready = ms.filter((m) => !m.claimed && m.progress >= m.goal).length;
@@ -71,8 +72,9 @@ function Daily() {
     <div class="st-daily">
       <button type="button" class="st-daily-h" aria-expanded={open} onClick={toggle}>
         <span class={cx("st-flame", k.today && k.days > 0 && "lit")}>🔥 {k.days}</span>
-        <span class="st-daily-t"><b>{k.days ? `${k.days}-day streak` : "Start a streak"}</b><small>{ready ? `${ready} to collect · ` : ""}{done}/{ms.length} missions</small></span>
+        <span class="st-daily-t"><b>{k.days ? `${k.days}-day streak` : "Start a streak"}</b><small>{ready ? `${ready} to collect · ` : ""}Daily missions {done}/{ms.length}</small></span>
         <span class="st-dots">{ms.map((m) => <i class={m.claimed ? "done" : m.progress >= m.goal ? "ready" : ""} />)}</span>
+        <span class="st-chev" aria-hidden="true">›</span>
       </button>
       {open && (
         <div class="st-daily-b">
