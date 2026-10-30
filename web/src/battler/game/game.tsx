@@ -8,8 +8,7 @@ import { Empty, Spinner } from "../ui";
 import { DeckLine } from "../screens/decks";
 import { act, fetchGame, game, inviteCode, myMove, resetGame, setInvite } from "./state";
 import { Arena } from "./arena";
-import { Draft } from "./draft";
-import { Intro } from "./intro";
+import { Schedule } from "./schedule";
 import { Final, Versus } from "./final";
 import { Emotes } from "./emotes";
 import { WagerPanel, WagerResult } from "./wager";
@@ -70,7 +69,8 @@ export function GameScreen({ id, code }: { id: string; code?: string }) {
   switch (g.status) {
     case "OPEN": body = <Waiting g={g} />; break;
     case "DECKS": body = <DeckPick g={g} />; break;
-    case "DRAFT": body = <><Draft g={g} /><Intro g={g} /></>; break;
+    case "SCHEDULE": body = <Schedule g={g} />; break;
+    case "DRAFT": body = <div class="b-center"><Spinner /><p>Building the match schedule…</p></div>; break;
     case "PIT": body = <Arena g={g} log={replay ? g.rounds[g.rounds.length - 1] : null} onNext={next} />; break;
     case "RESULTS": body = <Arena g={g} log={g.rounds[g.rounds.length - 1]} onNext={next} />; break;
     case "FINAL":
@@ -161,7 +161,7 @@ function DeckPick({ g }: { g: GameView }) {
   const [picking, setPicking] = useState<string | null>(null);
   const shown = useRef(false);
   useEffect(() => { if (!shown.current) { shown.current = true; loadHome().catch(() => {}); } }, []);
-  const leave = () => { if (confirm("Leave this game? Nobody's rating changes.")) act({ kind: "forfeit" }); };
+  const leave = () => { if (confirm("Leave this game? If the match schedule is ready, this counts as a loss.")) act({ kind: "forfeit" }); };
   return (
     <div class="b-screen">
       <Versus g={g} />

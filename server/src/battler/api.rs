@@ -44,6 +44,7 @@ pub const START_ELO: i32 = 1000;
 pub fn routes() -> Router<Shared> {
     Router::new()
         .route("/battler/home", get(home))
+        .route("/battler/leaderboard", get(leaderboard))
         .route("/battler/catalog", get(catalog))
         .route("/battler/decks", post(create_deck))
         .route("/battler/decks/{id}", put(save_deck).delete(delete_deck))
@@ -83,6 +84,72 @@ pub(crate) struct BtProfile {
 
 pub(crate) async fn bt_profile(db: &Db, uid: Uuid) -> ApiResult<BtProfile> {
     Ok(db.get_as(&upk(uid), "BTPROF").await?.unwrap_or(BtProfile { elo: START_ELO, ..Default::default() }))
+}
+
+#[derive(Serialize)]
+struct LeaderboardPlayer {
+    rank: usize,
+    name: String,
+    #[serde(flatten)]
+    profile: BtProfile,
+    me: bool,
+}
+
+fn rank_leaderboard(mut players: Vec<LeaderboardPlayer>) -> Vec<LeaderboardPlayer> {
+    players.retain(|p| p.profile.games > 0);
+    players.sort_by(|a, b| b.profile.elo.cmp(&a.profile.elo).then_with(|| a.name.cmp(&b.name)));
+    let mut rank = 0;
+    let mut previous = None;
+    for (i, player) in players.iter_mut().enumerate() {
+        if previous != Some(player.profile.elo) {
+            rank = i + 1;
+        }
+        player.rank = rank;
+        previous = Some(player.profile.elo);
+    }
+    players.truncate(25);
+    players
+}
+
+/// Read the existing account index and batch-load ratings, including players rated before the leaderboard existed.
+/// No table scan, new index or migration is needed. Only public names and Battler records leave this endpoint.
+async fn leaderboard(State(st): State<Shared>, user: User) -> ApiResult<Json<Vec<LeaderboardPlayer>>> {
+    let players = crate::trades::all_players(&st.db).await?;
+    let mut names: HashMap<String, (String, bool)> =
+        players.into_iter().filter_map(|p| p.username.map(|name| (upk(p.id), (name, p.id == user.id)))).collect();
+    let keys = names.keys().map(|pk| crate::db::key(pk, "BTPROF")).collect();
+    let mut rows = vec![];
+    for it in st.db.batch_get(keys).await? {
+        let Some((name, me)) = get_s(&it, "pk").and_then(|pk| names.remove(&pk)) else { continue };
+        let profile: BtProfile = from_item(it)?;
+        rows.push(LeaderboardPlayer { rank: 0, name, profile, me });
+    }
+    Ok(Json(rank_leaderboard(rows)))
+}
+
+#[cfg(test)]
+mod leaderboard_tests {
+    use super::*;
+
+    #[test]
+    fn orders_by_elo_shares_tied_ranks_and_excludes_unplayed_accounts() {
+        let row = |name: &str, elo, games| LeaderboardPlayer {
+            rank: 0,
+            name: name.into(),
+            profile: BtProfile { elo, games, ..Default::default() },
+            me: false,
+        };
+        let mut rows = vec![row("new", 2000, 0), row("zebra", 1200, 2), row("alpha", 1200, 3), row("third", 1100, 1)];
+        rows.extend((0..30).map(|i| row(&format!("player{i:02}"), 1000 - i, 1)));
+        let ranked = rank_leaderboard(rows);
+        assert_eq!(ranked.len(), 25);
+        assert_eq!(ranked[0].name, "alpha");
+        assert_eq!(ranked[1].name, "zebra");
+        assert_eq!(ranked.iter().take(3).map(|p| p.rank).collect::<Vec<_>>(), vec![1, 1, 3]);
+        assert!(ranked.iter().all(|p| p.profile.games > 0));
+        assert!(ranked.windows(2).all(|p| p[0].profile.elo >= p[1].profile.elo));
+        assert!(rank_leaderboard(vec![]).is_empty());
+    }
 }
 
 /// The teams a player owns at least one card of, read from their FRC Packs collection.

@@ -2,8 +2,8 @@
 //   node test/battler-ui.cjs [http://127.0.0.1:3000] [screenshot dir]
 // Sets both players up through the API (accounts, packs, a ready deck for B), then does everything else by tapping: A
 // builds a deck in the deck builder and hosts a private match; a third player can't see or join it without the code; B
-// joins with the code; both pick decks, draft, and play five rounds (tap and drag cards, move a robot, swap from the
-// bench, lock, watch or skip the reveal) to the final screen. Then A queues for Quick Play and B's Quick Play pairs them.
+// joins with the code; both pick decks, review their schedule, and play five rounds (tap and drag cards, move a robot,
+// lock, watch or skip the reveal) to the final screen. Then A queues for Quick Play and B's Quick Play pairs them.
 //
 // Also checks the page stays smooth: no robot photo is re-created while the other player acts (a sign of a screen being
 // rebuilt, which flickers), no long frames during the reveal, no layout shifts, no console errors. Screenshots of every
@@ -152,30 +152,18 @@ async function main() {
   await a.click('.b-deckline:not(.off) >> nth=0');
   await b.click('.b-deckline:not(.off) >> nth=0');
 
-  // The intro, then the draft.
-  await a.waitForSelector('.b-intro', { timeout: 15000 });
-  await a.waitForTimeout(2600);
-  await shot(a, 'intro-captains');
-  await a.click('.b-intro');
-  await b.click('.b-intro').catch(() => {});
-  await a.waitForSelector('.b-draft');
-  await shot(a, 'draft');
-  let picks = 0;
-  for (let i = 0; i < 200 && picks < 20; i++) {
-    const inPit = await a.$('.b-arena');
-    if (inPit) break;
-    for (const p of [a, b]) {
-      const btn = await p.$('.b-draft .b-btn.big:not([disabled])');
-      if (btn) {
-        if (picks === 3) { await p.locator('.dr-opt >> nth=1').click(); await p.waitForTimeout(400); await shot(p, 'draft-select'); }
-        await btn.click().catch(() => {});
-        picks++;
-        await p.waitForTimeout(150);
-      }
-    }
-    await a.waitForTimeout(200);
+  // Both players see the complete schedule first; no intro or draft covers it.
+  for (const p of [a, b]) {
+    await p.waitForSelector('.b-schedule', { timeout: 15000 });
+    assert(await p.locator('.b-scheduled-match').count() === 5, 'five scheduled matches');
+    assert(await p.locator('.b-match-chance').count() === 10, 'win chance for both alliances in each match');
+    assert(await p.locator('.b-draft, .b-intro').count() === 0, 'no draft or intro');
   }
-  log('draft picks', picks);
+  await shot(a, 'match-schedule', true);
+  await shot(b, 'match-schedule-b', true);
+  await a.click('.b-schedule-ready .b-btn');
+  assert(await a.locator('.b-schedule').count() === 1, 'first ready player waits at the schedule');
+  await b.click('.b-schedule-ready .b-btn');
   await a.waitForSelector('.b-arena.pit', { timeout: 20000 });
   await b.waitForSelector('.b-arena.pit', { timeout: 20000 });
   await a.waitForTimeout(900);
@@ -185,12 +173,17 @@ async function main() {
   for (let round = 1; round <= 5; round++) {
     await a.waitForSelector('.b-arena.pit .b-go', { timeout: 30000 });
     await b.waitForSelector('.b-arena.pit .b-go', { timeout: 30000 });
+    for (const p of [a, b]) {
+      assert(await p.locator('.b-bot.theirs.open .b-card').count() === 3, 'both players see all three opponent robots during card play');
+      assert(await p.locator('.b-bot.theirs .b-bot-back').count() === 0, 'opponent robots are face up');
+    }
     await a.waitForTimeout(700);
     await resetStats(a);
     // B plays a part (A should see a face-down card appear, and nothing get rebuilt).
     const bPart = b.locator('.b-hcard.part').last();
     if (await bPart.count()) { await bPart.click(); await b.click('.b-bot.mine >> nth=0'); }
     await a.waitForTimeout(1600);
+    assert(await a.locator('.b-bot.theirs .b-part').count() === 0, 'opponent Part choices stay hidden during card play');
     const quiet = await stats(a);
     report.push({ round, imgsWhileOpponentActs: quiet.imgs });
 
@@ -218,14 +211,10 @@ async function main() {
       await shot(a, 'r2-moved-station');
     }
     if (round === 3) {
-      await a.click('.b-pbar.me >> text=Bench');
-      await a.waitForSelector('.b-bench');
-      await a.waitForTimeout(300);
-      await shot(a, 'r3-bench');
-      const spare = a.locator('.b-sheet .b-mini:not(.on):not(.broken)').first();
-      if (await spare.count()) await spare.click();
-      await a.waitForTimeout(300);
-      await shot(a, 'r3-bench-swapped');
+      await a.click('.b-round >> text=Schedule');
+      await a.waitForSelector('.b-sheet .b-schedule');
+      assert(await a.locator('.b-sheet .b-scheduled-match.current').count() === 1, 'schedule marks the current match');
+      await shot(a, 'r3-schedule');
       await a.click('.b-x');
       await a.waitForSelector('.b-sheet', { state: 'detached' });
     }
@@ -271,12 +260,32 @@ async function main() {
   await a.waitForSelector('.b-deckline', { timeout: 10000 });
   await B.call('POST', `/api/battler/games/${qa}/act`, { rev: qb.rev, action: { kind: 'forfeit' } });
 
+  // Once the schedule is shown, the Forfeit button must record a loss before anyone readies up.
+  const beforeForfeit = await A.call('GET', '/api/battler/home');
+  const next = await A.call('POST', '/api/battler/quick');
+  await B.call('POST', '/api/battler/quick');
+  for (const c of [A, B]) {
+    const h = await c.call('GET', '/api/battler/home');
+    const v = await c.call('GET', `/api/battler/games/${next.id}`);
+    await c.call('POST', `/api/battler/games/${next.id}/act`, { rev: v.rev, action: { kind: 'pick_deck', deck: h.decks.find(d => !d.problems.length).deck.id } });
+  }
+  await a.goto(BASE + '/battle.html#game/' + next.id);
+  await a.waitForSelector('.b-schedule');
+  a.once('dialog', d => { assert(d.message().includes('counts as a loss'), 'schedule forfeit warns about losing'); d.accept(); });
+  await a.getByRole('button', { name: 'Forfeit', exact: true }).click();
+  await a.waitForSelector('.b-final.loss');
+  const afterForfeit = await A.call('GET', '/api/battler/home');
+  assert(afterForfeit.profile.losses === beforeForfeit.profile.losses + 1 && afterForfeit.profile.games === beforeForfeit.profile.games + 1, 'leaving the schedule saves a rated loss');
+
   // Desktop.
   const desk = await browser.newContext({ viewport: { width: 1280, height: 860 } });
   await desk.addCookies([{ name: 'sid', value: A.sid(), url: BASE }]);
   const d = await desk.newPage();
   await d.goto(BASE + '/battle.html');
   await d.waitForSelector('.b-menu');
+  await d.waitForSelector('.b-leaderboard tbody tr');
+  const ratings = (await d.locator('.b-lb-elo').allTextContents()).map(Number);
+  assert(ratings.length <= 25 && ratings.every((r, i) => i === 0 || ratings[i - 1] >= r), 'home leaderboard is ranked by Elo');
   await shot(d, 'desktop-home');
   await d.goto(BASE + '/battle.html#library');
   await d.waitForSelector('.b-cardgrid');

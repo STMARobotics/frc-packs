@@ -71,7 +71,7 @@ function MyRobot({ inst }: { inst: number }) {
           {[0, 1, 2].map((k) => <button type="button" class={cx("b-st", k === at && "on")} disabled={k === at} onClick={() => move(k)}>{k + 1}<small>{CAT.rp_names[k]}</small></button>)}
         </div>
       )}
-      {live && !captain && <button type="button" class="b-btn wide" onClick={() => openBench(inst)}>Swap from bench</button>}
+      {live && !captain && !g.schedule.length && <button type="button" class="b-btn wide" onClick={() => openBench(inst)}>Swap from bench</button>}
     </RobotSheet>
   );
 }
@@ -89,7 +89,7 @@ function Bench({ replace }: { replace?: number }) {
   });
   if (!g?.me) return null;
   const side = g.me.side;
-  const live = g.status === "PIT" && !g.seats[side]!.locked;
+  const live = g.status === "PIT" && !g.seats[side]!.locked && !g.schedule.length;
   const partners = g.me.plan.partners;
   const cap = robotOf(g, g.alliances[side][0]);
   const pool = g.seats[side]!.pool.map((i) => robotOf(g, i)!).filter(Boolean);
@@ -106,7 +106,8 @@ function Bench({ replace }: { replace?: number }) {
   };
   return (
     <div class="b-bench">
-      <h2>{live ? "Your alliance" : "Your pool"}</h2>
+      <h2>{live ? "Your alliance" : "Your robots"}</h2>
+      {g.schedule.length > 0 && <p class="b-dim b-small">Partners are fixed by the match schedule.</p>}
       {live && cap && (
         <div class="b-slots">
           <div class="b-slot cap"><MiniPic r={cap} /><b>{cap.team}</b><small>Captain</small></div>

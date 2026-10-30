@@ -16,6 +16,7 @@ export interface Catalog { season: number; rp_names: [string, string, string]; r
 export interface Deck { id: string; name: string; captain: number | null; robots: number[]; support: string[]; updated: number }
 export interface DeckRow { deck: Deck; problems: string[] }
 export interface Profile { elo: number; games: number; wins: number; losses: number; draws: number }
+export interface LeaderboardPlayer extends Profile { rank: number; name: string; me: boolean }
 export interface Home { name: string; is_admin: boolean; profile: Profile; active: string | null; owned_teams: number[]; support_owned: Record<string, number>; decks: DeckRow[] }
 
 export interface RobotInst extends RobotCard { inst: number; card: string; from: number; battery: number; broken: number }
@@ -40,11 +41,17 @@ export interface RoundLog {
   lore: [number | null, number | null]; result: RoundResult; auto_locked: [boolean, boolean];
 }
 export interface Outcome { winner: number | null; reason: string; rp: [number, number]; points: [number, number]; elo_before: [number, number]; elo_after: [number, number] }
-export type Status = "OPEN" | "DECKS" | "DRAFT" | "PIT" | "RESULTS" | "FINAL" | "CANCELLED";
+export interface ScheduledMatch {
+  round: number;
+  alliances: [[number, number, number], [number, number, number]];
+  prediction: { scores: [number, number]; win_chance: [number, number]; test_stats: boolean };
+}
+export type Status = "OPEN" | "DECKS" | "SCHEDULE" | "DRAFT" | "PIT" | "RESULTS" | "FINAL" | "CANCELLED";
 export interface GameView {
   id: string; rev: number; status: Status; round: number; rounds_total: number; deadline: number;
   seats: (SeatView | null)[]; me: { side: number; hand: number[]; plan: Plan } | null;
   alliances: [[number, number, number], [number, number, number]]; pool_left: number;
+  schedule: ScheduledMatch[];
   offer: number[]; draft_turn: number; draft_total: number; draft_side: number | null;
   robots: RobotInst[]; support: SupportInst[]; rounds: RoundLog[]; seed_hash: string; seed: string | null; outcome: Outcome | null;
   emotes: EmoteView[]; emote_seq: number; now: number;

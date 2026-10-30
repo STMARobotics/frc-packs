@@ -93,7 +93,7 @@ export const cardOf = (g: GameView, inst: number | null | undefined): SupportIns
 export function myMove(g: GameView) {
   const me = g.me ? g.seats[g.me.side] : null;
   if (!me) return false;
-  return (g.status === "DECKS" && !me.picked) || (g.status === "DRAFT" && g.draft_side === g.me!.side) || (g.status === "PIT" && !me.locked) || (g.status === "RESULTS" && !me.acked);
+  return (g.status === "DECKS" && !me.picked) || (g.status === "SCHEDULE" && !me.acked) || (g.status === "PIT" && !me.locked) || (g.status === "RESULTS" && !me.acked);
 }
 
 /** Percent of its stats a robot has at this charge (mirrors server game.rs `power_for`). */
@@ -120,10 +120,3 @@ export const setPartners = (robots: [number, number]) =>
   });
 export const lock = () => act({ kind: "lock" }, (g) => { g.seats[g.me!.side]!.locked = true; });
 export const ack = () => act({ kind: "ack" }, (g) => { g.seats[g.me!.side]!.acked = true; });
-export const draftPick = (robot: number) =>
-  act({ kind: "draft_pick", robot }, (g) => {
-    const s = g.seats[g.me!.side]!;
-    s.pool = [...s.pool, robot];
-    g.offer = [];
-    g.draft_side = 1 - g.me!.side;
-  });

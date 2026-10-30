@@ -90,28 +90,36 @@ async function main() {
 
   await act(A, { kind: 'pick_deck', deck: decks.A });
   let v = await act(B, { kind: 'pick_deck', deck: decks.B });
-  assert(v.status === 'DRAFT' && v.draft_turn === 0 && v.offer.length === 3, 'both decks in: the draft starts with three robots on offer');
+  assert(v.status === 'SCHEDULE' && v.round === 0 && v.schedule.length === 5, 'both decks in: schedule is the first screen');
   assert(v.alliances[0][0] && v.alliances[1][0], 'both Captains are known from the start');
 
-  // Draft: take turns, 20 picks. Picking out of turn or a robot that is not on offer is refused.
-  const before = await view(A);
-  const first = before.draft_side === 0 ? A : B, second = before.draft_side === 0 ? B : A;
-  const early = await act(second, { kind: 'draft_pick', robot: before.offer[0] }).catch((e) => e);
-  assert(early instanceof Error && early.data.error === 'not_your_turn', 'out-of-turn pick refused');
-  const wrong = await act(first, { kind: 'draft_pick', robot: 99999 }).catch((e) => e);
-  assert(wrong instanceof Error && wrong.data.error === 'not_offered', 'a robot not on offer is refused');
-  for (let n = 0; n < 20; n++) {
-    const cur = await view(A);
-    assert(cur.status === 'DRAFT', `draft pick ${n + 1}`);
-    const who = cur.draft_side === cur.me.side ? A : B;
-    const pick = cur.offer[n % cur.offer.length];
-    v = await act(who, { kind: 'draft_pick', robot: pick });
+  const schedule = v.schedule;
+  assert(v.offer.length === 0 && v.me.hand.length === 0, 'no draft and no cards before reviewing the schedule');
+  const attemptedDraft = await act(A, { kind: 'draft_pick', robot: 99999 }).catch((e) => e);
+  assert(attemptedDraft instanceof Error && attemptedDraft.data.error === 'no_drafting', 'draft actions refused');
+  for (const side of [0, 1]) {
+    const partners = schedule.flatMap((m) => m.alliances[side].slice(1));
+    assert(new Set(partners).size === 10, 'all ten partners play exactly once');
+    for (const m of schedule) {
+      assert(m.alliances[side].every((id) => v.robots.find((r) => r.inst === id).from === side), 'all scheduled robots belong to the player who brought them');
+      assert(Math.abs(m.prediction.win_chance[0] + m.prediction.win_chance[1] - 1) < 1e-10, 'both win chances add to 100%');
+    }
   }
+  const scheduleB = await view(B);
+  for (let i = 0; i < schedule.length; i++) {
+    const other = scheduleB.schedule[i], first = schedule[i];
+    require('node:assert/strict').deepEqual(other.alliances, first.alliances, 'both players get the same fixed schedule');
+    require('node:assert/strict').deepEqual(other.prediction.scores, first.prediction.scores);
+    assert(other.prediction.win_chance.every((p, side) => Math.abs(p - first.prediction.win_chance[side]) < 1e-12), 'predictions survive database round trips');
+  }
+  await act(A, { kind: 'ack' });
+  assert((await view(B)).status === 'SCHEDULE', 'waits for the second player');
+  await act(B, { kind: 'ack' });
   v = await view(A);
-  assert(v.status === 'PIT' && v.round === 1, 'round 1 pit after the draft');
+  assert(v.status === 'PIT' && v.round === 1, 'round 1 pit after both ready up');
   assert(v.seats[0].pool.length === 10 && v.seats[1].pool.length === 10, 'ten robots in each pool');
   const vb = await view(B);
-  assert(vb.alliances[1 - vb.me.side][1] === 0 && vb.alliances[1 - vb.me.side][2] === 0, "the other player's partners stay hidden in the pit");
+  assert(JSON.stringify(vb.alliances) === JSON.stringify(schedule[0].alliances), 'scheduled partners are public in the pit');
   assert(vb.alliances[vb.me.side][1] !== 0, 'your own partners are shown');
 
   // A stale action is refused.
@@ -124,15 +132,14 @@ async function main() {
       assert(me.status === 'PIT' && me.round === round, `round ${round} pit for ${c.label}`);
       const mine = me.me.side;
       if (round === 3 && c === A) {
-        // Swap partners from the pool: two ready robots that are not out there now.
+        // Scheduled partners cannot be swapped, including to robots from the opponent's deck.
         const out = me.seats[mine].pool.filter((i) => !me.alliances[mine].includes(i) && me.robots.find((r) => r.inst === i).broken === 0);
-        await act(c, { kind: 'partners', robots: [out[0], out[1]] });
-        me = await view(c);
-        assert(me.alliances[mine][1] === out[0] && me.alliances[mine][2] === out[1], 'partners swapped from the pool');
+        const swap = await act(c, { kind: 'partners', robots: [out[0], out[1]] }).catch((e) => e);
+        assert(swap instanceof Error && swap.data.error === 'scheduled_partners', 'scheduled partners cannot be swapped');
         const dup = await act(c, { kind: 'partners', robots: [out[0], out[0]] }).catch((e) => e);
-        assert(dup instanceof Error && dup.data.error === 'bad_partners', 'two different partners needed');
+        assert(dup instanceof Error && dup.data.error === 'scheduled_partners', 'duplicate partner swaps refused');
         const foreign = await act(c, { kind: 'partners', robots: [out[0], me.seats[1 - mine].pool[0]] }).catch((e) => e);
-        assert(foreign instanceof Error && foreign.data.error === 'not_in_pool', "can't field the other player's robots");
+        assert(foreign instanceof Error && foreign.data.error === 'scheduled_partners', "can't field the other player's robots");
       }
       // The opponent's hand cards are never in my view.
       const oppHand = me.seats[1 - mine].hand_count;
@@ -143,6 +150,7 @@ async function main() {
       const part = hand.find((s) => s.kind === 'PART');
       const lores = hand.filter((s) => s.kind === 'LORE');
       const myBots = me.alliances[mine];
+      assert(JSON.stringify(myBots) === JSON.stringify(schedule[round - 1].alliances[mine]), 'each match uses its scheduled alliance');
       if (part) me = await act(c, { kind: 'attach', part: part.inst, robot: myBots[0] });
       if (lores.length >= 1) {
         me = await act(c, { kind: 'lore', card: lores[0].inst });
@@ -177,6 +185,14 @@ async function main() {
   assert(ha.profile.games === 1 && hb.profile.games === 1, 'one game counted each');
   assert(ha.profile.elo === o.elo_after[0] && hb.profile.elo === o.elo_after[1], 'ratings saved once');
   assert(!ha.active && !hb.active, 'both players are free again');
+  const leaders = await A.call('GET', '/api/battler/leaderboard');
+  assert(leaders.length <= 25 && leaders.every(p => p.games > 0), 'leaderboard shows up to 25 players who have played');
+  assert(leaders.every((p, i) => i === 0 || leaders[i - 1].elo >= p.elo), 'leaderboard is ordered by Elo');
+  assert(leaders.every(p => Object.keys(p).sort().join(',') === 'draws,elo,games,losses,me,name,rank,wins'), 'leaderboard exposes only public rating data');
+  const own = leaders.find(p => p.name === ha.name);
+  if (own) assert(own.me && own.elo === ha.profile.elo, 'your leaderboard entry uses your saved rating');
+  const anonymous = await fetch(BASE + '/api/battler/leaderboard');
+  assert(anonymous.status === 401, 'leaderboard requires sign-in');
   const hist = await A.call('GET', '/api/battler/history');
   assert(hist.games.length === 1, 'history has the game');
   // Acting on a finished game does nothing.
