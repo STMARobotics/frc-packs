@@ -32,7 +32,7 @@ export function Schedule({ g, review = false }: { g: GameView; review?: boolean 
       <ol class="b-schedule-list">
         {g.schedule.map((match) => <Match key={match.round} g={g} match={match} />)}
       </ol>
-      <p class="b-schedule-note">Win estimates use the scheduled robots’ base stats. Effects, Parts, Lore and breakdowns can change the result.</p>
+      <p class="b-schedule-note">Win estimates use the scheduled robots’ base stats. Effects, Parts and Lore can change the result.</p>
       {g.schedule.some((m) => m.prediction.test_stats) && <p class="b-schedule-note warn">Test stats are in use. These predictions are provisional.</p>}
       {starting && side !== undefined && (
         <div class="b-schedule-ready">

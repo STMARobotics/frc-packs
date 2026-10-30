@@ -49,6 +49,7 @@ async function main() {
   await signup(B, 'btb' + tag);
   const cat = await A.call('GET', '/api/battler/catalog');
   assert(cat.robots.length > 500 && cat.support.length >= 30, 'catalog has robots and support cards');
+  assert(!('drain' in cat.rules) && !('recharge' in cat.rules) && !('repair_battery' in cat.rules), 'catalog has no charge or repair mechanics');
   const parts = cat.support.filter((s) => s.kind === 'PART').map((s) => s.id);
   const lore = cat.support.filter((s) => s.kind === 'LORE').map((s) => s.id);
 
@@ -133,7 +134,7 @@ async function main() {
       const mine = me.me.side;
       if (round === 3 && c === A) {
         // Scheduled partners cannot be swapped, including to robots from the opponent's deck.
-        const out = me.seats[mine].pool.filter((i) => !me.alliances[mine].includes(i) && me.robots.find((r) => r.inst === i).broken === 0);
+        const out = me.seats[mine].pool.filter((i) => !me.alliances[mine].includes(i));
         const swap = await act(c, { kind: 'partners', robots: [out[0], out[1]] }).catch((e) => e);
         assert(swap instanceof Error && swap.data.error === 'scheduled_partners', 'scheduled partners cannot be swapped');
         const dup = await act(c, { kind: 'partners', robots: [out[0], out[0]] }).catch((e) => e);
@@ -168,8 +169,11 @@ async function main() {
     assert(v.status === 'RESULTS', 'both locked: results');
     const r = v.rounds[round - 1].result;
     assert(r.robots.length === 6, 'six robots scored');
-    assert(r.robots.every((x) => x.power >= 65 && x.power <= 100 && x.battery >= 0), 'batteries and power reported');
-    if (round === 1) assert(r.robots.every((x) => x.battery === 100 && x.power === 100), 'everyone starts fully charged');
+    assert(r.robots.every((x) => !('power' in x) && !('battery' in x) && !('broke' in x)), 'scores expose no charge or failure state');
+    for (const score of r.robots) {
+      const stats = v.robots.find(robot => robot.inst === score.inst).stats;
+      require('node:assert/strict').deepEqual(score.base, [stats.auto, stats.tele, stats.end], 'full base stats in every round');
+    }
     assert(r.robots.every((x) => x.rp_chance >= 0 && x.rp_chance <= 100), 'RP chances clamped');
     console.log(`round ${round}: ${r.totals.join(' - ')}  RP +${r.match_rp[0] + r.bonus_rp[0]} / +${r.match_rp[1] + r.bonus_rp[1]}`);
     await act(A, { kind: 'ack' });

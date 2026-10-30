@@ -39,7 +39,6 @@ const MESSAGES: Record<string, string> = {
   not_offered: "That robot was taken.",
   bad_partners: "Pick two different robots.",
   not_in_pool: "That robot isn't in your pool.",
-  broken: "That robot is being repaired.",
   scheduled_partners: "Your partners are fixed by the match schedule.",
   no_drafting: "This game uses a match schedule. There is no draft.",
   too_fast: "Slow down a little.",

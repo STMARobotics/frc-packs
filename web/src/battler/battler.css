@@ -435,7 +435,6 @@ body.b-in-game #app { max-width: 520px; padding-inline: 12px; }
 .b-bot.over .b-bot-card { transform: translateY(-4px) scale(1.04); }
 .b-bot.over .b-bot-card::after { box-shadow: 0 0 0 3px var(--gold); }
 .b-bot.lifted { opacity: .35; }
-.b-bot.broke .b-card { filter: grayscale(.85) brightness(.6); }
 .b-cap { position: absolute; left: -4px; top: -4px; z-index: 5; width: 20px; height: 20px; border-radius: 50%; background: var(--gold); color: #2a1500; font: 700 11px/20px var(--body); font-style: normal; text-align: center; box-shadow: 0 2px 6px rgba(0, 0, 0, .5); }
 .b-bot.closed .b-cap { visibility: hidden; }
 .b-parts { position: absolute; left: 4%; right: 4%; bottom: 5%; z-index: 5; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
@@ -445,7 +444,6 @@ body.b-in-game #app { max-width: 520px; padding-inline: 12px; }
 .b-die { position: absolute; right: 4%; bottom: 5%; z-index: 6; min-width: 30px; padding: 2px 6px; border-radius: 8px; background: #26314d; color: var(--tx); font: 700 11px/1.3 var(--body); text-align: center; font-variant-numeric: tabular-nums; }
 .b-die.hit { background: var(--good); color: #032; animation: b-pop .3s var(--ease); }
 .b-die.miss { color: var(--dim); }
-.b-broke { position: absolute; left: 50%; top: 45%; z-index: 7; padding: 3px 7px; border-radius: 6px; background: rgba(20, 6, 8, .9); box-shadow: inset 0 0 0 2px var(--bad); color: var(--bad); font: 400 calc(var(--lw) * .13) var(--display); letter-spacing: .04em; transform: translate(-50%, -50%) rotate(-12deg); animation: b-pop .35s var(--ease); pointer-events: none; white-space: nowrap; }
 .b-float { position: absolute; left: 50%; top: 30%; z-index: 8; font: 400 18px var(--display); white-space: nowrap; pointer-events: none; text-shadow: 0 2px 6px rgba(0, 0, 0, .9); transform: translateX(-50%); animation: b-floatup .9s ease-out forwards; }
 .b-float.me { color: var(--me); } .b-float.op { color: var(--op); }
 @keyframes b-floatup { to { transform: translate(-50%, -38px); opacity: 0; } }
@@ -460,13 +458,6 @@ body.b-in-game #app { max-width: 520px; padding-inline: 12px; }
 .b-ph3 .rpc b { color: var(--gold); font-size: 12px; }
 .b-ph3 span.lit { background: rgba(255, 211, 107, .12); }
 .b-ph3 span.up b { color: var(--good); } .b-ph3 span.down b { color: var(--bad); }
-.b-batt { position: relative; height: 14px; border-radius: 5px; overflow: hidden; background: var(--bg); }
-.b-batt i { position: absolute; inset: 0; background: #34d399; transform-origin: left; transition: transform .8s var(--ease); }
-.b-batt.mid i { background: #f6c34a; } .b-batt.low i { background: var(--bad); }
-.b-batt.dead i { background: repeating-linear-gradient(45deg, #5a2320 0 5px, #3a1517 5px 10px); }
-.b-batt span { position: relative; display: block; overflow: hidden; padding: 0 2px; text-align: center; white-space: nowrap; text-overflow: ellipsis; font: 700 9px/14px var(--body); color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, .9); }
-.b-batt.cap { background: rgba(255, 211, 107, .1); }
-.b-batt.cap span { color: var(--gold); text-shadow: none; }
 .b-banner { position: absolute; left: 50%; top: 50%; z-index: 9; font: 400 30px var(--display); color: #fff; white-space: nowrap; pointer-events: none; text-shadow: 0 0 16px rgba(79, 216, 255, .8), 0 2px 4px #000; animation: b-banner .6s ease-out forwards; }
 @keyframes b-banner { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.6); } 25% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); } 70% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1); } }
 .b-autoclock { position: absolute; left: 50%; top: 50%; z-index: 8; display: flex; gap: 8px; align-items: center; padding: 5px 12px; border-radius: 999px; background: rgba(11, 14, 23, .92); box-shadow: inset 0 0 0 1px var(--me); transform: translate(-50%, -50%); pointer-events: none; }
@@ -548,7 +539,6 @@ body.b-in-game #app { max-width: 520px; padding-inline: 12px; }
 .b-mini .b-card { transition: transform .15s var(--ease); }
 .b-mini.on .b-card { transform: translateY(-3px); }
 .b-mini.on .b-card::after { content: ""; position: absolute; inset: -3px; border-radius: calc(var(--mw) * .07); box-shadow: 0 0 0 2.5px var(--me); pointer-events: none; }
-.b-mini.broken .b-card { filter: grayscale(.9) brightness(.55); }
 .b-mini-tag { position: absolute; left: 50%; top: -8px; z-index: 3; padding: 2px 8px; border-radius: 999px; background: var(--me); color: #04131b; font-size: 10px; font-weight: 700; transform: translateX(-50%); }
 
 @media (min-width: 700px) {

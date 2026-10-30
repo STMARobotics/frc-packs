@@ -4,9 +4,9 @@
 //! The seed's hash is shown from the start and the seed itself once the game is over, so players can check nothing was
 //! changed along the way.
 
+use rand::SeedableRng;
 use rand::rngs::StdRng;
 use rand::seq::SliceRandom;
-use rand::{Rng, SeedableRng};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use uuid::Uuid;
@@ -34,27 +34,9 @@ pub const INTRO_MS: i64 = 8_000;
 /// Robots each player drafts into their pool, and how many are offered at a time.
 pub const POOL_SIZE: usize = 10;
 pub const OFFER: usize = 3;
-/// A robot's battery: what a round on the field costs, what a round on the bench gives back, where a repaired robot
-/// comes back at, and the chance (per mille) it breaks down: 4% when fresh, more as the battery runs down.
-pub const DRAIN: i32 = 30;
-pub const RECHARGE: i32 = 25;
-pub const REPAIR_BATTERY: i32 = 60;
 /// Misses of the draft timer that cancel the game.
 pub const DRAFT_MISSES: u8 = 2;
 
-/// Percent of its stats a robot has at this battery level.
-pub fn power_for(battery: i32) -> i32 {
-    match battery {
-        50.. => 100,
-        25..=49 => 85,
-        _ => 65,
-    }
-}
-
-/// Chance, per mille, that a robot with this battery breaks down during a round.
-pub fn break_permille(battery: i32) -> u32 {
-    (40 + (100 - battery.clamp(0, 100)) * 3 / 2) as u32
-}
 /// Missing this many pit deadlines forfeits the game.
 pub const STRIKES: u8 = 2;
 
@@ -108,15 +90,6 @@ pub struct RobotInst {
     pub effect_test: bool,
     /// Whose deck it came from.
     pub from: usize,
-    /// Charge left (a captain never runs down), and rounds still to sit out after a breakdown.
-    #[serde(default = "full_battery")]
-    pub battery: i32,
-    #[serde(default)]
-    pub broken: u8,
-}
-
-fn full_battery() -> i32 {
-    100
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -239,7 +212,7 @@ pub struct ScheduledMatch {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct Prediction {
-    /// Base robot points, before effects, support cards, station choices or breakdowns.
+    /// Base robot points, before effects, support cards or station choices.
     pub scores: [i32; 2],
     /// Complementary win estimates, in seat order (0..1). These are not live Statbotics probabilities.
     pub win_chance: [f64; 2],
@@ -509,8 +482,6 @@ impl Game {
                     effects: r.effects.clone(),
                     effect_test: r.effect_test,
                     from: side,
-                    battery: 100,
-                    broken: 0,
                 });
                 if k == 0 {
                     self.seat_mut(side).captain = inst;
@@ -592,21 +563,16 @@ impl Game {
         Err("no_drafting")
     }
 
-    /// Your partners when you don't choose: last round's pair if they're still fit to go (not broken, still at full
-    /// power), otherwise the charged, ready robots in your pool.
+    /// Legacy games keep their previous partners, filling any empty slots from their pool.
     fn default_partners(&self, side: usize) -> [u32; 2] {
         let seat = self.seat(side);
-        let fit = |i: u32| self.robot(i).is_some_and(|r| r.broken == 0 && power_for(r.battery) == 100);
-        let mut chosen: Vec<u32> = seat.plan.partners.iter().copied().filter(|i| *i != 0 && fit(*i)).collect();
-        let mut ready: Vec<&RobotInst> =
-            seat.pool.iter().filter_map(|i| self.robot(*i)).filter(|r| r.broken == 0).collect();
-        ready.sort_by(|a, b| b.battery.cmp(&a.battery).then(a.inst.cmp(&b.inst)));
-        for r in ready {
+        let mut chosen: Vec<u32> = seat.plan.partners.iter().copied().filter(|i| seat.pool.contains(i)).collect();
+        for &inst in &seat.pool {
             if chosen.len() == 2 {
                 break;
             }
-            if !chosen.contains(&r.inst) {
-                chosen.push(r.inst);
+            if !chosen.contains(&inst) {
+                chosen.push(inst);
             }
         }
         [chosen[0], chosen[1]]
@@ -618,7 +584,7 @@ impl Game {
             let [a, b] = if let Some(m) = self.schedule.get(usize::from(self.round - 1)) {
                 [m.alliances[side][1], m.alliances[side][2]]
             } else {
-                self.default_partners(side) // Let games already in progress finish under their original rules.
+                self.default_partners(side) // Preserve the partner pools of games already in progress.
             };
             let captain = self.seat(side).captain;
             self.alliances[side] = [captain, a, b];
@@ -690,7 +656,7 @@ impl Game {
         Ok(())
     }
 
-    /// Chooses the two robots from your pool that go out with your Captain this round. Robots that are broken can't go.
+    /// Chooses the two robots from your pool that go out with your Captain this round (legacy games only).
     /// Changing partners puts everyone back in station order and takes parts off any robot that's no longer on the field.
     pub fn set_partners(&mut self, side: usize, partners: [u32; 2]) -> Result<(), Refusal> {
         self.pit_check(side)?;
@@ -703,9 +669,6 @@ impl Game {
         for p in partners {
             if !self.seat(side).pool.contains(&p) {
                 return Err("not_in_pool");
-            }
-            if self.robot(p).is_none_or(|r| r.broken > 0) {
-                return Err("broken");
             }
         }
         let captain = self.seat(side).captain;
@@ -746,10 +709,9 @@ impl Game {
 
     /// Both alliances are locked: reveal and score the round.
     fn resolve(&mut self, now: i64, auto_locked: [bool; 2]) {
+        self.engine = engine::ENGINE_VERSION;
         let mut field = vec![];
         let mut lores = vec![];
-        // Breakdown rolls come from their own seeded stream, in station order, so a refresh never re-rolls them.
-        let mut brk = StdRng::seed_from_u64(round_seed(self.seed, self.round) ^ 0xB4EA_C0DE);
         for side in 0..2 {
             let seat = self.seat(side).clone();
             for (k, &inst) in seat.plan.stations.iter().enumerate() {
@@ -768,8 +730,6 @@ impl Game {
                     })
                     .collect();
                 let captain = inst == seat.captain;
-                let battery = if captain { 100 } else { r.battery };
-                let breaks = !captain && brk.random_range(0..1000u32) < break_permille(battery);
                 field.push(FieldRobot {
                     inst,
                     name: format!("{} {}", r.team, r.name),
@@ -777,9 +737,6 @@ impl Game {
                     captain,
                     station: k as u8 + 1,
                     stats: r.stats,
-                    power: if captain { 100 } else { power_for(battery) },
-                    battery,
-                    breaks,
                     effects: r.effects.clone(),
                     parts,
                 });
@@ -797,28 +754,6 @@ impl Game {
             result: result.clone(),
             auto_locked,
         };
-        // Batteries: robots on the field spend charge (and a broken one is out next round), the bench recharges, and a
-        // robot that sat out its repair comes back at 60%. A Captain never runs down.
-        for side in 0..2 {
-            let fielded = self.seat(side).plan.stations;
-            for inst in self.seat(side).pool.clone() {
-                let broke = result.robots.iter().any(|s| s.inst == inst && s.broke);
-                let r = self.robots.iter_mut().find(|r| r.inst == inst).expect("pool robot in game");
-                if fielded.contains(&inst) {
-                    r.battery = (r.battery - DRAIN).max(0);
-                    if broke {
-                        r.broken = 1;
-                    }
-                } else if r.broken > 0 {
-                    r.broken -= 1;
-                    if r.broken == 0 {
-                        r.battery = REPAIR_BATTERY;
-                    }
-                } else {
-                    r.battery = (r.battery + RECHARGE).min(100);
-                }
-            }
-        }
         for side in 0..2 {
             let seat = self.seat_mut(side);
             seat.rp += result.match_rp[side] + result.bonus_rp[side];
@@ -1332,7 +1267,7 @@ mod tests {
     }
 
     #[test]
-    fn a_full_game_runs_five_rounds_with_batteries() {
+    fn a_full_game_runs_five_rounds_at_full_base_stats() {
         let (mut g, _, _) = in_pit();
         assert_eq!(g.status, Status::Pit);
         for round in 1..=ROUNDS {
@@ -1345,24 +1280,14 @@ mod tests {
             for side in 0..2 {
                 assert_eq!(g.alliances[side][0], g.seat(side).captain, "the captain plays every round");
             }
-            let field = g.alliances;
-            let before: Vec<i32> = g.robots.iter().map(|r| r.battery).collect();
             g.lock(0, 10).unwrap();
             g.lock(1, 11).unwrap();
             assert_eq!(g.status, Status::Results);
-            if round == 1 {
-                for (side, on_field) in field.iter().enumerate() {
-                    for inst in g.seat(side).pool.clone() {
-                        let r = g.robot(inst).unwrap();
-                        if on_field.contains(&inst) {
-                            assert_eq!(r.battery, 100 - DRAIN, "fielding costs charge, broken or not");
-                        } else {
-                            assert_eq!(r.battery, 100, "the bench recharges, up to full");
-                        }
-                    }
-                }
+            for score in &g.rounds.last().unwrap().result.robots {
+                let stats = g.robot(score.inst).unwrap().stats;
+                assert_eq!(score.base, [stats.auto, stats.tele, stats.end]);
+                assert_eq!(score.points, score.base, "all phases score fully when no effects are played");
             }
-            assert_eq!(before.len(), g.robots.len());
             g.ack(0, 12).unwrap();
             g.ack(1, 13).unwrap();
         }
@@ -1393,25 +1318,27 @@ mod tests {
     }
 
     #[test]
-    fn a_broken_robot_sits_out_a_round_and_comes_back_repaired() {
-        let (mut g, _, _) = in_pit();
-        let sick = *g.seat(0).pool.iter().find(|i| !g.alliances[0].contains(i)).unwrap();
-        let r = g.robots.iter_mut().find(|r| r.inst == sick).unwrap();
-        r.broken = 1;
-        r.battery = 10;
-        g.lock(0, 5).unwrap();
-        g.lock(1, 5).unwrap();
-        let r = g.robot(sick).unwrap();
-        assert_eq!((r.broken, r.battery), (0, REPAIR_BATTERY), "a round on the bench repairs it");
+    fn old_robot_state_is_ignored_when_resuming_an_existing_game() {
+        let (mut fresh, _, _) = in_pit();
+        let mut stored = serde_json::to_value(&fresh).unwrap();
+        stored["engine"] = 1.into();
+        for r in stored["robots"].as_array_mut().unwrap() {
+            r["battery"] = 0.into();
+            r["broken"] = 1.into();
+        }
+        let mut resumed: Game = serde_json::from_value(stored).unwrap();
+        for g in [&mut fresh, &mut resumed] {
+            g.lock(0, 5).unwrap();
+            g.lock(1, 5).unwrap();
+            assert_eq!(g.engine, engine::ENGINE_VERSION);
+        }
+        assert_eq!(fresh.rounds[0].result, resumed.rounds[0].result);
     }
 
     #[test]
-    fn the_next_pair_comes_from_the_schedule_regardless_of_previous_battery() {
+    fn the_next_pair_comes_from_the_schedule() {
         let (mut g, _, _) = in_pit();
         let [a, b] = g.seat(0).plan.partners;
-        for i in [a, b] {
-            g.robots.iter_mut().find(|r| r.inst == i).unwrap().battery = 20;
-        }
         g.lock(0, 10).unwrap();
         g.lock(1, 10).unwrap();
         g.ack(0, 11).unwrap();

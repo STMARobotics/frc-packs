@@ -12,8 +12,8 @@ import { Card, CardBack, cx, plural, RobotSheet } from "../ui";
 import { Clock, Ring } from "./clock";
 import { initial } from "./final";
 import { type Reveal, useReveal } from "./reveal";
-import { Battery, openBench, openMenu, openMyRobot, openPool } from "./sheets";
-import { attach, cardOf, detach, lock, playLore, powerFor, robotOf, scaled, setStations } from "./state";
+import { openBench, openMenu, openMyRobot, openPool } from "./sheets";
+import { attach, cardOf, detach, lock, playLore, robotOf, setStations } from "./state";
 import { openSchedule } from "./schedule";
 
 export function Arena({ g, log, onNext }: { g: GameView; log: RoundLog | null; onNext: () => void }) {
@@ -139,7 +139,6 @@ export function Arena({ g, log, onNext }: { g: GameView; log: RoundLog | null; o
     board.current.animate([{ transform: "translate(-4px,2px)" }, { transform: "translate(4px,-2px)" }, { transform: "translate(-2px,1px)" }, { transform: "none" }], { duration: 320 });
   }, [rv?.shake]);
 
-  const tired = live ? (g.alliances[side].slice(1).map((i) => robotOf(g, i)).filter((r) => r && r.battery < 50) as RobotInst[]) : [];
   const verdict = log && rv?.verdict ? (log.result.winner === null ? "tie" : log.result.winner === side ? "win" : "loss") : null;
   const lastRound = log && log.round >= g.rounds_total;
 
@@ -223,7 +222,7 @@ export function Arena({ g, log, onNext }: { g: GameView; log: RoundLog | null; o
       <div class={cx("b-pbar me", pit && me.locked && "ready")}>
         <span class="b-ava me">{initial(me.name)}{pit && <Ring g={g} />}</span>
         <div class="b-rp"><b>{me.rp - gained[0]}</b><small>RP</small></div>
-        <button type="button" class={cx("b-chipbtn", tired.length > 0 && "warn")} onClick={() => openBench(tired[0]?.inst)} aria-label={g.schedule.length ? "Your robots" : "Bench"}>{g.schedule.length ? "Robots" : "Bench"}</button>
+        <button type="button" class="b-chipbtn" onClick={() => openBench()} aria-label={g.schedule.length ? "Your robots" : "Bench"}>{g.schedule.length ? "Robots" : "Bench"}</button>
         {pit
           ? live
             ? <button key="lock" type="button" class="b-go" onClick={() => { if (Date.now() - opened.current < 700) return; sfx.lock(); setSel(null); lock(); }}>Lock in</button>
@@ -261,21 +260,17 @@ function Bot({ r, lane, row, mine, captain, parts, score, rv, live, target, lift
   const unknownStation = !mine && !rv;
   const s = r.stats;
   const base = [s.auto, s.tele, s.end];
-  const power = score ? score.power : powerFor(r.battery);
   const shown = (k: number): string => {
     if (rv) { const p = rv.pts[r.inst]?.[k]; return p === null || p === undefined ? "–" : String(p); }
-    return String(!captain ? scaled(base[k], power) : base[k]);
+    return String(base[k]);
   };
   const grade = (k: number) => {
     if (!rv || !score || !rv.graded[r.inst]?.[k]) return rv?.pts[r.inst]?.[k] != null ? "lit" : "";
     return score.points[k] > score.base[k] ? "lit up" : score.points[k] < score.base[k] ? "lit down" : "lit";
   };
-  const broke = !!rv?.broke.includes(r.inst);
   const die = rv?.dice[r.inst];
-  const battery = rv?.done ? r.battery : score ? score.battery : r.battery;
-  const brokenNow = rv?.done ? r.broken > 0 : !score && r.broken > 0;
   return (
-    <div ref={el} class={cx("b-bot", mine ? "mine" : "theirs", open === 0 ? "closed" : open === 1 ? "opening" : "open", target && "target", lifted && "lifted", broke && "broke")}
+    <div ref={el} class={cx("b-bot", mine ? "mine" : "theirs", open === 0 ? "closed" : open === 1 ? "opening" : "open", target && "target", lifted && "lifted")}
       style={{ gridColumn: lane + 1, gridRow: row }} data-drop-bot={live && mine ? r.inst : undefined} data-lane={live ? lane : undefined}
       onClick={onTap} onPointerDown={onDown as never}>
       <div class="b-bot-card">
@@ -286,7 +281,6 @@ function Bot({ r, lane, row, mine, captain, parts, score, rv, live, target, lift
           <div class="b-parts">{parts.map((p) => <span key={p.inst} class={cx("b-part", onDetach && "x")} title={p.text} onClick={onDetach ? (e) => { e.stopPropagation(); onDetach(p.inst); } : undefined}>{p.name}</span>)}</div>
         )}
         {die && <span class={cx("b-die", die.s)}>{die.t}</span>}
-        {broke && <span class="b-broke">BREAKDOWN</span>}
         {rv?.floats.filter((f) => f.inst === r.inst).map((f) => <span key={f.id} class={cx("b-float", f.who)}>{f.text}</span>)}
       </div>
       <div class={cx("b-bot-info", open === 0 && "none")}>
@@ -294,7 +288,6 @@ function Bot({ r, lane, row, mine, captain, parts, score, rv, live, target, lift
           {[0, 1, 2].map((k) => <span class={grade(k)}><small>{"ATE"[k]}</small><b>{shown(k)}</b></span>)}
           <span class="rpc" title={unknownStation ? "Station choice is revealed when both players lock in" : undefined}><small>{unknownStation ? "RP" : `RP${lane + 1}`}</small><b>{unknownStation ? "?" : `${score ? score.rp_chance : s.rp[lane]}%`}</b></span>
         </div>
-        <Battery r={r} battery={battery} broken={brokenNow} captain={captain} />
       </div>
     </div>
   );

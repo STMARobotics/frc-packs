@@ -96,10 +96,6 @@ export function myMove(g: GameView) {
   return (g.status === "DECKS" && !me.picked) || (g.status === "SCHEDULE" && !me.acked) || (g.status === "PIT" && !me.locked) || (g.status === "RESULTS" && !me.acked);
 }
 
-/** Percent of its stats a robot has at this charge (mirrors server game.rs `power_for`). */
-export const powerFor = (b: number) => (b >= 50 ? 100 : b >= 25 ? 85 : 65);
-export const scaled = (v: number, p: number) => Math.floor((v * p + 50) / 100);
-
 // ---------- the taps, with what each one changes on screen right away ----------
 
 const plan = (g: GameView): Plan => g.me!.plan;

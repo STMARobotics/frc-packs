@@ -233,7 +233,6 @@ async fn catalog(State(st): State<Shared>, _user: User) -> ApiResult<Json<Value>
             "draw": game::DRAW, "max_copies": game::MAX_COPIES, "pit_seconds": game::PIT_MS / 1000,
             "results_seconds": game::RESULTS_MS / 1000, "strikes": game::STRIKES, "start_elo": START_ELO,
             "pool_size": game::POOL_SIZE, "offer": game::OFFER, "draft_seconds": game::DRAFT_MS / 1000, "intro_seconds": game::INTRO_MS / 1000,
-            "drain": game::DRAIN, "recharge": game::RECHARGE, "repair_battery": game::REPAIR_BATTERY,
         },
         "robots": robots,
         "support": st.battler.support,
@@ -984,9 +983,6 @@ async fn admin_preview(State(st): State<Shared>, _admin: Admin, Json(req): Json<
         captain: req.captain,
         station,
         stats: r.stats,
-        power: 100,
-        battery: 100,
-        breaks: false,
         effects: if check.is_ok() { req.effects.clone() } else { vec![] },
         parts: req
             .parts
@@ -1010,9 +1006,6 @@ async fn admin_preview(State(st): State<Shared>, _admin: Admin, Json(req): Json<
             captain: false,
             station: *st_,
             stats: filler,
-            power: 100,
-            battery: 100,
-            breaks: false,
             effects: vec![],
             parts: vec![],
         });
@@ -1025,9 +1018,6 @@ async fn admin_preview(State(st): State<Shared>, _admin: Admin, Json(req): Json<
             captain: k == 0,
             station: k + 1,
             stats: filler,
-            power: 100,
-            battery: 100,
-            breaks: false,
             effects: vec![],
             parts: vec![],
         });

@@ -36,15 +36,11 @@ A 1v1, five-round card game played with the robots you own in FRC Packs, at `/ba
    private until both lock. During card play, both players see the opponent's robot cards face up in schedule order
    and can tap them to inspect their stats and effects. The reveal shows actual stations and support cards, then scores
    the match.
-6. **Batteries.** Every pooled robot starts at 100%. A robot that plays loses 30%; one on the bench gains 25%. Below 50%
-   it plays at 85% of its stats, below 25% at 65%. Each round a fielded robot can break down (4% when fresh, up to ~19%
-   at 0%): it scores nothing in End, then sits out a round being repaired and returns at 60%. A broken robot can't be
-   picked. The Captain never runs down or breaks.
-7. **Scoring.** Auto, Tele and End are summed per alliance (battery power, robot effects, then parts, then lore; flat
+6. **Scoring.** Auto, Tele and End are summed per alliance (robot effects, then parts, then lore; flat
    points, then percent, then multipliers, rounded half up, never below 0). Win = 3 RP, tie = 1 each. Each robot rolls
    once for +1 RP at its station's RP chance. The reveal plays Auto as five one-second ticks per robot (each about a
    fifth of the points, up to 10% off, always summing to the real total), then Tele and End.
-8. **End.** Most RP wins, then most points, else a draw. Elo (start 1000, K 32) changes once per game.
+7. **End.** Most RP wins, then most points, else a draw. Elo (start 1000, K 32) changes once per game.
 
 Played cards are used up only for that game; nothing is ever taken from the FRC Packs collection.
 
@@ -93,11 +89,11 @@ uses a logistic score margin, following the shape of [Statbotics' EPA model](htt
 The spread is 20% of the mean alliance score. This is a provisional Battler estimate, not Statbotics' calibrated
 season model or a live Statbotics prediction. It intentionally uses only public base stats, never support hands,
 station choices, the secret seed or the actual future match rolls. Equal scores give 50/50, swapping alliances swaps
-the estimates, and the two displayed percentages add to 100%. Effects, Parts, Lore and breakdowns can change the
+the estimates, and the two displayed percentages add to 100%. Effects, Parts and Lore can change the
 result. Matches using fallback robot stats are explicitly labeled as provisional.
 
 Old games still at the draft are upgraded to schedules on their next request, restoring robots to their original
-owners. Games already in the pit continue under their original rules; newly started games always use schedules.
+owners. Games already in the pit keep their partner pools; newly started games always use schedules.
 
 ## Tests
 
@@ -120,8 +116,7 @@ cd web && node test/wager.cjs                                # wagers: stakes, e
 - **Robot stats** use clearly marked test stats (from Champs EPA) until `tools/battler_stats.py` can reach Statbotics;
   rerun it and `tools/build_packs.py` to replace them.
 - **"Their lore"** (October 2026): the empty "Their lore" placeholder is gone; if the other player plays a Lore it
-  appears face down as a count in their bar and flips at the reveal. Battery numbers (30 / 25 / 60, break chance) are
-  first guesses to tune.
+  appears face down as a count in their bar and flips at the reveal.
 - **Robot avatars** show the team number; there are no TBA avatars in the repo yet.
 - **Only the 2026 set** exists (the cmp26 pack). 2025 robots would need a 2025 pack recipe.
 - **Production routing.** The page is served as `/battle.html`, which needs no CloudFront change.

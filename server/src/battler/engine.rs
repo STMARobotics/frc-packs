@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 
 use super::effects::{Cond, Effect, Of, Op, Phase, RpSlot, Scope};
 
-pub const ENGINE_VERSION: u32 = 1;
+pub const ENGINE_VERSION: u32 = 2;
 
 pub const PHASES: [Phase; 3] = [Phase::Auto, Phase::Tele, Phase::End];
 
@@ -54,12 +54,6 @@ pub struct FieldRobot {
     pub captain: bool,
     pub station: u8,
     pub stats: Stats,
-    /// Percent of its stats it has this round: a low battery weakens a robot (100 for an Alliance Captain).
-    pub power: i32,
-    /// Its battery before the round (shown on the results; 100 for a captain).
-    pub battery: i32,
-    /// It loses power before the End phase and scores nothing in it.
-    pub breaks: bool,
     pub effects: Vec<Effect>,
     pub parts: Vec<FieldPart>,
 }
@@ -88,22 +82,11 @@ pub struct Event {
     pub text: String,
 }
 
-fn full_power() -> i32 {
-    100
-}
-
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct RobotScore {
     pub inst: u32,
     pub side: usize,
     pub station: u8,
-    /// Its battery before the round, the percent of its stats that left it with, and whether it broke down.
-    #[serde(default)]
-    pub battery: i32,
-    #[serde(default = "full_power")]
-    pub power: i32,
-    #[serde(default)]
-    pub broke: bool,
     /// Base and final points for Auto, Tele, End.
     pub base: [i32; 3],
     pub points: [i32; 3],
@@ -276,29 +259,15 @@ pub fn resolve(robots: &[FieldRobot], lores: &[FieldLore], seed: u64) -> RoundRe
         let mut points = [0; 3];
         for (k, p) in PHASES.iter().enumerate() {
             let a = acc[i][k];
-            // A tired robot has less to give: its stats are scaled before any effect applies.
-            base[k] = half_up(i64::from(r.stats.phase(*p)) * i64::from(r.power), 100);
+            base[k] = r.stats.phase(*p);
             let v = i64::from(base[k] + a.flat) * i64::from((100 + a.pct).max(0)) * i64::from(100 + a.mult);
             points[k] = half_up(v, 10_000).max(0);
-            if r.breaks && *p == Phase::End {
-                points[k] = 0;
-            }
             phase_totals[r.side][k] += points[k];
-        }
-        if r.breaks {
-            events.push(Event {
-                source: "Breakdown".into(),
-                target: r.inst,
-                text: format!("{} lost power before the End phase (battery {}%)", r.name, r.battery),
-            });
         }
         scores.push(RobotScore {
             inst: r.inst,
             side: r.side,
             station: r.station,
-            battery: r.battery,
-            power: r.power,
-            broke: r.breaks,
             base,
             points,
             rp_chance: 0,
@@ -367,9 +336,6 @@ mod tests {
             captain: inst.is_multiple_of(3),
             station,
             stats,
-            power: 100,
-            battery: 100,
-            breaks: false,
             effects: vec![],
             parts: vec![],
         }
@@ -500,19 +466,16 @@ mod tests {
     }
 
     #[test]
-    fn a_tired_robot_scores_less_and_a_broken_one_loses_its_end_phase() {
-        let mut f = field();
-        f[1].power = 85;
-        f[1].battery = 40;
-        f[2].breaks = true;
-        let r = resolve(&f, &[], 1);
-        let tired = r.robots.iter().find(|s| s.inst == 1).unwrap();
-        assert_eq!(tired.base, [9, 17, 4], "10/20/5 at 85%, rounded half up");
-        assert_eq!((tired.battery, tired.power), (40, 85));
-        let broke = r.robots.iter().find(|s| s.inst == 2).unwrap();
-        assert!(broke.broke);
-        assert_eq!(broke.points, [10, 20, 0], "Auto and Tele count, End doesn't");
-        assert!(r.events.iter().any(|e| e.source == "Breakdown" && e.target == 2));
+    fn every_robot_scores_all_three_base_phases_without_effects() {
+        let f = field();
+        for seed in 0..100 {
+            let r = resolve(&f, &[], seed);
+            for score in &r.robots {
+                let stats = f.iter().find(|r| r.inst == score.inst).unwrap().stats;
+                assert_eq!(score.base, [stats.auto, stats.tele, stats.end]);
+                assert_eq!(score.points, score.base);
+            }
+        }
     }
 
     #[test]

@@ -10,7 +10,7 @@ export interface Robot extends RobotCard { id: string; season: number }
 export interface Support { id: string; kind: "PART" | "LORE"; name: string; season: number; tags: string[]; text: string; flavor: string; draft: boolean }
 export interface Rules {
   rounds: number; deck_robots: number; support_cards: number; draw: number; max_copies: number; pit_seconds: number; results_seconds: number;
-  strikes: number; start_elo: number; pool_size: number; offer: number; draft_seconds: number; intro_seconds: number; drain: number; recharge: number; repair_battery: number;
+  strikes: number; start_elo: number; pool_size: number; offer: number; draft_seconds: number; intro_seconds: number;
 }
 export interface Catalog { season: number; rp_names: [string, string, string]; rules: Rules; robots: Robot[]; support: Support[]; tags: [string, string[]][] }
 export interface Deck { id: string; name: string; captain: number | null; robots: number[]; support: string[]; updated: number }
@@ -19,7 +19,7 @@ export interface Profile { elo: number; games: number; wins: number; losses: num
 export interface LeaderboardPlayer extends Profile { rank: number; name: string; me: boolean }
 export interface Home { name: string; is_admin: boolean; profile: Profile; active: string | null; owned_teams: number[]; support_owned: Record<string, number>; decks: DeckRow[] }
 
-export interface RobotInst extends RobotCard { inst: number; card: string; from: number; battery: number; broken: number }
+export interface RobotInst extends RobotCard { inst: number; card: string; from: number }
 export interface SupportInst { inst: number; owner: number; card: string; kind: "PART" | "LORE"; name: string; tags: string[]; text: string }
 export interface Plan { attach: [number, number][]; lore: number | null; partners: [number, number]; stations: [number, number, number] }
 export interface SeatView {
@@ -28,7 +28,7 @@ export interface SeatView {
 }
 export interface EmoteView { side: number; id: string; at: number; n: number }
 export interface RobotScore {
-  inst: number; side: number; station: number; battery: number; power: number; broke: boolean; base: [number, number, number];
+  inst: number; side: number; station: number; base: [number, number, number];
   points: [number, number, number]; rp_chance: number; rp_roll: number; rp_hit: boolean;
 }
 export interface GameEvent { source: string; target: number; text: string }
