@@ -12,8 +12,9 @@ import { Card, CardBack, cx, plural, RobotSheet } from "../ui";
 import { Clock, Ring } from "./clock";
 import { initial } from "./final";
 import { type Reveal, useReveal } from "./reveal";
-import { Battery, openBench, openMenu, openMyRobot, openPool } from "./sheets";
-import { attach, cardOf, detach, lock, playLore, powerFor, robotOf, scaled, setStations } from "./state";
+import { openBench, openMenu, openMyRobot, openPool } from "./sheets";
+import { attach, cardOf, detach, lock, playLore, robotOf, setStations } from "./state";
+import { openSchedule } from "./schedule";
 
 export function Arena({ g, log, onNext }: { g: GameView; log: RoundLog | null; onNext: () => void }) {
   const side = g.me!.side, op = 1 - side;
@@ -37,7 +38,8 @@ export function Arena({ g, log, onNext }: { g: GameView; log: RoundLog | null; o
 
   const captains = [g.alliances[0][0], g.alliances[1][0]];
   const myBots = log ? log.stations[side] : plan.stations;
-  const theirBots = log ? log.stations[op] : null;
+  // Robot identities are public. Show their scheduled alliance while their station choices are still private.
+  const theirBots = log ? log.stations[op] : g.alliances[op];
   const score = (inst: number) => log?.result.robots.find((x) => x.inst === inst);
   const partsOn = (s: number, inst: number) =>
     (log ? log.attach[s] : s === side ? plan.attach : []).filter(([, rb]) => rb === inst).map(([p]) => cardOf(g, p)).filter((c): c is SupportInst => !!c);
@@ -137,7 +139,6 @@ export function Arena({ g, log, onNext }: { g: GameView; log: RoundLog | null; o
     board.current.animate([{ transform: "translate(-4px,2px)" }, { transform: "translate(4px,-2px)" }, { transform: "translate(-2px,1px)" }, { transform: "none" }], { duration: 320 });
   }, [rv?.shake]);
 
-  const tired = live ? (g.alliances[side].slice(1).map((i) => robotOf(g, i)).filter((r) => r && r.battery < 50) as RobotInst[]) : [];
   const verdict = log && rv?.verdict ? (log.result.winner === null ? "tie" : log.result.winner === side ? "win" : "loss") : null;
   const lastRound = log && log.round >= g.rounds_total;
 
@@ -151,16 +152,18 @@ export function Arena({ g, log, onNext }: { g: GameView; log: RoundLog | null; o
           <span class="b-backs">{Array.from({ length: Math.min(them.hand_count, 7) }, (_, i) => <i key={i} />)}</span>
           {pit && (them.parts_down > 0 || them.lore_down) && <span class="b-down">{Array.from({ length: them.parts_down }, (_, i) => <i key={`p${i}`} class="part" />)}{them.lore_down && <i class="lore" />}</span>}
         </div>
-        <button type="button" class="b-chipbtn" onClick={() => openPool(op)}>Pool</button>
+        <button type="button" class="b-chipbtn" onClick={() => openPool(op)}>Robots</button>
         <div class="b-rp"><b>{them.rp - gained[1]}</b><small>RP</small></div>
       </div>
 
       <div class="b-round">
         <span class="b-dots">{Array.from({ length: g.rounds_total }, (_, i) => <i class={cx(i + 1 < g.round || (i + 1 === g.round && !pit) ? "done" : i + 1 === g.round && "now")} />)}</span>
         <span>Round {log?.round ?? g.round}/{g.rounds_total}</span>
+        {g.schedule.length > 0 && <button type="button" class="b-chipbtn" onClick={openSchedule}>Schedule</button>}
         <Clock g={g} />
       </div>
 
+      {pit && theirBots.every((i) => i !== 0) && <p class="b-lineup-note">Opponent’s robots · station order revealed when both players lock in</p>}
       {/* the board */}
       <div class="b-board" ref={board} onClick={(e) => { if (e.target === e.currentTarget) setSel(null); }}>
         {[0, 1, 2].map((k) => <div key={`lane${k}`} class="b-lane" data-lane={live ? k : undefined} style={{ gridColumn: k + 1 }} onClick={() => setSel(null)} />)}
@@ -172,7 +175,7 @@ export function Arena({ g, log, onNext }: { g: GameView; log: RoundLog | null; o
         {[0, 1, 2].map((k) => {
           const inst = theirBots?.[k];
           const r = robotOf(g, inst);
-          if (!r || !rv) return <div key={`back${k}`} class="b-bot theirs closed" data-lane={live ? k : undefined} style={{ gridColumn: k + 1, gridRow: 1 }}><div class="b-bot-card"><CardBack /></div><div class="b-bot-info none" /></div>;
+          if (!r) return <div key={`back${k}`} class="b-bot theirs closed" data-lane={live ? k : undefined} style={{ gridColumn: k + 1, gridRow: 1 }}><div class="b-bot-card"><CardBack /></div><div class="b-bot-info none" /></div>;
           return <Bot key={r.inst} g={g} r={r} lane={k} row={1} mine={false} captain={r.inst === captains[op]} parts={partsOn(op, r.inst)} score={score(r.inst)} rv={rv} onTap={() => tapBot(r.inst, false)} />;
         })}
         {[0, 1, 2].map((k) => {
@@ -219,7 +222,7 @@ export function Arena({ g, log, onNext }: { g: GameView; log: RoundLog | null; o
       <div class={cx("b-pbar me", pit && me.locked && "ready")}>
         <span class="b-ava me">{initial(me.name)}{pit && <Ring g={g} />}</span>
         <div class="b-rp"><b>{me.rp - gained[0]}</b><small>RP</small></div>
-        <button type="button" class={cx("b-chipbtn", tired.length > 0 && "warn")} onClick={() => openBench(tired[0]?.inst)} aria-label={tired.length ? `Bench: ${tired[0].name} is low on battery` : "Bench"}>Bench</button>
+        <button type="button" class="b-chipbtn" onClick={() => openBench()} aria-label={g.schedule.length ? "Your robots" : "Bench"}>{g.schedule.length ? "Robots" : "Bench"}</button>
         {pit
           ? live
             ? <button key="lock" type="button" class="b-go" onClick={() => { if (Date.now() - opened.current < 700) return; sfx.lock(); setSel(null); lock(); }}>Lock in</button>
@@ -253,24 +256,21 @@ function Bot({ r, lane, row, mine, captain, parts, score, rv, live, target, lift
     last.current = x;
   }, [lane]);
 
-  const open = mine ? 2 : rv ? rv.open[lane] : 0;
+  const open = mine || !rv ? 2 : rv.open[lane];
+  const unknownStation = !mine && !rv;
   const s = r.stats;
   const base = [s.auto, s.tele, s.end];
-  const power = score ? score.power : powerFor(r.battery);
   const shown = (k: number): string => {
     if (rv) { const p = rv.pts[r.inst]?.[k]; return p === null || p === undefined ? "–" : String(p); }
-    return String(mine && !captain ? scaled(base[k], power) : base[k]);
+    return String(base[k]);
   };
   const grade = (k: number) => {
     if (!rv || !score || !rv.graded[r.inst]?.[k]) return rv?.pts[r.inst]?.[k] != null ? "lit" : "";
     return score.points[k] > score.base[k] ? "lit up" : score.points[k] < score.base[k] ? "lit down" : "lit";
   };
-  const broke = !!rv?.broke.includes(r.inst);
   const die = rv?.dice[r.inst];
-  const battery = rv?.done ? r.battery : score ? score.battery : r.battery;
-  const brokenNow = rv?.done ? r.broken > 0 : !score && r.broken > 0;
   return (
-    <div ref={el} class={cx("b-bot", mine ? "mine" : "theirs", open === 0 ? "closed" : open === 1 ? "opening" : "open", target && "target", lifted && "lifted", broke && "broke")}
+    <div ref={el} class={cx("b-bot", mine ? "mine" : "theirs", open === 0 ? "closed" : open === 1 ? "opening" : "open", target && "target", lifted && "lifted")}
       style={{ gridColumn: lane + 1, gridRow: row }} data-drop-bot={live && mine ? r.inst : undefined} data-lane={live ? lane : undefined}
       onClick={onTap} onPointerDown={onDown as never}>
       <div class="b-bot-card">
@@ -281,15 +281,13 @@ function Bot({ r, lane, row, mine, captain, parts, score, rv, live, target, lift
           <div class="b-parts">{parts.map((p) => <span key={p.inst} class={cx("b-part", onDetach && "x")} title={p.text} onClick={onDetach ? (e) => { e.stopPropagation(); onDetach(p.inst); } : undefined}>{p.name}</span>)}</div>
         )}
         {die && <span class={cx("b-die", die.s)}>{die.t}</span>}
-        {broke && <span class="b-broke">BREAKDOWN</span>}
         {rv?.floats.filter((f) => f.inst === r.inst).map((f) => <span key={f.id} class={cx("b-float", f.who)}>{f.text}</span>)}
       </div>
       <div class={cx("b-bot-info", open === 0 && "none")}>
         <div class="b-ph3">
           {[0, 1, 2].map((k) => <span class={grade(k)}><small>{"ATE"[k]}</small><b>{shown(k)}</b></span>)}
-          <span class="rpc"><small>RP{lane + 1}</small><b>{score ? score.rp_chance : s.rp[lane]}%</b></span>
+          <span class="rpc" title={unknownStation ? "Station choice is revealed when both players lock in" : undefined}><small>{unknownStation ? "RP" : `RP${lane + 1}`}</small><b>{unknownStation ? "?" : `${score ? score.rp_chance : s.rp[lane]}%`}</b></span>
         </div>
-        <Battery r={r} battery={battery} broken={brokenNow} captain={captain} />
       </div>
     </div>
   );

@@ -1,8 +1,8 @@
 // Wagers on private Battler matches, through the API, against a local server started with DEV_TOOLS=1:
 //   node test/wager.cjs [http://127.0.0.1:3000]
 // Two players: a private match, stakes (cards against a pink slip), the match waits for the wager, changing a stake
-// takes back both acceptances, both accept and the stakes leave both collections into escrow. One match is called off in
-// the draft (each gets their own back); in another, A forfeits in the pit and B gets both stakes. Also: a brand-new
+// takes back both acceptances, both accept and the stakes leave both collections into escrow. Leaving before the
+// schedule returns stakes; forfeiting at the schedule or in the pit awards both stakes to the opponent. Also: a brand-new
 // account can't stake parts, a pink slip needs a picked deck, and a Quick Play match takes no wager.
 const BASE = process.argv[2] || 'http://127.0.0.1:3000';
 const assert = (c, m) => { if (!c) throw new Error('FAILED: ' + m); console.log('ok  ' + m); };
@@ -61,8 +61,20 @@ async function main() {
   assert(await refusedWith(A.call('PUT', `/api/battler/games/${q.id}/wager`, { teams: [A.spare[0]] }), 'no_wager_here'), 'Quick Play matches take no wager');
   await act(A, q.id, { kind: 'forfeit' });
 
-  // Match 1: stakes, waiting, resets, escrow, then called off in the draft: everything back.
+  // Before decks are picked, leaving still returns both locked stakes without changing ratings.
   let id = await privateMatch(A, B);
+  const beforeA = await copies(A), beforeB = await copies(B);
+  await A.call('PUT', `/api/battler/games/${id}/wager`, { teams: [A.spare[0]] });
+  await B.call('PUT', `/api/battler/games/${id}/wager`, { teams: [B.spare[0]] });
+  await A.call('POST', `/api/battler/games/${id}/wager/accept`);
+  await B.call('POST', `/api/battler/games/${id}/wager/accept`);
+  await act(A, id, { kind: 'forfeit' });
+  let g = await view(A, id);
+  assert(g.status === 'CANCELLED' && g.stakes.status === 'returned', 'leaving before the schedule returns the wager');
+  assert((await copies(A)) === beforeA && (await copies(B)) === beforeB, 'both stakes returned before the schedule');
+
+  // Match 1: stakes, waiting, resets, escrow, then A forfeits at the schedule and B wins.
+  id = await privateMatch(A, B);
   assert(await refusedWith(B.call('PUT', `/api/battler/games/${id}/wager`, { parts: 10 }), 'too_new'), 'a brand-new account can\'t stake parts');
   const a0 = await copies(A), b0 = await copies(B);
   await A.call('PUT', `/api/battler/games/${id}/wager`, { teams: [A.spare[0], A.spare[1]] });
@@ -70,7 +82,7 @@ async function main() {
   assert(await refusedWith(B.call('POST', `/api/battler/games/${id}/wager/accept`), 'pick_deck_first'), 'a pink slip needs the deck picked first');
   await act(A, id, { kind: 'pick_deck', deck: A.deck });
   await act(B, id, { kind: 'pick_deck', deck: B.deck });
-  let g = await view(A, id);
+  g = await view(A, id);
   assert(g.status === 'DECKS' && g.wager === 'open', 'both decks picked, but the match waits for the wager');
   await A.call('POST', `/api/battler/games/${id}/wager/accept`);
   await A.call('PUT', `/api/battler/games/${id}/wager`, { teams: [A.spare[0]] });
@@ -79,13 +91,17 @@ async function main() {
   await A.call('POST', `/api/battler/games/${id}/wager/accept`);
   await B.call('POST', `/api/battler/games/${id}/wager/accept`);
   g = await view(A, id);
-  assert(g.wager === 'locked' && g.status === 'DRAFT', 'both accepted: locked in, and the match starts');
+  assert(g.wager === 'locked' && g.status === 'SCHEDULE', 'both accepted: locked in, and the schedule is shown');
   assert(g.stakes.held[0].cards.length === 1 && g.stakes.held[1].cards.length >= 10, `escrow holds A's card and B's deck (${g.stakes.held[1].cards.length} robots)`);
   assert((await copies(A)) === a0 - 1 && (await copies(B)) === b0 - g.stakes.held[1].cards.length, 'the stakes left both collections');
-  await act(B, id, { kind: 'forfeit' });
-  g = await view(A, id);
-  assert(g.status === 'CANCELLED' && g.stakes.status === 'returned', 'called off in the draft: the wager is returned');
-  assert((await copies(A)) === a0 && (await copies(B)) === b0, 'each got their own stake back');
+  await act(A, id, { kind: 'forfeit' });
+  g = await view(B, id);
+  assert(g.status === 'FINAL' && g.outcome.winner === g.me.side && g.outcome.reason === 'forfeit', 'leaving at the schedule is a loss');
+  assert(g.stakes.status === 'settled' && g.stakes.winner === g.me.side, 'the schedule winner receives the wager');
+  assert((await copies(A)) === a0 - 1 && (await copies(B)) === b0 + 1, 'B wins A\'s card and keeps their own stake');
+  const homeA = await A.call('GET', '/api/battler/home'), homeB = await B.call('GET', '/api/battler/home');
+  assert(homeA.profile.losses === 1 && homeB.profile.wins === 1, 'schedule forfeit updates both records');
+  assert(homeA.profile.elo === 984 && homeB.profile.elo === 1016, 'schedule forfeit updates Elo');
 
   // Match 2: A forfeits in the pit, and B gets both stakes.
   id = await privateMatch(A, B);
@@ -96,15 +112,10 @@ async function main() {
   await B.call('POST', `/api/battler/games/${id}/wager/accept`);
   await act(A, id, { kind: 'pick_deck', deck: A.deck });
   await act(B, id, { kind: 'pick_deck', deck: B.deck });
-  // Draft: whoever is up takes the first robot offered, until the pit.
-  for (let i = 0; i < 60; i++) {
-    g = await view(A, id);
-    if (g.status !== 'DRAFT') break;
-    const who = g.draft_side === g.me.side ? A : B;
-    await who.call('POST', `/api/battler/games/${id}/act`, { rev: g.rev, action: { kind: 'draft_pick', robot: g.offer[0] } }).catch(() => {});
-  }
+  await act(A, id, { kind: 'ack' });
+  await act(B, id, { kind: 'ack' });
   g = await view(A, id);
-  assert(g.status === 'PIT', 'drafted through to the pit');
+  assert(g.status === 'PIT', 'both ready: the first pit starts');
   await act(A, id, { kind: 'forfeit' });
   g = await view(B, id);
   assert(g.status === 'FINAL' && g.stakes.status === 'settled' && g.stakes.winner === g.me.side, 'A forfeited: the wager is settled to B');

@@ -1,12 +1,12 @@
 // Sheets opened from a game: the menu, a robot up close, your bench, a pool. Each reads the live game, so it updates
 // while open.
 import { useState } from "preact/hooks";
-import { CAT, closeSheet, openSheet, pref, setPref, toast, useStore } from "../store";
+import { CAT, closeSheet, openSheet, pref, setPref, useStore } from "../store";
 import { sfx } from "../sfx";
 import type { GameView, RobotInst } from "../types";
 import { Card, cx, RobotSheet } from "../ui";
 import { openEmotes } from "./emotes";
-import { act, game, powerFor, robotOf, setPartners, setStations } from "./state";
+import { act, game, robotOf, setPartners, setStations } from "./state";
 
 export function openMenu(g: GameView) {
   openSheet(() => <Menu g={g} />);
@@ -26,18 +26,6 @@ function Menu({ g }: { g: GameView }) {
       <label class="b-check"><input type="checkbox" checked={mute} onChange={(e) => { setMute(e.currentTarget.checked); setPref("bt-mute", e.currentTarget.checked); }} /> Mute sounds</label>
       <p class="b-dim b-small">Fairness code <code>{g.seed_hash.slice(0, 16)}…</code>. The secret behind every shuffle and roll is shown when the game ends.</p>
       <button type="button" class="b-btn ghost danger" onClick={forfeit}>Forfeit</button>
-    </div>
-  );
-}
-
-/** Battery bar. A captain never runs down. */
-export function Battery({ r, battery, broken, captain }: { r?: RobotInst; battery: number; broken: boolean; captain: boolean }) {
-  if (captain) return <div class="b-batt cap"><span>Captain</span></div>;
-  const lvl = broken ? "dead" : battery >= 50 ? "ok" : battery >= 25 ? "mid" : "low";
-  return (
-    <div class={cx("b-batt", lvl)} title={r ? `${battery}% battery` : undefined}>
-      <i style={{ transform: `scaleX(${broken ? 1 : battery / 100})` }} />
-      <span>{broken ? "Repairing" : battery < 50 ? `${battery}% · ${powerFor(battery)}%` : `${battery}%`}</span>
     </div>
   );
 }
@@ -71,7 +59,7 @@ function MyRobot({ inst }: { inst: number }) {
           {[0, 1, 2].map((k) => <button type="button" class={cx("b-st", k === at && "on")} disabled={k === at} onClick={() => move(k)}>{k + 1}<small>{CAT.rp_names[k]}</small></button>)}
         </div>
       )}
-      {live && !captain && <button type="button" class="b-btn wide" onClick={() => openBench(inst)}>Swap from bench</button>}
+      {live && !captain && !g.schedule.length && <button type="button" class="b-btn wide" onClick={() => openBench(inst)}>Swap from bench</button>}
     </RobotSheet>
   );
 }
@@ -89,7 +77,7 @@ function Bench({ replace }: { replace?: number }) {
   });
   if (!g?.me) return null;
   const side = g.me.side;
-  const live = g.status === "PIT" && !g.seats[side]!.locked;
+  const live = g.status === "PIT" && !g.seats[side]!.locked && !g.schedule.length;
   const partners = g.me.plan.partners;
   const cap = robotOf(g, g.alliances[side][0]);
   const pool = g.seats[side]!.pool.map((i) => robotOf(g, i)!).filter(Boolean);
@@ -97,7 +85,6 @@ function Bench({ replace }: { replace?: number }) {
     if (!live) return openSheet(() => <RobotSheet r={r} />);
     const at = partners.indexOf(r.inst);
     if (at >= 0) { setSlot(at); return; }
-    if (r.broken) return toast(`${r.name} is being repaired.`, true);
     const n = [...partners] as [number, number];
     n[slot] = r.inst;
     sfx.place();
@@ -106,26 +93,25 @@ function Bench({ replace }: { replace?: number }) {
   };
   return (
     <div class="b-bench">
-      <h2>{live ? "Your alliance" : "Your pool"}</h2>
+      <h2>{live ? "Your alliance" : "Your robots"}</h2>
+      {g.schedule.length > 0 && <p class="b-dim b-small">Partners are fixed by the match schedule.</p>}
       {live && cap && (
         <div class="b-slots">
           <div class="b-slot cap"><MiniPic r={cap} /><b>{cap.team}</b><small>Captain</small></div>
-          {[0, 1].map((k) => { const r = robotOf(g, partners[k]); return <button type="button" class={cx("b-slot", slot === k && "sel")} onClick={() => setSlot(k)}>{r && <MiniPic r={r} />}<b>{r?.team ?? "?"}</b><small>{r ? `${r.battery}%` : ""}</small></button>; })}
+          {[0, 1].map((k) => { const r = robotOf(g, partners[k]); return <button type="button" class={cx("b-slot", slot === k && "sel")} onClick={() => setSlot(k)}>{r && <MiniPic r={r} />}<b>{r?.team ?? "?"}</b></button>; })}
         </div>
       )}
       <div class="b-minigrid">
         {pool.map((r) => {
           const on = partners.includes(r.inst);
           return (
-            <button key={r.inst} type="button" class={cx("b-mini", on && "on", r.broken > 0 && "broken")} onClick={() => tap(r)}>
+            <button key={r.inst} type="button" class={cx("b-mini", on && "on")} onClick={() => tap(r)}>
               <Card r={r} w="var(--mw)" />
-              <Battery r={r} battery={r.battery} broken={r.broken > 0} captain={false} />
               {on && <span class="b-mini-tag">Playing</span>}
             </button>
           );
         })}
       </div>
-      {live && <p class="b-dim b-small center">Playing drains {CAT.rules.drain}%. The bench recharges {CAT.rules.recharge}%.</p>}
     </div>
   );
 }
@@ -148,9 +134,9 @@ function PoolSheet({ who }: { who: number }) {
       <h2>{seat.name}'s robots</h2>
       <div class="b-minigrid">
         {list.map((r, i) => (
-          <button key={r.inst} type="button" class={cx("b-mini", r.broken > 0 && "broken")} onClick={() => openSheet(() => <RobotSheet r={r} />)}>
+          <button key={r.inst} type="button" class="b-mini" onClick={() => openSheet(() => <RobotSheet r={r} />)}>
             <Card r={r} w="var(--mw)" />
-            <Battery r={r} battery={i === 0 ? 100 : r.battery} broken={r.broken > 0} captain={i === 0} />
+            {i === 0 && <span class="b-mini-tag">Captain</span>}
           </button>
         ))}
       </div>

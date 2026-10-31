@@ -17,7 +17,6 @@ export interface Reveal {
   /** Phases done per robot, so they can be colored up or down against the robot's base. */
   graded: Record<number, [boolean, boolean, boolean]>;
   totals: [number, number]; // [me, them]
-  broke: number[];
   dice: Record<number, { s: "roll" | "hit" | "miss"; t: string }>;
   banner: { text: string; n: number } | null;
   auto: number; // the Auto tick showing (1-5), or 0
@@ -35,7 +34,7 @@ let floatN = 0;
 function blank(log: RoundLog): Reveal {
   const pts: Reveal["pts"] = {}, graded: Reveal["graded"] = {};
   for (const sc of log.result.robots) { pts[sc.inst] = [null, null, null]; graded[sc.inst] = [false, false, false]; }
-  return { open: [0, 0, 0], parts: false, lore: false, pts, graded, totals: [0, 0], broke: [], dice: {}, banner: null, auto: 0, verdict: false, rp: [0, 0], floats: [], shake: 0, done: false };
+  return { open: [0, 0, 0], parts: false, lore: false, pts, graded, totals: [0, 0], dice: {}, banner: null, auto: 0, verdict: false, rp: [0, 0], floats: [], shake: 0, done: false };
 }
 
 export function finished(log: RoundLog, side: number): Reveal {
@@ -46,7 +45,6 @@ export function finished(log: RoundLog, side: number): Reveal {
     v.pts[sc.inst] = [...sc.points];
     v.graded[sc.inst] = [true, true, true];
     v.dice[sc.inst] = sc.rp_hit ? { s: "hit", t: "+1" } : { s: "miss", t: String(sc.rp_roll) };
-    if (sc.broke) v.broke.push(sc.inst);
   }
   v.totals = [r.totals[side], r.totals[op]];
   v.rp = [r.match_rp[side] + r.bonus_rp[side], r.match_rp[op] + r.bonus_rp[op]];
@@ -142,12 +140,6 @@ export function useReveal(g: GameView, log: RoundLog | null): [Reveal | null, ()
             if (!alive()) return;
             const inst = log.stations[s][lane];
             const sc = r.robots.find((x) => x.inst === inst)!;
-            if (k === 2 && sc.broke) {
-              upd((x) => { x.broke = [...x.broke, inst]; });
-              float(inst, "BREAKDOWN", who(s));
-              sfx.boom();
-              await wait(420);
-            }
             const big = sc.points[k] >= sc.base[k] * 1.5 && sc.points[k] - sc.base[k] >= 10;
             upd((x) => {
               const p = [...x.pts[inst]] as Reveal["pts"][number]; p[k] = sc.points[k]; x.pts[inst] = p;
