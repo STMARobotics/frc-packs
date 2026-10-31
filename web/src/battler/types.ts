@@ -9,7 +9,7 @@ export interface RobotCard {
 export interface Robot extends RobotCard { id: string; season: number }
 export interface Support { id: string; kind: "PART" | "LORE"; name: string; season: number; tags: string[]; text: string; flavor: string; draft: boolean }
 export interface Rules {
-  rounds: number; deck_robots: number; support_cards: number; draw: number; max_copies: number; pit_seconds: number; results_seconds: number;
+  rounds: number; deck_robots: number; support_cards: number; draw: number; max_copies: number; pit_seconds: number; results_seconds: number; schedule_seconds: number;
   strikes: number; start_elo: number; pool_size: number; offer: number; draft_seconds: number; intro_seconds: number;
 }
 export interface Catalog { season: number; rp_names: [string, string, string]; rules: Rules; robots: Robot[]; support: Support[]; tags: [string, string[]][] }

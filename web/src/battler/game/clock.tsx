@@ -22,7 +22,7 @@ export function Clock({ g }: { g: GameView }) {
 export function Ring({ g }: { g: GameView }) {
   const left = useLeft(g);
   if (!g.deadline) return null;
-  const full = (g.status === "PIT" ? CAT.rules.pit_seconds : g.status === "DRAFT" ? CAT.rules.draft_seconds : CAT.rules.results_seconds) * 1000;
+  const full = (g.status === "PIT" ? CAT.rules.pit_seconds : g.status === "SCHEDULE" ? CAT.rules.schedule_seconds : CAT.rules.results_seconds) * 1000;
   const k = Math.min(1, left / full);
   return (
     <svg class={cx("b-ring", left < 15000 && "low")} viewBox="0 0 40 40" aria-hidden="true">

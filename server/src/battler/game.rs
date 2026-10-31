@@ -772,7 +772,7 @@ impl Game {
     /// Ready after reviewing the schedule or results. Both players must acknowledge before moving on.
     pub fn ack(&mut self, side: usize, now: i64) -> Result<(), Refusal> {
         if !matches!(self.status, Status::Schedule | Status::Results) {
-            return Err("not_results");
+            return Err("cant_ack");
         }
         if self.seat(side).acked {
             return Ok(());

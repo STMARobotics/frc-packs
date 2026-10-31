@@ -121,7 +121,7 @@ async fn leaderboard(State(st): State<Shared>, user: User) -> ApiResult<Json<Vec
     let mut rows = vec![];
     for it in st.db.batch_get(keys).await? {
         let Some((name, me)) = get_s(&it, "pk").and_then(|pk| names.remove(&pk)) else { continue };
-        let profile: BtProfile = from_item(it)?;
+        let Ok(profile) = from_item::<BtProfile>(it) else { continue };
         rows.push(LeaderboardPlayer { rank: 0, name, profile, me });
     }
     Ok(Json(rank_leaderboard(rows)))
@@ -231,7 +231,7 @@ async fn catalog(State(st): State<Shared>, _user: User) -> ApiResult<Json<Value>
         "rules": {
             "rounds": game::ROUNDS, "deck_robots": game::DECK_ROBOTS, "support_cards": game::SUPPORT_CARDS,
             "draw": game::DRAW, "max_copies": game::MAX_COPIES, "pit_seconds": game::PIT_MS / 1000,
-            "results_seconds": game::RESULTS_MS / 1000, "strikes": game::STRIKES, "start_elo": START_ELO,
+            "results_seconds": game::RESULTS_MS / 1000, "schedule_seconds": game::SCHEDULE_MS / 1000, "strikes": game::STRIKES, "start_elo": START_ELO,
             "pool_size": game::POOL_SIZE, "offer": game::OFFER, "draft_seconds": game::DRAFT_MS / 1000, "intro_seconds": game::INTRO_MS / 1000,
         },
         "robots": robots,
