@@ -1,4 +1,5 @@
-// Above the packs: the free-pack timer (or Claim), the Mythic meter, your streak and today's missions.
+// Under the packs: the free-pack timer, the Mythic meter, your streak and today's missions. Free packs waiting to be
+// claimed get a big button above the pack instead (ClaimButton).
 import { useEffect, useState } from "preact/hooks";
 import { api, type Mission } from "../../api";
 import { useStore } from "../../lib/store";
@@ -25,23 +26,31 @@ export function banked(now: number) {
   return now < s.nextClaimAt ? 0 : Math.min(s.bank, 1 + Math.floor((now - s.nextClaimAt) / s.claimMs));
 }
 
-export function StatusBar() {
+/** Free packs waiting: one big button, first thing on the Open tab. Nothing while the timer runs. */
+export function ClaimButton() {
   const s = useStore(st)!;
   const now = useNow();
   const [claiming, setClaiming] = useState(false);
   const n = banked(now), ready = n * (s.claimPacks || 1);
-  const left = s.nextClaimAt + (n ? n * s.claimMs : 0) - now;
-  const pity = packOf(s).pity.m, hard = RECIPE.odds.hard, soft = RECIPE.odds.soft;
+  if (!n) return null;
   const claim = async () => {
     setClaiming(true);
     try { applyState(await api.claim()); sfx.claim(); } catch (e) { if ((e as { code?: string }).code === "not_ready") sync(); else fail(e); }
     setClaiming(false);
   };
+  return <button type="button" class="s-btn wide st-claim" disabled={claiming} onClick={claim}>{ready === 1 ? "Claim your free pack" : `Claim ${ready} free packs`}</button>;
+}
+
+export function StatusBar() {
+  const s = useStore(st)!;
+  const now = useNow();
+  const n = banked(now);
+  const left = s.nextClaimAt + (n ? n * s.claimMs : 0) - now;
+  const pity = packOf(s).pity.m, hard = RECIPE.odds.hard, soft = RECIPE.odds.soft;
   return (
     <section class="s-status">
       <div class="st-timer">
-        {n ? <button type="button" class="s-btn small" disabled={claiming} onClick={claim}>{ready === 1 ? "Claim pack" : `Claim ${ready} packs`}</button>
-          : <><small>Next pack</small><b>{fmt(left)}</b></>}
+        <small>Next pack</small><b>{n ? "Ready" : fmt(left)}</b>
       </div>
       <div class={cx("st-meter", pity >= soft && "hot")} title={`Packs since your last Mythic. Odds climb after ${soft}; one is guaranteed by pack ${hard}.`}>
         <small>Mythic meter</small>

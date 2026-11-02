@@ -204,6 +204,7 @@
 
 /* the Open tab's status */
 .s-status { display: grid; grid-template-columns: auto 1fr; gap: 8px; padding-top: 8px; }
+.st-claim { margin-top: 12px; min-height: 52px; font-size: 18px; box-shadow: 0 0 0 4px rgba(79, 216, 255, .18); }
 .st-timer, .st-meter { display: grid; align-content: center; gap: 2px; padding: 10px 14px; border-radius: 14px; background: var(--s1); }
 .st-timer small, .st-meter small { font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
 .st-timer b { font: 400 22px var(--display); font-variant-numeric: tabular-nums; }
@@ -257,7 +258,7 @@ body.s-page.pad :focus { outline: 3px solid var(--ac); outline-offset: 3px; }
 
 /* The Beta tag, and the feedback strip on the Open tab. */
 .s-beta { display: inline-block; vertical-align: 3px; margin-left: 4px; padding: 1px 7px; border-radius: 99px; background: var(--gold); color: #2a1c00; font: 700 10px var(--body); font-style: normal; letter-spacing: .12em; text-transform: uppercase; }
-.s-fbbar { display: flex; align-items: center; margin: 0 0 10px; padding-left: 14px; border-radius: 99px; background: var(--s1); box-shadow: inset 0 0 0 1px var(--ln); }
+.s-fbbar { display: flex; align-items: center; margin: 14px 0 10px; padding-left: 14px; border-radius: 99px; background: var(--s1); box-shadow: inset 0 0 0 1px var(--ln); }
 .s-fbbar-go { flex: 1; min-width: 0; padding: 9px 0; border: 0; background: none; color: inherit; text-align: left; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 14px; }
 .s-fbbar-go b { font-weight: 600; }
 .s-fbbar-go span { color: var(--dim); }

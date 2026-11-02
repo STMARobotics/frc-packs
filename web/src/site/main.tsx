@@ -17,7 +17,7 @@ import { PACK, setRecipe } from "./data";
 import { applyCollection, applyState, loadSpecials, loadTrades, packOf, prefs, st, sync, trades } from "./state";
 import { Avatar, closeAll, cx, LayerHost, Logo, Spinner, ToastHost, Wordmark } from "./ui";
 import { Binder } from "./screens/binder";
-import { StatusBar } from "./screens/status";
+import { ClaimButton, StatusBar } from "./screens/status";
 import { VERSION } from "./notes";
 import { openProfile, ProfilePage, profileRoute } from "./screens/profile";
 import { setupPwa } from "./pwa";
@@ -106,7 +106,7 @@ function App() {
       <main class="s-main">
         {/* A tab stays mounted (hidden) once visited, so coming back to it shows the same cards, not rebuilt ones. */}
         {who && <ProfilePage key={who} name={who} />}
-        {seen.has("open") && <div hidden={!!who || tab !== "open"}><FeedbackBar /><StatusBar /><OpenHome /></div>}
+        {seen.has("open") && <div hidden={!!who || tab !== "open"}><ClaimButton /><OpenHome /><StatusBar /><FeedbackBar /></div>}
         {seen.has("binder") && <div hidden={!!who || tab !== "binder"}><Binder active={tab === "binder"} /></div>}
         {seen.has("trade") && <div hidden={!!who || tab !== "trade"}><TradeTab active={tab === "trade"} /></div>}
         {seen.has("social") && <div hidden={!!who || tab !== "social"}><SocialTab active={!who && tab === "social"} /></div>}
@@ -127,7 +127,7 @@ function App() {
 }
 
 setupPad();
-/** "Found a bug or have an idea?" in one line at the top of Open, until it's waved away (it comes back after a week). */
+/** "Found a bug or have an idea?" in one line at the bottom of Open, until it's waved away (it comes back after a week). */
 const FB_KEY = "frcpacks.fbbar";
 function FeedbackBar() {
   const [hidden, setHidden] = useState(() => { try { return Date.now() < +(localStorage.getItem(FB_KEY) || 0); } catch { return false; } });
