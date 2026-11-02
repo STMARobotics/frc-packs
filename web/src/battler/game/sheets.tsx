@@ -15,7 +15,7 @@ export function openMenu(g: GameView) {
 function Menu({ g }: { g: GameView }) {
   const [mute, setMute] = useState(pref("bt-mute"));
   const forfeit = () => {
-    if (!confirm(g.status === "DECKS" ? "Leave this game? Nobody's rating changes." : "Forfeit this game? It counts as a loss.")) return;
+    if (!confirm(g.status === "DECKS" ? "Leave this game? Nobody's Elo changes." : "Forfeit this game? It counts as a loss.")) return;
     closeSheet();
     act({ kind: "forfeit" });
   };

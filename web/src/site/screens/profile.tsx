@@ -127,7 +127,7 @@ export function ProfilePage({ name }: { name: string }) {
         <div><b>{pct}%</b><small>collected</small></div>
         <div><b>{p.tiers[0]}</b><small>mythics</small></div>
         <div><b>{p.trades}</b><small>trades</small></div>
-        {p.battle ? <div><b>{p.battle.rating}</b><small>rating</small></div> : <div><b>{p.sets}</b><small>sets</small></div>}
+        {p.battle ? <div><b>{p.battle.rating}</b><small>Elo</small></div> : <div><b>{p.sets}</b><small>sets</small></div>}
       </div>
       <Tabs value={view} onChange={setView} options={[["over", "Overview"], ["cards", `Cards · ${p.teams}`], ["wish", `Wishlist · ${wish.length}`]]} />
 

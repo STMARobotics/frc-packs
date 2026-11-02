@@ -79,7 +79,7 @@ export function GameScreen({ id, code }: { id: string; code?: string }) {
         : <><Final g={g} /><WagerResult g={g} /></>;
       break;
     case "CANCELLED":
-      body = <><div class="b-panel center"><h2>Game called off</h2><p class="b-dim">Nobody's rating changed.</p><a class="b-btn" href="#play">Back to Play</a></div><WagerResult g={g} /></>;
+      body = <><div class="b-panel center"><h2>Game called off</h2><p class="b-dim">Nobody's Elo changed.</p><a class="b-btn" href="#play">Back to Play</a></div><WagerResult g={g} /></>;
       break;
   }
   return <>{body}<Emotes g={g} /></>;
