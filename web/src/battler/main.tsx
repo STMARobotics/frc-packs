@@ -4,6 +4,7 @@
 //
 // Rendering is Preact: each screen describes what it shows, and only what changed gets touched on the page. Cards keep
 // their elements (and loaded photos) from one update to the next, so nothing is rebuilt while you look at it.
+import "../fonts";
 import "../style.css";
 import "./battler.css";
 import { render } from "preact";

@@ -9,8 +9,11 @@
   --foam: #f5fbfa;
   --line: #1f4650;
   --panel: #0a222b;
-  --display: "Lilita One", "Arial Rounded MT Bold", system-ui, sans-serif;
-  --body: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --display: "Inter Display", "Inter", system-ui, sans-serif;
+  --body: "Inter", system-ui, sans-serif;
+  /* The cards keep their collectible faces (.card below). */
+  --card-display: "Lilita One", "Arial Rounded MT Bold", system-ui, sans-serif;
+  --card-body: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
   /* The card in the stack is as big as the screen allows after the header, status bar, hint and buttons (about 380px), so short phones don't have to scroll. */
   --cw: clamp(170px, min(74vw, 290px, calc((100svh - 380px) / 1.4)), 290px);
 }
@@ -293,6 +296,7 @@ button:focus-visible, [role="button"]:focus-visible { outline: 2px solid var(--t
 .ft { display: flex; justify-content: space-between; align-items: center; gap: 4px; font-size: calc(var(--cw) * .032); font-weight: 700; letter-spacing: .06em; color: var(--ink-card); opacity: .85; font-variant-numeric: tabular-nums; position: relative; z-index: 2; white-space: nowrap; }
 .rar { letter-spacing: .05em; font-size: calc(var(--cw) * .045); color: var(--gem); text-shadow: 0 0 1px rgba(0,0,0,.6); }
 /* Blend layers are costly to draw; skip the ones a tier leaves invisible (--foilop / --sparkop of 0). */
+.card[data-tier] { --display: var(--card-display); --body: var(--card-body); }
 .card[data-tier="common"] .foil, .card[data-tier="common"] .spark, .card[data-tier="uncommon"] .spark { display: none; }
 .foil, .spark, .glare { position: absolute; inset: 0; pointer-events: none; border-radius: inherit; z-index: 3; }
 .foil { opacity: var(--foilop, 0); mix-blend-mode: color-dodge; background: linear-gradient(115deg, rgba(0,0,0,0) 12%, rgba(255,40,160,.55) 30%, rgba(0,255,220,.55) 45%, rgba(255,235,0,.55) 60%, rgba(120,80,255,.55) 75%, rgba(0,0,0,0) 90%); background-size: 260% 260%; background-position: calc(var(--mx,50) * 1%) calc(var(--my,50) * 1%); }

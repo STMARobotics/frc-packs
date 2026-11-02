@@ -75,6 +75,8 @@
 /* The drawing has empty space at its sides (it's centred on a square), so it sits tight against the name. */
 .s-logo { flex: none; width: 1.3em; height: 1.3em; margin: 0 -0.08em 0 -0.32em; color: var(--tx); }
 .s-brand .s-beta { margin-left: 6px; }
+.s-word { letter-spacing: -.02em; }
+.s-slash { display: inline-block; width: .11em; height: .8em; margin: 0 .09em; border-radius: .03em; background: #3cffdc; transform: skewX(-18deg); vertical-align: -.04em; }
 @media (max-width: 349px) { .s-brand .s-beta { display: none; } }
 .s-top-r { display: flex; align-items: center; gap: 8px; }
 .s-pill { padding: 6px 10px; border-radius: 999px; background: var(--s1); font: 700 13px var(--body); font-variant-numeric: tabular-nums; }

@@ -230,16 +230,19 @@ export function Tabs<V extends string>({ value, options, onChange }: { value: V;
 
 /** A player's picture: the robot on the card they picked (`team`; left out, it's looked up for you and for anyone in
     the Social list), else their initials on a color of their own. */
-/** The FRC Packs mark (Seam): a pack with its top lifted off along one teal seam, a teal spark on the front. The pack
-    takes the text colour. The same drawing makes the favicon and app icons (tools/brand_icons.cjs). */
+/** The FRC Packs mark (Seam): a pack with its top torn open along one teal seam. The pack takes the text colour. The
+    same drawing makes the favicon and app icons (tools/brand_icons.cjs). */
 export const Logo = ({ cls }: { cls?: string }) => (
   <svg class={cx("s-logo", cls)} viewBox="0 0 64 64" aria-hidden="true">
-    <rect x="17" y="23" width="30" height="35" rx="5" fill="currentColor" />
-    <rect x="17" y="19.5" width="30" height="2.8" rx="1.4" fill="#3cffdc" />
-    <rect x="17" y="8.5" width="30" height="7" rx="3" fill="currentColor" transform="rotate(-10 17 15.5)" />
-    <path d="M32 33 C32.75 38.25 34.25 39.75 39.5 40.5 C34.25 41.25 32.75 42.75 32 48 C31.25 42.75 29.75 41.25 24.5 40.5 C29.75 39.75 31.25 38.25 32 33 Z" fill="#3cffdc" />
+    <path d="M19 15.6 L45 6.9 Q47 6.3 47 8.4 L47 12.3 L17 22.3 L17 17.5 Q17 16.1 19 15.6 Z" fill="currentColor" />
+    <path d="M17 24.6 L47 14.6 L47 19.8 L17 26 Z" fill="#3cffdc" />
+    <path d="M17 28.6 L47 22.4 L47 47.6 L17 47.6 Z" fill="currentColor" />
+    <path d="M17 50.2 H47 V52 Q47 56 43 56 H21 Q17 56 17 52 Z" fill="currentColor" />
   </svg>
 );
+
+/** The wordmark: FRC / Packs, the slash a teal seam. Read aloud as "FRC Packs". */
+export const Wordmark = () => <span class="s-word" aria-label="FRC Packs">FRC<i class="s-slash" aria-hidden="true" />Packs</span>;
 
 export function Avatar({ name, big, team }: { name: string; big?: "big" | "huge" | boolean; team?: number | null }) {
   const me = useStore(st), so = useStore(social);

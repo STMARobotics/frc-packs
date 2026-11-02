@@ -2,6 +2,7 @@
 // changed gets touched, so cards keep their elements and photos while you use the app. Tabs are hash routes (#open,
 // #binder, #trade, #social); screens over them (a card, a profile, settings) are a stack the phone's back button steps
 // through.
+import "../fonts";
 import "../style.css";
 import "./site.css";
 import "./trade.css";
@@ -14,7 +15,7 @@ import { api, ApiError, explain, type State } from "../api";
 import { useStore } from "../lib/store";
 import { PACK, setRecipe } from "./data";
 import { applyCollection, applyState, loadSpecials, loadTrades, packOf, prefs, st, sync, trades } from "./state";
-import { Avatar, closeAll, cx, LayerHost, Logo, Spinner, ToastHost } from "./ui";
+import { Avatar, closeAll, cx, LayerHost, Logo, Spinner, ToastHost, Wordmark } from "./ui";
 import { Binder } from "./screens/binder";
 import { StatusBar } from "./screens/status";
 import { VERSION } from "./notes";
@@ -95,7 +96,7 @@ function App() {
   return (
     <>
       <header class="s-top">
-        <span class="s-brand"><Logo />FRC Packs <i class="s-beta">Beta</i></span>
+        <span class="s-brand"><Logo /><Wordmark /> <i class="s-beta">Beta</i></span>
         <span class="s-top-r">
           <span class="s-pill" title="Parts">⚙ {s!.parts}</span>
           <span class="s-pill" title="Sealed packs">▣ {packs.sealed}</span>
