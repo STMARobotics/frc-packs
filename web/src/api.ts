@@ -53,6 +53,8 @@ export interface Opening {
   revealed: number;
   cards: Card[];
   sets: string[];
+  /** A boosted (or Mythic) pack. */
+  boosted?: boolean;
 }
 
 export interface PackState {

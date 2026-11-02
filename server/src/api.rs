@@ -299,6 +299,8 @@ struct OpeningOut {
     revealed: i32,
     cards: Vec<CardOut>,
     sets: Vec<String>,
+    /// A boosted (or Mythic) pack, so a pack picked up again looks like the one that was opened.
+    boosted: bool,
 }
 
 #[derive(Deserialize)]
@@ -372,6 +374,7 @@ async fn load_opening(db: &Db, user: Uuid, o: &Opening) -> ApiResult<OpeningOut>
         revealed: o.revealed,
         cards: mine.into_iter().map(|m| m.1).collect(),
         sets: o.sets.clone(),
+        boosted: o.boosted,
     })
 }
 
@@ -1226,7 +1229,7 @@ async fn open(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Json
         model::save_user(&mut tx, &mut p, parts, "open");
         match tx.commit(db).await {
             Ok(()) => Ok(Ok((
-                OpeningOut { id: opening_id, pack: pack.id().to_string(), revealed: 0, cards: out, sets },
+                OpeningOut { id: opening_id, pack: pack.id().to_string(), revealed: 0, cards: out, sets, boosted: kind },
                 streak_reward,
             ))),
             Err(DbError::Conflict("req")) => Ok(Err(())),

@@ -239,7 +239,12 @@ function Flow({ resume }: { resume?: Opening }) {
   const [phase, setPhase] = useState<Phase>(resume ? "stack" : prefs.get().wheel2 ? "wheel" : "hold");
   const ph = useRef(phase);
   const go = (p: Phase) => { ph.current = p; setPhase(p); };
-  const kr = useRef<Kind>(kind);
+  // A pack picked up again after a reload looks like the one that was opened, not like the last stack picked.
+  const [k0] = useState(() => {
+    if (resume) kind = !resume.boosted ? "std" : resume.cards.filter((c) => c.tier === "mythic").length >= 3 ? "myth" : "gold";
+    return kind;
+  });
+  const kr = useRef<Kind>(k0);
   const k = kr.current;
   const [round, setRound] = useState(0); // a new pack in hand starts fresh
   const [from, setFrom] = useState<DOMRect | null>(null); // where the pack was on the wheel
