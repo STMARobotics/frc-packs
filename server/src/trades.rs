@@ -176,7 +176,22 @@ async fn player_collection(
 ) -> ApiResult<Json<CollectionOut>> {
     let pack = api::pack(&s, &pack).await?;
     let p = player(&s.db, &name).await?;
-    Ok(Json(api::load_collection(&s.db, p.id, &pack).await?))
+    let hide = unrevealed(&s.db, &p, &pack).await?;
+    Ok(Json(api::load_collection_without(&s.db, p.id, &pack, &hide).await?))
+}
+
+/// The cards of a pack its owner hasn't finished opening. They aren't theirs to trade until every card is turned
+/// over, so other players don't see them yet (and can't ask for them, only to be told they're not available).
+async fn unrevealed(db: &Db, owner: &Profile, pack: &Pack) -> ApiResult<HashSet<i64>> {
+    let mut out = HashSet::new();
+    if let Some(id) = owner.pending_open
+        && model::opening(db, owner.id, id).await?.is_some_and(|o| o.revealed < 5)
+    {
+        out.extend(
+            model::cards(db, owner.id, pack.id()).await?.iter().filter(|c| c.opening_id == Some(id)).map(|c| c.id),
+        );
+    }
+    Ok(out)
 }
 
 // ---------- offering ----------
@@ -258,14 +273,7 @@ async fn pick_copies(
     if teams.is_empty() {
         return Ok(vec![]);
     }
-    let mut blocked: HashSet<i64> = HashSet::new();
-    if let Some(id) = owner.pending_open
-        && model::opening(db, owner.id, id).await?.is_some_and(|o| o.revealed < 5)
-    {
-        blocked.extend(
-            model::cards(db, owner.id, pack.id()).await?.iter().filter(|c| c.opening_id == Some(id)).map(|c| c.id),
-        );
-    }
+    let mut blocked = unrevealed(db, owner, pack).await?;
     if own_side {
         for t in open_trades_of(db, owner.id).await? {
             if t.from_user == owner.id {
@@ -277,15 +285,13 @@ async fn pick_copies(
     for (i, num) in teams.iter().enumerate() {
         let want_serial = serials.get(i).copied().unwrap_or(0);
         let copies = model::team_cards(db, owner.id, pack.id(), *num).await?;
-        let pick = copies
-            .iter()
-            .rev()
-            .find(|c| {
-                !blocked.contains(&c.id)
-                    && !out.iter().any(|o| o.id == c.id)
-                    && (want_serial == 0 || c.serial == want_serial)
-            })
-            .ok_or(err(StatusCode::CONFLICT, "not_owned"))?;
+        let fits =
+            |c: &&model::CardRow| !out.iter().any(|o| o.id == c.id) && (want_serial == 0 || c.serial == want_serial);
+        let Some(pick) = copies.iter().rev().filter(fits).find(|c| !blocked.contains(&c.id)) else {
+            // Yours, but already in another offer of yours or in a pack you're still opening: say so.
+            let held = own_side && copies.iter().any(|c| fits(&c));
+            return Err(err(StatusCode::CONFLICT, if held { "card_held" } else { "not_owned" }));
+        };
         out.push(TradeCard { id: pick.id, team: pick.team, tier: pick.tier.clone(), serial: pick.serial });
     }
     Ok(out)
@@ -1024,11 +1030,18 @@ async fn holdings(db: &Db, pack: &str, people: &[Profile]) -> ApiResult<std::syn
     for chunk in people.chunks(16) {
         let mut set = tokio::task::JoinSet::new();
         for p in chunk {
-            let (db, id, pack) = (db.clone(), p.id, pack.to_string());
+            let (db, id, pack, pending) = (db.clone(), p.id, pack.to_string(), p.pending_open);
             set.spawn(async move {
+                // A pack still being opened isn't counted yet (see `unrevealed`).
+                let hide = match pending {
+                    Some(o) if model::opening(&db, id, o).await?.is_some_and(|x| x.revealed < 5) => Some(o),
+                    _ => None,
+                };
                 let mut counts = std::collections::HashMap::new();
                 for c in model::cards(&db, id, &pack).await? {
-                    *counts.entry(c.team).or_insert(0) += 1;
+                    if hide.is_none() || c.opening_id != hide {
+                        *counts.entry(c.team).or_insert(0) += 1;
+                    }
                 }
                 let wish = crate::profiles::wishlist(&db, id, &pack).await?;
                 ApiResult::Ok((id, counts, wish))

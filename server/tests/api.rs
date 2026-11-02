@@ -2768,3 +2768,37 @@ async fn owners_lists_who_has_a_card_most_copies_first() {
         "signed in only"
     );
 }
+
+/// A pack its owner hasn't finished opening isn't theirs to trade yet, so nobody else sees its cards (they'd only be
+/// told the card isn't available), and its owner is told why when they offer one.
+#[tokio::test]
+async fn a_pack_being_opened_stays_out_of_sight_until_revealed() {
+    let (app, db) = need_db!(own_setup(true));
+    let (opener, oc, _) = signup(&app, &db, &name()).await;
+    let (viewer, vc, _) = signup(&app, &db, &name()).await;
+    let o = call(&app, "POST", "/api/open", Some(&oc), Some(json!({ "pack": PACK }))).await;
+    assert_eq!(o.status, StatusCode::OK, "{}", o.body);
+    let id = o.body["opening"]["id"].as_i64().unwrap();
+    let first = o.body["opening"]["cards"][0]["num"].as_i64().unwrap();
+
+    let seen =
+        |b: &Value| b["cards"].as_array().unwrap().iter().map(|c| c["num"].as_i64().unwrap()).collect::<Vec<_>>();
+    let theirs = call(&app, "GET", &format!("/api/players/{opener}/collection/{PACK}"), Some(&vc), None).await;
+    assert!(seen(&theirs.body).is_empty(), "nothing shows mid-reveal: {}", theirs.body);
+    let mine = call(&app, "GET", &format!("/api/collection/{PACK}"), Some(&oc), None).await;
+    assert_eq!(seen(&mine.body).len(), 5, "your own binder still has them");
+
+    let offer = call(
+        &app,
+        "POST",
+        "/api/trades",
+        Some(&oc),
+        Some(json!({ "to": viewer, "pack": PACK, "give": [first], "wantParts": 0, "wantPacks": 1 })),
+    )
+    .await;
+    assert_eq!(offer.body["error"], "card_held", "{}", offer.body);
+
+    call(&app, "POST", &format!("/api/openings/{id}/progress"), Some(&oc), Some(json!({ "revealed": 5 }))).await;
+    let theirs = call(&app, "GET", &format!("/api/players/{opener}/collection/{PACK}"), Some(&vc), None).await;
+    assert_eq!(seen(&theirs.body).len(), 5, "all turned over: everyone sees them");
+}

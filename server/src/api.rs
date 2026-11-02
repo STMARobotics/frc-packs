@@ -1300,9 +1300,19 @@ pub(crate) struct CollectionOut {
 }
 
 pub(crate) async fn load_collection(db: &Db, user: Uuid, pack: &Pack) -> ApiResult<CollectionOut> {
+    load_collection_without(db, user, pack, &std::collections::HashSet::new()).await
+}
+
+/// A collection without the cards in `hide` (another player's view leaves out a pack they haven't finished opening).
+pub(crate) async fn load_collection_without(
+    db: &Db,
+    user: Uuid,
+    pack: &Pack,
+    hide: &std::collections::HashSet<i64>,
+) -> ApiResult<CollectionOut> {
     let rows = model::cards(db, user, pack.id()).await?;
     let mut cards: Vec<OwnedOut> = Vec::new();
-    for c in rows {
+    for c in rows.into_iter().filter(|c| !hide.contains(&c.id)) {
         match cards.last_mut() {
             Some(o) if o.num == c.team => o.serials.push(c.serial),
             _ => cards.push(OwnedOut { num: c.team, serials: vec![c.serial] }),

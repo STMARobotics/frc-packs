@@ -7,7 +7,7 @@ import { useEffect, useState } from "preact/hooks";
 import { api, type CardRef, type Special, type Trade, type TradeMatch } from "../../api";
 import { store, useStore } from "../../lib/store";
 import { BY_NUM, byRarity, ORDER, PACK, TIERS, type T } from "../data";
-import { ago, applyCollection, applyState, fail, heldCopies, inv, loadSocial, packOf, setPrefs, social, specials as mySpecials, st, toast, trades } from "../state";
+import { ago, applyCollection, applyState, fail, inv, loadSocial, packOf, setPrefs, social, specials as mySpecials, st, toast, trades } from "../state";
 import { Avatar, back, cx, push, Spinner, Tabs } from "../ui";
 import { sfx } from "../sfx";
 import { openCard } from "./cardview";
@@ -313,7 +313,13 @@ function Picker({ side, start }: { side: "give" | "get"; start: "cards" | "goods
   const mine = side === "give";
   const cards: Record<number, number[]> = mine ? myCards : d.theirs ?? {};
   const picks = mine ? d.give : d.get;
-  const held = mine ? heldCopies() : new Set<string>();
+  // Your copies the server won't put in another offer: in a pack you're still opening, or already offered by you.
+  const held = new Set<string>();
+  if (mine) {
+    s.pending?.cards.forEach((c) => held.add(`${c.num}:${c.serial}`));
+    trades.get().outgoing.forEach((x) => x.youGive.forEach((c) => held.add(`${c.num}:${c.serial}`)));
+  }
+  const free = (n: number) => cards[n].filter((sn) => !held.has(`${n}:${sn}`)).length;
   const needle = q.trim().toLowerCase();
   const list = Object.keys(cards).map(Number).map((n) => BY_NUM.get(n)).filter((t): t is T => !!t && cards[t.num].length > 0)
     .filter((t) => (tier === "all" || t.tier === tier) && (!needle || String(t.num).startsWith(needle) || t.name.toLowerCase().includes(needle)))
@@ -323,6 +329,7 @@ function Picker({ side, start }: { side: "give" | "get"; start: "cards" | "goods
   const onTable = (n: number) => picks.filter((p) => p.num === n).length;
 
   const tap = (n: number) => {
+    if (mine && !onTable(n) && !free(n)) return toast("That card is in a pack you're still opening or in another offer you sent.", true, 3000);
     if (cards[n].length > 1) return setCopies(n);
     if (onTable(n)) { sfx.tick(); return edit((x) => { const a = mine ? x.give : x.get; a.splice(a.findIndex((p) => p.num === n), 1); }); }
     if (picks.length >= MAX) return toast(`Up to ${MAX} cards on each side.`, true);
