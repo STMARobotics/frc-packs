@@ -10,7 +10,7 @@ pub const TAGS: &[(&str, &[&str])] = &[
     ("HARDWARE", &["BOLT", "NUT", "WASHER"]),
     ("TOOLS", &["HEX_KEY", "WRENCH", "DRILL"]),
     ("MECHANICAL", &["BELT", "PULLEY", "CHAIN", "GEAR", "SPROCKET"]),
-    ("WHEELS", &["COMPLIANT", "STEALTH", "TRACTION", "STAR"]),
+    ("WHEELS", &["COMPLIANT", "STEALTH", "TRACTION", "STAR", "SWERVE"]),
     ("ELECTRICAL", &["MOTOR", "SYSTEMCORE", "SENSOR", "VISION"]),
 ];
 

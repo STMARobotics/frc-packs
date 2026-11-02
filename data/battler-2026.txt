@@ -1,0 +1,9 @@
+# Battler stats, 2026 season. team|auto|tele|end|rp1 %|rp2 %|rp3 %
+# Teams not listed play with placeholder stats from their Champs EPA (server/src/battler/content.rs, test_stats).
+# Set by hand from match13 (2026, incl. offseason): the top three autos, scaled to 2056's on the card scale
+# (2056 xAuto 75.9, 1114 69.0, 7028 65.1). 7028 is rated at its season level (match13 XP 251.7, level with 2056 and
+# 1114), not its Champs EPA. tools/battler_stats.py would overwrite this file: its Statbotics numbers are on the wrong
+# scale (see inbox), so don't run it until that's fixed.
+2056|33|57|18|50|71|58
+1114|30|59|15|61|48|67
+7028|28|65|15|73|56|75

@@ -85,6 +85,16 @@
    "loc": "ON, Canada",
    "region": "Ontario",
    "photo": true,
+   "bt": {
+    "auto": 33,
+    "tele": 57,
+    "end": 18,
+    "rp": [
+     50,
+     71,
+     58
+    ]
+   },
    "rank": 4,
    "tier": "mythic"
   },
@@ -124,6 +134,16 @@
    "loc": "ON, Canada",
    "region": "Ontario",
    "photo": true,
+   "bt": {
+    "auto": 30,
+    "tele": 59,
+    "end": 15,
+    "rp": [
+     61,
+     48,
+     67
+    ]
+   },
    "rank": 7,
    "tier": "mythic"
   },
@@ -2022,6 +2042,16 @@
    "loc": "MN, USA",
    "region": "Minnesota",
    "photo": true,
+   "bt": {
+    "auto": 28,
+    "tele": 65,
+    "end": 15,
+    "rp": [
+     73,
+     56,
+     75
+    ]
+   },
    "rank": 153,
    "tier": "legendary"
   },
