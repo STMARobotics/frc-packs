@@ -7,3 +7,6 @@ web/dist/
 
 # The opening preview's build (tools/open_preview.cjs)
 web/preview/out/
+
+# Scratch folder for files shared with Claude; never committed
+/inbox/*

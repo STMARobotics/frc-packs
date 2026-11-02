@@ -2,8 +2,7 @@
 
 What's planned, in rough order. Weekly releases on Thursdays (every two weeks once 1.0 is out). Feedback updates come
 every ~2 days in between, and hotfixes whenever something big breaks. Every release adds its entry to
-`web/src/site/notes.ts`, so players see What's new once. The plan behind this list is in
-[night-report-2026-10-29.md](night-report-2026-10-29.md).
+`web/src/site/notes.ts`, so players see What's new once.
 
 ## Planned
 
@@ -25,7 +24,7 @@ every ~2 days in between, and hotfixes whenever something big breaks. Every rele
 - **Cost optimization (later).** AWS was about $0.02–0.04 a day, rising to about $0.10 on 2026-10-28 with ~30 players.
   Most of it is DynamoDB on-demand read and write requests, plus API Gateway HTTP requests. To look at:
   - Provisioned capacity inside the free tier (25 read and 25 write units) instead of on-demand. This is a `cdk/`
-    change, so it needs Andy's review, and a flag to Cassie before anyone touches it.
+    change, so it needs a maintainer's review first.
   - Fewer client requests: less polling (Social refreshes every 8 s while open), and no full state refetch after every
     action.
   - Caching data that's mostly read (the social list, profiles, the pack recipe).

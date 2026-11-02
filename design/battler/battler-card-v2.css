@@ -1,4 +1,4 @@
-/* Battler robot card, layout 2 (from Cassie's sketch): a round team avatar and the team name across the top, the robot
+/* Battler robot card, layout 2 (from a sketch): a round team avatar and the team name across the top, the robot
    photo with a three-part strip under it (number left, location centered, year right), then stats, RP, effect, and
    the rarity and serial on the frame. Needs ../../web/src/style.css, and battler-card.css for the stat and effect boxes. */
 .card .front { padding: calc(var(--cw) * .0215) calc(var(--cw) * .0215) calc(var(--cw) * .088); }
