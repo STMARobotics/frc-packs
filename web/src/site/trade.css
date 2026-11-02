@@ -89,6 +89,7 @@
 .td-o-side > small { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
 .td-o-cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
 .td-o-card { padding: 0; border: 0; background: none; cursor: pointer; }
+.td-own { display: block; margin-top: 3px; color: var(--dim); font: 700 10px var(--body); text-align: center; }
 .hi-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
 .hi-stats div { display: grid; justify-items: center; padding: 10px 4px; border-radius: 12px; background: var(--s1); }
 .hi-stats b { font: 400 20px var(--display); }

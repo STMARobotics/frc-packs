@@ -423,7 +423,8 @@ function Offers({ list, kind }: { list: Trade[]; kind: "in" | "out" }) {
   return <div class="s-list">{list.map((t) => <Offer key={t.id} t={t} kind={kind} />)}</div>;
 }
 
-function Row({ label, cards, goods, specials, whose }: { label: string; cards: CardRef[]; goods: Goods; specials: Special[]; whose: string }) {
+/** `own`: under each card, how many copies of that team you have now (open offers only). */
+function Row({ label, cards, goods, specials, whose, own }: { label: string; cards: CardRef[]; goods: Goods; specials: Special[]; whose: string; own?: Record<number, number[]> }) {
   if (!cards.length && !goods.packs && !goods.boosted && !goods.parts && !specials.length) return null;
   return (
     <div class="td-o-side">
@@ -432,6 +433,7 @@ function Row({ label, cards, goods, specials, whose }: { label: string; cards: C
         {cards.filter((c) => BY_NUM.has(c.num)).map((c) => (
           <button type="button" class="td-o-card" onClick={() => openCard(c.num, undefined, { serial: c.serial, from: whose === "you" ? "Your copy in this trade." : `${whose}'s copy in this trade.` })}>
             <Mini num={c.num} foot={`No. ${c.serial}`} />
+            {own && <small class="td-own">{own[c.num]?.length ? `You have ×${own[c.num].length}` : "You have none"}</small>}
           </button>
         ))}
       </div>
@@ -450,14 +452,15 @@ function Offer({ t, kind }: { t: Trade; kind: "in" | "out" }) {
     sfx.promote();
     toast(`Trade done with ${t.with}!${t.youGet.length ? ` ${t.youGet.length} ${t.youGet.length === 1 ? "card is" : "cards are"} in your binder.` : ""}${r.sets.length ? ` ${r.sets.join(", ")} set complete!` : ""}`, false, 3800);
   });
+  const mine = useStore(inv);
   return (
     <article class="td-offer">
       <header>
         <button type="button" class="td-whob" onClick={() => openProfile(t.with)}><Avatar name={t.with} /></button>
         <p>{kind === "in" ? <><b>{t.with}</b> wants to trade</> : <>Waiting on <b>{t.with}</b></>}<small>{ago(t.createdAt)}</small></p>
       </header>
-      <Row label="You give" cards={t.youGive} goods={{ packs: t.youGivePacks, boosted: t.youGiveBoosted, parts: t.youGiveParts }} specials={t.youGiveSpecials} whose="you" />
-      <Row label="You get" cards={t.youGet} goods={{ packs: t.youGetPacks, boosted: t.youGetBoosted, parts: t.youGetParts }} specials={t.youGetSpecials} whose={t.with} />
+      <Row label="You give" cards={t.youGive} goods={{ packs: t.youGivePacks, boosted: t.youGiveBoosted, parts: t.youGiveParts }} specials={t.youGiveSpecials} whose="you" own={mine} />
+      <Row label="You get" cards={t.youGet} goods={{ packs: t.youGetPacks, boosted: t.youGetBoosted, parts: t.youGetParts }} specials={t.youGetSpecials} whose={t.with} own={mine} />
       <div class={cx("s-row2", kind === "in" && "td-acts3")}>
         {kind === "in"
           ? <><button type="button" class="s-btn" disabled={busy} onClick={accept}>Accept</button><button type="button" class="s-btn ghost" disabled={busy} onClick={() => counterOffer(t)}>Counter</button><button type="button" class="s-btn ghost" disabled={busy} onClick={() => run(async () => trades.set(await api.declineTrade(t.id)))}>Decline</button></>
