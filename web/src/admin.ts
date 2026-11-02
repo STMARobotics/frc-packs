@@ -1,7 +1,6 @@
 // The admin panel: make and share invite codes, and manage accounts. The server checks that the visitor is the admin
 // account for every request; this page only shows what it returns.
 
-import "./fonts";
 import "./style.css";
 import "./admin.css";
 import { setupRarities } from "./rarities";

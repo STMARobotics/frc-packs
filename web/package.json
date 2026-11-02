@@ -16,7 +16,6 @@
   },
   "dependencies": {
     "@fontsource/chakra-petch": "^5.3.0",
-    "@fontsource/inter": "^5.3.0",
     "@fontsource/lilita-one": "^5.3.0",
     "html-to-image": "^1.11.13",
     "preact": "^10.29.8",

@@ -2,7 +2,6 @@
 // changed gets touched, so cards keep their elements and photos while you use the app. Tabs are hash routes (#open,
 // #binder, #trade, #social); screens over them (a card, a profile, settings) are a stack the phone's back button steps
 // through.
-import "../fonts";
 import "../style.css";
 import "./site.css";
 import "../nav.css";

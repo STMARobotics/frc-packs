@@ -18,7 +18,7 @@
 .s-gate p { max-width: 300px; }
 
 /* controls */
-.s-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 18px; border: 0; border-radius: 12px; background: var(--ac); color: #04131b; font: 400 16px/1.15 var(--display); text-align: center; text-decoration: none; cursor: pointer; transition: transform .12s, opacity .15s; }
+.s-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 18px; border: 0; border-radius: 12px; background: var(--ac); color: #04131b; font: 400 18px/1.15 var(--display); text-align: center; text-decoration: none; cursor: pointer; transition: transform .12s, opacity .15s; }
 .s-btn:active:not(:disabled) { transform: scale(.97); }
 .s-btn:disabled { opacity: .45; cursor: not-allowed; }
 .s-btn.wide { width: 100%; }
