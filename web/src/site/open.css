@@ -134,6 +134,10 @@
 /* A card drawn in WebGL (gl/pack.ts draws it from its picture; data-gl-on is set then): its DOM copy keeps its place,
    unseen. */
 [data-gl-on] { visibility: hidden; }
+/* The WebGL canvas is over every DOM element, so a tag still waiting for its picture would show behind its card, which is
+   already drawn. Hide it until its own picture is up too (and it hides itself then, above). */
+.op-card:has(.face.front[data-gl-on]) > .op-ribbon:not([data-gl-on]),
+.op-sum-cards:has(.face.front[data-gl-on]) .op-tag .op-ribbon:not([data-gl-on]) { visibility: hidden; }
 /* The WebGL pack (gl/pack.ts) is drawn on a canvas over the whole opening, in front of the cards rising out of it. The
    DOM pack under it goes invisible but still takes the touches. */
 .op-glcv { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; pointer-events: none; }

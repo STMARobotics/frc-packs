@@ -367,13 +367,15 @@ export function createPackGL(canvas: HTMLCanvasElement, host: HTMLElement): Pack
     }
     return p;
   };
-  /** Keeps the last dozen pictures, minus any still being drawn. */
+  /** Keeps the last dozen card pictures, minus any still being drawn. Tag pictures are tiny and never count: dropping one
+      that was made ahead leaves its tag waiting on a slow new picture. */
   const trim = () => {
-    if (cardPics.size <= 12) return;
+    const big = () => [...cardPics.keys()].filter((k) => !k.startsWith("ribbon ")).length;
+    if (big() <= 12) return;
     const used = new Set([...mirrors.values()].map((m) => m.key));
     for (const [k, p] of cardPics) {
-      if (cardPics.size <= 12) break;
-      if (used.has(k)) continue;
+      if (big() <= 12) break;
+      if (k.startsWith("ribbon ") || used.has(k)) continue;
       cardPics.delete(k);
       p.then((t) => t?.dispose());
     }
