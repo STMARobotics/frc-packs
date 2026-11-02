@@ -1,6 +1,13 @@
 /* Admin panel: two cards (invite codes, accounts) on the same dark table as the game. */
+/* The site's colors (site.css), in the old page's names that this page's rules use. */
+.adminpage { --bg: #0b0e17; --bg-2: #18203a; --panel: #131826; --line: #2a3450; --ink: #eef1f8; --ink-dim: #8b94ab; --foam: #eef1f8; --tide: #4fd8ff; }
+.adminpage .app > .top { background: rgba(14, 18, 30, .94); }
+.adminpage .cta { box-shadow: none; }
 .adminpage .app { max-width: 880px; gap: 14px; }
-.adminpage .brand { text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+.adminpage .brand { text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-weight: 700; letter-spacing: -.02em; }
+.adm-logo { width: 1.4em; height: 1.4em; margin: 0 -0.3em 0 -0.35em; }
+/* The wordmark's teal seam, as in the site's header (site.css, .s-slash). */
+.adm-slash { display: inline-block; width: .11em; height: .8em; margin: 0 .09em; border-radius: .03em; background: #3cffdc; transform: skewX(-18deg); vertical-align: -.04em; }
 .tag { font-family: var(--body); font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #02211d; background: var(--tide); border-radius: 6px; padding: 3px 7px; }
 .panel { display: grid; gap: 14px; }
 .card, .gate { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px; display: grid; gap: 12px; min-width: 0; }
