@@ -309,6 +309,7 @@ function Picker({ side, start }: { side: "give" | "get"; start: "cards" | "goods
   const [q, setQ] = useState("");
   const [tier, setTier] = useState<"all" | T["tier"]>("all");
   const [copies, setCopies] = useState<number | null>(null);
+  const [onlySpares, setOnlySpares] = useState(false);
   const mine = side === "give";
   const cards: Record<number, number[]> = mine ? myCards : d.theirs ?? {};
   const picks = mine ? d.give : d.get;
@@ -316,7 +317,9 @@ function Picker({ side, start }: { side: "give" | "get"; start: "cards" | "goods
   const needle = q.trim().toLowerCase();
   const list = Object.keys(cards).map(Number).map((n) => BY_NUM.get(n)).filter((t): t is T => !!t && cards[t.num].length > 0)
     .filter((t) => (tier === "all" || t.tier === tier) && (!needle || String(t.num).startsWith(needle) || t.name.toLowerCase().includes(needle)))
-    .sort(byRarity);
+    .filter((t) => !onlySpares || cards[t.num].length > 1)
+    // Your spares first when you're giving, so your only copies aren't the first thing on offer.
+    .sort((a, b) => (mine ? Number(cards[b.num].length > 1) - Number(cards[a.num].length > 1) : 0) || byRarity(a, b));
   const onTable = (n: number) => picks.filter((p) => p.num === n).length;
 
   const tap = (n: number) => {
@@ -378,15 +381,15 @@ function Picker({ side, start }: { side: "give" | "get"; start: "cards" | "goods
           <input class="s-input" type="search" placeholder="Search number or name" value={q} onInput={(e) => setQ(e.currentTarget.value)} aria-label="Search cards" />
           <div class="s-chips">{(["all", ...ORDER] as const).map((t) => (
             <button type="button" class={cx("s-chip", tier === t && "on")} aria-pressed={tier === t} style={t !== "all" ? { "--tc": TIERS[t].color } : undefined} onClick={() => setTier(t)}>{t === "all" ? "All" : <b>{TIERS[t].label}</b>}</button>
-          ))}</div>
-          {!list.length ? <div class="s-empty">{needle || tier !== "all" ? "No cards match." : mine ? "Open some packs first." : `${d.name} has no cards yet.`}</div> : (
+          ))}<button type="button" class={cx("s-chip", onlySpares && "on")} aria-pressed={onlySpares} onClick={() => setOnlySpares(!onlySpares)}>Spares</button></div>
+          {!list.length ? <div class="s-empty">{needle || tier !== "all" || onlySpares ? "No cards match." : mine ? "Open some packs first." : `${d.name} has no cards yet.`}</div> : (
             <div class="td-grid">
               {list.slice(0, 120).map((t) => {
                 const n = t.num, on = onTable(n), total = cards[n].length;
                 return (
                   <div class="td-cell" key={n}>
                     <button type="button" class={cx("td-pick", on > 0 && "on")} aria-pressed={on > 0} onClick={() => tap(n)}>
-                      <Mini num={n} foot={total > 1 ? `×${total}` : TIERS[t.tier].label} />
+                      <Mini num={n} foot={total > 1 ? `×${total}` : mine ? "Only copy" : TIERS[t.tier].label} />
                       {on > 0 && <span class="td-on">{total > 1 ? `${on} of ${total}` : "On table"}</span>}
                       {mine && d.theirWish.includes(n) && <span class="td-want">They want</span>}
                       {!mine && (s.wishlist ?? []).includes(n) && <span class="td-want mine">♥ Yours</span>}
