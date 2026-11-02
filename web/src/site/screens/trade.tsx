@@ -391,7 +391,7 @@ function Picker({ side, start }: { side: "give" | "get"; start: "cards" | "goods
                       {mine && d.theirWish.includes(n) && <span class="td-want">They want</span>}
                       {!mine && (s.wishlist ?? []).includes(n) && <span class="td-want mine">♥ Yours</span>}
                     </button>
-                    <button type="button" class="td-info" aria-label={`See ${t.name}`} onClick={() => openCard(n, undefined, { from: mine ? `You have ${total === 1 ? "1 copy" : `${total} copies`}.` : `${d.name} has ${total === 1 ? "1 copy" : `${total} copies`}.` })}>i</button>
+                    <button type="button" class="td-info" aria-label={`See ${t.name}`} onClick={() => openCard(n, undefined, { serial: cards[n]?.slice().sort((x, y) => x - y)[0], serials: cards[n]?.slice().sort((x, y) => x - y), from: mine ? `You have ${total === 1 ? "1 copy" : `${total} copies`}.` : `${d.name} has ${total === 1 ? "1 copy" : `${total} copies`}.` })}>i</button>
                   </div>
                 );
               })}

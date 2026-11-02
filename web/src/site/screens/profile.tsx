@@ -89,8 +89,8 @@ export function ProfilePage({ name }: { name: string }) {
   const yourSpares = new Set(Object.keys(mine).map(Number).filter((n) => mine[n].length >= 2));
   const num = (c: CardRef | number) => (typeof c === "number" ? c : c.num);
   const serial = (c: CardRef | number) => (typeof c === "number" ? undefined : c.serial);
-  const look = (n: number, sn?: number) => (me ? openCard(n) : openCard(n, undefined, {
-    serial: sn, from: `${p.username}'s card.`, action: { label: `Ask ${p.username} for it`, run: () => tradeFor(p.username, n) },
+  const look = (n: number, sn?: number, all?: number[]) => (me ? openCard(n) : openCard(n, undefined, {
+    serial: sn, serials: all, from: `${p.username}'s card.`, action: { label: `Ask ${p.username} for it`, run: () => tradeFor(p.username, n) },
   }));
   const cards = (list: (CardRef | number)[]) => list.filter((c) => known(num(c))).map((c) => (
     <button type="button" class="s-cell" onClick={() => look(num(c), serial(c))}><Card num={num(c)} serial={serial(c)} w="var(--pw)" /></button>
@@ -176,11 +176,15 @@ export function ProfilePage({ name }: { name: string }) {
   );
 }
 
+const sorted = (l: number[]) => l.filter((x) => x > 0).sort((a, b) => a - b);
+/** Their best copy: the lowest serial. */
+const low = (l: number[]) => sorted(l)[0] || undefined;
+
 function Bar() {
   return <div class="pp-bar"><button type="button" class="s-icon" onClick={leave} aria-label="Back">‹</button></div>;
 }
 
-function Collection({ p, have, youNeed, onLook }: { p: Profile; have: Record<number, number[]> | null; youNeed: Set<number>; onLook: (n: number) => void }) {
+function Collection({ p, have, youNeed, onLook }: { p: Profile; have: Record<number, number[]> | null; youNeed: Set<number>; onLook: (n: number, sn?: number, all?: number[]) => void }) {
   const [f, setF] = useState<"all" | "need" | "spare">("all");
   if (!have) return <div class="s-center small"><Spinner /></div>;
   const all = Object.keys(have).map(Number).filter((n) => known(n) && have[n].length > 0).sort((a, b) => byRarity(BY_NUM.get(a)!, BY_NUM.get(b)!));
@@ -193,7 +197,7 @@ function Collection({ p, have, youNeed, onLook }: { p: Profile; have: Record<num
         ))}
       </div>
       {list.length ? <div class="pr-grid">{list.map((n) => (
-        <button type="button" class="s-cell" onClick={() => onLook(n)}><Card num={n} w="var(--pw)">{have[n].length > 1 && <span class="s-count">×{have[n].length}</span>}</Card></button>
+        <button type="button" class="s-cell" onClick={() => onLook(n, low(have[n]), sorted(have[n]))}><Card num={n} serial={p.me ? undefined : low(have[n])} w="var(--pw)">{have[n].length > 1 && <span class="s-count">×{have[n].length}</span>}</Card></button>
       ))}</div> : <p class="s-dim">{f === "need" ? `${p.username} has no spares you're missing.` : "None yet."}</p>}
       <p class="s-dim pp-of">{all.length} of {TEAMS.length} teams</p>
     </>

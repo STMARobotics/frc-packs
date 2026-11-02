@@ -14,6 +14,8 @@ import { offerFromBinder } from "./trade";
 export interface CardOpts {
   /** A copy's serial, when it's someone's particular copy (not yours). */
   serial?: number;
+  /** All of that player's copies of the card, when you're looking at their collection. */
+  serials?: number[];
   /** Whose card it is, shown under the facts. */
   from?: string;
   /** The main button. */
@@ -102,7 +104,8 @@ function CardView({ num, o }: { num: number; o: CardOpts }) {
             <dt>EPA</dt><dd>{t.epa == null ? "–" : Math.round(t.epa)} · #{t.rank} at Champs</dd>
             <dt>Record</dt><dd>{t.wl}</dd>
             {owned && !o.from && <><dt>Serials</dt><dd>{mine.map((x) => `No. ${x}`).join(" · ")}</dd></>}
-            {o.serial && <><dt>Serial</dt><dd>No. {o.serial}</dd></>}
+            {o.serials && o.serials.length > 1 ? <><dt>Serials</dt><dd>{o.serials.map((x) => `No. ${x}`).join(" · ")}</dd></>
+              : o.serial ? <><dt>Serial</dt><dd>No. {o.serial}</dd></> : null}
             <dt>Battler</dt><dd>{t.bt ? `AUTO ${t.bt.auto} · TELE ${t.bt.tele} · END ${t.bt.end}` : "Stats coming soon"}</dd>
             <dt>RP slots</dt><dd>{names.map((n, i) => `RP${i + 1} ${n}`).join(" · ")}</dd>
           </dl>
