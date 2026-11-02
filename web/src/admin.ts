@@ -616,9 +616,33 @@ function paintFeedback() {
       ),
     );
   }
+  const shown = feedback.filter((f) => fbShow === "all" || f.status === fbShow);
+  filter.append(
+    button(`Export ${fbShow === "all" ? "all" : STATUS[fbShow]} (${shown.length})`, async (b) => {
+      const text = shown
+        .map((f) => {
+          const lines = [`#${f.id} [${KIND[f.kind] ?? f.kind}] [${STATUS[f.status] ?? f.status}] ${f.title}`];
+          if (f.details) lines.push(f.details);
+          lines.push(`from ${f.username ?? "?"}, ${when(f.createdAt)}`);
+          if (f.context) lines.push(`context: ${f.context}`);
+          if (f.note) lines.push(`note: ${f.note}`);
+          return lines.join("\n");
+        })
+        .join("\n\n---\n\n");
+      try {
+        await navigator.clipboard.writeText(text);
+        say(`Copied ${shown.length} to the clipboard.`);
+      } catch {
+        const url = URL.createObjectURL(new Blob([text], { type: "text/plain" }));
+        const a = h("a", { href: url, download: `feedback-${fbShow}.txt` });
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+      b.blur();
+    }, "chip"),
+  );
   const list = $("#feedback");
   list.replaceChildren();
-  const shown = feedback.filter((f) => fbShow === "all" || f.status === fbShow);
   if (!shown.length) list.append(h("p", { class: "empty" }, feedback.length ? "Nothing here." : "No feedback yet. When a tester sends some, it shows up here."));
   for (const f of shown) {
     const note = h("input", { class: "input", maxlength: "200", placeholder: "Note for the sender (optional)", "aria-label": "Note for the sender" });
