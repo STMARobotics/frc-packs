@@ -66,6 +66,8 @@ function answer(method: string, path: string, body: Record<string, unknown>): Re
   if (path.startsWith("/api/collection/")) return json({ pack: recipe.id, cards: [...owned].map(([num, serials]) => ({ num, serials })), sets: [] });
   if (path === "/api/trades") return json({ incoming: [], outgoing: [], recent: [] });
   if (path === "/api/specials" || path === "/api/feedback/mine") return json([]);
+  // One named effect (7028's, on whichever Mythic is in play) and one unnamed, to see both on cards.
+  if (path === "/api/battler/effects") return json({ [pool.mythic[0]]: { name: "Bump n Dump", text: "Opposing robots: 95% chance of -10% Auto if it's directly across from this robot. Robots on this alliance get +15% Auto if this robot has a VISION part. Robots on this alliance get +15% Auto if this robot has a SWERVE part. Opposing robots get no Auto at all if it's team 6800." }, [pool.mythic[1]]: { name: null, text: "Robots on this alliance get +5 Auto if this robot is the Captain." } });
   if (path.startsWith("/api/social/")) return json({ players: [], feed: [] });
   if (path === "/api/hand") {
     const kind = `${!!body.boosted}${!!body.mythic}`;

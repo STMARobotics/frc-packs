@@ -93,6 +93,9 @@ struct Recipe {
 #[derive(Deserialize)]
 struct SupportFile {
     cards: Vec<Support>,
+    /// Names for shipped effects, by team number (shown on the card).
+    #[serde(default)]
+    robot_effect_names: HashMap<String, String>,
     /// Robots' real effects, by team number, shipped with the game (an admin-published one replaces it).
     #[serde(default)]
     robot_effects: HashMap<String, Vec<Effect>>,
@@ -108,6 +111,7 @@ pub struct Content {
     pub support_by_id: HashMap<String, usize>,
     /// Effects shipped with the game (`robot_effects`), and examples marked as tests (`test_robot_effects`).
     pub shipped_effects: HashMap<i32, Vec<Effect>>,
+    pub shipped_names: HashMap<i32, String>,
     pub test_effects: HashMap<i32, Vec<Effect>>,
 }
 
@@ -193,8 +197,14 @@ impl Content {
             Ok(out)
         };
         let shipped_effects = by_team_fx(file.robot_effects, "effect")?;
+        let mut shipped_names = HashMap::new();
+        for (team, name) in file.robot_effect_names {
+            let team: i32 = team.parse().with_context(|| format!("effect name for team {team}"))?;
+            anyhow::ensure!(shipped_effects.contains_key(&team), "effect name for {team}, which has no shipped effect");
+            shipped_names.insert(team, name);
+        }
         let test_effects = by_team_fx(file.test_robot_effects, "test effect")?;
-        Ok(Content { robots, by_team, support, support_by_id, shipped_effects, test_effects })
+        Ok(Content { robots, by_team, support, support_by_id, shipped_effects, shipped_names, test_effects })
     }
 
     pub fn robot(&self, team: i32) -> Option<&Robot> {

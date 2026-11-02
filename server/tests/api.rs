@@ -2802,3 +2802,15 @@ async fn a_pack_being_opened_stays_out_of_sight_until_revealed() {
     let theirs = call(&app, "GET", &format!("/api/players/{opener}/collection/{PACK}"), Some(&vc), None).await;
     assert_eq!(seen(&theirs.body).len(), 5, "all turned over: everyone sees them");
 }
+
+/// The Battler's robot effects reach FRC Packs cards: shipped ones with their names, never test examples.
+#[tokio::test]
+async fn robot_effects_reach_the_cards() {
+    let (app, db) = need_db!(setup(false));
+    let (c, _) = player(&app, &db).await;
+    let r = call(&app, "GET", "/api/battler/effects", Some(&c), None).await;
+    assert_eq!(r.status, StatusCode::OK, "{}", r.body);
+    assert_eq!(r.body["7028"]["name"], "Bump n Dump");
+    assert!(r.body["7028"]["text"].as_str().unwrap().contains("team 6800"), "{}", r.body);
+    assert!(r.body.get("4414").is_none(), "4414's effect is only a test example");
+}

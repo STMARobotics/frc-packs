@@ -46,6 +46,7 @@ pub fn routes() -> Router<Shared> {
         .route("/battler/home", get(home))
         .route("/battler/leaderboard", get(leaderboard))
         .route("/battler/catalog", get(catalog))
+        .route("/battler/effects", get(effect_texts))
         .route("/battler/decks", post(create_deck))
         .route("/battler/decks/{id}", put(save_deck).delete(delete_deck))
         .route("/battler/quick", post(quick))
@@ -209,6 +210,27 @@ struct RobotOut<'a> {
     robot: &'a Robot,
     effect_text: String,
     effect_test: bool,
+}
+
+/// Each robot's effect as its card says it, for the cards in FRC Packs: the published or shipped one (test examples
+/// aren't real effects, so they're left out), with the shipped one's name. Team number to effect.
+async fn effect_texts(State(st): State<Shared>, _user: User) -> ApiResult<Json<HashMap<i32, Value>>> {
+    let fx = robot_effects(&st.db).await?;
+    Ok(Json(
+        st.battler
+            .robots
+            .iter()
+            .filter_map(|r| match effect_for(&st, &fx, r.team) {
+                (e, false) if !e.is_empty() => {
+                    // A published effect replaces the shipped one, name and all.
+                    let shipped = !fx.get(&r.team).is_some_and(|f| !f.published.is_empty());
+                    let name = if shipped { st.battler.shipped_names.get(&r.team) } else { None };
+                    Some((r.team, json!({ "name": name, "text": effects::describe(&e, Owner::Robot) })))
+                }
+                _ => None,
+            })
+            .collect(),
+    ))
 }
 
 async fn catalog(State(st): State<Shared>, _user: User) -> ApiResult<Json<Value>> {

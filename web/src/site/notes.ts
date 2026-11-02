@@ -2,11 +2,17 @@
 // players should hear about: everyone who's played before sees the newest one once (screens/notes.tsx), and Settings
 // shows the version and every release. 0.x while in beta: the middle number for a weekly release, the last for the
 // feedback updates and fixes in between.
-export const VERSION = "0.11.1";
+export const VERSION = "0.11.2";
 
 export interface Release { v: string; date: string; title: string; items: string[] }
 
 export const NOTES: Release[] = [
+  {
+    v: "0.11.2",
+    date: "2026-11-02",
+    title: "Effects on cards",
+    items: ["Cards show their robot's Battle effect, like 7028's Bump n Dump. The full rules are in the card's Details."],
+  },
   {
     v: "0.11.1",
     date: "2026-11-02",

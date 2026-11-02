@@ -479,6 +479,8 @@ export const api = {
   /** Spend 10,000 parts on a Mythic pack (three Mythics). */
   craftMythic: () => act<State>("/api/craft/mythic"),
   /** The pack recipe. `v` (the app version) makes each release fetch it fresh: the file is cached for hours. */
+  /** Robots' Battler effects as their cards say them, by team (published or shipped with the game). */
+  robotEffects: () => call<Record<string, { name: string | null; text: string }>>("GET", "/api/battler/effects"),
   recipe: (pack: string, v = "") => call<Recipe>("GET", `/packs/${encodeURIComponent(pack)}.json${v ? `?v=${encodeURIComponent(v)}` : ""}`),
   dev: {
     demo: (on: boolean) => call<State>("POST", "/api/dev/demo", { on }),

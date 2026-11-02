@@ -45,7 +45,7 @@ export function Face({ t, tier, serial }: { t: T; tier: Tier; serial?: number | 
         </div>
         <div class="statrow"><div class="stat"><small>AUTO</small>{stat(bt?.auto)}</div><div class="stat"><small>TELE</small>{stat(bt?.tele)}</div><div class="stat"><small>END</small>{stat(bt?.end)}</div></div>
         <div class="rprow">{[0, 1, 2].map((i) => <div class="rp"><i>RP{i + 1}</i>{bt ? <b>{bt.rp[i]}%</b> : <b class="na">–</b>}</div>)}</div>
-        <div class="effect"><small>UNIQUE EFFECT</small>{bt?.effect ? <p>{bt.effect}</p> : <p class="tbd">{bt ? "Effect coming soon" : "Stats and effect coming soon"}</p>}</div>
+        <div class="effect"><small>UNIQUE EFFECT</small>{bt?.effect ? (bt.effectName ? <p class="fx-named"><b>{bt.effectName}</b><span>{bt.effect}</span></p> : <p class="fx-long">{bt.effect}</p>) : <p class="tbd">{bt ? "Effect coming soon" : "Stats and effect coming soon"}</p>}</div>
       </div>
       <div class="ftb">
         <span class="rar" aria-label={`${STARS[tier]} of 5 stars`}>{[0, 1, 2, 3, 4].map((i) => <i class={i < STARS[tier] ? "on" : undefined}>★</i>)}</span>

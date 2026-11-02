@@ -13,7 +13,7 @@ import { render } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { api, ApiError, explain, type State } from "../api";
 import { useStore } from "../lib/store";
-import { PACK, setRecipe } from "./data";
+import { PACK, setEffects, setRecipe } from "./data";
 import { applyCollection, applyState, loadSpecials, loadTrades, packOf, prefs, st, sync, trades } from "./state";
 import { Avatar, closeAll, cx, LayerHost, Logo, Spinner, ToastHost, Wordmark } from "./ui";
 import { Binder } from "./screens/binder";
@@ -62,8 +62,10 @@ function App() {
   const boot = async (signed?: State) => {
     setPhase("loading");
     try {
-      const [state, recipe] = await Promise.all([signed ?? api.session(), api.recipe(PACK, VERSION)]);
+      // Effects are a nice-to-have: cards still show without them.
+      const [state, recipe, effects] = await Promise.all([signed ?? api.session(), api.recipe(PACK, VERSION), api.robotEffects().catch(() => ({}))]);
       setRecipe(recipe, state.tiers);
+      setEffects(effects);
       applyState(state);
       applyCollection(await api.collection(PACK));
       loadTrades();

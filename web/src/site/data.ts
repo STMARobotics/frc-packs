@@ -15,7 +15,7 @@ export const STARS: Record<Tier, number> = { common: 1, uncommon: 2, rare: 3, le
 export const RP_NAMES: Record<number, [string, string, string]> = { 2025: ["Auto", "Coral", "Barge"], 2026: ["Energized", "Supercharged", "Traversal"] };
 
 /** A team as the cards show it. `bt` (Battler stats) arrives once the stats import runs. */
-export type T = Team & { region?: string; bt?: { auto: number; tele: number; end: number; rp: [number, number, number]; effect?: string } };
+export type T = Team & { region?: string; bt?: { auto: number; tele: number; end: number; rp: [number, number, number]; effect?: string; effectName?: string } };
 
 export let RECIPE: Recipe;
 export let TEAMS: T[] = [];
@@ -55,6 +55,14 @@ export function testStats(team: number, epa?: number | null): NonNullable<T["bt"
   const strength = Math.min(1, Math.max(0, e / 370));
   const rp = (salt: number) => Math.min(92, Math.max(3, Math.round(12 + 60 * strength + 30 * wobble(team, salt))));
   return { auto: Math.round(n * auto), tele: Math.round(n * tele), end: Math.round(n * end), rp: [rp(3), rp(4), rp(5)] };
+}
+
+/** Puts each robot's Battler effect on its card (the Battler has them; the pack file doesn't). */
+export function setEffects(fx: Record<string, { name: string | null; text: string }>) {
+  for (const [team, { name, text }] of Object.entries(fx)) {
+    const t = BY_NUM.get(+team);
+    if (t?.bt) { t.bt.effect = text; t.bt.effectName = name ?? undefined; }
+  }
 }
 
 /** Rarest first, then by rank. */
