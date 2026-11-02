@@ -397,6 +397,8 @@ export interface SocialTrade { from: string; to: string; gave: { num: number }[]
 export interface SocialEvent { kind: "pull" | "set"; who: string; team: number | null; tier: string | null; serial: number | null; division: string | null; at: number }
 export interface Social { players: SocialPlayer[]; recent: SocialTrade[]; activity: SocialEvent[] }
 /** A player worth trading with: their spares you lack, and yours they lack (wanted ones first). */
+/** Someone else who has a team's card. */
+export interface Owner { name: string; avatar: number | null; copies: number }
 export interface TradeMatch { name: string; firstName: string | null; badge: string | null; avatar: number | null; theyHave: number[]; youHave: number[] }
 
 export const api = {
@@ -453,6 +455,8 @@ export const api = {
   editProfile: (pack: string, bio: string, avatar: number | null, banner: number | null) =>
     call<{ bio: string | null; avatar: number | null; banner: number | null }>("POST", "/api/profile", { pack, bio, avatar, banner }),
   /** Players worth trading with, best first. */
+  /** Everyone else who has this team's card, most copies first. */
+  owners: (pack: string, team: number) => call<Owner[]>("GET", `/api/owners/${encodeURIComponent(pack)}/${team}`),
   tradeMatches: (pack: string) => call<TradeMatch[]>("GET", `/api/trade-matches/${encodeURIComponent(pack)}`),
   /** Put a team on your wishlist or take it off; returns the whole list. */
   setFavorite: (pack: string, team: number, on: boolean) => call<number[]>("POST", "/api/favorites", { pack, team, on }),

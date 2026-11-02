@@ -35,6 +35,7 @@ pub fn routes() -> Router<Shared> {
         .route("/players", get(players))
         .route("/social/{pack}", get(social))
         .route("/trade-matches/{pack}", get(matches))
+        .route("/owners/{pack}/{team}", get(owners))
         .route("/players/{name}/collection/{pack}", get(player_collection))
         .route("/trades", get(list).post(offer))
         .route("/trades/{id}/accept", post(accept))
@@ -1098,4 +1099,36 @@ async fn matches(State(s): State<Shared>, user: User, Path(pack): Path<String>) 
         .collect();
     out.sort_by(|a, b| (b.0, b.1).cmp(&(a.0, a.1)).then_with(|| a.2.name.to_lowercase().cmp(&b.2.name.to_lowercase())));
     Ok(Json(out.into_iter().take(20).map(|m| m.2).collect()))
+}
+
+/// Someone who has a team's card.
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct OwnerOut {
+    name: String,
+    avatar: Option<i32>,
+    copies: u32,
+}
+
+/// Everyone else who has a team's card, those with the most copies (spares first) first. Collections are public on
+/// profiles already; this saves looking through each one. Read from the same 30-second snapshot as trade matches.
+async fn owners(
+    State(s): State<Shared>,
+    user: User,
+    Path((pack, team)): Path<(String, i32)>,
+) -> ApiResult<Json<Vec<OwnerOut>>> {
+    let pack = api::pack(&s, &pack).await?;
+    let people = all_players(&s.db).await?;
+    let h = holdings(&s.db, pack.id(), &people).await?;
+    let mut out: Vec<OwnerOut> = people
+        .iter()
+        .filter(|p| p.id != user.id)
+        .filter_map(|p| {
+            let copies = h.get(&p.id)?.0.get(&team).copied().unwrap_or(0);
+            (copies > 0).then(|| OwnerOut { name: p.username.clone().unwrap_or_default(), avatar: p.avatar, copies })
+        })
+        .filter(|o| !o.name.is_empty())
+        .collect();
+    out.sort_by(|a, b| b.copies.cmp(&a.copies).then_with(|| a.name.to_lowercase().cmp(&b.name.to_lowercase())));
+    Ok(Json(out))
 }

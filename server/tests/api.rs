@@ -2738,3 +2738,33 @@ async fn beta_testers_send_feedback_and_the_admin_sorts_it() {
     assert_eq!((r.status, r.body["error"].as_str()), (StatusCode::TOO_MANY_REQUESTS, Some("too_much_feedback")));
     drop_table(&db).await;
 }
+
+#[tokio::test]
+async fn owners_lists_who_has_a_card_most_copies_first() {
+    let (app, db) = need_db!(own_setup(false));
+    let (me, me_cookie, _) = signup(&app, &db, &name()).await;
+    let (one, one_cookie, _) = signup(&app, &db, &name()).await;
+    let (two, two_cookie, _) = signup(&app, &db, &name()).await;
+    let (none, _, _) = signup(&app, &db, &name()).await;
+    let (me_id, one_id, two_id) =
+        (user_id(&db, &me_cookie).await, user_id(&db, &one_cookie).await, user_id(&db, &two_cookie).await);
+    give_card(&db, me_id, 7028, "legendary").await;
+    give_card(&db, one_id, 7028, "legendary").await;
+    give_card(&db, two_id, 7028, "legendary").await;
+    give_card(&db, two_id, 7028, "legendary").await;
+
+    let r = call(&app, "GET", &format!("/api/owners/{PACK}/7028"), Some(&me_cookie), None).await;
+    assert_eq!(r.status, StatusCode::OK, "{}", r.body);
+    let got: Vec<(String, i64)> = r
+        .body
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|o| (o["name"].as_str().unwrap().to_string(), o["copies"].as_i64().unwrap()))
+        .collect();
+    assert_eq!(got, vec![(two, 2), (one, 1)], "you're left out, and so is {none}, who has none");
+    assert!(
+        call(&app, "GET", &format!("/api/owners/{PACK}/7028"), None, None).await.status.is_client_error(),
+        "signed in only"
+    );
+}

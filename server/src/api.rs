@@ -1229,7 +1229,14 @@ async fn open(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Json
         model::save_user(&mut tx, &mut p, parts, "open");
         match tx.commit(db).await {
             Ok(()) => Ok(Ok((
-                OpeningOut { id: opening_id, pack: pack.id().to_string(), revealed: 0, cards: out, sets, boosted: kind },
+                OpeningOut {
+                    id: opening_id,
+                    pack: pack.id().to_string(),
+                    revealed: 0,
+                    cards: out,
+                    sets,
+                    boosted: kind,
+                },
                 streak_reward,
             ))),
             Err(DbError::Conflict("req")) => Ok(Err(())),

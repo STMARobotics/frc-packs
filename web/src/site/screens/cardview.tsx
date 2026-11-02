@@ -2,14 +2,14 @@
 // it), its badges, keep / pin / wishlist, the main action; Copies lists every copy you have (serial, where it came
 // from, what it's doing) to look at, trade or scrap one in particular; Details has the team's facts.
 import { useEffect, useState } from "preact/hooks";
-import { api, type Copy } from "../../api";
+import { api, type Copy, type Owner } from "../../api";
 import { useStore } from "../../lib/store";
 import { BY_NUM, PACK, RECIPE, RP_NAMES, TIERS } from "../data";
 import { ago, fail, heldCopies, inv, st, toast } from "../state";
-import { back, closeAll, cx, push, Spinner, Tabs, TiltCard } from "../ui";
+import { Avatar, back, closeAll, cx, push, Spinner, Tabs, TiltCard } from "../ui";
 import { sfx } from "../sfx";
 import { scrapped } from "./workshop";
-import { offerFromBinder } from "./trade";
+import { offerFromBinder, tradeFor } from "./trade";
 
 export interface CardOpts {
   /** A copy's serial, when it's someone's particular copy (not yours). */
@@ -125,11 +125,37 @@ function CardView({ num, o }: { num: number; o: CardOpts }) {
           </div>
         )}
         {owned && !o.from && mine.length > 1 && free < 2 && t.tier !== "mythic" && <small class="s-dim">Your extra copies are in a pack you're opening or a trade offer.</small>}
+        {!o.from && view !== "copies" && <WhoHas num={num} />}
       </div>
     </div>
   );
 }
 
+
+/** Who else has this card, to ask them for it: asked for on a tap, since it reads everyone's collection. */
+function WhoHas({ num }: { num: number }) {
+  const [list, setList] = useState<Owner[] | null>(null);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { setList(null); }, [num]);
+  const load = async () => {
+    setBusy(true);
+    try { setList(await api.owners(PACK, num)); } catch (e) { fail(e); }
+    setBusy(false);
+  };
+  if (!list) return <button type="button" class="s-chipbtn" disabled={busy} onClick={load}>{busy ? <Spinner small /> : "Who has it?"}</button>;
+  if (!list.length) return <small class="s-dim">Nobody else has this one yet.</small>;
+  return (
+    <div class="cw-owners">
+      <small class="s-dim">{list.length === 1 ? "1 player has it" : `${list.length} players have it`}. Tap one to ask for it.</small>
+      {list.slice(0, 12).map((x) => (
+        <button type="button" class="cw-owner" onClick={() => closeAll(() => tradeFor(x.name, num))}>
+          <Avatar name={x.name} team={x.avatar} /><b>{x.name}</b><span class={cx("s-dim", x.copies > 1 && "cw-spare")}>{x.copies > 1 ? `×${x.copies} · has spares` : "1 copy"}</span>
+        </button>
+      ))}
+      {list.length > 12 && <small class="s-dim">And {list.length - 12} more.</small>}
+    </div>
+  );
+}
 
 const FROM: Record<string, string> = { pack: "From a pack", trade: "From a trade", wager: "Won in a wager" };
 type Sort = "serial" | "new" | "old";
