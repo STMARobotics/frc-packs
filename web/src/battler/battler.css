@@ -13,6 +13,7 @@
   color: var(--tx); min-height: 100svh;
 }
 .b-page #app { max-width: 720px; margin: 0 auto; padding: 0 16px calc(24px + env(safe-area-inset-bottom)); }
+.b-navd { padding-bottom: calc(76px + env(safe-area-inset-bottom)); } /* room for the tab bar */
 .b-noscroll { overflow: hidden; }
 .b-page a { color: inherit; }
 .b-page h1, .b-page h2, .b-page h3 { font-family: var(--display); font-weight: 400; margin: 0; color: var(--tx); }

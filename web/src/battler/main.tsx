@@ -7,6 +7,7 @@
 import "../fonts";
 import "../style.css";
 import "./battler.css";
+import "../nav.css";
 import { render } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { ApiError, explain } from "./api";
@@ -80,7 +81,17 @@ function App() {
           <span class="b-top-r">{h && <span class="b-elo"><b>{h.profile.elo}</b> Elo</span>}<a class="b-chip" href="/">FRC Packs</a></span>
         </header>
       )}
-      <main class="b-main" data-screen={name}><Screen name={name} arg={arg} code={code} /></main>
+      <main class={name !== "game" ? "b-main b-navd" : "b-main"} data-screen={name}><Screen name={name} arg={arg} code={code} /></main>
+      {/* The site's tab bar, so the Battler is one of its tabs. Not in a game: leaving one counts as a forfeit. */}
+      {name !== "game" && (
+        <nav class="s-tabbar" aria-label="Sections">
+          <a href="/#open"><i class="ic-open" aria-hidden="true" /><span>Open</span></a>
+          <a href="/#binder"><i class="ic-binder" aria-hidden="true" /><span>Binder</span></a>
+          <a href="/#trade"><i class="ic-trade" aria-hidden="true" /><span>Trade</span></a>
+          <a href="/#social"><i class="ic-social" aria-hidden="true" /><span>Social</span></a>
+          <a class="on" href="#home" aria-current="page"><i class="ic-battle" aria-hidden="true" /><span>Battle</span></a>
+        </nav>
+      )}
     </>
   );
 }

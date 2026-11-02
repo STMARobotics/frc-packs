@@ -5,6 +5,7 @@
 import "../fonts";
 import "../style.css";
 import "./site.css";
+import "../nav.css";
 import "./trade.css";
 import "./open.css";
 import "./gate.css";
