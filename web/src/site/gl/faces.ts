@@ -24,16 +24,27 @@ const fonts = () => (fontCss ??= Promise.all([lilita, chakra500, chakra600, chak
     only darken the corners outside its rounded edge. WebGL draws the shadow itself. */
 export const insetOnly = (shadow: string) => (shadow.split(/,(?![^(]*\))/).filter((x) => x.includes("inset")).join(",") || "none");
 
+/** Every iPhone and iPad browser is WebKit, and so is Safari on a Mac. */
+const webkit = /iP(hone|ad|od)/.test(navigator.userAgent) || (/AppleWebKit/.test(navigator.userAgent) && !/Chrome|Chromium|Android/.test(navigator.userAgent)) ||
+  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
 /** A picture of `el` as it lies flat (its own transform left off: WebGL puts that back), at the screen's sharpness. */
 export async function snap(el: HTMLElement): Promise<HTMLCanvasElement> {
   const w = el.offsetWidth, h = el.offsetHeight;
-  const cv = await toCanvas(el, {
+  // The robot photo has to be loaded and decoded first: the cards being pictured are out of sight, and a lazy image
+  // there may not have loaded at all.
+  await Promise.all([...el.querySelectorAll("img")].map((i) => { i.loading = "eager"; return i.decode().catch(() => {}); }));
+  const draw = async () => toCanvas(el, {
     width: w, height: h, pixelRatio: Math.min(devicePixelRatio || 1, 2) * 1.25, fontEmbedCSS: await fonts(),
     style: {
       transform: "none", left: "0", top: "0", right: "auto", bottom: "auto", margin: "0", visibility: "visible", animation: "none", transition: "none",
       boxShadow: insetOnly(getComputedStyle(el).boxShadow),
     },
   });
+  // WebKit draws the images inside the picture blank the first time (it decodes them only once asked to draw them),
+  // which left iPhones with photo-less cards in the opening. The second drawing has them.
+  if (webkit) await draw();
+  const cv = await draw();
   cv.getContext("2d")!.getImageData(0, 0, 1, 1); // throws if the browser won't let us use the picture
   return cv;
 }
