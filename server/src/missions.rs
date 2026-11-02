@@ -1,8 +1,9 @@
 //! Daily missions and the pack-opening streak, so there's a reason to come back every day.
 //!
 //! - Three missions a day, drawn from a pool of about twenty (open packs, scrap extras, trade, pull new teams or rare
-//!   cards, craft a boosted pack, claim packs), each worth parts once done. Each player's three change every day and
-//!   never repeat a kind. Progress is counted by the server as things happen; the player taps to collect.
+//!   cards, craft boosted packs, claim packs), each worth parts once done. Each player's three change every day and
+//!   never repeat a kind, and one of them is always a challenge (worth CHALLENGE parts or more): nothing you'd do
+//!   anyway by opening a pack. Progress is counted by the server as things happen; the player taps to collect.
 //! - The streak counts days in a row with at least one pack opened. Every 7th day gives a boosted pack. Missing a
 //!   day halves the streak instead of wiping it, so one busy day isn't crushing.
 //!
@@ -59,11 +60,8 @@ impl Kind {
 type Mission = (&'static str, &'static str, Kind, i32, i32);
 
 /// id, what the player sees, what it counts, how many, parts it pays. Harder ones pay more.
-const MISSIONS: [Mission; 21] = [
-    ("open1", "Open a pack", Kind::Opened, 1, 20),
-    ("open", "Open 2 packs", Kind::Opened, 2, 40),
+const MISSIONS: [Mission; 19] = [
     ("open4", "Open 4 packs", Kind::Opened, 4, 80),
-    ("scrap3", "Scrap 3 extra copies", Kind::Scrapped, 3, 20),
     ("scrap", "Scrap 5 extra copies", Kind::Scrapped, 5, 30),
     ("scrap12", "Scrap 12 extra copies", Kind::Scrapped, 12, 70),
     ("trade", "Send or accept a trade", Kind::Traded, 1, 60),
@@ -75,13 +73,17 @@ const MISSIONS: [Mission; 21] = [
     ("rare3", "Pull 3 Rare or better cards", Kind::RarePlus, 3, 70),
     ("rare5", "Pull 5 Rare or better cards", Kind::RarePlus, 5, 120),
     ("craft", "Craft a boosted pack", Kind::Crafted, 1, 100),
-    ("claim", "Collect a timer pack", Kind::Claimed, 1, 20),
+    ("craft2", "Craft 2 boosted packs", Kind::Crafted, 2, 220),
     ("claim3", "Collect 3 timer packs", Kind::Claimed, 3, 50),
     ("open6", "Open 6 packs", Kind::Opened, 6, 110),
     ("scrap20", "Scrap 20 extra copies", Kind::Scrapped, 20, 100),
     ("new10", "Pull 10 new teams", Kind::NewTeams, 10, 160),
     ("trade3", "Make 3 trades", Kind::Traded, 3, 150),
+    ("open10", "Open 10 packs", Kind::Opened, 10, 180),
 ];
+
+/// A mission worth this many parts or more is a challenge; every day has one.
+const CHALLENGE: i32 = 100;
 
 /// How many missions a player gets each day.
 const PER_DAY: usize = 3;
@@ -99,6 +101,8 @@ fn todays(user: Uuid, day: i64) -> Vec<&'static Mission> {
         order.swap(k, (x % (k as u64 + 1)) as usize);
     }
     let mut out: Vec<&Mission> = Vec::with_capacity(PER_DAY);
+    // The day's challenge first, then the others in the shuffled order.
+    out.extend(order.iter().map(|&i| &MISSIONS[i]).find(|m| m.4 >= CHALLENGE));
     for i in order {
         let m = &MISSIONS[i];
         if out.len() < PER_DAY && out.iter().all(|o| o.2 != m.2) {
@@ -249,4 +253,23 @@ async fn claim_level(State(s): State<Shared>, user: User) -> ApiResult<Json<Stat
         tx.commit(&s.db).await.map_err(ApiError::from)
     })?;
     Ok(Json(api::load_state(&s, user.id).await?))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn every_day_has_three_kinds_and_a_challenge() {
+        for u in 0..300u128 {
+            let user = Uuid::from_u128(u.wrapping_mul(0x9E37_79B9_7F4A_7C15_F39C_C060_5CED_C835) | 1);
+            for day in 20_000..20_030 {
+                let m = todays(user, day);
+                assert_eq!(m.len(), PER_DAY);
+                assert!(m.iter().enumerate().all(|(i, a)| m[..i].iter().all(|b| b.2 != a.2)), "no kind twice");
+                assert!(m.iter().any(|x| x.4 >= CHALLENGE), "a challenge every day");
+            }
+        }
+        assert!(MISSIONS.iter().enumerate().all(|(i, a)| MISSIONS[..i].iter().all(|b| b.0 != a.0)), "ids are unique");
+    }
 }
