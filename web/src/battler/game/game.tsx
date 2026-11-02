@@ -114,8 +114,11 @@ function Queue({ g }: { g: GameView }) {
   const [since] = useState(() => Date.now());
   const [, tick] = useState(0);
   useEffect(() => {
+    const clock = setInterval(() => tick((n) => n + 1), 1000);
+    return () => clearInterval(clock);
+  }, []);
+  useEffect(() => {
     const t = setInterval(async () => {
-      tick((n) => n + 1);
       try {
         const r = await call<GameView>("POST", "/api/battler/quick");
         if (r.id !== g.id) location.hash = `#game/${r.id}`;
