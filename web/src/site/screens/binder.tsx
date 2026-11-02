@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "preact/hooks";
 import { api } from "../../api";
 import { useStore } from "../../lib/store";
 import { byRarity, DIV_TEAMS, DIVS, ORDER, POOL, RECIPE, TEAMS, TIERS, type T } from "../data";
-import { applyState, fail, inv, prefs, setPrefs, sets, specials, st, toast } from "../state";
+import { applyState, fail, inv, prefs, setPrefs, sets, specials, st, toast, type BinderSort } from "../state";
 import { Card, cx, Ghost, Tabs } from "../ui";
 import { openCard } from "./cardview";
 import { Workshop } from "./workshop";
@@ -42,9 +42,19 @@ export function Binder({ active }: { active: boolean }) {
   const isDiv = f.startsWith("div:");
   const inFilter = (t: T) => f === "all" || (isDiv ? t.div === f.slice(4) : t.tier === f);
   const matches = (t: T) => String(t.num).startsWith(needle) || t.name.toLowerCase().includes(needle) || (t.loc || "").toLowerCase().includes(needle);
+  // The chosen order, rarest first to break ties. Cards you don't have sort after yours (no copies, no serial).
+  const low = (t: T) => Math.min(...(cards[t.num] ?? []).filter((x) => x > 0), Infinity);
+  const order: Record<BinderSort, (a: T, b: T) => number> = {
+    rarity: byRarity,
+    copies: (a, b) => (cards[b.num]?.length ?? 0) - (cards[a.num]?.length ?? 0) || byRarity(a, b),
+    serial: (a, b) => (low(a) === low(b) ? 0 : low(a) - low(b)) || byRarity(a, b),
+    number: (a, b) => a.num - b.num,
+    name: (a, b) => a.name.localeCompare(b.name),
+  };
+  const by = order[p.sort];
   const list = needle
-    ? TEAMS.filter((t) => inFilter(t) && matches(t)).sort((a, b) => (cards[b.num]?.length ? 1 : 0) - (cards[a.num]?.length ? 1 : 0) || byRarity(a, b)) // yours first
-    : miss ? TEAMS.filter(inFilter).sort(byRarity) : owned.filter(inFilter);
+    ? TEAMS.filter((t) => inFilter(t) && matches(t)).sort((a, b) => (cards[b.num]?.length ? 1 : 0) - (cards[a.num]?.length ? 1 : 0) || by(a, b)) // yours first
+    : miss ? TEAMS.filter(inFilter).sort(by) : owned.filter(inFilter).sort(by);
   useEffect(() => setShown(PAGE), [f, q, miss]);
 
   const level = s.level;
@@ -86,10 +96,20 @@ export function Binder({ active }: { active: boolean }) {
             </select>
             <button type="button" class={cx("s-chip", miss && "on")} aria-pressed={miss} onClick={() => setMiss(!miss)}>Missing</button>
           </div>
+          <div class="s-filters">
+            <select class="s-select" value={p.sort} onChange={(e) => { const v = e.currentTarget.value as BinderSort; setPrefs((x) => { x.sort = v; }); }} aria-label="Sort">
+              <option value="rarity">Sort: Rarity</option>
+              <option value="copies">Sort: Most copies</option>
+              <option value="serial">Sort: Lowest serial</option>
+              <option value="number">Sort: Team number</option>
+              <option value="name">Sort: Team name</option>
+            </select>
+            <button type="button" class={cx("s-chip", p.compact && "on")} aria-pressed={p.compact} onClick={() => setPrefs((x) => { x.compact = !x.compact; })}>Compact</button>
+          </div>
           {!list.length ? (
             <div class="s-empty">{needle ? "No team matches." : owned.length ? "None of these yet." : "Your binder is empty. Open a pack and every robot you pull lands here."}</div>
           ) : (
-            <div class="s-grid">
+            <div class={cx("s-grid", p.compact && "s-compact")}>
               {list.slice(0, shown).map((t) => {
                 const serials = cards[t.num];
                 const nav = list.slice(0, shown).map((x) => x.num);

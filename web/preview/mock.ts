@@ -21,6 +21,8 @@ let best: Best = "auto";
 try { best = (localStorage.getItem(KEY) as Best) || "auto"; } catch { /* a fresh choice each visit */ }
 
 const owned = new Map<number, number[]>();
+// ?seed: start with a binder already filled (every team in play, a few with copies), for looking at the binder.
+if (new URLSearchParams(location.search).has("seed")) for (const t of Object.values(pool).flat()) owned.set(t, Array.from({ length: 1 + (t % 3) }, (_, i) => 1 + ((t * 7 + i * 13) % 90)));
 let opened = 0, nextId = 1, held: { kind: string; cards: Card[] } | null = null, pending: Opening | null = null;
 const pick = <T,>(xs: T[]) => xs[Math.floor(Math.random() * xs.length)];
 const weighted = (w: [Tier, number][]): Tier => { let r = Math.random() * w.reduce((a, [, x]) => a + x, 0); for (const [t, x] of w) if ((r -= x) < 0) return t; return w[0][0]; };
