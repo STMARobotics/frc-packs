@@ -732,6 +732,7 @@ impl Game {
                 let captain = inst == seat.captain;
                 field.push(FieldRobot {
                     inst,
+                    team: r.team,
                     name: format!("{} {}", r.team, r.name),
                     side,
                     captain,

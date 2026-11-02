@@ -189,13 +189,14 @@ async fn robot_effects(db: &Db) -> ApiResult<HashMap<i32, FxItem>> {
     Ok(out)
 }
 
-/// A robot's effect in play: the published one, else a test example, else none.
+/// A robot's effect in play: the published one, else the one shipped with the game, else a test example, else none.
 fn effect_for(st: &Shared, fx: &HashMap<i32, FxItem>, team: i32) -> (Vec<Effect>, bool) {
     match fx.get(&team) {
         Some(f) if !f.published.is_empty() => (f.published.clone(), false),
-        _ => match st.battler.test_effects.get(&team) {
-            Some(e) => (e.clone(), true),
-            None => (vec![], false),
+        _ => match (st.battler.shipped_effects.get(&team), st.battler.test_effects.get(&team)) {
+            (Some(e), _) => (e.clone(), false),
+            (None, Some(e)) => (e.clone(), true),
+            (None, None) => (vec![], false),
         },
     }
 }
@@ -978,6 +979,7 @@ async fn admin_preview(State(st): State<Shared>, _admin: Admin, Json(req): Json<
     let others: Vec<u8> = (1..=3).filter(|s| *s != station).collect();
     let mut field = vec![FieldRobot {
         inst: 1,
+        team: r.team,
         name: format!("{} {}", r.team, r.name),
         side: 0,
         captain: req.captain,
@@ -1001,6 +1003,7 @@ async fn admin_preview(State(st): State<Shared>, _admin: Admin, Json(req): Json<
     for (k, st_) in others.iter().enumerate() {
         field.push(FieldRobot {
             inst: 2 + k as u32,
+            team: 0,
             name: "Ally".into(),
             side: 0,
             captain: false,
@@ -1013,6 +1016,7 @@ async fn admin_preview(State(st): State<Shared>, _admin: Admin, Json(req): Json<
     for k in 0..3u8 {
         field.push(FieldRobot {
             inst: 4 + u32::from(k),
+            team: 0,
             name: "Opponent".into(),
             side: 1,
             captain: k == 0,

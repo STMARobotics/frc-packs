@@ -82,6 +82,8 @@ pub enum Op {
     AddRpPp { rp: RpSlot, value: i32 },
     /// +value points in a phase for each attached part carrying the tag.
     PerPartTag { tag: String, phase: Phase, value: i32 },
+    /// The phase scores nothing at all, whatever else applies.
+    DisablePhase { phase: Phase },
 }
 
 /// A test on the robot an effect reaches (or, with `of: SOURCE`, on the source robot).
@@ -111,6 +113,14 @@ pub enum Cond {
     },
     /// At least one lore card is active this round.
     LoreActive,
+    /// Is directly across from the source robot: the same driver station on the other alliance.
+    Across,
+    /// Is this team's robot.
+    Team {
+        team: i32,
+        #[serde(default)]
+        of: Of,
+    },
 }
 
 fn one() -> u8 {
@@ -153,8 +163,9 @@ pub fn validate(effects: &[Effect], owner: Owner) -> Result<(), String> {
     if effects.is_empty() {
         return Err("a card needs at least one effect".into());
     }
-    if effects.len() > 3 {
-        return Err("at most three effects per card".into());
+    let most = if owner == Owner::Robot { 4 } else { 3 };
+    if effects.len() > most {
+        return Err(format!("at most {most} effects per card"));
     }
     for e in effects {
         if owner == Owner::Lore && e.scope == Scope::Itself {
@@ -188,6 +199,8 @@ pub fn validate(effects: &[Effect], owner: Owner) -> Result<(), String> {
                     Cond::HasPartTag { of: Of::Source, .. }
                         | Cond::Station { of: Of::Source, .. }
                         | Cond::Captain { of: Of::Source, .. }
+                        | Cond::Team { of: Of::Source, .. }
+                        | Cond::Across
                 )
             {
                 return Err("lore has no source robot".into());
@@ -204,6 +217,7 @@ pub fn validate(effects: &[Effect], owner: Owner) -> Result<(), String> {
                 Cond::Station { station, .. } if !(1..=3).contains(station) => {
                     return Err("driver stations are 1, 2 and 3".into());
                 }
+                Cond::Team { team, .. } if *team <= 0 => return Err("a team number is a positive number".into()),
                 _ => {}
             }
         }
@@ -251,6 +265,7 @@ fn describe_one(e: &Effect, owner: Owner) -> String {
         Op::PerPartTag { tag, phase, value } => {
             format!("{} {} for each {} part attached", signed(*value), phase.word(), tag_word(tag))
         }
+        Op::DisablePhase { phase } => format!("no {} at all", phase.word()),
     };
     let mult = matches!(e.op, Op::AddPhaseMultiplier { .. });
     let mut s = match (e.chance, mult) {
@@ -303,6 +318,11 @@ fn describe_cond(c: &Cond, owner: Owner) -> String {
             }
         }
         Cond::LoreActive => "a lore card is active".into(),
+        Cond::Across => "it's directly across from this robot".into(),
+        Cond::Team { team, of } => {
+            let s = subj(of);
+            if s == "it" { format!("it's team {team}") } else { format!("{s} is team {team}") }
+        }
     }
 }
 

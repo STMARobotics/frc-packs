@@ -6,9 +6,9 @@ import { CAT, closeSheet, home, openSheet, store, toast, useStore } from "../sto
 import type { Cond, Effect, FxRow, Phase, Robot, RobotScore } from "../types";
 import { Empty, Head, Spinner, Tabs, Tile } from "../ui";
 
-const OPS: [string, string][] = [["ADD_PHASE_FLAT", "+ points"], ["ADD_PHASE_PCT", "+ percent"], ["ADD_PHASE_MULTIPLIER", "× multiplier"], ["ADD_RP_PP", "+ RP chance"], ["PER_PART_TAG", "+ points per part tag"]];
+const OPS: [string, string][] = [["ADD_PHASE_FLAT", "+ points"], ["ADD_PHASE_PCT", "+ percent"], ["ADD_PHASE_MULTIPLIER", "× multiplier"], ["ADD_RP_PP", "+ RP chance"], ["PER_PART_TAG", "+ points per part tag"], ["DISABLE_PHASE", "Disable a phase"]];
 const SCOPES: [string, string][] = [["SELF", "This robot"], ["ALLIES", "Its alliance"], ["ENEMIES", "Opposing robots"], ["FIELD", "All six robots"]];
-const CONDS: [string, string][] = [["", "Always"], ["HAS_PART_TAG", "Has part tag"], ["STATION", "In station"], ["CAPTAIN", "Is captain"], ["LORE_ACTIVE", "Lore is active"]];
+const CONDS: [string, string][] = [["", "Always"], ["HAS_PART_TAG", "Has part tag"], ["STATION", "In station"], ["CAPTAIN", "Is captain"], ["LORE_ACTIVE", "Lore is active"], ["ACROSS", "Directly across"], ["TEAM", "Is team"]];
 type Filter = "all" | "none" | "draft" | "published";
 
 const rows = store<Map<number, FxRow>>(new Map());
@@ -97,7 +97,7 @@ function Editor({ r }: { r: Robot }) {
       case "op":
         e.op = v;
         if (v === "ADD_RP_PP") { e.rp = e.rp ?? "STATION"; delete e.phase; } else { e.phase = e.phase ?? "TELE"; delete e.rp; }
-        if (v === "ADD_PHASE_MULTIPLIER") { e.percent = e.percent ?? 200; delete e.value; } else { e.value = e.value ?? 5; delete e.percent; }
+        if (v === "ADD_PHASE_MULTIPLIER") { e.percent = e.percent ?? 200; delete e.value; } else if (v === "DISABLE_PHASE") { delete e.value; delete e.percent; } else { e.value = e.value ?? 5; delete e.percent; }
         if (v === "PER_PART_TAG") e.tag = e.tag ?? "MECHANICAL"; else delete e.tag;
         break;
       case "phase": e.phase = v as Phase; break;
@@ -108,7 +108,7 @@ function Editor({ r }: { r: Robot }) {
       case "scope": e.scope = v; break;
       case "chance": if (num && num > 0) e.chance = num; else delete e.chance; break;
       case "if":
-        if (v) e.when = [{ if: v as Cond["if"], ...(v === "HAS_PART_TAG" ? { tag: "MECHANICAL", min: 1 } : v === "STATION" ? { station: 1 } : v === "CAPTAIN" ? { is: true } : {}) }];
+        if (v) e.when = [{ if: v as Cond["if"], ...(v === "HAS_PART_TAG" ? { tag: "MECHANICAL", min: 1 } : v === "STATION" ? { station: 1 } : v === "CAPTAIN" ? { is: true } : v === "TEAM" ? { team: 6800 } : {}) }];
         else delete e.when;
         break;
       case "ctag": e.when![0].tag = v; break;
@@ -116,6 +116,7 @@ function Editor({ r }: { r: Robot }) {
       case "cst": e.when![0].station = +v; break;
       case "cis": e.when![0].is = v === "true"; break;
       case "cof": e.when![0].of = v as "TARGET" | "SOURCE"; break;
+      case "cteam": e.when![0].team = num ?? 6800; break;
     }
     setFx(n);
   };
@@ -148,7 +149,7 @@ function Editor({ r }: { r: Robot }) {
                 ? <label>RP<Sel k="rp" value={e.rp} options={[["RP1", `RP1 ${CAT.rp_names[0]}`], ["RP2", `RP2 ${CAT.rp_names[1]}`], ["RP3", `RP3 ${CAT.rp_names[2]}`], ["STATION", "Its station's"]]} /></label>
                 : <label>Phase<Sel k="phase" value={e.phase} options={["AUTO", "TELE", "END", "ALL"]} /></label>}
               {e.op === "PER_PART_TAG" && <label>Tag<Sel k="tag" value={e.tag} options={allTags()} /></label>}
-              {e.op === "ADD_PHASE_MULTIPLIER"
+              {e.op === "DISABLE_PHASE" ? null : e.op === "ADD_PHASE_MULTIPLIER"
                 ? <label>Percent<input type="number" data-k="percent" min={110} max={400} step={10} value={e.percent ?? 200} /></label>
                 : <label>Amount<input type="number" data-k="value" min={-100} max={300} value={e.value ?? 5} /></label>}
               <label>Who<Sel k="scope" value={e.scope} options={SCOPES} /></label>
@@ -157,13 +158,14 @@ function Editor({ r }: { r: Robot }) {
               {c?.if === "HAS_PART_TAG" && <><label>Tag<Sel k="ctag" value={c.tag} options={allTags()} /></label><label>At least<input type="number" data-k="cmin" min={1} max={6} value={c.min ?? 1} /></label></>}
               {c?.if === "STATION" && <label>Station<Sel k="cst" value={String(c.station ?? 1)} options={["1", "2", "3"]} /></label>}
               {c?.if === "CAPTAIN" && <label>Captain?<Sel k="cis" value={String(c.is ?? true)} options={[["true", "is captain"], ["false", "isn't captain"]]} /></label>}
-              {c && c.if !== "LORE_ACTIVE" && <label>Checked on<Sel k="cof" value={c.of ?? "TARGET"} options={[["TARGET", "the robot affected"], ["SOURCE", "this robot"]]} /></label>}
+              {c?.if === "TEAM" && <label>Team<input type="number" data-k="cteam" min={1} value={c.team ?? 6800} /></label>}
+              {c && c.if !== "LORE_ACTIVE" && c.if !== "ACROSS" && <label>Checked on<Sel k="cof" value={c.of ?? "TARGET"} options={[["TARGET", "the robot affected"], ["SOURCE", "this robot"]]} /></label>}
             </div>
             {fx.length > 1 && <button type="button" class="b-link" onClick={() => setFx(fx.filter((_, j) => j !== i))}>Remove</button>}
           </div>
         );
       })}
-      {fx.length < 3 && <button type="button" class="b-add" onClick={() => setFx([...fx, { op: "ADD_PHASE_FLAT", phase: "AUTO", value: 5, scope: "SELF" }])}>+ Another effect</button>}
+      {fx.length < 4 && <button type="button" class="b-add" onClick={() => setFx([...fx, { op: "ADD_PHASE_FLAT", phase: "AUTO", value: 5, scope: "SELF" }])}>+ Another effect</button>}
       <div class="b-fxprev">
         <small>RULES TEXT</small>
         {typeof pv === "string" ? <span class="warn">{pv}</span> : p ? (p.valid ? <b>{p.text}</b> : <span class="warn">{p.error}</span>) : <Spinner small />}

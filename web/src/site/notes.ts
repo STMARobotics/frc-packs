@@ -9,7 +9,7 @@ export interface Release { v: string; date: string; title: string; items: string
 export const NOTES: Release[] = [
   {
     v: "0.11.0",
-    date: "2026-11-02",
+    date: "2026-11-01",
     title: "Your feedback, round one",
     items: [
       "A new look: a cleaner typeface everywhere and a new logo.",
@@ -25,7 +25,7 @@ export const NOTES: Release[] = [
       "The Open tab puts your pack first, with a big Claim button when free packs are waiting.",
       "Missions: one bigger challenge every day, and no more freebies.",
       "Battle has the same tab bar as everything else, and the queue timer counts every second.",
-      "Battle: 7028 has the third-best auto in 2026, and its card shows it. Its new effect, Bump n Dump, knocks the other alliance's auto down, and with a Limelight or a Swerve Module (L1) attached, boosts yours.",
+      "Battle: 7028 has the third-best auto in 2026, and its card shows it. Its new effect, Bump n Dump, knocks the robot across from it off course, boosts your alliance's auto with a Limelight or a Swerve Module (L1) attached, and if Valor is on the other side, sends them flying.",
       "Battle: two parts are renamed: AprilTag Camera is now Limelight, and Swerve Module is now Swerve Module (L1).",
     ],
   },

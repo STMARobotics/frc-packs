@@ -48,6 +48,8 @@ pub struct FieldPart {
 #[derive(Clone, Debug)]
 pub struct FieldRobot {
     pub inst: u32,
+    /// Its team number (0 for a stand-in robot).
+    pub team: i32,
     pub name: String,
     /// 0 or 1: whose alliance it's on this round.
     pub side: usize,
@@ -115,6 +117,8 @@ struct Acc {
     flat: i32,
     pct: i32,
     mult: i32,
+    /// Disabled: the phase scores nothing.
+    off: bool,
 }
 
 struct Source<'a> {
@@ -135,6 +139,8 @@ fn cond_ok(c: &Cond, target: &FieldRobot, source: Option<&FieldRobot>, lore_acti
         Cond::Station { station, of } => pick(of).is_some_and(|r| r.station == *station),
         Cond::Captain { is, of } => pick(of).is_some_and(|r| r.captain == *is),
         Cond::LoreActive => lore_active,
+        Cond::Across => source.is_some_and(|s| s.side != target.side && s.station == target.station),
+        Cond::Team { team, of } => pick(of).is_some_and(|r| r.team == *team),
     }
 }
 
@@ -245,6 +251,10 @@ pub fn resolve(robots: &[FieldRobot], lores: &[FieldLore], seed: u64) -> RoundRe
                         apply(*phase, &|a| a.flat += v);
                         format!("{} {:+} {} ({c} {tag})", target.name, v, phase_word(*phase))
                     }
+                    Op::DisablePhase { phase } => {
+                        apply(*phase, &|a| a.off = true);
+                        format!("{} scores no {}", target.name, phase_word(*phase))
+                    }
                 };
                 events.push(Event { source: src.name.to_string(), target: target.inst, text });
             }
@@ -261,7 +271,7 @@ pub fn resolve(robots: &[FieldRobot], lores: &[FieldLore], seed: u64) -> RoundRe
             let a = acc[i][k];
             base[k] = r.stats.phase(*p);
             let v = i64::from(base[k] + a.flat) * i64::from((100 + a.pct).max(0)) * i64::from(100 + a.mult);
-            points[k] = half_up(v, 10_000).max(0);
+            points[k] = if a.off { 0 } else { half_up(v, 10_000).max(0) };
             phase_totals[r.side][k] += points[k];
         }
         scores.push(RobotScore {
@@ -331,6 +341,7 @@ mod tests {
     fn robot(inst: u32, side: usize, station: u8, stats: Stats) -> FieldRobot {
         FieldRobot {
             inst,
+            team: 0,
             name: format!("R{inst}"),
             side,
             captain: inst.is_multiple_of(3),
@@ -358,6 +369,33 @@ mod tests {
 
     fn fx(json: &str) -> Vec<Effect> {
         serde_json::from_str(json).unwrap()
+    }
+
+    fn auto_of(r: &RoundResult, inst: u32) -> i32 {
+        r.robots.iter().find(|s| s.inst == inst).unwrap().points[0]
+    }
+
+    #[test]
+    fn across_reaches_only_the_robot_in_the_same_station_on_the_other_side() {
+        let mut f = field();
+        f[0].effects =
+            fx(r#"[{"op":"ADD_PHASE_PCT","phase":"AUTO","value":-50,"scope":"ENEMIES","when":[{"if":"ACROSS"}]}]"#);
+        let r = resolve(&f, &[], 1);
+        assert_eq!(auto_of(&r, 3), 10, "station 1 across from it: halved");
+        assert_eq!((auto_of(&r, 4), auto_of(&r, 5)), (10, 10), "the other two are untouched");
+    }
+
+    #[test]
+    fn a_disabled_phase_scores_nothing_whatever_else_applies() {
+        let mut f = field();
+        f[4].team = 6800;
+        f[0].effects =
+            fx(r#"[{"op":"DISABLE_PHASE","phase":"AUTO","scope":"ENEMIES","when":[{"if":"TEAM","team":6800}]}]"#);
+        f[3].effects = fx(r#"[{"op":"ADD_PHASE_PCT","phase":"AUTO","value":200,"scope":"ALLIES"}]"#);
+        let r = resolve(&f, &[], 1);
+        assert_eq!(auto_of(&r, 4), 0, "team 6800 scores no Auto, even with its ally's +200%");
+        assert_eq!(auto_of(&r, 5), 30, "its other ally still gets the bonus");
+        assert!(r.robots.iter().find(|s| s.inst == 4).unwrap().points[1] > 0, "Tele still counts");
     }
 
     #[test]

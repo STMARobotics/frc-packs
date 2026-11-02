@@ -65,6 +65,6 @@ export interface Stake { parts: number; packs: number; boosted: number; teams: n
 export interface StakeHeld { parts: number; packs: number; boosted: number; specials: number[]; cards: { num: number; serial: number; tier: string }[] }
 export interface HistoryRow { game: string; opponent: string; winner: boolean | null; reason: string; rp: [number, number]; points: [number, number]; elo_before: number; elo_after: number; at: number }
 
-export interface Cond { if: "HAS_PART_TAG" | "STATION" | "CAPTAIN" | "LORE_ACTIVE"; tag?: string; min?: number; station?: number; is?: boolean; of?: "TARGET" | "SOURCE" }
+export interface Cond { if: "HAS_PART_TAG" | "STATION" | "CAPTAIN" | "LORE_ACTIVE" | "ACROSS" | "TEAM"; tag?: string; min?: number; station?: number; is?: boolean; team?: number; of?: "TARGET" | "SOURCE" }
 export interface Effect { op: string; phase?: Phase; value?: number; percent?: number; rp?: string; tag?: string; scope: string; when?: Cond[]; chance?: number }
 export interface FxRow { team: number; draft: Effect[]; published: Effect[]; rev: number; author: string; updated: number; draft_text: string; published_text: string }

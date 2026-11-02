@@ -93,6 +93,9 @@ struct Recipe {
 #[derive(Deserialize)]
 struct SupportFile {
     cards: Vec<Support>,
+    /// Robots' real effects, by team number, shipped with the game (an admin-published one replaces it).
+    #[serde(default)]
+    robot_effects: HashMap<String, Vec<Effect>>,
     /// Example robot effects for testing only, by team number (used when the admin hasn't written one).
     #[serde(default)]
     test_robot_effects: HashMap<String, Vec<Effect>>,
@@ -103,6 +106,8 @@ pub struct Content {
     pub by_team: HashMap<i32, usize>,
     pub support: Vec<Support>,
     pub support_by_id: HashMap<String, usize>,
+    /// Effects shipped with the game (`robot_effects`), and examples marked as tests (`test_robot_effects`).
+    pub shipped_effects: HashMap<i32, Vec<Effect>>,
     pub test_effects: HashMap<i32, Vec<Effect>>,
 }
 
@@ -178,13 +183,18 @@ impl Content {
             c.text = effects::describe(&c.effects, owner);
         }
         let support_by_id = support.iter().enumerate().map(|(i, c)| (c.id.clone(), i)).collect();
-        let mut test_effects = HashMap::new();
-        for (team, fx) in file.test_robot_effects {
-            let team: i32 = team.parse().with_context(|| format!("test effect for team {team}"))?;
-            effects::validate(&fx, Owner::Robot).map_err(|e| anyhow::anyhow!("test effect for {team}: {e}"))?;
-            test_effects.insert(team, fx);
-        }
-        Ok(Content { robots, by_team, support, support_by_id, test_effects })
+        let by_team_fx = |map: HashMap<String, Vec<Effect>>, what: &str| -> anyhow::Result<HashMap<i32, Vec<Effect>>> {
+            let mut out = HashMap::new();
+            for (team, fx) in map {
+                let team: i32 = team.parse().with_context(|| format!("{what} for team {team}"))?;
+                effects::validate(&fx, Owner::Robot).map_err(|e| anyhow::anyhow!("{what} for {team}: {e}"))?;
+                out.insert(team, fx);
+            }
+            Ok(out)
+        };
+        let shipped_effects = by_team_fx(file.robot_effects, "effect")?;
+        let test_effects = by_team_fx(file.test_robot_effects, "test effect")?;
+        Ok(Content { robots, by_team, support, support_by_id, shipped_effects, test_effects })
     }
 
     pub fn robot(&self, team: i32) -> Option<&Robot> {
