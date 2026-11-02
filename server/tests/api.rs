@@ -1444,7 +1444,7 @@ async fn cards_mid_reveal_cannot_be_traded_or_scrapped() {
         Some(json!({ "to": b_name, "pack": PACK, "give": [team], "giveSerials": [opened_serial], "wantPacks": 1 })),
     )
     .await;
-    assert_eq!(r.body["error"], "not_owned", "a card still being revealed can't be offered");
+    assert_eq!(r.body["error"], "card_held", "a card still being revealed can't be offered, and says so");
     // Scrapping skips it too.
     let s = call(&app, "POST", "/api/scrap", Some(&ca), Some(json!({ "pack": PACK, "num": team, "count": 1 }))).await;
     assert_eq!(s.body["error"], "extras_held", "{}", s.body);
@@ -2577,7 +2577,7 @@ async fn one_card_can_only_be_promised_once() {
         Some(json!({ "to": b_name, "pack": PACK, "give": [x], "want": [y] })),
     )
     .await;
-    assert_eq!(again.body["error"], "not_owned", "the only copy is already promised");
+    assert_eq!(again.body["error"], "card_held", "the only copy is already promised, and says so");
 }
 
 /// Someone else's session cookie, a made-up trade id, or another player's opening: none of it works.
