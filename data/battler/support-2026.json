@@ -101,7 +101,7 @@
   ],
   "test_robot_effects": {
     "4414": [{ "op": "PER_PART_TAG", "tag": "MECHANICAL", "phase": "TELE", "value": 8, "scope": "SELF" }],
-    "7028": [{ "op": "ADD_RP_PP", "rp": "RP2", "value": 5, "scope": "SELF", "when": [{ "if": "STATION", "station": 2 }] }],
+    "7028": [{ "op": "ADD_PHASE_PCT", "phase": "AUTO", "value": 30, "scope": "ALLIES", "chance": 95, "when": [{ "if": "HAS_PART_TAG", "tag": "WHEELS", "of": "SOURCE" }] }],
     "254": [{ "op": "ADD_PHASE_FLAT", "phase": "AUTO", "value": 10, "scope": "SELF", "when": [{ "if": "HAS_PART_TAG", "tag": "VISION" }] }],
     "1678": [{ "op": "ADD_PHASE_FLAT", "phase": "AUTO", "value": 5, "scope": "ALLIES", "when": [{ "if": "CAPTAIN", "of": "SOURCE" }] }]
   }
