@@ -2742,7 +2742,7 @@ async fn beta_testers_send_feedback_and_the_admin_sorts_it() {
 #[tokio::test]
 async fn owners_lists_who_has_a_card_most_copies_first() {
     let (app, db) = need_db!(own_setup(false));
-    let (me, me_cookie, _) = signup(&app, &db, &name()).await;
+    let (_, me_cookie, _) = signup(&app, &db, &name()).await;
     let (one, one_cookie, _) = signup(&app, &db, &name()).await;
     let (two, two_cookie, _) = signup(&app, &db, &name()).await;
     let (none, _, _) = signup(&app, &db, &name()).await;
