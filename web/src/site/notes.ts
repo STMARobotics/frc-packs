@@ -2,11 +2,31 @@
 // players should hear about: everyone who's played before sees the newest one once (screens/notes.tsx), and Settings
 // shows the version and every release. 0.x while in beta: the middle number for a weekly release, the last for the
 // feedback updates and fixes in between.
-export const VERSION = "0.10.1";
+export const VERSION = "0.11.0";
 
 export interface Release { v: string; date: string; title: string; items: string[] }
 
 export const NOTES: Release[] = [
+  {
+    v: "0.11.0",
+    date: "2026-11-02",
+    title: "Your feedback, round one",
+    items: [
+      "A new look: a cleaner typeface everywhere and a new logo.",
+      "Every card shows its robot's Battler stats, the same ones it plays with.",
+      "Who has it?: tap any card to see who else has it, spares first, and ask them for it.",
+      "Sort your binder by copies, lowest serial, team number or name, and a compact view that fits five across.",
+      "Serial numbers on other players' cards, and in the trade picker.",
+      "Trading: see how many copies you have of every card in an offer, your spares come first, and a Spares filter.",
+      "Fixed: \"isn't available to trade any more\" when asking for a card from someone's unfinished pack.",
+      "Fixed: no robot photos when opening packs on iPhone.",
+      "Fixed: NEW and COPY tags sometimes showing behind the cards.",
+      "Fixed: a boosted pack looked like a standard one after reopening the app.",
+      "The Open tab puts your pack first, with a big Claim button when free packs are waiting.",
+      "Missions: one bigger challenge every day, and no more freebies.",
+      "Battle has the same tab bar as everything else, and the queue timer counts every second.",
+    ],
+  },
   {
     v: "0.10.1",
     date: "2026-10-29",
