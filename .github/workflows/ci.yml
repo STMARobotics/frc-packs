@@ -1,0 +1,43 @@
+name: Packs checks
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: packs-checks-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    services:
+      dynamodb:
+        image: amazon/dynamodb-local:latest
+        ports: ['8765:8000']
+    env:
+      DYNAMODB_ENDPOINT: http://127.0.0.1:8765
+      AWS_REGION: us-east-2
+      INTEGRATION_ENABLED: 'true'
+      INTEGRATION_ORG_ID: example-team
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: server
+      - run: npm ci
+      - run: npm run check:activity-contract
+      - run: cargo fmt --manifest-path server/Cargo.toml --all -- --check
+      - run: cargo test --manifest-path server/Cargo.toml --locked
+      - name: Install Lambda build tooling
+        run: pip install cargo-lambda
+      - name: Build frontend and Lambda assets
+        run: npm run build
+      - name: Check infrastructure with built assets (including activity publishing)
+        run: npm run cdk:test

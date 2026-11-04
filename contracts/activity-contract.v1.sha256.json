@@ -1,0 +1,12 @@
+{
+  "revision": "activity-v1-foundation-1",
+  "files": {
+    "contracts/activity-snapshot.v1.json": "db5b1e7d007fbef2ea606ec8cf0204001a86fcbdb3955ae9137d79ba27f0396e",
+    "contracts/activity-wire.v1.json": "893615a96ae1abe8478752906512fab1c1093f0723e9997aa1726b1a3e911b07",
+    "contracts/fixtures/activity-v1.json": "5f81d790dc1515da451baa962dc2e8f9232c4a4fa9bc0a3bae1f3d200eed7c71",
+    "contracts/fixtures/activity-wire-v1.json": "64e3f98b8a874cc9a45017920793388384d6e355f2fa3d257338ab5bc695a879",
+    "contracts/activity-input-template.v1.json": "45075242c56c38fef15c4c64ab1811d83e1e5174070f9b97c96f0a2d8370030c"
+  },
+  "typescriptCodec": "4096bc6a71c1e7a51fc187a120586389f816c0d0374a85f9a1e1544e66dcf728",
+  "publisher": "094789bf4ff731cbae4b22602474c9cfac1d6066dfc5ea35184bcc04708fa175"
+}

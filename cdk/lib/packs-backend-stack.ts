@@ -13,6 +13,7 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as logs from "aws-cdk-lib/aws-logs";
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
+import { activityStream, configureActivityPublisher } from "./activity-publisher";
 import { config } from "./config";
 
 const BUILD_DIR = path.resolve(__dirname, "../.build");
@@ -26,6 +27,7 @@ export class PacksBackendStack extends cdk.Stack {
     super(scope, id, props);
 
     const table = new dynamodb.Table(this, "Table", {
+      stream: activityStream(this),
       partitionKey: { name: "pk", type: dynamodb.AttributeType.STRING },
       sortKey: { name: "sk", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
@@ -67,6 +69,7 @@ export class PacksBackendStack extends cdk.Stack {
         removalPolicy: cdk.RemovalPolicy.RETAIN,
       }),
     });
+    configureActivityPublisher(this, table, [server], "packs");
     table.grantReadWriteData(server);
     table.grant(server, "dynamodb:DescribeTable", "dynamodb:TransactWriteItems");
 

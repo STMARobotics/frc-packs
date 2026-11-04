@@ -1,6 +1,7 @@
 //! FRC Packs server: owns accounts, packs, rolls and collections. The browser only shows what the server decided.
 
 pub mod accounts;
+pub mod activity;
 pub mod admin;
 pub mod announce;
 pub mod api;

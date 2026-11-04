@@ -1039,10 +1039,23 @@ async fn open(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Json
         let db = &s.db;
         let mut p = me(db, user.id).await?;
         let before = model::pack_row(db, user.id, pack.id()).await?;
-        if mythic && before.mythic < 1 {
-            return Err(err(StatusCode::CONFLICT, "no_packs"));
-        }
-        let kind = if mythic { true } else { pack_kind(&before, req.boosted)? };
+        let kind = if mythic {
+            if before.mythic < 1 { Err(err(StatusCode::CONFLICT, "no_packs")) } else { Ok(true) }
+        } else {
+            pack_kind(&before, req.boosted)
+        };
+        let kind = match kind {
+            Ok(kind) => kind,
+            Err(error) => {
+                // A concurrent copy of this request can consume the last pack
+                // after the initial idempotency read. Recheck its committed claim
+                // before reporting a shortage; only failure paths add this read.
+                if idem_begin(db, user.id, &key, "open").await?.is_some() {
+                    return Ok(Err(()));
+                }
+                return Err(error);
+            }
+        };
         let hand_key = hand_sk(pack.id(), if mythic { 2 } else { u8::from(kind) });
         let held_it = db.get(&upk(user.id), &hand_key).await?;
         let held = held_it.as_ref().map(held_from);
@@ -1227,6 +1240,14 @@ async fn open(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Json
         p.pending_open = Some(opening_id);
         let parts = p.parts;
         model::save_user(&mut tx, &mut p, parts, "open");
+        crate::activity::capture(
+            &mut tx,
+            "packs.pack.opened.v1",
+            &format!("opening:{opening_id}"),
+            user.id,
+            now,
+            crate::activity::Metrics { packs_opened: 1, ..Default::default() },
+        )?;
         match tx.commit(db).await {
             Ok(()) => Ok(Ok((
                 OpeningOut {

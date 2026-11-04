@@ -1,0 +1,414 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "urn:stma:activity-wire:v1",
+  "title": "EventBridge activity transport v1",
+  "description": "Decimal strings are an explicit transport encoding, decoded to safe integer snapshots before projection.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "encoding",
+    "orgId",
+    "activity"
+  ],
+  "properties": {
+    "encoding": {
+      "const": "activity-snapshot.v1"
+    },
+    "orgId": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+    },
+    "activity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "eventId",
+        "type",
+        "source",
+        "orgId",
+        "entityId",
+        "entityVersion",
+        "subject",
+        "occurredAt",
+        "effectiveDate",
+        "metrics"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "eventId": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "type": {
+          "enum": [
+            "puncher.credit.changed.v1",
+            "packs.pack.opened.v1",
+            "packs.battle.finalized.v1",
+            "fmea.submission.changed.v1"
+          ]
+        },
+        "source": {
+          "enum": [
+            "puncher",
+            "packs",
+            "fmea"
+          ]
+        },
+        "orgId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+        },
+        "entityId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "entityVersion": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,15}$"
+        },
+        "subject": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "namespace",
+            "id"
+          ],
+          "properties": {
+            "namespace": {
+              "enum": [
+                "puncher.member",
+                "packs.player",
+                "fmea.google"
+              ]
+            },
+            "id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          }
+        },
+        "occurredAt": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$"
+        },
+        "effectiveDate": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "metrics": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "shopSeconds",
+            "volunteerSeconds",
+            "packsOpened",
+            "battleWins",
+            "battleLosses",
+            "battleDraws",
+            "fmeaSubmitted"
+          ],
+          "properties": {
+            "shopSeconds": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]{0,15})$"
+            },
+            "volunteerSeconds": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]{0,15})$"
+            },
+            "packsOpened": {
+              "type": "string",
+              "pattern": "^[01]$"
+            },
+            "battleWins": {
+              "type": "string",
+              "pattern": "^[01]$"
+            },
+            "battleLosses": {
+              "type": "string",
+              "pattern": "^[01]$"
+            },
+            "battleDraws": {
+              "type": "string",
+              "pattern": "^[01]$"
+            },
+            "fmeaSubmitted": {
+              "type": "string",
+              "pattern": "^[01]$"
+            }
+          },
+          "allOf": [
+            {
+              "anyOf": [
+                {
+                  "properties": {
+                    "shopSeconds": {
+                      "const": "0"
+                    }
+                  }
+                },
+                {
+                  "properties": {
+                    "volunteerSeconds": {
+                      "const": "0"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "oneOf": [
+                {
+                  "properties": {
+                    "battleWins": {
+                      "const": "0"
+                    },
+                    "battleLosses": {
+                      "const": "0"
+                    },
+                    "battleDraws": {
+                      "const": "0"
+                    }
+                  }
+                },
+                {
+                  "properties": {
+                    "battleWins": {
+                      "const": "1"
+                    },
+                    "battleLosses": {
+                      "const": "0"
+                    },
+                    "battleDraws": {
+                      "const": "0"
+                    }
+                  }
+                },
+                {
+                  "properties": {
+                    "battleWins": {
+                      "const": "0"
+                    },
+                    "battleLosses": {
+                      "const": "1"
+                    },
+                    "battleDraws": {
+                      "const": "0"
+                    }
+                  }
+                },
+                {
+                  "properties": {
+                    "battleWins": {
+                      "const": "0"
+                    },
+                    "battleLosses": {
+                      "const": "0"
+                    },
+                    "battleDraws": {
+                      "const": "1"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "puncher.credit.changed.v1"
+              }
+            },
+            "type": "object"
+          },
+          "then": {
+            "properties": {
+              "source": {
+                "const": "puncher"
+              },
+              "subject": {
+                "properties": {
+                  "namespace": {
+                    "const": "puncher.member"
+                  }
+                },
+                "type": "object"
+              },
+              "metrics": {
+                "properties": {
+                  "packsOpened": {
+                    "const": "0"
+                  },
+                  "battleWins": {
+                    "const": "0"
+                  },
+                  "battleLosses": {
+                    "const": "0"
+                  },
+                  "battleDraws": {
+                    "const": "0"
+                  },
+                  "fmeaSubmitted": {
+                    "const": "0"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "type": "object"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "packs.pack.opened.v1"
+              }
+            },
+            "type": "object"
+          },
+          "then": {
+            "properties": {
+              "source": {
+                "const": "packs"
+              },
+              "subject": {
+                "properties": {
+                  "namespace": {
+                    "const": "packs.player"
+                  }
+                },
+                "type": "object"
+              },
+              "metrics": {
+                "properties": {
+                  "shopSeconds": {
+                    "const": "0"
+                  },
+                  "volunteerSeconds": {
+                    "const": "0"
+                  },
+                  "battleWins": {
+                    "const": "0"
+                  },
+                  "battleLosses": {
+                    "const": "0"
+                  },
+                  "battleDraws": {
+                    "const": "0"
+                  },
+                  "fmeaSubmitted": {
+                    "const": "0"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "type": "object"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "packs.battle.finalized.v1"
+              }
+            },
+            "type": "object"
+          },
+          "then": {
+            "properties": {
+              "source": {
+                "const": "packs"
+              },
+              "subject": {
+                "properties": {
+                  "namespace": {
+                    "const": "packs.player"
+                  }
+                },
+                "type": "object"
+              },
+              "metrics": {
+                "properties": {
+                  "shopSeconds": {
+                    "const": "0"
+                  },
+                  "volunteerSeconds": {
+                    "const": "0"
+                  },
+                  "packsOpened": {
+                    "const": "0"
+                  },
+                  "fmeaSubmitted": {
+                    "const": "0"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "type": "object"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "fmea.submission.changed.v1"
+              }
+            },
+            "type": "object"
+          },
+          "then": {
+            "properties": {
+              "source": {
+                "const": "fmea"
+              },
+              "subject": {
+                "properties": {
+                  "namespace": {
+                    "const": "fmea.google"
+                  }
+                },
+                "type": "object"
+              },
+              "metrics": {
+                "properties": {
+                  "shopSeconds": {
+                    "const": "0"
+                  },
+                  "volunteerSeconds": {
+                    "const": "0"
+                  },
+                  "packsOpened": {
+                    "const": "0"
+                  },
+                  "battleWins": {
+                    "const": "0"
+                  },
+                  "battleLosses": {
+                    "const": "0"
+                  },
+                  "battleDraws": {
+                    "const": "0"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "type": "object"
+          }
+        }
+      ]
+    }
+  }
+}

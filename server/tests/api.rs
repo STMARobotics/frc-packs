@@ -239,6 +239,60 @@ async fn simultaneous_claims_pay_once() {
 }
 
 #[tokio::test]
+async fn activity_outbox_is_atomic_and_pack_retries_publish_once() {
+    if std::env::var("INTEGRATION_ENABLED").as_deref() != Ok("true") {
+        return;
+    }
+    let (app, db) = need_db!(own_setup(true));
+    let (cookie, _) = player(&app, &db).await;
+    let uid = user_id(&db, &cookie).await;
+    let hand = call(&app, "POST", "/api/hand", Some(&cookie), Some(json!({ "pack": PACK }))).await;
+    assert_eq!(hand.status, StatusCode::OK);
+    let request = Uuid::new_v4().to_string();
+    let first = call_key(&app, "POST", "/api/open", Some(&cookie), Some(json!({ "pack": PACK })), Some(&request)).await;
+    let replay =
+        call_key(&app, "POST", "/api/open", Some(&cookie), Some(json!({ "pack": PACK })), Some(&request)).await;
+    assert_eq!(first.status, StatusCode::OK, "{}", first.body);
+    assert_eq!(replay.body["opening"]["id"], first.body["opening"]["id"]);
+    let events: Vec<_> = db
+        .scan_all()
+        .await
+        .unwrap()
+        .into_iter()
+        .filter(|item| frc_packs_server::db::get_s(item, "recordType").as_deref() == Some("ACTIVITY_OUTBOX_V1"))
+        .collect();
+    assert_eq!(events.len(), 1);
+    assert_eq!(frc_packs_server::db::get_s(&events[0], "subjectId"), Some(uid.to_string()));
+    assert_eq!(frc_packs_server::db::get_n(&events[0], "packsOpened"), Some(1));
+
+    let mut tx = frc_packs_server::db::Tx::new();
+    frc_packs_server::activity::capture(
+        &mut tx,
+        "packs.pack.opened.v1",
+        "opening:aborted",
+        uid,
+        frc_packs_server::model::now_ms(),
+        frc_packs_server::activity::Metrics { packs_opened: 1, ..Default::default() },
+    )
+    .unwrap();
+    tx.check(
+        "forced",
+        &frc_packs_server::model::upk(uid),
+        "PROFILE",
+        frc_packs_server::db::Cond::new("ver = :v").val(":v", frc_packs_server::db::n(-1)),
+    );
+    assert!(tx.commit(&db).await.is_err());
+    assert!(
+        !db.scan_all()
+            .await
+            .unwrap()
+            .iter()
+            .any(|item| { frc_packs_server::db::get_s(item, "entityId").as_deref() == Some("opening:aborted") })
+    );
+    drop_table(&db).await;
+}
+
+#[tokio::test]
 async fn pack_in_hand_is_fixed_and_opens_as_promised() {
     let (app, db) = need_db!(setup(true));
     let (c, _) = player(&app, &db).await;
@@ -343,7 +397,9 @@ async fn a_pack_in_hand_from_before_minting_still_opens() {
 /// A minted pack in hand that's rolled again gives its serial numbers back, for the next packs to take.
 #[tokio::test]
 async fn a_pack_rolled_again_gives_its_serials_back() {
-    let (app, db) = need_db!(setup(true));
+    // Other tests opening packs can immediately reuse a freed serial. Keep this
+    // assertion isolated while retaining concurrency inside the production tests.
+    let (app, db) = need_db!(own_setup(true));
     let (c, _) = player(&app, &db).await;
     let h = call(&app, "POST", "/api/hand", Some(&c), Some(json!({ "pack": PACK }))).await;
     // Demo luck changes the odds, so the pack in hand is rolled again.
@@ -352,6 +408,7 @@ async fn a_pack_rolled_again_gives_its_serials_back() {
         let (team, serial) = (x["num"].as_i64().unwrap() as i32, x["serial"].as_i64().unwrap() as i32);
         assert!(kit::free_serial(&db, PACK, team, serial).await, "team {team} No. {serial} is back in circulation");
     }
+    drop_table(&db).await;
 }
 
 /// A Mythic pack is minted at pick-up too: three Mythics, the same ones it opens with.
