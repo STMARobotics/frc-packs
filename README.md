@@ -1,5 +1,7 @@
 # frc-packs
 
+Cross-app integration foundation and rollout: [app harmonization](docs/app-harmonization.md).
+
 Pokémon-style packs, but every card is an FRC team's robot.
 
 - `web/` and `server/`: the real site. A Rust server decides what's in every pack and keeps everyone's cards; the site shows it.

@@ -1,0 +1,98 @@
+[
+  {
+    "schemaVersion": 1,
+    "type": "puncher.credit.changed.v1",
+    "source": "puncher",
+    "orgId": "example-team",
+    "entityId": "MEMBER#member-a/SHOP#visit-a",
+    "entityVersion": 1,
+    "subject": {
+      "namespace": "puncher.member",
+      "id": "member-a"
+    },
+    "occurredAt": "2026-11-04T18:00:00.000Z",
+    "effectiveDate": "2026-11-04",
+    "metrics": {
+      "shopSeconds": 3600,
+      "volunteerSeconds": 0,
+      "packsOpened": 0,
+      "battleWins": 0,
+      "battleLosses": 0,
+      "battleDraws": 0,
+      "fmeaSubmitted": 0
+    },
+    "eventId": "76092b40cef1b3f87a61fb59daa1dc696941d4704180311de0c04f24b216cdbe"
+  },
+  {
+    "schemaVersion": 1,
+    "type": "packs.pack.opened.v1",
+    "source": "packs",
+    "orgId": "example-team",
+    "entityId": "opening:17",
+    "entityVersion": 1,
+    "subject": {
+      "namespace": "packs.player",
+      "id": "00000000-0000-4000-8000-000000000001"
+    },
+    "occurredAt": "2026-11-04T18:00:00.000Z",
+    "effectiveDate": "2026-11-04",
+    "metrics": {
+      "shopSeconds": 0,
+      "volunteerSeconds": 0,
+      "packsOpened": 1,
+      "battleWins": 0,
+      "battleLosses": 0,
+      "battleDraws": 0,
+      "fmeaSubmitted": 0
+    },
+    "eventId": "f10192bdb9ecc16033e2e51dadc4b8d687eaf613809d7d1c31a8008b8d88b0a6"
+  },
+  {
+    "schemaVersion": 1,
+    "type": "packs.battle.finalized.v1",
+    "source": "packs",
+    "orgId": "example-team",
+    "entityId": "battle:example-game",
+    "entityVersion": 1,
+    "subject": {
+      "namespace": "packs.player",
+      "id": "00000000-0000-4000-8000-000000000001"
+    },
+    "occurredAt": "2026-11-04T18:00:00.000Z",
+    "effectiveDate": "2026-11-04",
+    "metrics": {
+      "shopSeconds": 0,
+      "volunteerSeconds": 0,
+      "packsOpened": 0,
+      "battleWins": 1,
+      "battleLosses": 0,
+      "battleDraws": 0,
+      "fmeaSubmitted": 0
+    },
+    "eventId": "899f16b1457e8339522f127d32cd5ca27d9bd3800992bf713a5af579e46c81c3"
+  },
+  {
+    "schemaVersion": 1,
+    "type": "fmea.submission.changed.v1",
+    "source": "fmea",
+    "orgId": "example-team",
+    "entityId": "example-fmea",
+    "entityVersion": 1,
+    "subject": {
+      "namespace": "fmea.google",
+      "id": "synthetic-subject"
+    },
+    "occurredAt": "2026-11-04T18:00:00.000Z",
+    "effectiveDate": "2026-11-04",
+    "metrics": {
+      "shopSeconds": 0,
+      "volunteerSeconds": 0,
+      "packsOpened": 0,
+      "battleWins": 0,
+      "battleLosses": 0,
+      "battleDraws": 0,
+      "fmeaSubmitted": 1
+    },
+    "eventId": "6c6d31ed5b5e714f274bedc0611eacb75e3a1c5d9bce27882889e73a3f6cfe03"
+  }
+]

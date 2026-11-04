@@ -22,7 +22,8 @@
     "cdk:synth": "npm run synth --workspace=cdk",
     "cdk:diff": "npm exec -w cdk -- cdk diff --",
     "cdk:deploy": "npm run build && npm run deploy --workspace=cdk",
-    "cdk:test": "npm run test --workspace=cdk"
+    "cdk:test": "npm run test --workspace=cdk",
+    "check:activity-contract": "node scripts/check-activity-contract.cjs"
   },
   "workspaces": [
     "cdk",

@@ -476,6 +476,7 @@ async fn save(db: &Db, g: &mut Game, ver: i64, was_over: bool, mut tx: Tx) -> Ap
             let profs = [bt_profile(db, uids[0]).await?, bt_profile(db, uids[1]).await?];
             let after = g.rate([profs[0].elo, profs[1].elo]);
             let o = g.outcome.clone().expect("finished");
+            let finalized_at = now_ms();
             for side in 0..2 {
                 let mut p = profs[side].clone();
                 let games_before = p.games;
@@ -492,6 +493,19 @@ async fn save(db: &Db, g: &mut Game, ver: i64, was_over: bool, mut tx: Tx) -> Ap
                     Cond::new("games = :g").val(":g", n(games_before))
                 };
                 tx.put_if("race", item(upk(uids[side]), "BTPROF", &p), Some(pc));
+                crate::activity::capture(
+                    &mut tx,
+                    "packs.battle.finalized.v1",
+                    &format!("battle:{}", g.id),
+                    uids[side],
+                    finalized_at,
+                    crate::activity::Metrics {
+                        battle_wins: i64::from(o.winner == Some(side)),
+                        battle_losses: i64::from(o.winner.is_some() && o.winner != Some(side)),
+                        battle_draws: i64::from(o.winner.is_none()),
+                        ..Default::default()
+                    },
+                )?;
                 let opp = g.seat(1 - side);
                 tx.put(item(
                     upk(uids[side]),

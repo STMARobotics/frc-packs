@@ -5,7 +5,8 @@
     "build": "tsc",
     "synth": "cdk synth",
     "deploy": "cdk deploy --all",
-    "test": "ts-node test/stacks.test.ts"
+    "test": "ts-node test/activity.test.ts && ts-node test/stacks.test.ts",
+    "test:activity": "ts-node test/activity.test.ts"
   },
   "devDependencies": {
     "@types/node": "^24.19.2",
