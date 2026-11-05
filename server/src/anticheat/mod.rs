@@ -128,7 +128,9 @@ pub async fn gate(db: &Db, p: &Profile, you: bool, what: &str) -> ApiResult<()> 
         return Ok(());
     }
     match mode(p, &config(db).await?) {
-        Some("paused") => Err(ApiError::new(StatusCode::CONFLICT, if you { "under_review" } else { "they_under_review" })),
+        Some("paused") => {
+            Err(ApiError::new(StatusCode::CONFLICT, if you { "under_review" } else { "they_under_review" }))
+        }
         _ => watch(db, p.id, what).await,
     }
 }
@@ -136,7 +138,8 @@ pub async fn gate(db: &Db, p: &Profile, you: bool, what: &str) -> ApiResult<()> 
 /// One line on a flagged player's watch log, kept 30 days.
 pub async fn watch(db: &Db, user: Uuid, what: &str) -> ApiResult<()> {
     let at = now_ms();
-    let mut it = key(format!("AC#WATCH#{user}"), format!("{}#{}", pad(at, 15), &Uuid::new_v4().simple().to_string()[..6]));
+    let mut it =
+        key(format!("AC#WATCH#{user}"), format!("{}#{}", pad(at, 15), &Uuid::new_v4().simple().to_string()[..6]));
     it.insert("at".into(), n(at));
     it.insert("what".into(), sv(what));
     it.insert("expires_at".into(), n(at / 1000 + KEEP_SECS));

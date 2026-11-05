@@ -3,7 +3,7 @@
 These rules are for everyone working on FRC Packs, people and AI agents alike. Agents: follow them without being asked.
 
 - Work on a short-lived branch and open a pull request into `main`.
-- Pushing to `main` deploys the live site (`.github/workflows/deploy.yml`), so only merge when it's ready to ship.
+- Pushing to `main` validates and then deploys the live site (`.github/workflows/ci.yml`), so only merge when it's ready to ship.
 - Changes under `cdk/` affect AWS cost and infrastructure and need a maintainer's review.
 - Changing the Mythic meter (`mythicBase`, `soft`, `hard` in `data/packs/cmp26.json`) changes the odds players see:
   rerun the fairness simulation and add an in-game notice (`server/src/announce.rs`).

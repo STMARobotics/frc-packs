@@ -3,8 +3,8 @@
 pub mod accounts;
 pub mod activity;
 pub mod admin;
-pub mod anticheat;
 pub mod announce;
+pub mod anticheat;
 pub mod api;
 pub mod auth;
 pub mod battler;

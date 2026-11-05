@@ -60,7 +60,13 @@ fn has_mythic(c: &[Rolled]) -> bool {
 }
 
 fn verdict(z: f64) -> &'static str {
-    if z.abs() < 3.0 { "ok" } else if z.abs() < 4.5 { "WATCH" } else { "FAIL" }
+    if z.abs() < 3.0 {
+        "ok"
+    } else if z.abs() < 4.5 {
+        "WATCH"
+    } else {
+        "FAIL"
+    }
 }
 
 fn main() {
@@ -99,7 +105,8 @@ fn main() {
             }
             myth += m;
         }
-        let (sl, la, mult) = if boosted { (&o.boosted.slots, &o.boosted.last, o.boosted.mythic_mult) } else { (&o.slots, &o.last, 1.0) };
+        let (sl, la, mult) =
+            if boosted { (&o.boosted.slots, &o.boosted.last, o.boosted.mythic_mult) } else { (&o.slots, &o.last, 1.0) };
         let pm = o.mythic_base * mult;
         // Expected Mythic packs: the last-card roll (slots 1-4 never hold Mythics in cmp26).
         let slot_m = sl.get(&Tier::Mythic).copied().unwrap_or(0.0);
@@ -126,7 +133,11 @@ fn main() {
             let mut rng = rand::rng();
             let mut by: HashMap<i32, u64> = HashMap::new();
             for _ in 0..k {
-                let c = roll::roll(&p, &mut rng, &Opts { boosted: true, pity: Pity { m: 299, l: 0 }, ..Default::default() });
+                let c = roll::roll(
+                    &p,
+                    &mut rng,
+                    &Opts { boosted: true, pity: Pity { m: 299, l: 0 }, ..Default::default() },
+                );
                 for x in c.iter().filter(|x| x.tier == Tier::Mythic) {
                     *by.entry(x.num).or_default() += 1;
                 }
@@ -143,8 +154,13 @@ fn main() {
         let obs: Vec<u64> = pool.iter().map(|t| by.get(t).copied().unwrap_or(0)).collect();
         let (x, df) = chi2(&obs, &vec![1.0 / pool.len() as f64; pool.len()]);
         let z = chi2_z(x, df);
-        println!("Mythic teams ({} of them) over {n} guaranteed Mythics: {}..{} each, chi2 {x:.1}/{df} -> z {z:+.2} {}",
-            pool.len(), obs.iter().min().unwrap(), obs.iter().max().unwrap(), verdict(z));
+        println!(
+            "Mythic teams ({} of them) over {n} guaranteed Mythics: {}..{} each, chi2 {x:.1}/{df} -> z {z:+.2} {}",
+            pool.len(),
+            obs.iter().min().unwrap(),
+            obs.iter().max().unwrap(),
+            verdict(z)
+        );
     }
 
     // ---- 4. Players opening at the same moment don't share luck (every thread is a different player) ----
@@ -154,7 +170,9 @@ fn main() {
         let per = n / k;
         let rows = par(n, move |_, m| {
             let mut rng = rand::rng();
-            (0..m.min(per)).map(|_| has_mythic(&roll::roll(&p, &mut rng, &Opts { boosted: true, ..Default::default() }))).collect::<Vec<bool>>()
+            (0..m.min(per))
+                .map(|_| has_mythic(&roll::roll(&p, &mut rng, &Opts { boosted: true, ..Default::default() })))
+                .collect::<Vec<bool>>()
         });
         // Mythic in the same pack index for player A and player B: as often as chance says, no more.
         let mut worst: f64 = 0.0;
@@ -172,8 +190,11 @@ fn main() {
         let pairs = rows.len() * (rows.len() - 1) / 2;
         // With many pairs the largest |z| is expected near sqrt(2 ln pairs).
         let expect = (2.0 * (pairs as f64).ln()).sqrt();
-        println!("{} players side by side ({pairs} pairs): worst lockstep Mythic correlation |z| {worst:.2} (about {expect:.1} expected by chance) {}",
-            rows.len(), if worst < expect + 2.0 { "ok" } else { "FAIL" });
+        println!(
+            "{} players side by side ({pairs} pairs): worst lockstep Mythic correlation |z| {worst:.2} (about {expect:.1} expected by chance) {}",
+            rows.len(),
+            if worst < expect + 2.0 { "ok" } else { "FAIL" }
+        );
     }
 
     // ---- 5. Mythic gaps for a player who opens packs back to back, with the meter ----
@@ -200,7 +221,10 @@ fn main() {
         println!(
             "[{}] with the meter: a Mythic every {mean:.1} packs; median {}, 10th pct {}, 90th pct {}, longest {}",
             if boosted { "boosted " } else { "standard" },
-            gaps[gaps.len() / 2], gaps[gaps.len() / 10], gaps[gaps.len() * 9 / 10], gaps.last().unwrap()
+            gaps[gaps.len() / 2],
+            gaps[gaps.len() / 10],
+            gaps[gaps.len() * 9 / 10],
+            gaps.last().unwrap()
         );
     }
 
@@ -234,8 +258,10 @@ fn main() {
         let (a, b) = parts.iter().fold((0, 0), |s, x| (s.0 + x.0, s.1 + x.1));
         println!(
             "session replay, meter at {start_m:>3} packs: 2+ Mythics in the 19 packs {:.3}% (1 in {:.0}); 2+ in the last 7 boosted {:.3}% (1 in {:.0})",
-            100.0 * a as f64 / n as f64, n as f64 / a.max(1) as f64,
-            100.0 * b as f64 / n as f64, n as f64 / b.max(1) as f64
+            100.0 * a as f64 / n as f64,
+            n as f64 / a.max(1) as f64,
+            100.0 * b as f64 / n as f64,
+            n as f64 / b.max(1) as f64
         );
     }
 
