@@ -934,12 +934,14 @@ function Hold(p: HoldProps) {
     setAway(!facingFront());
   };
   /** The wrapper torn this far (share of the width, from the side it started: 1 the left, -1 the right), with the best
-      card's light coming out of the gap at `t` (0 to 1). */
+      card's light coming out of the gap at `t` (0 to 1). Until the server has said what the best card is (picking the
+      pack up opens it, and that answer can take a moment), the wrapper tears with no light at all rather than a
+      placeholder one; the light comes through in the right color as soon as it's known. */
   const tear = (len: number, dir: number, t: number) => {
     torn.current = { len, dir, t };
     p.grip.current?.style.setProperty("--dir", String(dir));
-    const c = TIERS[p.best ?? "common"].color;
-    if (glp.current) glp.current.tear(len, dir, t, c); else rip.current?.set(len, dir, t, c);
+    const light = p.best ? t : 0, c = TIERS[p.best ?? "common"].color;
+    if (glp.current) glp.current.tear(len, dir, light, c); else rip.current?.set(len, dir, light, c);
   };
   const jolt = (t: number) => { if (glp.current) glp.current.jolt(t); else rip.current?.jolt(t); };
   // The WebGL pack takes over as soon as it's ready, if the pack hasn't been touched yet: it looks the same, so the
@@ -1048,7 +1050,7 @@ function Hold(p: HoldProps) {
     sfx.whoosh();
   };
   return (
-    <div class={cx("op-hold", `k-${p.k}`, p.torn && "op-torn", p.dropping && "op-drop", away && "op-away", drawn && "op-gl")}>
+    <div class={cx("op-hold", `k-${p.k}`, p.torn && "op-torn", p.dropping && "op-drop", away && "op-away", drawn && "op-gl")} data-best={p.best ?? ""}>
       <div ref={p.grip} class="op-grip" onPointerDown={down} onPointerMove={move} onPointerUp={upH} onPointerCancel={upH}>
         <div ref={lift} class={cx("op-lift", !p.from && "op-in")}>
           <div ref={shakeEl} class="op-shake">

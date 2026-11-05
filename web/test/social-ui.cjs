@@ -29,6 +29,7 @@ async function setup(name, packs) {
   const c = client();
   const { code } = await c.call('POST', '/api/dev/invite', {});
   await c.call('POST', '/api/signup', { code, username: name, password: 'password123', firstName: name[0].toUpperCase() + name.slice(1, 4) });
+  await c.call('POST', '/api/dev/age', { hours: 48 }); // past the new-account rules (trading cards)
   for (let i = 0; i < packs; i++) {
     await c.call('POST', '/api/dev/pack', { pack: 'cmp26' });
     const o = await c.call('POST', '/api/open', { pack: 'cmp26' }, { 'Idempotency-Key': Math.random().toString(36).slice(2) + Date.now() });
@@ -65,7 +66,7 @@ async function main() {
   const ctx = (sid) => browser.newContext({ viewport: { width: +(process.env.W || 390), height: +(process.env.H || 844) }, deviceScaleFactor: 2, isMobile: true, hasTouch: true })
     .then(async (c) => {
       await c.addCookies([{ name: 'sid', value: sid, url: BASE }]);
-      await c.addInitScript((v) => { localStorage.setItem('frcpacks.beta', '1'); localStorage.setItem('frcpacks.version', v); localStorage.setItem('frcpacks.fbbar', String(Date.now() + 1e9)); }, VERSION);
+      await c.addInitScript((v) => { localStorage.setItem('frcpacks.beta', '1'); localStorage.setItem('frcpacks.version', v); localStorage.setItem('frcpacks.bugintro', '1'); localStorage.setItem('frcpacks.fbbar', String(Date.now() + 1e9)); }, VERSION);
       return c;
     });
   const ca2 = await ctx(A.sid());

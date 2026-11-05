@@ -116,6 +116,7 @@ pub fn routes() -> Router<Shared> {
         .route("/dev/demo", post(dev_demo))
         .route("/dev/pack", post(dev_pack))
         .route("/dev/skip-timer", post(dev_skip_timer))
+        .route("/dev/age", post(dev_age))
         .route("/dev/reset", post(dev_reset))
         .route("/dev/invite", post(dev_invite))
 }
@@ -1600,6 +1601,26 @@ async fn dev_skip_timer(State(s): State<Shared>, user: User) -> ApiResult<Json<S
     retry!(async {
         let mut p = me(&s.db, user.id).await?;
         p.next_claim_at = (p.next_claim_at - claim_ms).min(now_ms());
+        let parts = p.parts;
+        let mut tx = Tx::new();
+        model::save_user(&mut tx, &mut p, parts, "dev tools");
+        tx.commit(&s.db).await.map_err(ApiError::from)
+    })?;
+    state_json(&s, user.id).await
+}
+
+#[derive(Deserialize)]
+struct AgeReq {
+    hours: i64,
+}
+
+/// Makes the account this many hours older (up to a year), past the new-account rules (for the browser tests).
+async fn dev_age(State(s): State<Shared>, user: User, Json(req): Json<AgeReq>) -> ApiResult<Json<StateOut>> {
+    dev(&s)?;
+    let by = req.hours.clamp(0, 24 * 365) * 3_600_000;
+    retry!(async {
+        let mut p = me(&s.db, user.id).await?;
+        p.created_at -= by;
         let parts = p.parts;
         let mut tx = Tx::new();
         model::save_user(&mut tx, &mut p, parts, "dev tools");

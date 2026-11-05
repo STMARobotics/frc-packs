@@ -12,7 +12,7 @@ fs.mkdirSync(OUT, { recursive: true });
 const assert = (c, m) => { if (!c) throw new Error('FAILED: ' + m); };
 // The app's version, so "What's new" stays out of the way (it's checked on its own, in the welcome part below).
 const VERSION = fs.readFileSync(path.join(__dirname, '../src/site/notes.ts'), 'utf8').match(/VERSION = "([^"]+)"/)[1];
-const quiet = (v) => { localStorage.setItem('frcpacks.beta', '1'); localStorage.setItem('frcpacks.version', v); };
+const quiet = (v) => { localStorage.setItem('frcpacks.beta', '1'); localStorage.setItem('frcpacks.version', v); localStorage.setItem('frcpacks.bugintro', '1'); };
 
 function client() {
   let cookie = '';
@@ -30,9 +30,9 @@ async function setup(name, packs) {
   const c = client();
   const { code } = await c.call('POST', '/api/dev/invite', {});
   await c.call('POST', '/api/signup', { code, username: name, password: 'password123', firstName: name });
+  await c.call('POST', '/api/dev/age', { hours: 48 }); // past the new-account rules (trading cards)
   for (let i = 0; i < packs; i++) {
     await c.call('POST', '/api/dev/pack', { pack: 'cmp26' });
-    await c.call('POST', '/api/hand', { pack: 'cmp26' }).catch(() => {});
     const o = await c.call('POST', '/api/open', { pack: 'cmp26' }, { 'Idempotency-Key': Math.random().toString(36).slice(2) + Date.now() });
     await c.call('POST', `/api/openings/${o.opening.id}/progress`, { revealed: 5 });
   }

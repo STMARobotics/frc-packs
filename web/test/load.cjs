@@ -28,7 +28,6 @@ async function player(i) {
   await req(c, 'POST', '/api/claim', {}, 'claim');
   for (let k = 0; k < PACKS; k++) await req(c, 'POST', '/api/dev/pack', { pack: 'cmp26' }, 'dev pack');
   for (let k = 0; k < PACKS; k++) {
-    await req(c, 'POST', '/api/hand', { pack: 'cmp26' }, 'hand');
     const o = await req(c, 'POST', '/api/open', { pack: 'cmp26' }, 'open');
     if (o && o.opening) for (let d = 1; d <= 5; d++) await req(c, 'POST', `/api/openings/${o.opening.id}/progress`, { revealed: d }, 'deal');
   }

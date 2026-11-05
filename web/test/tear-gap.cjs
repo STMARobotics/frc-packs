@@ -23,7 +23,7 @@ const VERSION = fs.readFileSync(path.join(__dirname, '../src/site/notes.ts'), 'u
   const browser = await chromium.launch({ args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] });
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
   await ctx.addCookies([{ name: 'sid', value: cookie.slice(4), url: BASE }]);
-  await ctx.addInitScript((v) => { localStorage.setItem('frcpacks.beta', '1'); localStorage.setItem('frcpacks.version', v); }, VERSION);
+  await ctx.addInitScript((v) => { localStorage.setItem('frcpacks.beta', '1'); localStorage.setItem('frcpacks.version', v); localStorage.setItem('frcpacks.bugintro', '1'); }, VERSION);
   await ctx.route('**/api/open', async (route) => { await new Promise((r) => setTimeout(r, DELAY)); await route.continue(); });
   await ctx.route('**/photos/*.webp', async (route) => { await new Promise((r) => setTimeout(r, DELAY / 3)); await route.continue(); });
   const p = await ctx.newPage();

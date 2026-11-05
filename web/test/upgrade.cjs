@@ -6,7 +6,8 @@
 //   4. ADMIN_USER=<name> ADMIN_PASS=<password> node test/upgrade.cjs check [http://127.0.0.1:3001]
 // Seed makes two players with opened packs, a held pack, marks, a collected mission, trades (accepted, declined and
 // open), feedback (one accepted) and a game in the old lobby. Check signs in with the old sessions and passwords and
-// compares everything; then the open offer is accepted, the held pack minted and opened, and the new features used.
+// compares everything; then the open offer is accepted, a pack held from before the update is released and the next
+// opens fresh (picking up is opening since 0.12), and the new features used.
 const fs = require('node:fs');
 const path = require('node:path');
 const BASE = process.argv[3] || 'http://127.0.0.1:3001';
@@ -61,9 +62,9 @@ async function seed() {
   const A = await mk('mga' + tag, 25), B = await mk('mgb' + tag, 25);
   const ca = cols(await A.call('GET', '/api/collection/cmp26')), cb = cols(await B.call('GET', '/api/collection/cmp26'));
   const aSpare = Object.keys(ca).filter((n) => ca[n].length >= 2).map(Number), bSpare = Object.keys(cb).filter((n) => cb[n].length >= 2).map(Number);
-  // A held pack (picked up, not opened), and the best rarity it shows.
+  // A held pack (picked up, not opened), on a server from before 0.12 (later ones have no picking up apart from opening).
   await A.call('POST', '/api/dev/pack', { pack: 'cmp26' });
-  const hand = await A.call('POST', '/api/hand', { pack: 'cmp26' });
+  const hand = await A.call('POST', '/api/hand', { pack: 'cmp26' }).catch(() => null);
   // Marks.
   const teams = Object.keys(ca).map(Number);
   await A.call('POST', '/api/showcase', { pack: 'cmp26', teams: teams.slice(0, 3) });
@@ -94,13 +95,13 @@ async function seed() {
   // Battler: B waits in the old open lobby.
   const g = await B.call('POST', '/api/battler/games');
   const snap = {
-    tag, open, idea, hand: hand.best, game: g.id,
+    tag, open, idea, hand: hand ? hand.best : null, game: g.id,
     cookies: { A: A.cookie(), B: B.cookie() },
     A: await snapshot(A), B: await snapshot(B),
     users: (await AD.call('GET', '/api/admin/users')).length,
   };
   fs.writeFileSync(SNAP, JSON.stringify(snap, null, 1));
-  console.log(`seeded: ${Object.keys(snap.A.collection).length} teams for A, open trade ${open}, held pack best ${hand.best}, lobby game ${g.id}`);
+  console.log(`seeded: ${Object.keys(snap.A.collection).length} teams for A, open trade ${open}, held pack best ${hand ? hand.best : 'none (no picking up on this server)'}, lobby game ${g.id}`);
 }
 
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
@@ -124,20 +125,16 @@ async function check() {
   ok(r.trades.incoming.every((t) => t.id !== snap.open), 'the offer from before the update can be accepted');
   const after = cols(await B.call('GET', '/api/collection/cmp26'));
   ok(Object.values(after).flat().length === Object.values(before).flat().length, 'one card each way');
-  // The pack picked up before the update opens with what it promised.
-  const h = await A.call('POST', '/api/hand', { pack: 'cmp26' });
-  ok(h.best === snap.hand, `the held pack is still the same pack (best ${h.best})`);
-  ok(h.cards?.length === 5 && h.cards.every((c) => c.serial > 0), 'picked up again, it is minted: five cards with their serial numbers');
+  // Picking up is opening now: the old pick-up is gone (a Tripwire canary), and a pack held from before the update is
+  // released when the player next opens: a fresh pack, five cards with serial numbers, and the held one's serials freed.
+  const gone = await A.call('POST', '/api/hand', { pack: 'cmp26' }).then(() => false, (e) => e.status === 404);
+  ok(gone, 'the old pick-up is gone');
   const o = await A.call('POST', '/api/open', { pack: 'cmp26' }, idem());
-  const best = ['mythic', 'legendary', 'rare', 'uncommon', 'common'].find((t) => o.opening.cards.some((c) => c.tier === t));
-  ok(best === snap.hand, 'and opens with that best card');
-  const minted = (cs) => cs.map((c) => `${c.num} No. ${c.serial}`).join(', ');
-  ok(minted(o.opening.cards) === minted(h.cards), 'exactly as it was minted');
-  // A pack picked up now is minted at once, and opens as minted.
+  ok(o.opening.cards.length === 5 && o.opening.cards.every((c) => c.serial > 0), `the next open is a fresh pack (held one's best was ${snap.hand ?? 'none'})`);
+  await A.call('POST', `/api/openings/${o.opening.id}/progress`, { revealed: 5 });
   await B.call('POST', '/api/dev/pack', { pack: 'cmp26' });
-  const hb = await B.call('POST', '/api/hand', { pack: 'cmp26' });
   const ob = await B.call('POST', '/api/open', { pack: 'cmp26' }, idem());
-  ok(minted(ob.opening.cards) === minted(hb.cards), 'a pack picked up after the update opens as minted');
+  ok(ob.opening.cards.length === 5, 'opening after the update works');
   // Profiles, social, matches and the new features work on old accounts.
   const p = await B.call('GET', `/api/players/${snap.A.account.username}/profile/cmp26`);
   ok(p.bio === null && p.avatar === null && p.showcase.length === 3, 'an old profile loads (no bio or picture yet, showcase kept)');

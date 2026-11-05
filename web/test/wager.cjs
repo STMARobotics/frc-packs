@@ -24,11 +24,11 @@ async function setup(name) {
   const c = client();
   const { code } = await c.call('POST', '/api/dev/invite', {});
   await c.call('POST', '/api/signup', { code, username: name, password: 'password123', firstName: name });
+  await c.call('POST', '/api/dev/age', { hours: 48 }); // past the new-account rules (staking cards)
   for (let i = 0; i < 40; i++) {
     const home = await c.call('GET', '/api/battler/home');
     if (home.owned_teams.length >= 16) break;
     await c.call('POST', '/api/dev/pack', { pack: 'cmp26' });
-    await c.call('POST', '/api/hand', { pack: 'cmp26' }).catch(() => {});
     const o = await c.call('POST', '/api/open', { pack: 'cmp26' }, { 'Idempotency-Key': Math.random().toString(36).slice(2) + Date.now() });
     await c.call('POST', `/api/openings/${o.opening.id}/progress`, { revealed: 5 });
   }

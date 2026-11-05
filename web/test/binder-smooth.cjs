@@ -17,7 +17,6 @@ async function main() {
   await call('POST', '/api/signup', { code, username: 'bin' + Date.now().toString(36).slice(-5), password: 'password123', firstName: 'Bin' });
   for (let i = 0; i < 6; i++) {
     await call('POST', '/api/dev/pack', { pack: 'cmp26' });
-    await call('POST', '/api/hand', { pack: 'cmp26' }).catch(() => {});
     const o = await call('POST', '/api/open', { pack: 'cmp26' }, { 'Idempotency-Key': Math.random().toString(36).slice(2) + Date.now() });
     await call('POST', `/api/openings/${o.opening.id}/progress`, { revealed: 5 });
   }

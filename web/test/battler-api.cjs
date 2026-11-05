@@ -27,6 +27,7 @@ function client(label) {
 async function signup(c, name) {
   const { code } = await c.call('POST', '/api/dev/invite', {});
   await c.call('POST', '/api/signup', { code, username: name, password: 'password123', firstName: name });
+  await c.call('POST', '/api/dev/age', { hours: 48 }); // past the new-account rules (wagers)
 }
 
 async function collect(c, want) {
@@ -34,7 +35,6 @@ async function collect(c, want) {
     const home = await c.call('GET', '/api/battler/home');
     if (home.owned_teams.length >= want) return home;
     await c.call('POST', '/api/dev/pack', { pack: 'cmp26' });
-    await c.call('POST', '/api/hand', { pack: 'cmp26' }).catch(() => {});
     const key = Math.random().toString(36).slice(2) + Date.now();
     const o = await c.call('POST', '/api/open', { pack: 'cmp26' }, { 'Idempotency-Key': key });
     await c.call('POST', `/api/openings/${o.opening.id}/progress`, { revealed: 5 });

@@ -62,7 +62,7 @@ DYNAMODB_ENDPOINT=http://localhost:8765 cargo run -- create-admin
 | `BIND` | `127.0.0.1:3000` | Address to listen on |
 | `DATA_DIR` | `../data` | Where `packs/` and `photos/` are |
 | `WEB_DIR` | `../web/dist` | The built site; skipped if it isn't there |
-| `DEV_TOOLS` | off | Testing helpers in Settings (demo luck, +1 pack, skip timer, reset) and free invite codes for the browser test. **Never turn on in production.** |
+| `DEV_TOOLS` | off | Testing helpers in Settings (demo luck, +1 pack, skip timer, reset), free invite codes and account aging (`/api/dev/age`) for the browser tests. **Never turn on in production.** |
 | `COOKIE_SECURE` | off | Mark the session cookie HTTPS-only. Turn on when hosted over HTTPS. |
 | `LAMBDA_TASK` | off | On AWS only: `ready-check` makes a function run the "free pack ready" check instead of serving the API. |
 | `PUSH_CONTACT` | this repository's URL | Who push services can contact about notifications (an `https:` or `mailto:` address). |

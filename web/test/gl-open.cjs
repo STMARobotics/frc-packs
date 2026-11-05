@@ -32,7 +32,7 @@ async function run(browser, width, reduced) {
   const tag = `${width}${reduced ? '-rm' : ''}`;
   const ctx = await browser.newContext({ viewport: { width, height: width < 380 ? 740 : 844 }, deviceScaleFactor: 2, hasTouch: false, reducedMotion: reduced ? 'reduce' : 'no-preference' });
   await ctx.addCookies([{ name: 'sid', value: await account(3), url: BASE }]);
-  await ctx.addInitScript((v) => { localStorage.setItem('frcpacks.beta', '1'); localStorage.setItem('frcpacks.version', v); }, VERSION);
+  await ctx.addInitScript((v) => { localStorage.setItem('frcpacks.beta', '1'); localStorage.setItem('frcpacks.version', v); localStorage.setItem('frcpacks.bugintro', '1'); }, VERSION);
   const p = await ctx.newPage();
   const errors = [];
   p.on('pageerror', (e) => errors.push(e.message));
