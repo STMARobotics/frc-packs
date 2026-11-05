@@ -81,6 +81,23 @@
 .s-top-r { display: flex; align-items: center; gap: 8px; }
 .s-pill { padding: 6px 10px; border-radius: 999px; background: var(--s1); font: 700 13px var(--body); font-variant-numeric: tabular-nums; }
 .s-avbtn { padding: 0; border: 0; background: none; cursor: pointer; border-radius: 50%; }
+/* The bug button (bugs and ideas) and the popup that shrinks into it (screens/bug.tsx). */
+.s-bug { display: inline-grid; place-items: center; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 50%; background: var(--s1); color: var(--tx); cursor: pointer; }
+.s-bug svg { width: 19px; height: 19px; }
+.s-bug:active { transform: scale(.92); }
+.s-bug.pop { animation: s-bug-pop .55s var(--ease); }
+@keyframes s-bug-pop { 0% { transform: scale(.8); box-shadow: 0 0 0 0 rgba(79, 216, 255, .55); } 45% { transform: scale(1.22); } 100% { transform: none; box-shadow: 0 0 0 12px rgba(79, 216, 255, 0); } }
+.bi-back { position: fixed; inset: 0; z-index: 250; display: grid; place-items: center; padding: 16px; background: rgba(5, 8, 15, .62); animation: bi-fade .2s ease-out; }
+.bi-card { width: min(340px, 100%); padding: 24px 20px 20px; border-radius: 24px; background: linear-gradient(180deg, #1c2438, var(--s1)); box-shadow: 0 0 0 1px var(--ln), 0 24px 60px rgba(0, 0, 0, .55); text-align: center; transform-origin: center; animation: bi-in .32s var(--ease); }
+.bi-in { display: grid; justify-items: center; gap: 10px; }
+.bi-icon { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: rgba(79, 216, 255, .14); color: var(--ac); }
+.bi-icon svg { width: 34px; height: 34px; }
+.bi-card h2 { margin: 4px 0 0; font: 400 24px var(--display); }
+.bi-card p { margin: 0; color: var(--dim); font-size: 15px; line-height: 1.45; }
+.bi-btns { display: grid; gap: 8px; width: 100%; margin-top: 8px; }
+@keyframes bi-fade { from { opacity: 0; } }
+@keyframes bi-in { from { opacity: 0; transform: scale(.9) translateY(12px); } }
+@media (prefers-reduced-motion: reduce) { .bi-card, .bi-back { animation: none; } }
 .s-av { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: hsl(var(--h) 60% 45%); color: #fff; font: 400 14px var(--display); }
 .s-av.big { width: 64px; height: 64px; font-size: 26px; }
 .s-av.huge { width: 92px; height: 92px; font-size: 36px; }

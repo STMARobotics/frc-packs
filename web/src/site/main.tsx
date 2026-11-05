@@ -14,7 +14,7 @@ import { useEffect, useState } from "preact/hooks";
 import { api, ApiError, explain, type State } from "../api";
 import { useStore } from "../lib/store";
 import { PACK, setEffects, setRecipe } from "./data";
-import { applyCollection, applyState, loadSpecials, loadTrades, packOf, prefs, st, sync, trades } from "./state";
+import { applyCollection, applyState, loadSpecials, loadTrades, prefs, st, sync, trades } from "./state";
 import { Avatar, closeAll, cx, LayerHost, Logo, Spinner, ToastHost, Wordmark } from "./ui";
 import { Binder } from "./screens/binder";
 import { ClaimButton, StatusBar } from "./screens/status";
@@ -27,6 +27,7 @@ import { TradeTab } from "./screens/trade";
 import { SocialTab } from "./screens/social";
 import { OpenHome } from "./screens/open";
 import { betaWelcome, gameNotice, OwnerNotice, SignIn, whatsNew } from "./screens/gate";
+import { BugButton, bugIntro, BugIntro } from "./screens/bug";
 
 type Tab = "open" | "binder" | "trade" | "social";
 const TABS: Tab[] = ["open", "binder", "trade", "social"];
@@ -73,7 +74,7 @@ function App() {
       setupPwa();
       setPhase("ready");
       if (state.notice) setTimeout(() => gameNotice(state.notice), 600);
-      else setTimeout(() => { whatsNew(); betaWelcome(); }, 3000);
+      else setTimeout(() => { whatsNew(); betaWelcome(); bugIntro(); }, 3000);
     } catch (e) {
       setPhase(e instanceof ApiError && e.status === 401 ? (e.code === "guest" ? "guest" : "signin") : explain(e));
     }
@@ -94,14 +95,13 @@ function App() {
   const me = s!.account;
   const unseen = Object.keys(p.unseen).length;
   const offers = tr.incoming.length;
-  const packs = packOf(s!);
   return (
     <>
       <header class="s-top">
         <span class="s-brand"><Logo /><Wordmark /> <i class="s-beta">Beta</i></span>
         <span class="s-top-r">
           <span class="s-pill" title="Parts">⚙ {s!.parts}</span>
-          <span class="s-pill" title="Sealed packs">▣ {packs.sealed}</span>
+          <BugButton />
           <button type="button" class="s-avbtn" onClick={() => openProfile(me.username)} aria-label="Your profile"><Avatar name={me.username} /></button>
         </span>
       </header>
@@ -145,4 +145,4 @@ function FeedbackBar() {
   );
 }
 
-render(<><OwnerNotice /><App /><LayerHost /><ToastHost /></>, document.getElementById("app")!);
+render(<><OwnerNotice /><App /><LayerHost /><BugIntro /><ToastHost /></>, document.getElementById("app")!);
