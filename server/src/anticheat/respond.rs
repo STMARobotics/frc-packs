@@ -105,7 +105,12 @@ struct FlagReq {
 }
 
 /// Flags a player by hand (or changes an existing flag's mode).
-async fn flag(State(s): State<Shared>, admin: Admin, Path(id): Path<Uuid>, Json(req): Json<FlagReq>) -> ApiResult<StatusCode> {
+async fn flag(
+    State(s): State<Shared>,
+    admin: Admin,
+    Path(id): Path<Uuid>,
+    Json(req): Json<FlagReq>,
+) -> ApiResult<StatusCode> {
     if req.mode.as_deref().is_some_and(|m| m != "shadow" && m != "paused") {
         return Err(ApiError::new(StatusCode::BAD_REQUEST, "bad_request"));
     }
@@ -119,7 +124,11 @@ async fn flag(State(s): State<Shared>, admin: Admin, Path(id): Path<Uuid>, Json(
         p.flagged_at.get_or_insert(now_ms());
         p.flag_mode = req.mode.clone();
         let mut tx = Tx::new();
-        let what = format!("{} ({})", p.flagged.clone().unwrap_or_default(), req.mode.as_deref().unwrap_or("follows the setting"));
+        let what = format!(
+            "{} ({})",
+            p.flagged.clone().unwrap_or_default(),
+            req.mode.as_deref().unwrap_or("follows the setting")
+        );
         note(&mut tx, admin.id, id, "flag", &what);
         let parts = p.parts;
         model::save_user(&mut tx, &mut p, parts, "anticheat flag");
@@ -137,10 +146,20 @@ async fn get_config(State(s): State<Shared>, _admin: Admin) -> ApiResult<Json<su
     Ok(Json(super::config(&s.db).await?))
 }
 
-async fn set_config(State(s): State<Shared>, admin: Admin, Json(c): Json<super::Config>) -> ApiResult<Json<super::Config>> {
+async fn set_config(
+    State(s): State<Shared>,
+    admin: Admin,
+    Json(c): Json<super::Config>,
+) -> ApiResult<Json<super::Config>> {
     super::save_config(&s.db, &c).await?;
     let mut tx = Tx::new();
-    note(&mut tx, admin.id, admin.id, "settings", if c.shadow_default { "shadow flags on" } else { "shadow flags off: flags pause trading" });
+    note(
+        &mut tx,
+        admin.id,
+        admin.id,
+        "settings",
+        if c.shadow_default { "shadow flags on" } else { "shadow flags off: flags pause trading" },
+    );
     tx.commit(&s.db).await?;
     Ok(Json(c))
 }
@@ -221,7 +240,9 @@ async fn overview(State(s): State<Shared>, _admin: Admin) -> ApiResult<Json<Over
         .map(|it| CanaryHit {
             at: get_n(it, "at").unwrap_or(0),
             path: get_s(it, "path").unwrap_or_default(),
-            username: get_s(it, "user_id").and_then(|u| Uuid::parse_str(&u).ok()).and_then(|u| names.get(&u).cloned().flatten()),
+            username: get_s(it, "user_id")
+                .and_then(|u| Uuid::parse_str(&u).ok())
+                .and_then(|u| names.get(&u).cloned().flatten()),
             visitor: get_s(it, "visitor").unwrap_or_default(),
         })
         .collect();
@@ -229,7 +250,12 @@ async fn overview(State(s): State<Shared>, _admin: Admin) -> ApiResult<Json<Over
 }
 
 /// Lifts a flag (and forgets the hour's intake, so the alarm doesn't go straight off again).
-async fn clear(State(s): State<Shared>, admin: Admin, Path(id): Path<Uuid>, Json(req): Json<FlagReq>) -> ApiResult<StatusCode> {
+async fn clear(
+    State(s): State<Shared>,
+    admin: Admin,
+    Path(id): Path<Uuid>,
+    Json(req): Json<FlagReq>,
+) -> ApiResult<StatusCode> {
     retry!(async {
         let mut p = model::profile(&s.db, id).await?.ok_or_else(not_found)?;
         let was = p.flagged.take().unwrap_or_default();
@@ -295,7 +321,9 @@ async fn reverse(
         .into_iter()
         .filter_map(|it| crate::db::from_item::<LedgerLine>(it).ok())
         // A new account's starting packs are never taken back, nor an earlier reversal's own lines.
-        .filter(|l| l.at >= req.from && l.at <= req.to && l.delta > 0 && l.reason != REVERSAL && l.reason != "new account")
+        .filter(|l| {
+            l.at >= req.from && l.at <= req.to && l.delta > 0 && l.reason != REVERSAL && l.reason != "new account"
+        })
         .collect();
     let mut out = ReverseOut::default();
     // Packs by the pack they belong to (the ledger line's detail).
@@ -316,7 +344,9 @@ async fn reverse(
                 if let Some(d) = &l.detail {
                     out.cards.push(d.clone());
                     let mut it = d.split(" #");
-                    if let (Some(t), Some(sn)) = (it.next().and_then(|x| x.trim().parse().ok()), it.next().and_then(|x| x.trim().parse().ok())) {
+                    if let (Some(t), Some(sn)) =
+                        (it.next().and_then(|x| x.trim().parse().ok()), it.next().and_then(|x| x.trim().parse().ok()))
+                    {
                         wanted.push((t, sn));
                     }
                 }
@@ -354,7 +384,12 @@ async fn reverse(
     crate::trades::cancel_all(db, id).await?;
     let summary = format!(
         "{} to {}: took {} packs, {} boosted, {} parts, {} cards",
-        req.from, req.to, out.took_packs, out.took_boosted, out.took_parts, out.took_cards.len()
+        req.from,
+        req.to,
+        out.took_packs,
+        out.took_boosted,
+        out.took_parts,
+        out.took_cards.len()
     );
     retry!(async {
         let mut p = model::profile(db, id).await?.ok_or_else(not_found)?;
