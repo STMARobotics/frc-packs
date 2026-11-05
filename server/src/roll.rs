@@ -28,8 +28,6 @@ pub struct Opts {
     pub pity: Pity,
     /// A boosted pack, crafted from parts: the recipe's boosted odds.
     pub boosted: bool,
-    /// A Mythic pack: boosted, with its last three cards guaranteed Mythic.
-    pub mythic: bool,
 }
 
 /// Chance the last card is a Mythic when this is the `n`th pack since the last one.
@@ -39,24 +37,6 @@ pub fn mythic_chance(odds: &Odds, demo: bool, n: u32) -> f64 {
         p = p.max((f64::from(n - odds.soft) / f64::from(odds.hard - odds.soft)).min(1.0));
     }
     p
-}
-
-/// The rarity the last card is promised to reach with these options (the first pack, or a full meter), if any.
-pub fn promised(odds: &Odds, o: &Opts) -> Option<Tier> {
-    let mult = if o.boosted { odds.boosted.mythic_mult } else { 1.0 };
-    if o.mythic || mythic_chance(odds, o.demo, o.pity.m + 1) * mult >= 1.0 {
-        Some(Tier::Mythic)
-    } else if o.first || o.pity.l + 1 >= odds.leg_every {
-        Some(Tier::Legendary)
-    } else {
-        None
-    }
-}
-
-/// These cards keep what these options promise. A pack picked up earlier was rolled with the meter as it was then; if
-/// the meter has filled since (other packs were opened meanwhile), it's rolled again so the promise still holds.
-pub fn keeps(odds: &Odds, o: &Opts, cards: &[Rolled]) -> bool {
-    promised(odds, o).is_none_or(|t| best(cards).rank() <= t.rank())
 }
 
 fn weighted<R: Rng + ?Sized>(rng: &mut R, w: &HashMap<Tier, f64>) -> Tier {
@@ -93,9 +73,7 @@ fn draw<R: Rng + ?Sized>(pack: &Pack, rng: &mut R, o: &Opts) -> Vec<Rolled> {
     };
     let mut cards: Vec<Rolled> = Vec::with_capacity(5);
     for slot in 0..5 {
-        let tier = if o.mythic && slot >= 2 {
-            Tier::Mythic
-        } else if slot < 4 {
+        let tier = if slot < 4 {
             weighted(rng, slots)
         } else if rng.random::<f64>() < (mythic_chance(odds, o.demo, pm) * mult).min(1.0) {
             Tier::Mythic
@@ -178,20 +156,6 @@ mod tests {
     }
 
     #[test]
-    fn mythic_packs_hold_three_different_mythics() {
-        let pack = cmp26();
-        let mut rng = StdRng::seed_from_u64(3);
-        for _ in 0..2000 {
-            let c = roll(&pack, &mut rng, &Opts { boosted: true, mythic: true, ..Default::default() });
-            assert_eq!(c.len(), 5);
-            let mythics: HashSet<i32> = c.iter().filter(|x| x.tier == Tier::Mythic).map(|x| x.num).collect();
-            assert!(mythics.len() >= 3, "three different Mythics, got {mythics:?}");
-            let all: HashSet<i32> = c.iter().map(|x| x.num).collect();
-            assert_eq!(all.len(), 5, "no team twice");
-        }
-    }
-
-    #[test]
     fn pity_guarantees() {
         let pack = cmp26();
         let mut rng = StdRng::seed_from_u64(1);
@@ -253,32 +217,6 @@ mod tests {
         assert!(worst_m < 300, "longest run without a Mythic {worst_m}");
         let rate = f64::from(leg) / 100_000.0;
         assert!((0.09..0.12).contains(&rate), "legendary+ rate with the meter {rate}");
-    }
-
-    #[test]
-    fn a_full_meter_is_kept_by_a_pack_picked_up_earlier() {
-        let pack = cmp26();
-        let o = &pack.recipe.odds;
-        let common = vec![Rolled { num: pack.pools[&Tier::Common][0], tier: Tier::Common }];
-        let rare = vec![Rolled { num: pack.pools[&Tier::Rare][0], tier: Tier::Rare }];
-        let leg = vec![Rolled { num: pack.pools[&Tier::Legendary][0], tier: Tier::Legendary }];
-        let full_m = Opts { pity: Pity { m: o.hard - 1, l: 0 }, ..Default::default() };
-        let full_l = Opts { pity: Pity { m: 0, l: o.leg_every - 1 }, ..Default::default() };
-        assert_eq!(promised(o, &Opts::default()), None);
-        assert!(keeps(o, &Opts::default(), &common));
-        assert_eq!(promised(o, &full_m), Some(Tier::Mythic));
-        assert!(!keeps(o, &full_m, &leg), "a full Mythic meter wants a Mythic");
-        assert_eq!(promised(o, &full_l), Some(Tier::Legendary));
-        assert!(!keeps(o, &full_l, &rare) && keeps(o, &full_l, &leg));
-        assert_eq!(promised(o, &Opts { first: true, ..Default::default() }), Some(Tier::Legendary));
-        // Boosted packs reach a certain Mythic sooner (4x): 200 + 100/4.
-        let boosted = Opts { boosted: true, pity: Pity { m: 224, l: 0 }, ..Default::default() };
-        assert_eq!(promised(o, &boosted), Some(Tier::Mythic));
-        for _ in 0..500 {
-            assert!(keeps(o, &full_m, &roll(&pack, &mut rand::rng(), &full_m)));
-            assert!(keeps(o, &full_l, &roll(&pack, &mut rand::rng(), &full_l)));
-            assert!(keeps(o, &boosted, &roll(&pack, &mut rand::rng(), &boosted)));
-        }
     }
 
     /// Chi-square statistic of observed counts against expected probabilities (cells expecting nothing are skipped).

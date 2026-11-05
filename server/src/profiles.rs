@@ -180,7 +180,7 @@ async fn profile(
         trades: st.trades,
         streak,
         packs: row.standard(),
-        boosted: row.boosted - row.mythic,
+        boosted: row.boosted,
         parts: p.parts,
         showcase,
         rarest: owned,

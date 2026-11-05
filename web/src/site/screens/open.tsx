@@ -23,14 +23,13 @@ let glCode: Promise<typeof import("../gl/pack")> | null = null;
 const loadGL = () => (RM ? null : (glCode ??= import("../gl/pack").catch(() => (glCode = null) as never)));
 const N = 10; // packs on the wheel
 
-export type Kind = "std" | "gold" | "myth" | "test";
-const NAME: Record<Kind, string> = { std: "Standard", gold: "Boosted", myth: "Mythic", test: "Test" };
-/** Sealed packs of each kind (a Mythic pack is a boosted pack with three Mythics in it). */
+export type Kind = "std" | "gold" | "test";
+const NAME: Record<Kind, string> = { std: "Standard", gold: "Boosted", test: "Test" };
+/** Sealed packs of each kind. */
 function counts(): Record<Kind, number> {
   const p = packOf(st.get()!);
-  return { std: Math.max(0, p.sealed - p.boosted), gold: Math.max(0, p.boosted - p.mythic), myth: p.mythic, test: Infinity };
+  return { std: Math.max(0, p.sealed - p.boosted), gold: Math.max(0, p.boosted), test: Infinity };
 }
-const flags = (k: Kind) => [k === "gold" || k === "myth", k === "myth"] as const;
 /** The stack being opened, kept between visits. */
 let kind: Kind = "std";
 
@@ -70,7 +69,7 @@ const nudge = (el?: HTMLElement | null) => el?.animate([{ transform: "none" }, {
 
 /** Each pack's constellation: its stars (x, y, size) and the lines joining them (pairs of star indexes). Made up, and
     drawn on a 100 x 100 sky. */
-const SKIES: Record<"std" | "gold" | "myth", { stars: [number, number, number][]; lines: [number, number][] }> = {
+const SKIES: Record<"std" | "gold", { stars: [number, number, number][]; lines: [number, number][] }> = {
   // The Arrow: a long rising line with a fletched tail.
   std: {
     stars: [[16, 78, 1.6], [30, 66, 2.2], [44, 55, 1.8], [57, 44, 2.6], [70, 33, 2], [84, 21, 3.2], [75, 48, 1.5], [64, 22, 1.5], [22, 88, 1.2], [10, 66, 1.2]],
@@ -80,11 +79,6 @@ const SKIES: Record<"std" | "gold" | "myth", { stars: [number, number, number][]
   gold: {
     stars: [[12, 70, 1.8], [24, 38, 2.4], [37, 58, 1.6], [50, 22, 3.4], [63, 58, 1.6], [76, 38, 2.4], [88, 70, 1.8], [50, 74, 1.4], [31, 74, 1.2], [69, 74, 1.2]],
     lines: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [0, 8], [8, 7], [7, 9], [9, 6]],
-  },
-  // The Comet: a bright head with a long, sweeping tail of stars.
-  myth: {
-    stars: [[78, 24, 3.8], [68, 34, 2.4], [56, 42, 2], [44, 52, 1.8], [33, 60, 1.6], [22, 70, 1.4], [12, 80, 1.2], [86, 34, 1.6], [70, 14, 1.6], [60, 56, 1.3], [38, 40, 1.3]],
-    lines: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [0, 7], [0, 8], [2, 9], [3, 10]],
   },
 };
 /** Faint background stars, the same on every pack (a fixed scatter). */
@@ -115,7 +109,7 @@ export function PackArt({ k, odds }: { k: Kind; odds?: boolean }) {
           <span class="op-pyr">{RECIPE?.season ?? 2026}</span>
           <Sky k={k} />
           <b class="op-pname">{(RECIPE?.name ?? "Championship").replace(/^\d{4}\s*/, "")}</b>
-          <span class="op-pkind">{k === "std" ? "5 cards" : k === "myth" ? "3 Mythics" : NAME[k]}</span>
+          <span class="op-pkind">{k === "std" ? "5 cards" : NAME[k]}</span>
           <i class="op-psheen" />
         </div>
       </div>
@@ -126,7 +120,7 @@ export function PackArt({ k, odds }: { k: Kind; odds?: boolean }) {
 
 function Odds({ k }: { k: Kind }) {
   const o = RECIPE.odds as typeof RECIPE.odds & { boosted?: { slots: Partial<Record<Tier, number>>; mythicMult: number } };
-  const b = k === "gold" || k === "myth" ? o.boosted : undefined;
+  const b = k === "gold" ? o.boosted : undefined;
   const slots = b?.slots ?? o.slots, demo = st.get()!.demo;
   const pct = (x = 0) => `${+(x * 100).toFixed(2)}%`;
   return (
@@ -135,7 +129,7 @@ function Odds({ k }: { k: Kind }) {
       <dl>
         {(["common", "uncommon", "rare", "legendary"] as Tier[]).map((t) => <><dt style={{ color: TIERS[t].color }}>{TIERS[t].label}</dt><dd>{pct(slots[t])}</dd></>)}
         <dt style={{ color: TIERS.mythic.color }}>Mythic</dt>
-        <dd>{k === "myth" ? "3 inside" : `1 in ${Math.round(1 / ((demo ? o.demoMythic : o.mythicBase) * (b?.mythicMult ?? 1)))}`}</dd>
+        <dd>{`1 in ${Math.round(1 / ((demo ? o.demoMythic : o.mythicBase) * (b?.mythicMult ?? 1)))}`}</dd>
       </dl>
       <small>Last card is Rare or better.{demo ? " Demo luck is on." : ""}</small>
     </div>
@@ -151,14 +145,13 @@ export function OpenHome() {
   const c = counts();
   const kinds: Kind[] = ["std"];
   if (c.gold) kinds.push("gold");
-  if (c.myth) kinds.push("myth");
   if (s.account.admin) kinds.push("test");
-  const cur: Kind = kinds.includes(k) ? k : c.std ? "std" : c.gold ? "gold" : c.myth ? "myth" : "std";
+  const cur: Kind = kinds.includes(k) ? k : c.std ? "std" : c.gold ? "gold" : "std";
   kind = cur;
   const n = c[cur], left = usable(s.pending) ? s.pending : null;
   const go = () => {
     if (left) return openFlow(left);
-    if (!n) { sfx.tick(); nudge(btn.current); return toast(c.std + c.gold + c.myth ? "None of those left." : "Out of packs for now.", true, 1800); }
+    if (!n) { sfx.tick(); nudge(btn.current); return toast(c.std + c.gold ? "None of those left." : "Out of packs for now.", true, 1800); }
     sfx.pick();
     openFlow();
   };
@@ -241,7 +234,7 @@ function Flow({ resume }: { resume?: Opening }) {
   const go = (p: Phase) => { ph.current = p; setPhase(p); };
   // A pack picked up again after a reload looks like the one that was opened, not like the last stack picked.
   const [k0] = useState(() => {
-    if (resume) kind = !resume.boosted ? "std" : resume.cards.filter((c) => c.tier === "mythic").length >= 3 ? "myth" : "gold";
+    if (resume) kind = resume.boosted ? "gold" : "std";
     return kind;
   });
   const kr = useRef<Kind>(k0);
@@ -266,7 +259,8 @@ function Flow({ resume }: { resume?: Opening }) {
   const [say, setSay] = useState<{ text: string; n: number } | null>(null);
   const [skipped, setSkipped] = useState<Deal | null>(null);
   const op = useRef<{ id: number; sets: string[] } | null>(resume ? { id: resume.id, sets: resume.sets } : null);
-  /** The pack in hand: its cards, known (with their serial numbers) from the moment it's picked up. */
+  /** The pack in hand: picking it up opens it on the server, so its cards (with their serial numbers) are known from
+      then on. */
   const hand = useRef<{ n: number; cards?: { num: number; tier: Tier; serial?: number }[] }>({ n: 0 });
   /** Those cards as they'll be dealt, drawn out of sight while the pack is in your hand, so the WebGL opening's
       pictures of them are made before the tear. */
@@ -333,8 +327,9 @@ function Flow({ resume }: { resume?: Opening }) {
 
   // ----- the pack in your hand -----
   const outOfPacks = () => { back(); toast("Out of packs", true, 2000); sync(); };
-  /** Picking up a pack asks the server to decide its cards (they stay fixed if you put it back). Only the best rarity
-      comes back, so the glow while you swipe tells the truth without spoiling the cards. */
+  /** Picking up a pack opens it: the server rolls it and records the opening now, so there's no putting it back. Leaving
+      before the tear is fine: the Open tab offers to finish it. The cards come back straight away, so the glow while
+      you swipe tells the truth, and their photos and pictures get ready before the tear. */
   function pickUp() {
     const n = ++hand.current.n, kk = kr.current;
     hand.current.cards = undefined;
@@ -351,9 +346,10 @@ function Flow({ resume }: { resume?: Opening }) {
       api.admin.testPack(PACK, false).then((r) => { if (n === hand.current.n) got(r.cards); }, fail);
       return;
     }
-    api.hand(PACK, ...flags(kk)).then((r) => {
-      if (n !== hand.current.n) return;
-      if (r.cards?.length === 5) got(r.cards); else setBest(r.best);
+    startOpen().then((r) => {
+      if (n !== hand.current.n || !alive.current) return;
+      if (r.state) applyState(r.state);
+      if (usable(r.opening)) { op.current = { id: r.opening.id, sets: r.opening.sets }; got(r.opening.cards); }
     }, (e) => { if (n === hand.current.n && e?.code === "no_packs") outOfPacks(); });
   }
   /** The pack in hand's cards as they'll be dealt: new or another copy, by what you have now (the server's answer
@@ -379,16 +375,15 @@ function Flow({ resume }: { resume?: Opening }) {
         openReq.current = cs?.length === 5
           ? Promise.resolve({ opening: { id: 0, pack: PACK, revealed: 0, sets: [], cards: cs.map((c) => ({ ...c, serial: 0, isNew: false, copy: 0, test: true })) }, state: null, streakReward: false })
           : Promise.reject(new Error("The test pack isn't ready yet. Try again."));
-      } else openReq.current = api.open(PACK, ...flags(kk)) as Promise<Result>;
+      } else openReq.current = api.open(PACK, kk === "gold") as Promise<Result>;
       openReq.current.catch(() => {});
       openReq.current.then((r) => photosReady(r.opening.cards.map((c) => c.num), 0), () => {});
     }
     return openReq.current;
   };
-  /** A full swipe (or the Open button). The pack was minted when it was picked up, so its cards are already known
-      (and their photos and pictures ready): it bursts open and they rise out straight away, while the server records
-      the opening. Without them (an answer still on its way), it bursts by the best card's rarity and the cards rise
-      when the server's answer is in. */
+  /** A full swipe (or the Open button). The pack was opened on the server when it was picked up, so its cards are
+      usually known already (and their photos and pictures ready): it bursts open and they rise out straight away.
+      Without them (the answer still on its way), the cards rise when it's in. */
   const cut = async () => {
     if (ph.current !== "hold") return;
     go("cutting");
@@ -650,12 +645,12 @@ function Flow({ resume }: { resume?: Opening }) {
       });
     }
   }, [phase]);
-  const left = () => { const c = counts(); return kr.current === "test" ? 1 : c.std + c.gold + c.myth; };
+  const left = () => { const c = counts(); return kr.current === "test" ? 1 : c.std + c.gold; };
   /** Another pack of the same kind, or the other kind when that ran out. */
   const again = () => {
     const c = counts();
     let nk = kr.current;
-    if (nk !== "test" && !c[nk]) nk = c.std ? "std" : c.gold ? "gold" : c.myth ? "myth" : nk;
+    if (nk !== "test" && !c[nk]) nk = c.std ? "std" : c.gold ? "gold" : nk;
     if (nk !== "test" && !c[nk]) return back();
     kind = kr.current = nk;
     setDeck(null); setIdx(0); at.current = 0; setUp([]); setPromo([]); setGone([]); setSkipped(null); setRay("");
@@ -663,15 +658,14 @@ function Flow({ resume }: { resume?: Opening }) {
     if (prefs.get().wheel2) { setTorn(false); setDropping(false); go("wheel"); } else toHand(null);
   };
 
-  /** Back from the pack in your hand: a pack torn far enough to open gets opened. */
-  const holdBack = () => (openReq.current ? cut() : prefs.get().wheel2 ? go("wheel") : back());
   /** Open without swiping. Turned over? Face it first, then tear it. */
   const openNow = () => { if (holdApi.front && !holdApi.front()) { holdApi.face?.(); later(350, cut); } else cut(); };
-  // A controller: A opens or deals, X turns the pack over, Y reveals the rest, B puts the pack back.
+  // A controller: A (or B) opens or deals, X turns the pack over, Y reveals the rest. A picked-up pack is already
+  // opened, so there's no putting it back.
   usePad((b) => {
     const p = ph.current;
     if (p === "hold") {
-      if (b === "a") openNow(); else if (b === "x") holdApi.turn?.(); else if (b === "b") holdBack(); else return false;
+      if (b === "a" || b === "b") openNow(); else if (b === "x") holdApi.turn?.(); else return false;
       return true;
     }
     if (p === "stack") {
@@ -743,7 +737,7 @@ function Flow({ resume }: { resume?: Opening }) {
         )}
       </div>
       <div class="op-foot">
-        {phase === "hold" && <HoldButtons onBack={holdBack} onOpen={openNow} />}
+        {phase === "hold" && <HoldButtons onOpen={openNow} />}
         {phase === "stack" && deck && (
           <>
             <p class="op-capline">{top && isUp(idx) ? <><b style={{ color: TIERS[top.tier].color }}>{TIERS[top.tier].label}</b>{top.isNew && !top.test ? " · New" : ""}</> : " "}</p>
@@ -1067,10 +1061,9 @@ function Hold(p: HoldProps) {
   );
 }
 
-function HoldButtons({ onBack, onOpen }: { onBack: () => void; onOpen: () => void }) {
+function HoldButtons({ onOpen }: { onOpen: () => void }) {
   return (
     <div class="op-holdbtns">
-      <button type="button" class="s-btn ghost small" onClick={onBack}>Back</button>
       <button type="button" class="s-btn ghost small" onClick={() => holdApi.turn?.()}>Turn over</button>
       <button type="button" class="s-btn small" onClick={onOpen}>Open</button>
     </div>

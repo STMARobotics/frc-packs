@@ -38,13 +38,14 @@ add up.
 
 | pk | sk | What |
 | --- | --- | --- |
-| `U#<id>` | `PROFILE` | username, password hash, admin, disabled, first name, badge, parts, next free pack, streak, level, showcase, pending opening, `ver`. GSI1 `USERS` (every account). |
+| `U#<id>` | `PROFILE` | username, password hash, admin, disabled, first name, badge, parts, next free pack, streak, level, showcase, pending opening, trade intake, Tripwire's `packs_in` (the last hour's packs, for the intake alarm), `flagged` / `flagged_at` / `flag_mode`, sign-up address, `ver`. GSI1 `USERS` (every account). |
 | `NAME#<lowercase name>` | `NAME` | the account id, for sign-in and uniqueness |
-| `S#<token hash>` | `SESSION` | the account id; expires after 400 days (TTL). GSI2 `U#<id>` lists an account's sessions. |
+| `S#<token hash>` | `SESSION` | the account id and the address it signed in from; expires after 400 days (TTL). GSI2 `U#<id>` lists an account's sessions. |
 | `INV#<code>` | `INVITE` | note, max uses, uses, who used it. GSI1 `INVITES`. |
-| `U#<id>` | `PACK#<pack>` | sealed, boosted, mythic, opened, pity counters |
-| `U#<id>` | `HAND#<pack>#<0/1>` | the pack picked up but not opened (its rolled cards) |
-| `U#<id>` | `OPEN#<id>` | an opened pack: which, cards revealed so far, sets it finished |
+| `U#<id>` | `PACK#<pack>` | sealed, boosted, opened, pity counters |
+| `U#<id>` | `HAND#<pack>#<0/1/2>` | legacy: a pack picked up before picking up and opening became one step. Nothing writes these now; the next open releases its serials and deletes it. |
+| `U#<id>` | `RIG#<pack>` | dev tools only (tests): the cards the next pack opens with. Ignored unless `DEV_TOOLS` is on. |
+| `U#<id>` | `OPEN#<id>` | an opened pack: which, cards revealed so far, sets it finished, and (for Tripwire's luck check) the pity meter it was rolled with and how many Mythics it held |
 | `U#<id>` | `CARD#<pack>#<team>#<card id>` | one copy: tier, serial, opening, how it was got. Sorted by team, then age, so "the first copy" is the first one. |
 | `U#<id>` | `STATS#<pack>` | distinct teams, cards, Mythic and Legendary teams, finished trades (profile and social lists) |
 | `U#<id>` | `SET#<pack>#<division>` | a finished division set |
@@ -58,12 +59,17 @@ add up.
 | `FEED#<pack>` | `<time>#…` | the Social feed: big pulls, finished sets, finished trades (expires after 30 days) |
 | `REPORT#<id>` | `REPORT` | a report. GSI1 `REPORTS` while unresolved; GSI2 `RB#<reporter>` for the daily limit. |
 | `SP#<id>` | `SPECIAL` | a special edition copy. GSI2 `U#<owner>`, GSI1 `SPE#<edition>`. |
+| `SETTINGS` | `HIST#<time>` | every saved version of the free-pack rules, for Tripwire's timer check |
 | `SETTINGS` | `SETTINGS` | the free-pack rules, the push signing key, and the admin's rarity changes (`tier_overrides`, `tiers_ver`, and the parts and note chosen for the last change) |
 | `PUSH#<endpoint hash>` | `PUSH` | a device's push subscription. GSI2 `U#<id>`. |
 | `CTR` | `CTR` | counters for card, opening, trade, report and special ids |
 | `BG#<id>` | `GAME` | a Battler game, whole, as JSON in `state`, with `ver` (every change is conditioned on it). While waiting for a second player: GSI1 `BGQUICK` for a Quick Play game (the queue), `BGOPEN` for one from before Quick Play; a private game is in no index. |
 | `BGCODE#<code>` | `CODE` | the private Battler game a match code invites to (`game`). |
-| `BG#<id>` | `WAGER` | a private Battler game's wager: both stakes, who accepted, what's in escrow (exact cards), `status` (open, locked, settled, returned), `ver`. Special editions in escrow have the nil owner. |
+| `BG#<id>` | `WAGER` | a private Battler game's wager: both stakes, who accepted, what's in escrow (exact cards), `status` (open, locked, settled, returned), when it locked and finished and how the match ended, `ver`. Special editions in escrow have the nil owner. |
+| `AC#CONFIG` | `CONFIG` | Tripwire's settings (shadow flags on or off) |
+| `AC#LOG` | `<time>#…` | Tripwire's action log: every flag, clear, reversal and settings change, and who did it |
+| `AC#WATCH#<id>` | `<time>#…` | a flagged player's watch log: each trade and wager since (expires after 30 days) |
+| `AC#CANARY` | `<time>#…` | a call to a retired endpoint: path, player, address (expires after 30 days) |
 | `U#<id>` | `BTACTIVE` | the Battler game a player is in (one at a time) |
 | `U#<id>` | `BTPROF` | Battler rating and record |
 | `U#<id>` | `BTDECK#<deck>` | a saved Battler deck |

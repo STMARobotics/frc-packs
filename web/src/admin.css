@@ -113,3 +113,32 @@ a.cta { text-decoration: none; display: inline-block; }
 .tier-preview { display: grid; gap: 6px; }
 .tpv { font-size: 13px; border-left: 3px solid #ffcf5a; padding-left: 10px; }
 .tpv small { color: var(--ink-dim); }
+
+/* Tripwire, the anticheat */
+.badge.warn { color: #ffd98a; border-color: rgba(255,200,110,.45); }
+.tw-row { display: grid; gap: 8px; }
+.tw-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.tw-score { min-width: 2.4em; text-align: center; font: 800 13px var(--body); border-radius: 8px; padding: 3px 6px; border: 1px solid var(--line); }
+.tw-score.high { color: #ffb4a2; border-color: rgba(255,140,120,.55); background: rgba(255,120,100,.1); }
+.tw-score.mid { color: #ffd98a; border-color: rgba(255,200,110,.45); }
+.tw-score.low { color: var(--ink-dim); }
+.tw-find { display: grid; gap: 2px; font-size: 13px; }
+.tw-find ul { margin: 0; padding-left: 18px; color: var(--ink-dim); }
+.tw-check { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink); }
+.tw-row .mrow .input[type="datetime-local"] { width: auto; }
+.tw-clean { color: var(--tide); font-weight: 600; margin: 0; }
+.tw-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tw-tabs button { background: transparent; border: 1px solid var(--line); color: var(--ink-dim); border-radius: 99px; padding: 6px 12px; font: 700 12px var(--body); cursor: pointer; }
+.tw-tabs button[aria-selected="true"] { color: var(--ink); border-color: var(--tide); background: rgba(39,211,195,.12); }
+#twBody { display: grid; gap: 10px; }
+.tw-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+.tw-stat { display: grid; gap: 2px; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+.tw-stat b { font: 400 26px var(--display); color: var(--foam); }
+.tw-stat span { font-size: 12px; color: var(--ink-dim); }
+.tw-stat.warn b { color: #ffd98a; }
+.tw-h { margin: 6px 0 0; font: 700 12px var(--body); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-dim); }
+.tw-activity { margin: 0; padding-left: 18px; font-size: 13px; }
+.tw-setting { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+.tw-setting input { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--tide); }
+.tw-setting span { display: grid; gap: 3px; }
+.tw-setting small { color: var(--ink-dim); font-size: 12px; line-height: 1.45; }

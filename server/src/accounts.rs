@@ -174,7 +174,7 @@ pub fn create(tx: &mut Tx, p: &mut Profile, start_pack: &str, start_packs: i32) 
     claim_name(tx, p.id, p.username.as_deref().unwrap_or_default());
     let before = PackRow::new(start_pack);
     let after = PackRow { sealed: start_packs, ..before.clone() };
-    model::save_pack(tx, p.id, &before, &after, "new account");
+    model::save_pack(tx, p, &before, &after, "new account");
     model::save_user(tx, p, 0, "new account");
 }
 
@@ -208,13 +208,15 @@ pub async fn by_name(db: &Db, name: &str) -> DbResult<Option<Profile>> {
     model::profile(db, id).await
 }
 
-/// Signs the account in on one more device (in the transaction) and returns the cookie token.
-pub fn new_session(tx: &mut Tx, user: Uuid) -> String {
+/// Signs the account in on one more device (in the transaction) and returns the cookie token. `visitor` (see
+/// `auth::visitor`) is kept with the session, so the anticheat can link accounts used from the same place.
+pub fn new_session(tx: &mut Tx, user: Uuid, visitor: &str) -> String {
     let token = auth::new_token();
     let now = now_ms();
     let mut it = key(auth::session_pk(&token), "SESSION");
     it.insert("user_id".into(), s(user.to_string()));
     it.insert("created_at".into(), n(now));
+    it.insert("visitor".into(), s(visitor));
     it.insert("expires_at".into(), n(now / 1000 + auth::SESSION_DAYS * 86_400));
     it.insert("gsi2pk".into(), s(model::upk(user)));
     it.insert("gsi2sk".into(), s(format!("SESSION#{now}")));

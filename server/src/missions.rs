@@ -82,6 +82,13 @@ const MISSIONS: [Mission; 19] = [
     ("open10", "Open 10 packs", Kind::Opened, 10, 180),
 ];
 
+/// The most parts a day's missions can pay (the best possible day), for the anticheat's supply check.
+pub fn max_daily_parts() -> i64 {
+    let mut r: Vec<i64> = MISSIONS.iter().map(|m| i64::from(m.4)).collect();
+    r.sort_unstable_by(|a, b| b.cmp(a));
+    r.iter().take(PER_DAY).sum()
+}
+
 /// A mission worth this many parts or more is a challenge; every day has one.
 const CHALLENGE: i32 = 100;
 

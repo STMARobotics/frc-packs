@@ -73,12 +73,34 @@ pub struct Profile {
     /// Packs and parts taken in through trades lately (the last 24 hours count against the daily limit).
     #[serde(default)]
     pub intake: Vec<Intake>,
+    /// Packs taken in during the last hour, from any source, for the anticheat's intake alarm.
+    #[serde(default)]
+    pub packs_in: Vec<PackIn>,
+    /// Why the anticheat flagged this player, if it has: trading and wagering are paused until an admin clears it.
+    #[serde(default)]
+    pub flagged: Option<String>,
+    #[serde(default)]
+    pub flagged_at: Option<i64>,
+    /// "shadow" (silent, watched) or "paused" (no trading or wagering); None follows Tripwire's setting.
+    #[serde(default)]
+    pub flag_mode: Option<String>,
+    /// Where the account was made from (the visitor's address as CloudFront reports it), for linking alts.
+    #[serde(default)]
+    pub signup_visitor: Option<String>,
     pub ver: i64,
     // Index: every account, oldest first.
     #[serde(default)]
     pub gsi1pk: String,
     #[serde(default)]
     pub gsi1sk: String,
+}
+
+/// Packs taken in at one moment, and why (the ledger reason).
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+pub struct PackIn {
+    pub at: i64,
+    pub n: i64,
+    pub reason: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
@@ -130,9 +152,6 @@ pub struct PackRow {
     /// How many of the sealed packs are boosted.
     #[serde(default)]
     pub boosted: i32,
-    /// How many of the boosted packs are Mythic packs.
-    #[serde(default)]
-    pub mythic: i32,
     #[serde(default)]
     pub opened: i32,
     #[serde(default)]
@@ -161,15 +180,12 @@ pub async fn pack_row(db: &Db, user: Uuid, pack: &str) -> DbResult<PackRow> {
 }
 
 /// Writes a player's pack counts, with ledger lines for any change in standard or boosted sealed packs. Only within a
-/// transaction that also saves the player (so it's lined up with their other changes).
-pub fn save_pack(tx: &mut Tx, user: Uuid, before: &PackRow, after: &PackRow, reason: &str) {
-    assert!(
-        after.sealed >= 0
-            && after.boosted >= 0
-            && after.boosted <= after.sealed
-            && after.mythic >= 0
-            && after.mythic <= after.boosted
-    );
+/// transaction that also saves the player, after this (so it's lined up with their other changes, and the anticheat's
+/// intake alarm, which this runs on `p`, is saved with them).
+pub fn save_pack(tx: &mut Tx, p: &mut Profile, before: &PackRow, after: &PackRow, reason: &str) {
+    assert!(after.sealed >= 0 && after.boosted >= 0 && after.boosted <= after.sealed);
+    crate::anticheat::packs_in(p, now_ms(), i64::from(after.sealed - before.sealed), reason);
+    let user = p.id;
     tx.put(item(upk(user), format!("PACK#{}", after.pack), after));
     if after.standard() != before.standard() {
         ledger(tx, user, "packs", i64::from(after.standard() - before.standard()), Some(after.pack.clone()), reason);
@@ -253,6 +269,15 @@ pub struct Opening {
     #[serde(default)]
     pub boosted: bool,
     pub opened_at: i64,
+    /// The pity meter this pack was rolled with (packs since the last Mythic, and since the last Legendary or better).
+    /// None for openings from before it was recorded.
+    #[serde(default)]
+    pub pity_m: Option<i32>,
+    #[serde(default)]
+    pub pity_l: Option<i32>,
+    /// How many Mythics it held, with the rarities as they were when it was opened (rarities can change later).
+    #[serde(default)]
+    pub mythics: Option<i32>,
 }
 
 pub fn open_sk(id: i64) -> String {

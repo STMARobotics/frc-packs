@@ -22,13 +22,13 @@ let mine: Promise<Mine> | null = null;
 function loadMine(): Promise<Mine> {
   mine ??= (async () => {
     const [s, col, sp] = await Promise.all([
-      call<{ parts: number; boostCost: number; scrapParts: Record<string, number>; favorites?: number[]; packs: { id: string; sealed: number; boosted: number; mythic: number }[] }>("GET", "/api/state"),
+      call<{ parts: number; boostCost: number; scrapParts: Record<string, number>; favorites?: number[]; packs: { id: string; sealed: number; boosted: number }[] }>("GET", "/api/state"),
       call<{ cards: { num: number; serials: number[] }[] }>("GET", `/api/collection/${PACK}`),
       call<{ id: number; title: string; serial: number; total: number }[]>("GET", "/api/specials"),
     ]);
-    const p = s.packs.find((x) => x.id === PACK) ?? { sealed: 0, boosted: 0, mythic: 0 };
+    const p = s.packs.find((x) => x.id === PACK) ?? { sealed: 0, boosted: 0 };
     return {
-      parts: s.parts, standard: p.sealed - p.boosted, boosted: p.boosted - p.mythic, boostCost: s.boostCost, scrap: s.scrapParts,
+      parts: s.parts, standard: p.sealed - p.boosted, boosted: p.boosted, boostCost: s.boostCost, scrap: s.scrapParts,
       cards: col.cards.filter((c) => c.serials.length).map((c) => ({ num: c.num, count: c.serials.length })), kept: new Set(s.favorites ?? []), specials: sp,
     };
   })().catch((e) => { mine = null; throw e; });

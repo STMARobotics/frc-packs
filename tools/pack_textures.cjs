@@ -9,7 +9,7 @@ const path = require('node:path');
 
 const BASE = process.argv[2] || 'http://127.0.0.1:3000';
 const OUT = path.join(__dirname, '..', 'web', 'public', 'gl');
-const KINDS = ['std', 'gold', 'myth', 'test'];
+const KINDS = ['std', 'gold', 'test'];
 const FW = 600, FH = 912; // one face (the pack is 5 by 7.6)
 
 async function signUp() {
@@ -39,7 +39,7 @@ async function signUp() {
   const shelf = async (route) => {
     const r = await route.fetch(), s = await r.json();
     s.account.admin = true;
-    s.packs = [{ id: 'cmp26', sealed: 9, boosted: 6, mythic: 3, opened: 0, pity: { m: 0, l: 0 } }];
+    s.packs = [{ id: 'cmp26', sealed: 9, boosted: 6, opened: 0, pity: { m: 0, l: 0 } }];
     s.pending = null;
     await route.fulfill({ response: r, json: s });
   };

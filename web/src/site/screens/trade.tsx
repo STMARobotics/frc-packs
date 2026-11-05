@@ -348,7 +348,7 @@ function Picker({ side, start }: { side: "give" | "get"; start: "cards" | "goods
     sfx.pick();
   });
 
-  const max: Goods | null = mine ? { packs: packOf(s).sealed - packOf(s).boosted, boosted: packOf(s).boosted - packOf(s).mythic, parts: s.parts } : d.theirGoods;
+  const max: Goods | null = mine ? { packs: packOf(s).sealed - packOf(s).boosted, boosted: packOf(s).boosted, parts: s.parts } : d.theirGoods;
   const goods = mine ? d.giveGoods : d.getGoods;
   const setGoods = (k: keyof Goods, v: number) => edit((x) => { (mine ? x.giveGoods : x.getGoods)[k] = Math.max(0, Math.min(v, max?.[k] ?? 0, k === "parts" ? 100000 : 50)); });
   const specs = mine ? specialsMine : d.theirSpecials;

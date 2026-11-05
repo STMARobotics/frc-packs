@@ -33,7 +33,7 @@ pub struct Stake {
     /// Standard sealed packs.
     #[serde(default)]
     pub packs: i32,
-    /// Boosted sealed packs (not Mythic packs).
+    /// Boosted sealed packs.
     #[serde(default)]
     pub boosted: i32,
     /// Cards, by team: one copy per entry (a team listed twice is two copies).
@@ -89,6 +89,14 @@ pub struct Wager {
     pub held: [Held; 2],
     #[serde(default)]
     pub winner: Option<usize>,
+    /// When both stakes went into escrow, and when it was paid out (ms).
+    #[serde(default)]
+    pub locked_at: Option<i64>,
+    #[serde(default)]
+    pub finished_at: Option<i64>,
+    /// How the match ended: "complete", "forfeit", "timeout", or "cancelled".
+    #[serde(default)]
+    pub ended: Option<String>,
     #[serde(default)]
     pub ver: i64,
 }
@@ -131,14 +139,32 @@ pub async fn check(db: &Db, pack: &str, p: &Profile, stake: &Stake) -> ApiResult
     if stake.is_empty() {
         return Ok(());
     }
+    crate::anticheat::gate(
+        db,
+        p,
+        true,
+        &format!("staked {} parts, {} packs, {} boosted, {} cards", stake.parts, stake.packs, stake.boosted, stake.teams.len()),
+    )
+    .await?;
     if stake.has_goods() && too_new(p) {
         return Err(err("too_new"));
     }
-    if stake.parts < 0 || stake.packs < 0 || stake.boosted < 0 || stake.teams.len() > MAX_CARDS {
+    if stake.parts < 0
+        || stake.packs < 0
+        || stake.boosted < 0
+        || stake.teams.len() > MAX_CARDS
+        || stake.parts > i64::from(crate::trades::MAX_PARTS)
+        || stake.packs > crate::trades::MAX_PACKS
+        || stake.boosted > crate::trades::MAX_PACKS
+    {
         return Err(ApiError::new(StatusCode::BAD_REQUEST, "bad_stake"));
     }
+    // A brand-new account can't stake cards either (alts can't throw a match to pass on their first pack).
+    if (!stake.teams.is_empty() || !stake.specials.is_empty() || stake.pink) && too_new(p) {
+        return Err(err("too_new"));
+    }
     let row = model::pack_row(db, p.id, pack).await?;
-    if stake.parts > p.parts || stake.packs > row.standard() || stake.boosted > row.boosted - row.mythic {
+    if stake.parts > p.parts || stake.packs > row.standard() || stake.boosted > row.boosted {
         return Err(err("not_enough"));
     }
     let specials: HashSet<i64> = stake.specials.iter().copied().collect();
@@ -218,7 +244,7 @@ async fn side(db: &Db, uid: Uuid, pack: &str) -> ApiResult<Side> {
 }
 
 fn save_side(tx: &mut Tx, s: &mut Side, pack: &str, reason: &str) {
-    model::save_pack(tx, s.p.id, &s.row_before, &s.row, reason);
+    model::save_pack(tx, &mut s.p, &s.row_before, &s.row, reason);
     model::save_stats(tx, s.p.id, pack, &s.stats);
     let before = s.parts_before;
     model::save_user(tx, &mut s.p, before, reason);
@@ -236,7 +262,7 @@ pub async fn escrow(
 ) -> ApiResult<()> {
     for (uid, h) in users.iter().zip(held) {
         let mut s = side(db, *uid, pack).await?;
-        if h.parts > s.p.parts || h.packs > s.row.standard() || h.boosted > s.row.boosted - s.row.mythic {
+        if h.parts > s.p.parts || h.packs > s.row.standard() || h.boosted > s.row.boosted {
             return Err(err("not_enough"));
         }
         for c in &h.cards {
@@ -259,15 +285,29 @@ pub async fn escrow(
 /// Gives what's in escrow out once the match is over: everything to `winner`, or (a draw, a match called off) each
 /// stake back to its owner. Safe to call more than once: only a locked wager is paid out, and paying it out unlocks it
 /// in the same write.
-pub async fn settle(db: &Db, pack: &str, game: &str, users: [Uuid; 2], winner: Option<usize>) -> ApiResult<()> {
+pub async fn settle(
+    db: &Db,
+    pack: &str,
+    game: &str,
+    users: [Uuid; 2],
+    winner: Option<usize>,
+    ended: &str,
+) -> ApiResult<()> {
     for _ in 0..6 {
         let Some(mut w) = load(db, game).await?.filter(|w| w.status == "locked") else { return Ok(()) };
         let reason = format!("wager {game}");
         let now = now_ms();
-        // Everything going to each player, so each player's records are written once.
+        // Everything going to each player, so each player's records are written once. What a player wins from the
+        // other one counts toward their daily intake, the same as goods from a trade.
         let mut gets: HashMap<Uuid, Held> = HashMap::new();
+        let mut won: HashMap<Uuid, (i64, i64)> = HashMap::new();
         for (from, h) in w.held.iter().enumerate() {
             let to = users[winner.unwrap_or(from)];
+            if to != users[from] {
+                let e = won.entry(to).or_default();
+                e.0 += i64::from(h.packs + h.boosted);
+                e.1 += h.parts;
+            }
             let g = gets.entry(to).or_default();
             g.parts += h.parts;
             g.packs += h.packs;
@@ -292,11 +332,16 @@ pub async fn settle(db: &Db, pack: &str, game: &str, users: [Uuid; 2], winner: O
             s.p.parts += g.parts;
             s.row.sealed += g.packs + g.boosted;
             s.row.boosted += g.boosted;
+            if let Some((packs, parts)) = won.get(uid) {
+                s.p.take_in(now, *packs, *parts);
+            }
             crate::specials::move_all(&mut tx, &g.specials, ESCROW, *uid);
             save_side(&mut tx, &mut s, pack, &reason);
         }
         w.status = if winner.is_some() { "settled" } else { "returned" }.into();
         w.winner = winner;
+        w.finished_at = Some(now);
+        w.ended = Some(ended.to_string());
         put(&mut tx, &mut w);
         match tx.commit(db).await {
             Ok(()) => return Ok(()),

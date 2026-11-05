@@ -103,15 +103,16 @@ pub fn routes() -> Router<Shared> {
         .route("/state", get(state))
         .route("/notice/seen", post(notice_seen))
         .route("/claim", post(claim))
-        .route("/hand", post(hand))
         .route("/open", post(open))
         .route("/openings/{id}/progress", post(progress))
         .route("/collection/{pack}", get(collection))
-        .route("/craft/mythic", post(craft_mythic))
         .route("/scrap", post(scrap))
         .route("/copies/{pack}/{num}", get(copies))
         .route("/scrap/extras", post(scrap_extras))
         .route("/craft", post(craft))
+        // Retired: picking up is opening now, and Mythic packs are gone. Tripwire's canaries.
+        .route("/hand", post(crate::anticheat::canary))
+        .route("/craft/mythic", post(crate::anticheat::canary))
         .route("/dev/demo", post(dev_demo))
         .route("/dev/pack", post(dev_pack))
         .route("/dev/skip-timer", post(dev_skip_timer))
@@ -267,8 +268,6 @@ struct PackState {
     sealed: i32,
     /// How many of the sealed packs are boosted (they open first).
     boosted: i32,
-    /// How many of the boosted packs are Mythic packs (three Mythics each).
-    mythic: i32,
     opened: i32,
     pity: PityOut,
 }
@@ -299,27 +298,22 @@ struct OpeningOut {
     revealed: i32,
     cards: Vec<CardOut>,
     sets: Vec<String>,
-    /// A boosted (or Mythic) pack, so a pack picked up again looks like the one that was opened.
+    /// A boosted pack, so a pack resumed after a reload looks like the one that was opened.
     boosted: bool,
 }
 
 #[derive(Deserialize)]
 struct PackReq {
     pack: String,
-    /// Which kind to pick up or open: true for a boosted pack, false for a standard one. Left out, boosted packs go
-    /// first.
+    /// Which kind to open: true for a boosted pack, false for a standard one. Left out, boosted packs go first.
     #[serde(default)]
     boosted: Option<bool>,
-    /// Open a Mythic pack (a boosted pack with three Mythics) instead.
-    #[serde(default)]
-    mythic: bool,
 }
 
-/// The kind of pack to pick up or open (true = boosted), if the player has one of that kind.
+/// The kind of pack to open (true = boosted), if the player has one of that kind.
 fn pack_kind(up: &PackRow, asked: Option<bool>) -> ApiResult<bool> {
     let standard = up.sealed - up.boosted;
-    // Mythic packs are counted inside `boosted` but are opened on purpose, never by default.
-    let boosted = up.boosted - up.mythic;
+    let boosted = up.boosted;
     match asked {
         Some(true) if boosted > 0 => Ok(true),
         Some(false) if standard > 0 => Ok(false),
@@ -336,14 +330,13 @@ pub(crate) async fn pack(s: &Shared, id: &str) -> ApiResult<crate::packs::PackRe
 
 /// What a pack opened now rolls with: the player's meters, their first pack, and the kind of pack. Demo luck only
 /// counts on a server with DEV_TOOLS on, whatever the profile says.
-async fn opts_for(s: &Shared, p: &Profile, up: &PackRow, boosted: bool, mythic: bool) -> ApiResult<Opts> {
+async fn opts_for(s: &Shared, p: &Profile, up: &PackRow, boosted: bool) -> ApiResult<Opts> {
     let opened_any: i32 = model::packs(&s.db, p.id).await?.iter().map(|r| r.opened).sum();
     Ok(Opts {
         demo: p.demo && s.dev_tools,
         first: opened_any == 0,
         pity: Pity { m: up.pity_m.max(0) as u32, l: up.pity_l.max(0) as u32 },
         boosted,
-        mythic,
     })
 }
 
@@ -401,7 +394,6 @@ pub async fn load_state(s: &Shared, user: Uuid) -> ApiResult<StateOut> {
                 id: pk.id().to_string(),
                 sealed: r.sealed,
                 boosted: r.boosted,
-                mythic: r.mythic,
                 opened: r.opened,
                 pity: PityOut { m: r.pity_m, l: r.pity_l },
             }
@@ -545,6 +537,7 @@ async fn signup(
     let mut tx = Tx::new();
     let mut p = accounts::new_profile(username, &password_hash, Some(&code), false);
     p.first_name = Some(first_name.to_string());
+    p.signup_visitor = Some(auth::visitor(&headers));
     accounts::create(&mut tx, &mut p, s.catalog().await.claimable().id(), start);
     // The invite's last use can only be taken once.
     tx.update(
@@ -557,7 +550,7 @@ async fn signup(
             .val(":me", aws_sdk_dynamodb::types::AttributeValue::L(vec![sv(p.id.to_string())])),
         Some("attribute_exists(pk) AND uses < max_uses"),
     );
-    let token = accounts::new_session(&mut tx, p.id);
+    let token = accounts::new_session(&mut tx, p.id, &auth::visitor(&headers));
     match tx.commit(&s.db).await {
         Ok(()) => {}
         Err(DbError::Conflict("name")) => return Err(err(StatusCode::CONFLICT, "username_taken")),
@@ -619,7 +612,7 @@ async fn login(
         s.db.delete(&auth::session_pk(&old), "SESSION").await?;
     }
     let mut tx = Tx::new();
-    let token = accounts::new_session(&mut tx, p.id);
+    let token = accounts::new_session(&mut tx, p.id, &auth::visitor(&headers));
     tx.commit(&s.db).await?;
     crate::retier::ensure(&s, p.id).await?;
     crate::announce::ensure(&s, p.id).await?;
@@ -807,7 +800,7 @@ async fn claim(State(s): State<Shared>, user: User) -> ApiResult<Json<StateOut>>
         let mut day = model::today(&s.db, user.id).await?;
         crate::missions::count(&mut day, crate::missions::Kind::Claimed, i64::from(total));
         let mut tx = Tx::new();
-        model::save_pack(&mut tx, user.id, &before, &after, "claim");
+        model::save_pack(&mut tx, &mut p, &before, &after, "claim");
         model::save_day(&mut tx, user.id, &mut day);
         let parts = p.parts;
         model::save_user(&mut tx, &mut p, parts, "claim");
@@ -816,44 +809,20 @@ async fn claim(State(s): State<Shared>, user: User) -> ApiResult<Json<StateOut>>
     state_json(&s, user.id).await
 }
 
-// ---------- picking up and opening packs ----------
+// ---------- opening packs ----------
 
-#[derive(Serialize)]
-struct HandOut {
-    best: Tier,
-    /// The pack in hand is a boosted one.
-    boosted: bool,
-    /// Its cards, best last, with the serial numbers they were minted with. Sent only now, when the pack is picked up:
-    /// from here on it's the next pack of its kind the player opens (trading, wagering or putting it back doesn't
-    /// change that), so knowing them changes nothing, and the opening can be ready before the tear.
-    cards: Vec<HeldOut>,
-}
-
-#[derive(Serialize)]
-struct HeldOut {
-    num: i32,
-    tier: Tier,
-    serial: i32,
-}
-
-/// The pack in hand of each kind: 0 standard, 1 boosted, 2 Mythic.
-fn hand_sk(pack: &str, kind: u8) -> String {
-    format!("HAND#{pack}#{kind}")
-}
-
-/// A pack in hand as stored: its cards, best last, and the serial numbers minted for them. A pack picked up before
-/// serials were minted at pick-up has none; it gets them when it's next picked up, or when it's opened.
+/// A pack in hand, left from before picking up and opening became one step (`HAND#<pack>#<kind>`): its cards, best
+/// last, and the serial numbers minted for them (none if it was picked up before serials were minted at pick-up).
+/// Nothing makes these any more; opening a pack, an admin deleting the account, or a rarity change releases them.
 struct Held {
-    raw: String,
     cards: Vec<Rolled>,
     serials: Option<Vec<i32>>,
 }
 
 fn held_from(it: &crate::db::Item) -> Held {
-    let raw = get_s(it, "cards").unwrap_or_default();
-    let cards = serde_json::from_str(&raw).unwrap_or_default();
+    let cards = get_s(it, "cards").and_then(|v| serde_json::from_str(&v).ok()).unwrap_or_default();
     let serials = get_s(it, "serials").and_then(|v| serde_json::from_str::<Vec<i32>>(&v).ok()).filter(|v| v.len() == 5);
-    Held { raw, cards, serials }
+    Held { cards, serials }
 }
 
 /// Cards that could have come out of this pack: five different teams, each with its rarity.
@@ -863,8 +832,20 @@ fn valid_cards(pack: &Pack, c: &[Rolled]) -> bool {
         && c.iter().enumerate().all(|(i, x)| !c[..i].iter().any(|y| y.num == x.num))
 }
 
-/// The serial numbers minted for a pack in hand that won't be opened after all (rolled again, or its owner gone) go
-/// back into circulation, for the next packs to take.
+/// Dev tools only (tests): the next pack's cards, planted as `RIG#<pack>`. Ignored unless DEV_TOOLS is on, and only
+/// if they're cards the pack could really hold.
+async fn rigged(s: &Shared, user: Uuid, pack: &Pack) -> ApiResult<Option<Vec<Rolled>>> {
+    if !s.dev_tools {
+        return Ok(None);
+    }
+    let it = s.db.get(&upk(user), &format!("RIG#{}", pack.id())).await?;
+    Ok(it
+        .and_then(|it| get_s(&it, "cards"))
+        .and_then(|v| serde_json::from_str::<Vec<Rolled>>(&v).ok())
+        .filter(|c| valid_cards(pack, c)))
+}
+
+/// The serial numbers minted for a legacy pack in hand go back into circulation, for the next packs to take.
 pub(crate) fn release_held(tx: &mut Tx, it: &crate::db::Item) {
     let h = held_from(it);
     let sk = get_s(it, "sk").unwrap_or_default();
@@ -874,70 +855,6 @@ pub(crate) fn release_held(tx: &mut Tx, it: &crate::db::Item) {
         free.insert("serial".into(), n(serial));
         tx.put(free);
     }
-}
-
-/// Picks up a pack: the moment it's minted. Its cards are rolled (with the meter as it is now) and their serial
-/// numbers taken, and it all stays as it is if the pack is put back. A pack already in hand is kept, unless the meter
-/// has filled since and it no longer keeps the promise; then it's rolled again and its serial numbers go back.
-async fn hand(State(s): State<Shared>, user: User, Json(req): Json<PackReq>) -> ApiResult<Json<HandOut>> {
-    let pack = pack(&s, &req.pack).await?;
-    let out = |boosted: bool, cards: &[Rolled], serials: &[i32]| HandOut {
-        best: roll::best(cards),
-        boosted,
-        cards: cards.iter().zip(serials).map(|(c, sr)| HeldOut { num: c.num, tier: c.tier, serial: *sr }).collect(),
-    };
-    let r = retry!(async {
-        let db = &s.db;
-        let pk = upk(user.id);
-        let up = model::pack_row(db, user.id, pack.id()).await?;
-        let (boosted, code) = if req.mythic {
-            if up.mythic < 1 {
-                return Err(err(StatusCode::CONFLICT, "no_packs"));
-            }
-            (true, 2)
-        } else {
-            let k = pack_kind(&up, req.boosted)?;
-            (k, u8::from(k))
-        };
-        let sk = hand_sk(pack.id(), code);
-        let p = me(db, user.id).await?;
-        let opts = opts_for(&s, &p, &up, boosted, req.mythic).await?;
-        let old = db.get(&pk, &sk).await?;
-        let held = old.as_ref().map(held_from);
-        let keep =
-            held.as_ref().filter(|h| valid_cards(&pack, &h.cards) && roll::keeps(&pack.recipe.odds, &opts, &h.cards));
-        if let Some(Held { cards, serials: Some(sr), .. }) = keep {
-            return Ok(out(boosted, cards, sr));
-        }
-        let cards = match keep {
-            Some(h) => h.cards.clone(),
-            None => roll_now(&pack, &opts),
-        };
-        let nums: Vec<i32> = cards.iter().map(|c| c.num).collect();
-        let mut tx = Tx::new();
-        let minted = take_serials(db, &mut tx, pack.id(), &nums, false).await?;
-        let serials: Vec<i32> = (0..cards.len()).map(|i| minted[&i]).collect();
-        if keep.is_none()
-            && let Some(it) = &old
-        {
-            release_held(&mut tx, it);
-        }
-        let mut it = crate::db::key(pk.clone(), &sk);
-        it.insert("cards".into(), sv(serde_json::to_string(&cards).unwrap()));
-        it.insert("serials".into(), sv(serde_json::to_string(&serials).unwrap()));
-        // Two pick-ups at once: one wins, and the other tries again and finds its cards.
-        let cond = match (&old, &held) {
-            (Some(it), Some(h)) => match get_s(it, "serials") {
-                Some(v) => Cond::new("cards = :old AND serials = :os").val(":old", sv(h.raw.clone())).val(":os", sv(v)),
-                None => Cond::new("cards = :old AND attribute_not_exists(serials)").val(":old", sv(h.raw.clone())),
-            },
-            _ => Cond::absent(),
-        };
-        tx.put_if("race", it, Some(cond));
-        tx.commit(db).await?;
-        Ok(out(boosted, &cards, &serials))
-    })?;
-    Ok(Json(r))
 }
 
 /// Division sets the player finishes by now owning `owned` teams, among those not done yet. The caller records each
@@ -1023,28 +940,22 @@ async fn take_serials(db: &Db, tx: &mut Tx, pack: &str, nums: &[i32], live: bool
     Ok(out)
 }
 
-/// Opens one sealed pack: the pack in hand if there is one (with the serial numbers it was minted with), otherwise a
-/// fresh roll with new serial numbers. Updates the pity meter, and awards a bonus pack for each division set this pack
-/// completes.
+/// Opens one sealed pack: rolled now, with the meter as it is now, and the meter moves in the same write. Picking a pack
+/// up in the app is this call: no pack is held between picking up and opening, so nothing can be rolled with a meter
+/// that has moved on since. Updates the pity meter, and awards a bonus pack for each division set this pack completes.
 async fn open(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Json<PackReq>) -> ApiResult<Response> {
     let pack = pack(&s, &req.pack).await?;
     if let Some(done) = idem_begin(&s.db, user.id, &key, "open").await? {
         return Ok(done);
     }
-    let mythic = req.mythic;
-    // A pack rolled here (none was in hand) is rolled once: if the write loses a race and runs again, the same cards
-    // come out, so a retry can never quietly swap a roll for another.
+    // Rolled once: if the write loses a race and runs again with the same meter, the same cards come out, so a retry can
+    // never quietly swap a roll for another.
     let fresh: std::sync::Mutex<Option<(Opts, Vec<Rolled>)>> = std::sync::Mutex::new(None);
     let r = retry!(async {
         let db = &s.db;
         let mut p = me(db, user.id).await?;
         let before = model::pack_row(db, user.id, pack.id()).await?;
-        let kind = if mythic {
-            if before.mythic < 1 { Err(err(StatusCode::CONFLICT, "no_packs")) } else { Ok(true) }
-        } else {
-            pack_kind(&before, req.boosted)
-        };
-        let kind = match kind {
+        let kind = match pack_kind(&before, req.boosted) {
             Ok(kind) => kind,
             Err(error) => {
                 // A concurrent copy of this request can consume the last pack
@@ -1056,23 +967,23 @@ async fn open(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Json
                 return Err(error);
             }
         };
-        let hand_key = hand_sk(pack.id(), if mythic { 2 } else { u8::from(kind) });
-        let held_it = db.get(&upk(user.id), &hand_key).await?;
-        let held = held_it.as_ref().map(held_from);
-        let opts = opts_for(&s, &p, &before, kind, mythic).await?;
-        let use_held =
-            held.as_ref().filter(|h| valid_cards(&pack, &h.cards) && roll::keeps(&pack.recipe.odds, &opts, &h.cards));
-        let mut cards = match use_held {
-            Some(h) => h.cards.clone(),
-            _ => {
-                let mut f = fresh.lock().unwrap();
-                match &*f {
-                    Some((o, c)) if *o == opts => c.clone(),
-                    _ => {
-                        let c = roll_now(&pack, &opts);
-                        *f = Some((opts, c.clone()));
-                        c
-                    }
+        // Packs picked up before opening became one step: their cards are dropped and their serials go back.
+        // Looked up alongside the opening's own read, so it adds no wait.
+        let (legacy, opts) = tokio::try_join!(
+            async { db.query(&upk(user.id), &format!("HAND#{}#", pack.id())).await.map_err(ApiError::from) },
+            opts_for(&s, &p, &before, kind),
+        )?;
+        let rig = rigged(&s, user.id, &pack).await?;
+        let mut cards = if let Some(c) = &rig {
+            c.clone()
+        } else {
+            let mut f = fresh.lock().unwrap();
+            match &*f {
+                Some((o, c)) if *o == opts => c.clone(),
+                _ => {
+                    let c = roll_now(&pack, &opts);
+                    *f = Some((opts, c.clone()));
+                    c
                 }
             }
         };
@@ -1080,8 +991,12 @@ async fn open(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Json
 
         let mut tx = Tx::new();
         idem_mark(&mut tx, user.id, &key, "open");
-        if held_it.is_some() {
-            tx.delete_if("ver", &upk(user.id), &hand_key, Some(Cond::exists()));
+        for it in &legacy {
+            tx.delete_if("ver", &upk(user.id), &get_s(it, "sk").unwrap_or_default(), Some(Cond::exists()));
+            release_held(&mut tx, it);
+        }
+        if rig.is_some() {
+            tx.delete_if("ver", &upk(user.id), &format!("RIG#{}", pack.id()), Some(Cond::exists()));
         }
         // Only one pack can be mid-reveal at a time; an older unfinished one counts as seen.
         if let Some(old) = p.pending_open {
@@ -1096,24 +1011,7 @@ async fn open(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Json
         let opening_id = db.ids("open", 1).await?;
         let first_card = db.ids("card", 5).await?;
         let nums: Vec<i32> = cards.iter().map(|c| c.num).collect();
-        let serials: HashMap<usize, i32> = match use_held.and_then(|h| h.serials.as_ref().map(|sr| (h, sr))) {
-            // Minted when it was picked up: the cards only enter the game's count now.
-            Some((h, sr)) => {
-                let by_team: HashMap<i32, i32> = h.cards.iter().map(|c| c.num).zip(sr.iter().copied()).collect();
-                for &team in &nums {
-                    model::count_in_game(&mut tx, pack.id(), team, 1);
-                }
-                nums.iter().enumerate().map(|(i, t)| (i, by_team[t])).collect()
-            }
-            None => {
-                if use_held.is_none()
-                    && let Some(it) = &held_it
-                {
-                    release_held(&mut tx, it);
-                }
-                take_serials(db, &mut tx, pack.id(), &nums, true).await?
-            }
-        };
+        let serials = take_serials(db, &mut tx, pack.id(), &nums, true).await?;
 
         // What the player has now, to number the copies and to see which teams are new.
         let owned_cards = model::cards(db, user.id, pack.id()).await?;
@@ -1203,7 +1101,6 @@ async fn open(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Json
         let mut after = before.clone();
         after.sealed += sets.len() as i32 - 1;
         after.boosted -= i32::from(kind);
-        after.mythic -= i32::from(mythic);
         after.opened += 1;
         after.pity_m = pity.m as i32;
         after.pity_l = pity.l as i32;
@@ -1223,7 +1120,7 @@ async fn open(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Json
             crate::missions::Kind::RarePlus,
             out.iter().filter(|c| c.tier.rank() <= Tier::Rare.rank()).count() as i64,
         );
-        model::save_pack(&mut tx, user.id, &before, &after, if streak_reward { "open, streak" } else { "open" });
+        model::save_pack(&mut tx, &mut p, &before, &after, if streak_reward { "open, streak" } else { "open" });
         if st != st_before {
             model::save_stats(&mut tx, user.id, pack.id(), &st);
         }
@@ -1235,6 +1132,9 @@ async fn open(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Json
             sets: sets.clone(),
             boosted: kind,
             opened_at: now,
+            pity_m: Some(before.pity_m),
+            pity_l: Some(before.pity_l),
+            mythics: Some(cards.iter().filter(|c| c.tier == Tier::Mythic).count() as i32),
         };
         tx.put(item(upk(user.id), model::open_sk(opening_id), &o));
         p.pending_open = Some(opening_id);
@@ -1261,7 +1161,7 @@ async fn open(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Json
                 streak_reward,
             ))),
             Err(DbError::Conflict("req")) => Ok(Err(())),
-            Err(e) => Err(e.into()),
+            Err(e) => Err(ApiError::from(e)),
         }
     })?;
     let Ok((opening, streak_reward)) = r else { return idem_lost(&s.db, user.id, &key, "open").await };
@@ -1602,15 +1502,8 @@ async fn scrap_extras(
     scrapped(&s, user.id, &pack, r, &key, "scrap_extras").await
 }
 
-/// Spends parts on a pack of the free pack: a boosted one (`mythic` false) or a Mythic pack.
-async fn spend_parts(
-    s: &Shared,
-    user: Uuid,
-    key: &IdemKey,
-    kind: &str,
-    cost: i64,
-    mythic: bool,
-) -> ApiResult<Response> {
+/// Spends parts on a boosted pack of the free pack.
+async fn spend_parts(s: &Shared, user: Uuid, key: &IdemKey, kind: &str, cost: i64) -> ApiResult<Response> {
     if let Some(done) = idem_begin(&s.db, user, key, kind).await? {
         return Ok(done);
     }
@@ -1626,14 +1519,11 @@ async fn spend_parts(
         let mut after = before.clone();
         after.sealed += 1;
         after.boosted += 1;
-        after.mythic += i32::from(mythic);
         let mut day = model::today(db, user).await?;
-        if !mythic {
-            crate::missions::count(&mut day, crate::missions::Kind::Crafted, 1);
-        }
+        crate::missions::count(&mut day, crate::missions::Kind::Crafted, 1);
         let mut tx = Tx::new();
         idem_mark(&mut tx, user, key, kind);
-        model::save_pack(&mut tx, user, &before, &after, kind);
+        model::save_pack(&mut tx, &mut p, &before, &after, kind);
         model::save_day(&mut tx, user, &mut day);
         let parts = p.parts;
         p.parts -= cost;
@@ -1655,20 +1545,7 @@ async fn spend_parts(
 /// Spends parts on a boosted pack of the free pack. Boosted packs open before plain ones.
 async fn craft(State(s): State<Shared>, user: User, key: IdemKey) -> ApiResult<Response> {
     let cost = i64::from(rules(&s.db).await?.boost_cost);
-    spend_parts(&s, user.id, &key, "craft", cost, false).await
-}
-
-/// What a Mythic pack costs in parts.
-pub(crate) const MYTHIC_PACK_COST: i64 = 10_000;
-/// The Mythic pack is taken down for now; flip this back to bring it back (and unhide `#craftMythicBtn` in web/index.html).
-const MYTHIC_PACKS_ON: bool = false;
-
-/// Spends parts on a Mythic pack: a boosted pack holding three Mythics.
-async fn craft_mythic(State(s): State<Shared>, user: User, key: IdemKey) -> ApiResult<Response> {
-    if !MYTHIC_PACKS_ON {
-        return Err(err(StatusCode::FORBIDDEN, "mythic_pack_off"));
-    }
-    spend_parts(&s, user.id, &key, "craft mythic", MYTHIC_PACK_COST, true).await
+    spend_parts(&s, user.id, &key, "craft", cost).await
 }
 
 // ---------- testing helpers (DEV_TOOLS=1 only) ----------
@@ -1709,7 +1586,7 @@ async fn dev_pack(State(s): State<Shared>, user: User, Json(req): Json<PackReq>)
         let mut after = before.clone();
         after.sealed += 1;
         let mut tx = Tx::new();
-        model::save_pack(&mut tx, user.id, &before, &after, "dev tools");
+        model::save_pack(&mut tx, &mut p, &before, &after, "dev tools");
         let parts = p.parts;
         model::save_user(&mut tx, &mut p, parts, "dev tools");
         tx.commit(&s.db).await.map_err(ApiError::from)
@@ -1772,7 +1649,7 @@ async fn dev_reset(State(s): State<Shared>, user: User) -> ApiResult<Json<StateO
             if before.pack == free {
                 after.sealed = start;
             }
-            model::save_pack(&mut tx, user.id, &before, &after, "dev tools");
+            model::save_pack(&mut tx, &mut p, &before, &after, "dev tools");
         }
         p.next_claim_at = now_ms();
         p.pending_open = None;

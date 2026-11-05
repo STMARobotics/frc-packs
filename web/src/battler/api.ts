@@ -42,6 +42,13 @@ const MESSAGES: Record<string, string> = {
   scheduled_partners: "Your partners are fixed by the match schedule.",
   no_drafting: "This game uses a match schedule. There is no draft.",
   too_fast: "Slow down a little.",
+  too_new: "New accounts can stake cards, packs and parts after their first day.",
+  they_too_new: "They joined today. New accounts can stake after their first day.",
+  trade_limit: "That's more than you can take in today (10 packs and 2,000 parts a day, like trades).",
+  their_trade_limit: "That's more than they can take in today (10 packs and 2,000 parts a day, like trades).",
+  bad_stake: "That stake is too big.",
+  under_review: "Wagers are paused on your account while we take a look.",
+  they_under_review: "They can't wager right now.",
 };
 
 export const explain = (e: unknown) => (e instanceof ApiError ? MESSAGES[e.code] ?? `Something went wrong (${e.code}).` : "Something went wrong.");

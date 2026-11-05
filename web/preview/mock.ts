@@ -23,16 +23,14 @@ try { best = (localStorage.getItem(KEY) as Best) || "auto"; } catch { /* a fresh
 const owned = new Map<number, number[]>();
 // ?seed: start with a binder already filled (every team in play, a few with copies), for looking at the binder.
 if (new URLSearchParams(location.search).has("seed")) for (const t of Object.values(pool).flat()) owned.set(t, Array.from({ length: 1 + (t % 3) }, (_, i) => 1 + ((t * 7 + i * 13) % 90)));
-let opened = 0, nextId = 1, held: { kind: string; cards: Card[] } | null = null, pending: Opening | null = null;
+let opened = 0, nextId = 1, pending: Opening | null = null;
 const pick = <T,>(xs: T[]) => xs[Math.floor(Math.random() * xs.length)];
 const weighted = (w: [Tier, number][]): Tier => { let r = Math.random() * w.reduce((a, [, x]) => a + x, 0); for (const [t, x] of w) if ((r -= x) < 0) return t; return w[0][0]; };
 const RANK: Tier[] = ["common", "uncommon", "rare", "legendary", "mythic"];
 
-function deal(boosted: boolean, mythic: boolean): Card[] {
+function deal(boosted: boolean): Card[] {
   const top: Tier = best === "auto" ? weighted([["rare", 70], ["legendary", 22], ["mythic", 8]]) : best;
-  const tiers: Tier[] = mythic
-    ? ["common", "uncommon", "mythic", "mythic", "mythic"]
-    : [...Array.from({ length: 4 }, () => weighted(boosted ? [["common", 40], ["uncommon", 35], ["rare", 25]] : [["common", 70], ["uncommon", 22], ["rare", 8]])), top];
+  const tiers: Tier[] = [...Array.from({ length: 4 }, () => weighted(boosted ? [["common", 40], ["uncommon", 35], ["rare", 25]] : [["common", 70], ["uncommon", 22], ["rare", 8]])), top];
   tiers.sort((a, b) => RANK.indexOf(a) - RANK.indexOf(b));
   const used = new Set<number>();
   return tiers.map((tier) => {
@@ -50,7 +48,7 @@ function state(): State {
     account: { username: "you", admin: false, firstName: "You", badge: null, renameAt: null, bio: null, avatar: null, banner: null },
     now, nextClaimAt: now + 3_600_000, claimMs: 7_200_000, claimPacks: 1, bank: 0, parts: 0, donateUrl: null, boostCost: 250,
     scrapParts: { common: 5, uncommon: 12, rare: 40, legendary: 150, mythic: 600 }, demo: false, devTools: false,
-    packs: [{ id: recipe.id, sealed: 99, boosted: 9, mythic: 3, opened, pity: { m: 0, l: 0 } }],
+    packs: [{ id: recipe.id, sealed: 99, boosted: 9, opened, pity: { m: 0, l: 0 } }],
     pending, missions: [], streak: { days: 3, today: true, alive: true, every: 7 } as State["streak"],
     level: { teams: owned.size, level: 0, claimed: 0, per: 25, reward: 100 }, wishlist: [], showcase: [], favorites: [], notice: null, tiers: {},
   };
@@ -69,16 +67,9 @@ function answer(method: string, path: string, body: Record<string, unknown>): Re
   // One named effect (7028's, on whichever Mythic is in play) and one unnamed, to see both on cards.
   if (path === "/api/battler/effects") return json({ [pool.mythic[0]]: { name: "Bump n Dump", text: "Opposing robots: 95% chance of -10% Auto if it's directly across from this robot. Robots on this alliance get +15% Auto if this robot has a VISION part. Robots on this alliance get +15% Auto if this robot has a SWERVE part. Opposing robots get no Auto at all if it's team 6800." }, [pool.mythic[1]]: { name: null, text: "Robots on this alliance get +5 Auto if this robot is the Captain." } });
   if (path.startsWith("/api/social/")) return json({ players: [], feed: [] });
-  if (path === "/api/hand") {
-    const kind = `${!!body.boosted}${!!body.mythic}`;
-    if (!held || held.kind !== kind) held = { kind, cards: deal(!!body.boosted, !!body.mythic) };
-    // Minted when picked up, like the real server: the cards come back now, with their serial numbers.
-    return json({ best: held.cards[4].tier, boosted: !!body.boosted, cards: held.cards.map(({ num, tier, serial }) => ({ num, tier, serial })) });
-  }
+  // Picking a pack up opens it, like the real server.
   if (path === "/api/open") {
-    const kind = `${!!body.boosted}${!!body.mythic}`;
-    const cards = held?.kind === kind ? held.cards : deal(!!body.boosted, !!body.mythic);
-    held = null;
+    const cards = deal(!!body.boosted);
     for (const c of cards) owned.set(c.num, [...(owned.get(c.num) ?? []), c.serial]);
     opened++;
     pending = { id: nextId++, pack: recipe.id, revealed: 0, cards, sets: [] };

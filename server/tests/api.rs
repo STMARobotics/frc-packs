@@ -246,8 +246,6 @@ async fn activity_outbox_is_atomic_and_pack_retries_publish_once() {
     let (app, db) = need_db!(own_setup(true));
     let (cookie, _) = player(&app, &db).await;
     let uid = user_id(&db, &cookie).await;
-    let hand = call(&app, "POST", "/api/hand", Some(&cookie), Some(json!({ "pack": PACK }))).await;
-    assert_eq!(hand.status, StatusCode::OK);
     let request = Uuid::new_v4().to_string();
     let first = call_key(&app, "POST", "/api/open", Some(&cookie), Some(json!({ "pack": PACK })), Some(&request)).await;
     let replay =
@@ -292,61 +290,49 @@ async fn activity_outbox_is_atomic_and_pack_retries_publish_once() {
     drop_table(&db).await;
 }
 
+/// Picking up a pack opens it: there's no pack in hand any more, the route is gone, and an opening's cards enter the
+/// game with their serial numbers at once.
 #[tokio::test]
-async fn pack_in_hand_is_fixed_and_opens_as_promised() {
-    let (app, db) = need_db!(setup(true));
+async fn picking_up_is_opening() {
+    let (app, db) = need_db!(setup(false));
     let (c, _) = player(&app, &db).await;
-    let h1 = call(&app, "POST", "/api/hand", Some(&c), Some(json!({ "pack": PACK }))).await;
-    assert_eq!(h1.status, StatusCode::OK);
-    let h2 = call(&app, "POST", "/api/hand", Some(&c), Some(json!({ "pack": PACK }))).await;
-    assert_eq!(h1.body["best"], h2.body["best"], "putting the pack back doesn't reroll it");
+    let r = call(&app, "POST", "/api/hand", Some(&c), Some(json!({ "pack": PACK }))).await;
+    assert!(r.status == StatusCode::NOT_FOUND || r.status == StatusCode::METHOD_NOT_ALLOWED, "no /api/hand: {}", r.status);
     let o = call(&app, "POST", "/api/open", Some(&c), Some(json!({ "pack": PACK }))).await;
     assert_eq!(o.status, StatusCode::OK, "{}", o.body);
     let cards = o.body["opening"]["cards"].as_array().unwrap();
     assert_eq!(cards.len(), 5);
-    assert_eq!(cards[4]["tier"], h1.body["best"], "the glow told the truth");
-    for w in cards.windows(2) {
-        assert!(rank(&w[0]["tier"]) <= rank(&w[1]["tier"]), "best card last");
-    }
     assert!(rank(&cards[4]["tier"]) >= 3, "first pack ends in Legendary or better");
-    assert!(cards.iter().all(|x| x["isNew"] == true && x["copy"] == 1 && x["serial"].as_i64().unwrap() >= 1));
-    assert_eq!(sealed(&o.body["state"]), 1);
-    let pend = &o.body["state"]["pending"];
-    assert_eq!(pend["id"], o.body["opening"]["id"], "the opened pack is pending until revealed");
-    assert_eq!(pend["cards"], o.body["opening"]["cards"], "resume shows the same cards");
+    assert!(cards.iter().all(|x| x["serial"].as_i64().unwrap() >= 1));
+    let teams: Vec<i32> = cards.iter().map(|x| x["num"].as_i64().unwrap() as i32).collect();
+    assert!(teams_live(&db, &teams).await >= 5, "the cards are in the game");
+    assert_eq!(o.body["state"]["pending"]["id"], o.body["opening"]["id"], "it resumes until it's revealed");
 }
 
-/// Picking a pack up mints it: the five cards, best last, with their serial numbers, the same on every pick-up and
-/// exactly what opens. They only count as in the game once opened.
+/// A pack picked up before picking up and opening became one step is dropped when the player next opens: its serial
+/// numbers go back into circulation and the opening is a fresh roll, whatever the old pack held.
 #[tokio::test]
-async fn picking_up_mints_the_pack_and_it_opens_as_minted() {
-    let (app, db) = need_db!(setup(true));
+async fn a_legacy_hand_is_released_on_open() {
+    // Other tests opening packs could take the freed serial first: a table of its own.
+    let (app, db) = need_db!(own_setup(false));
     let (c, _) = player(&app, &db).await;
-    let h1 = call(&app, "POST", "/api/hand", Some(&c), Some(json!({ "pack": PACK }))).await;
-    assert_eq!(h1.status, StatusCode::OK, "{}", h1.body);
-    let held = h1.body["cards"].as_array().unwrap().clone();
-    assert_eq!(held.len(), 5);
-    assert!(held.iter().all(|x| x["serial"].as_i64().unwrap() >= 1), "every card has its serial already");
-    assert_eq!(held[4]["tier"], h1.body["best"]);
-    let h2 = call(&app, "POST", "/api/hand", Some(&c), Some(json!({ "pack": PACK }))).await;
-    assert_eq!(h2.body["cards"], h1.body["cards"], "putting it back changes nothing, serials included");
-    let teams: Vec<i32> = held.iter().map(|x| x["num"].as_i64().unwrap() as i32).collect();
-    let live_before: i64 = teams_live(&db, &teams).await;
+    let user = user_id(&db, &c).await;
+    call(&app, "POST", "/api/open", Some(&c), Some(json!({ "pack": PACK }))).await; // past the scripted first pack
+    let m = team_of("mythic", 1);
+    let hand = json!([
+        { "num": team_of("common", 0), "tier": "common" }, { "num": team_of("common", 1), "tier": "common" },
+        { "num": team_of("common", 2), "tier": "common" }, { "num": team_of("common", 3), "tier": "common" },
+        { "num": m, "tier": "mythic" }
+    ]);
+    let mut it = frc_packs_server::db::key(frc_packs_server::model::upk(user), format!("HAND#{PACK}#0"));
+    it.insert("cards".into(), frc_packs_server::db::s(hand.to_string()));
+    it.insert("serials".into(), frc_packs_server::db::s("[901,902,903,904,905]"));
+    db.put(it).await.unwrap();
     let o = call(&app, "POST", "/api/open", Some(&c), Some(json!({ "pack": PACK }))).await;
     assert_eq!(o.status, StatusCode::OK, "{}", o.body);
-    let opened: Vec<(Value, Value, Value)> = o.body["opening"]["cards"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .map(|x| (x["num"].clone(), x["tier"].clone(), x["serial"].clone()))
-        .collect();
-    let minted: Vec<(Value, Value, Value)> =
-        held.iter().map(|x| (x["num"].clone(), x["tier"].clone(), x["serial"].clone())).collect();
-    assert_eq!(opened, minted, "the pack opens exactly as it was minted");
-    assert_eq!(teams_live(&db, &teams).await, live_before + 5, "the cards enter the game when opened");
-    // The next pick-up is a new pack, with new serial numbers.
-    let h3 = call(&app, "POST", "/api/hand", Some(&c), Some(json!({ "pack": PACK }))).await;
-    assert_ne!(h3.body["cards"], h1.body["cards"]);
+    assert_eq!(kit::count_items(&db, user, "HAND#").await, 0, "the old pack in hand is gone");
+    assert!(kit::free_serial(&db, PACK, m, 905).await, "its serial numbers are back in circulation");
+    drop_table(&db).await;
 }
 
 async fn teams_live(db: &Db, teams: &[i32]) -> i64 {
@@ -356,76 +342,6 @@ async fn teams_live(db: &Db, teams: &[i32]) -> i64 {
         n += frc_packs_server::db::get_n(&it, "live").unwrap_or(0);
     }
     n
-}
-
-/// A pack picked up before serials were minted at pick-up (only its cards stored) still works: the next pick-up
-/// mints its serials, keeping its cards; or it opens with new serials, as before.
-#[tokio::test]
-async fn a_pack_in_hand_from_before_minting_still_opens() {
-    let (app, db) = need_db!(setup(true));
-    let (c, _) = player(&app, &db).await;
-    let user = user_id(&db, &c).await;
-    let hand = json!([
-        { "num": team_of("common", 0), "tier": "common" }, { "num": team_of("common", 1), "tier": "common" },
-        { "num": team_of("uncommon", 0), "tier": "uncommon" }, { "num": team_of("rare", 0), "tier": "rare" },
-        { "num": team_of("legendary", 0), "tier": "legendary" }
-    ]);
-    kit::set_hand(&db, user, PACK, false, &hand).await;
-    let h = call(&app, "POST", "/api/hand", Some(&c), Some(json!({ "pack": PACK }))).await;
-    assert_eq!(h.status, StatusCode::OK, "{}", h.body);
-    let nums: Vec<i64> = h.body["cards"].as_array().unwrap().iter().map(|x| x["num"].as_i64().unwrap()).collect();
-    let want: Vec<i64> = hand.as_array().unwrap().iter().map(|x| x["num"].as_i64().unwrap()).collect();
-    assert_eq!(nums, want, "the same cards, now with serials");
-    let o = call(&app, "POST", "/api/open", Some(&c), Some(json!({ "pack": PACK }))).await;
-    assert_eq!(
-        o.body["opening"]["cards"].as_array().unwrap().iter().map(|x| x["serial"].clone()).collect::<Vec<_>>(),
-        h.body["cards"].as_array().unwrap().iter().map(|x| x["serial"].clone()).collect::<Vec<_>>()
-    );
-    // Straight to opening, never picked up again: serials are minted at the opening.
-    kit::set_hand(&db, user, PACK, false, &json!([
-        { "num": team_of("common", 2), "tier": "common" }, { "num": team_of("common", 3), "tier": "common" },
-        { "num": team_of("uncommon", 1), "tier": "uncommon" }, { "num": team_of("uncommon", 2), "tier": "uncommon" },
-        { "num": team_of("rare", 1), "tier": "rare" }
-    ]))
-    .await;
-    let o = call(&app, "POST", "/api/open", Some(&c), Some(json!({ "pack": PACK }))).await;
-    assert_eq!(o.status, StatusCode::OK, "{}", o.body);
-    assert_eq!(o.body["opening"]["cards"][4]["num"], team_of("rare", 1));
-    assert!(o.body["opening"]["cards"].as_array().unwrap().iter().all(|x| x["serial"].as_i64().unwrap() >= 1));
-}
-
-/// A minted pack in hand that's rolled again gives its serial numbers back, for the next packs to take.
-#[tokio::test]
-async fn a_pack_rolled_again_gives_its_serials_back() {
-    // Other tests opening packs can immediately reuse a freed serial. Keep this
-    // assertion isolated while retaining concurrency inside the production tests.
-    let (app, db) = need_db!(own_setup(true));
-    let (c, _) = player(&app, &db).await;
-    let h = call(&app, "POST", "/api/hand", Some(&c), Some(json!({ "pack": PACK }))).await;
-    // Demo luck changes the odds, so the pack in hand is rolled again.
-    call(&app, "POST", "/api/dev/demo", Some(&c), Some(json!({ "on": true }))).await;
-    for x in h.body["cards"].as_array().unwrap() {
-        let (team, serial) = (x["num"].as_i64().unwrap() as i32, x["serial"].as_i64().unwrap() as i32);
-        assert!(kit::free_serial(&db, PACK, team, serial).await, "team {team} No. {serial} is back in circulation");
-    }
-    drop_table(&db).await;
-}
-
-/// A Mythic pack is minted at pick-up too: three Mythics, the same ones it opens with.
-#[tokio::test]
-async fn a_mythic_pack_is_minted_at_pick_up() {
-    let (app, db) = need_db!(setup(true));
-    let (c, _) = player(&app, &db).await;
-    let user = user_id(&db, &c).await;
-    kit::set_mythic_packs(&db, user, PACK, 1).await;
-    let h = call(&app, "POST", "/api/hand", Some(&c), Some(json!({ "pack": PACK, "mythic": true }))).await;
-    assert_eq!(h.status, StatusCode::OK, "{}", h.body);
-    assert_eq!(h.body["cards"].as_array().unwrap().iter().filter(|x| x["tier"] == "mythic").count(), 3);
-    let o = call(&app, "POST", "/api/open", Some(&c), Some(json!({ "pack": PACK, "mythic": true }))).await;
-    assert_eq!(o.status, StatusCode::OK, "{}", o.body);
-    let pick =
-        |v: &Value| v.as_array().unwrap().iter().map(|x| (x["num"].clone(), x["serial"].clone())).collect::<Vec<_>>();
-    assert_eq!(pick(&o.body["opening"]["cards"]), pick(&h.body["cards"]));
 }
 
 #[tokio::test]
@@ -463,10 +379,6 @@ async fn no_packs_no_opening() {
     let r = call(&app, "POST", "/api/open", Some(&c), Some(json!({ "pack": PACK }))).await;
     assert_eq!(r.status, StatusCode::CONFLICT);
     assert_eq!(r.body["error"], "no_packs");
-    assert_eq!(
-        call(&app, "POST", "/api/hand", Some(&c), Some(json!({ "pack": PACK }))).await.status,
-        StatusCode::CONFLICT
-    );
     let r = call(&app, "POST", "/api/open", Some(&c), Some(json!({ "pack": "nope" }))).await;
     assert_eq!(r.status, StatusCode::NOT_FOUND);
 }
@@ -529,7 +441,7 @@ async fn simultaneous_pulls_of_one_team_get_different_serials() {
     let mut cookies = Vec::new();
     for _ in 0..8 {
         let (c, _) = player(&app, &db).await;
-        kit::set_hand(&db, user_id(&db, &c).await, PACK, false, &hand).await;
+        kit::rig_next(&db, user_id(&db, &c).await, PACK, &hand).await;
         cookies.push(c);
     }
     let jobs: Vec<_> = cookies
@@ -580,7 +492,7 @@ async fn completing_a_division_awards_a_pack() {
     let leg = teams.iter().find(|t| t["div"] != div.as_str() && t["tier"] == "legendary").unwrap();
     hand.push(json!({ "num": leg["num"], "tier": "legendary" }));
     hand.push(json!({ "num": last["num"], "tier": last["tier"] }));
-    kit::set_hand(&db, user, PACK, false, &Value::Array(hand)).await;
+    kit::rig_next(&db, user, PACK, &Value::Array(hand)).await;
     let o = call(&app, "POST", "/api/open", Some(&c), Some(json!({ "pack": PACK }))).await;
     assert_eq!(o.status, StatusCode::OK, "{}", o.body);
     assert_eq!(o.body["opening"]["sets"], json!([div]), "the pack completes the {div} set");
@@ -589,9 +501,9 @@ async fn completing_a_division_awards_a_pack() {
     assert_eq!(col.body["sets"], json!([div]));
 }
 
-/// A tampered pack in hand (wrong tiers, a team twice, too few cards) is thrown away and rolled fresh.
+/// Planted cards that the pack couldn't hold (wrong tiers, a team twice) are ignored, even with dev tools on.
 #[tokio::test]
-async fn a_tampered_hand_is_rerolled() {
+async fn a_tampered_rig_is_ignored() {
     let (app, db) = need_db!(setup(true));
     let (c, _) = player(&app, &db).await;
     let user = user_id(&db, &c).await;
@@ -600,16 +512,16 @@ async fn a_tampered_hand_is_rerolled() {
         { "num": mythic, "tier": "mythic" }, { "num": mythic, "tier": "mythic" }, { "num": mythic, "tier": "mythic" },
         { "num": mythic, "tier": "mythic" }, { "num": mythic, "tier": "mythic" }
     ]);
-    kit::set_hand(&db, user, PACK, false, &cheat).await;
+    kit::rig_next(&db, user, PACK, &cheat).await;
     let o = call(&app, "POST", "/api/open", Some(&c), Some(json!({ "pack": PACK }))).await;
     assert_eq!(o.status, StatusCode::OK);
     let nums: std::collections::HashSet<i64> =
         o.body["opening"]["cards"].as_array().unwrap().iter().map(|c| c["num"].as_i64().unwrap()).collect();
-    assert_eq!(nums.len(), 5, "no team twice: the forged hand wasn't used");
+    assert_eq!(nums.len(), 5, "no team twice: the forged cards weren't used");
     let common = team_of("common", 3);
     let wrong_tier =
         json!([1, 2, 3, 4, 5].iter().map(|_| json!({ "num": common, "tier": "mythic" })).collect::<Vec<_>>());
-    kit::set_hand(&db, user, PACK, false, &wrong_tier).await;
+    kit::rig_next(&db, user, PACK, &wrong_tier).await;
     let o = call(&app, "POST", "/api/open", Some(&c), Some(json!({ "pack": PACK }))).await;
     assert!(
         o.body["opening"]["cards"].as_array().unwrap().iter().all(|c| !(c["num"] == common && c["tier"] == "mythic")),
@@ -992,6 +904,19 @@ async fn only_the_admin_can_use_the_panel() {
     assert_eq!(call(&app, "GET", "/api/admin/users", Some(&admin), None).await.status, StatusCode::OK);
 }
 
+/// Admins can't hand out packs: every pack comes from a rule the game enforces (timer, craft, streak, set, feedback).
+#[tokio::test]
+async fn admins_cannot_give_packs() {
+    let (app, db) = need_db!(setup(false));
+    let (c, _) = player(&app, &db).await;
+    let target = user_id(&db, &c).await;
+    let before = sealed(&call(&app, "GET", "/api/state", Some(&c), None).await.body);
+    let admin = make_admin(&app, &db).await;
+    let r = call(&app, "POST", &format!("/api/admin/users/{target}/packs"), Some(&admin), Some(json!({ "count": 50 }))).await;
+    assert!(r.status == StatusCode::NOT_FOUND || r.status == StatusCode::METHOD_NOT_ALLOWED, "gift route gone, got {}", r.status);
+    assert_eq!(sealed(&call(&app, "GET", "/api/state", Some(&c), None).await.body), before);
+}
+
 /// While the site is admin-only (testing on the real domain), nobody else gets in: no sign-up, no sign-in, and an
 /// existing player's session stops working.
 #[tokio::test]
@@ -1087,13 +1012,6 @@ async fn admin_manages_accounts() {
     let (who, cookie, _) = signup(&app, &db, &name()).await;
     let id = user_id(&db, &cookie).await;
     let at = |what: &str| format!("/api/admin/users/{id}/{what}");
-
-    // Give packs.
-    assert_eq!(
-        call(&app, "POST", &at("packs"), Some(&admin), Some(json!({ "count": 3 }))).await.status,
-        StatusCode::NO_CONTENT
-    );
-    assert_eq!(sealed(&call(&app, "GET", "/api/state", Some(&cookie), None).await.body), 5);
 
     // Reset password: the old one stops working, the new one is shown once, and they're signed out.
     tokio::time::sleep(std::time::Duration::from_millis(300)).await;
@@ -1241,15 +1159,12 @@ async fn scrap_extras_for_parts_and_craft_a_boosted_pack() {
     assert_eq!(r.body["parts"], 0);
     let p = r.body["packs"].as_array().unwrap().iter().find(|p| p["id"] == PACK).unwrap();
     assert_eq!((p["sealed"].as_i64(), p["boosted"].as_i64()), (Some(3), Some(1)));
-    let h = call(&app, "POST", "/api/hand", Some(&c), Some(json!({ "pack": PACK }))).await;
-    assert_eq!(h.body["boosted"], true, "boosted packs open first");
     let o = call(&app, "POST", "/api/open", Some(&c), Some(json!({ "pack": PACK }))).await;
     assert_eq!(o.status, StatusCode::OK);
+    assert_eq!(o.body["opening"]["boosted"], true, "boosted packs open first");
     let p = o.body["state"]["packs"].as_array().unwrap().iter().find(|p| p["id"] == PACK).unwrap();
     assert_eq!(p["boosted"], 0);
     assert!(kit::last_opening_boosted(&db, id).await, "the opening is recorded as boosted");
-    let h = call(&app, "POST", "/api/hand", Some(&c), Some(json!({ "pack": PACK }))).await;
-    assert_eq!(h.body["boosted"], false);
 }
 
 /// Crafting with parts for exactly one pack, ten times at once: one pack, parts spent once, never below zero.
@@ -1274,21 +1189,12 @@ async fn simultaneous_crafts_never_overspend() {
 }
 
 #[tokio::test]
-async fn the_mythic_pack_is_off() {
-    let (app, db) = need_db!(setup(true));
-    let (c, _) = player(&app, &db).await;
-    kit::set_parts(&db, user_id(&db, &c).await, 20_000).await;
-    let r = call(&app, "POST", "/api/craft/mythic", Some(&c), Some(json!({}))).await;
-    assert_eq!((r.status, r.body["error"].as_str()), (StatusCode::FORBIDDEN, Some("mythic_pack_off")));
-    assert_eq!(kit::parts(&db, user_id(&db, &c).await).await, 20_000, "nothing spent");
-}
-
-#[tokio::test]
 async fn trading_swaps_the_exact_copies() {
     let (app, db) = need_db!(setup(true));
     let (ca, _) = player(&app, &db).await;
     let (cb, sb) = player(&app, &db).await;
     let (a, b) = (user_id(&db, &ca).await, user_id(&db, &cb).await);
+    age(&db, &[a, b]).await; // past the new-account rule: brand-new accounts can't give cards
     let b_name = sb["account"]["username"].as_str().unwrap().to_string();
     let (x, y) = (team_of("common", 77), team_of("rare", 55));
     let x_first = give_card(&db, a, x, "common").await;
@@ -1389,6 +1295,7 @@ async fn trades_never_duplicate_cards() {
     let (cb, sb) = player(&app, &db).await;
     let (cc, _) = player(&app, &db).await;
     let (a, b, c) = (user_id(&db, &ca).await, user_id(&db, &cb).await, user_id(&db, &cc).await);
+    age(&db, &[a, b, c]).await; // past the new-account rule: brand-new accounts can't give cards
     let b_name = sb["account"]["username"].as_str().unwrap().to_string();
     let (x, y, z) = (team_of("common", 120), team_of("uncommon", 120), team_of("common", 121));
     give_card(&db, a, x, "common").await;
@@ -1485,7 +1392,7 @@ async fn cards_mid_reveal_cannot_be_traded_or_scrapped() {
     ]);
     give_card(&db, a, team, "common").await; // an older copy, free to trade
     age(&db, &[a, user_id(&db, &cb).await]).await;
-    kit::set_hand(&db, a, PACK, false, &hand).await;
+    kit::rig_next(&db, a, PACK, &hand).await;
     let o = call(&app, "POST", "/api/open", Some(&ca), Some(json!({ "pack": PACK }))).await;
     assert_eq!(o.status, StatusCode::OK, "{}", o.body);
     let opened_serial =
@@ -1527,6 +1434,7 @@ async fn an_offer_for_cards_that_left_fails_cleanly() {
     let (ca, _) = player(&app, &db).await;
     let (cb, sb) = player(&app, &db).await;
     let (a, b) = (user_id(&db, &ca).await, user_id(&db, &cb).await);
+    age(&db, &[a, b]).await; // past the new-account rule: brand-new accounts can't give cards
     let b_name = sb["account"]["username"].as_str().unwrap().to_string();
     let (x, y) = (team_of("common", 132), team_of("common", 133));
     give_card(&db, a, x, "common").await;
@@ -1750,10 +1658,6 @@ async fn choose_pack_kind_and_trade_packs_and_parts() {
     // A: 2 standard + 1 boosted. Asking for a standard pack opens a standard one even with a boosted waiting.
     kit::set_packs(&db, a, PACK, 3, 1).await;
     kit::set_parts(&db, a, 500).await;
-    let h = call(&app, "POST", "/api/hand", Some(&ca), Some(json!({ "pack": PACK, "boosted": false }))).await;
-    assert_eq!(h.body["boosted"], false);
-    let hb = call(&app, "POST", "/api/hand", Some(&ca), Some(json!({ "pack": PACK, "boosted": true }))).await;
-    assert_eq!(hb.body["boosted"], true, "each kind has its own pack in hand");
     let o = call(&app, "POST", "/api/open", Some(&ca), Some(json!({ "pack": PACK, "boosted": false }))).await;
     assert_eq!(packs_of(&o.body["state"]), (2, 1), "a standard pack was opened; the boosted one waits");
     // Can't trade away more standard packs than you have (the boosted one doesn't count).
@@ -1998,6 +1902,7 @@ async fn finished_trades_keep_their_cards_in_history() {
     let (ca, _) = player(&app, &db).await;
     let (cb, sb) = player(&app, &db).await;
     let (a, b) = (user_id(&db, &ca).await, user_id(&db, &cb).await);
+    age(&db, &[a, b]).await; // past the new-account rule: brand-new accounts can't give cards
     let b_name = sb["account"]["username"].as_str().unwrap().to_string();
     let (x, y) = (team_of("common", 130), team_of("common", 131));
     give_card(&db, a, x, "common").await;
@@ -2195,7 +2100,7 @@ async fn deleting_an_account_puts_its_cards_back_in_circulation() {
         (team_of("legendary", 45), "legendary"),
     ];
     let hand = json!(teams.iter().map(|(n, t)| json!({ "num": n, "tier": t })).collect::<Vec<_>>());
-    kit::set_hand(&db, a, PACK, false, &hand).await;
+    kit::rig_next(&db, a, PACK, &hand).await;
     let oa = call(&app, "POST", "/api/open", Some(&ca), Some(json!({ "pack": PACK }))).await;
     assert_eq!(oa.status, StatusCode::OK, "{}", oa.body);
     let serial_of = |o: &Value, n: i32| {
@@ -2217,7 +2122,7 @@ async fn deleting_an_account_puts_its_cards_back_in_circulation() {
     // B pulls the same teams: no new numbers are printed; B gets the freed ones.
     let ns: Vec<i32> = teams.iter().map(|t| t.0).collect();
     let before = kit::minted(&db, PACK, &ns).await;
-    kit::set_hand(&db, b, PACK, false, &hand).await;
+    kit::rig_next(&db, b, PACK, &hand).await;
     let ob = call(&app, "POST", "/api/open", Some(&cb), Some(json!({ "pack": PACK }))).await;
     assert_eq!(ob.status, StatusCode::OK, "{}", ob.body);
     assert_eq!(kit::minted(&db, PACK, &ns).await, before, "reused serials, printed none");
@@ -2611,6 +2516,7 @@ async fn one_card_can_only_be_promised_once() {
     let (ca, _) = player(&app, &db).await;
     let (cb, sb) = player(&app, &db).await;
     let (a, b) = (user_id(&db, &ca).await, user_id(&db, &cb).await);
+    age(&db, &[a, b]).await; // past the new-account rule: brand-new accounts can't give cards
     let b_name = sb["account"]["username"].as_str().unwrap().to_string();
     let (x, y) = (team_of("common", 125), team_of("common", 126));
     let only = give_card(&db, a, x, "common").await;
@@ -2646,6 +2552,7 @@ async fn players_cannot_act_for_each_other() {
     let (cc, _) = player(&app, &db).await;
     let b_name = sb["account"]["username"].as_str().unwrap().to_string();
     let (a, b) = (user_id(&db, &ca).await, user_id(&db, &cb).await);
+    age(&db, &[a, b, user_id(&db, &cc).await]).await; // past the new-account rule: brand-new accounts can't give cards
     let (x, y) = (team_of("common", 127), team_of("common", 128));
     give_card(&db, a, x, "common").await;
     give_card(&db, b, y, "common").await;
@@ -2870,4 +2777,197 @@ async fn robot_effects_reach_the_cards() {
     assert_eq!(r.body["7028"]["name"], "Bump n Dump");
     assert!(r.body["7028"]["text"].as_str().unwrap().contains("team 6800"), "{}", r.body);
     assert!(r.body.get("4414").is_none(), "4414's effect is only a test example");
+}
+
+// ---------- Tripwire, the anticheat ----------
+
+/// The scan is for admins only.
+#[tokio::test]
+async fn tripwire_is_admin_only() {
+    let (app, db) = need_db!(setup(false));
+    let (c, _) = player(&app, &db).await;
+    let target = user_id(&db, &c).await;
+    for (method, path) in [
+        ("GET", "/api/admin/anticheat/scan".to_string()),
+        ("GET", "/api/admin/anticheat/log".to_string()),
+        ("POST", format!("/api/admin/anticheat/users/{target}/flag")),
+        ("POST", format!("/api/admin/anticheat/users/{target}/clear")),
+        ("POST", format!("/api/admin/anticheat/users/{target}/reverse")),
+    ] {
+        let body = (method == "POST").then(|| json!({ "from": 0, "to": 1 }));
+        assert_eq!(call(&app, method, &path, Some(&c), body).await.status, StatusCode::FORBIDDEN, "{path}");
+    }
+}
+
+fn finding<'a>(report: &'a Value, user: Uuid, check: &str) -> Option<&'a Value> {
+    let s = report["suspects"].as_array()?.iter().find(|s| s["id"] == user.to_string())?;
+    s["findings"].as_array()?.iter().find(|f| f["check"] == check)
+}
+
+/// Packs from a source that can't have paid them (a timer paying far past its rule), and Mythics far beyond each pack's
+/// recorded odds, both show up in the scan with their evidence. An honest player doesn't.
+#[tokio::test]
+async fn tripwire_finds_impossible_supply_and_luck() {
+    let (app, db) = need_db!(own_setup(true));
+    let admin = make_admin(&app, &db).await;
+    // Saving the settings starts their history, which the timer check needs.
+    let rules = call(&app, "GET", "/api/admin/settings", Some(&admin), None).await.body;
+    assert_eq!(call(&app, "POST", "/api/admin/settings", Some(&admin), Some(rules)).await.status, StatusCode::OK);
+    let (honest, _) = player(&app, &db).await;
+    call(&app, "POST", "/api/open", Some(&honest), Some(json!({ "pack": PACK }))).await;
+    let (cheat, _) = player(&app, &db).await;
+    let cid = user_id(&db, &cheat).await;
+    // A broken claim path paying 20 packs a time, written through the normal pack write (so the ledger balances).
+    for _ in 0..3 {
+        let before = kit::packs(&db, cid, PACK).await;
+        let mut after = before.clone();
+        after.sealed += 20;
+        kit::change(&db, cid, move |p, tx| frc_packs_server::model::save_pack(tx, p, &before, &after, "claim")).await;
+    }
+    // Ten packs in a row each holding a Mythic (dev tools plant them; the scan only sees the openings).
+    let m = team_of("mythic", 2);
+    for i in 0..10 {
+        let pack = json!([
+            { "num": team_of("common", 10 + i), "tier": "common" }, { "num": team_of("common", 30 + i), "tier": "common" },
+            { "num": team_of("common", 50 + i), "tier": "common" }, { "num": team_of("rare", i), "tier": "rare" },
+            { "num": m, "tier": "mythic" }
+        ]);
+        kit::rig_next(&db, cid, PACK, &pack).await;
+        let o = call(&app, "POST", "/api/open", Some(&cheat), Some(json!({ "pack": PACK }))).await;
+        assert_eq!(o.status, StatusCode::OK, "{}", o.body);
+    }
+    let r = call(&app, "GET", "/api/admin/anticheat/scan", Some(&admin), None).await;
+    assert_eq!(r.status, StatusCode::OK, "{}", r.body);
+    let supply = finding(&r.body, cid, "supply").expect("the impossible timer is found");
+    assert!(supply["evidence"].to_string().contains("timer"), "{supply}");
+    let luck = finding(&r.body, cid, "luck").expect("the impossible luck is found");
+    assert!(luck["score"].as_i64().unwrap() >= 80, "{luck}");
+    assert_eq!(r.body["suspects"][0]["id"], cid.to_string(), "the cheat is at the top");
+    let hid = user_id(&db, &honest).await;
+    assert!(r.body["suspects"].as_array().unwrap().iter().all(|s| s["id"] != hid.to_string()), "the honest player isn't listed");
+    drop_table(&db).await;
+}
+
+/// Flagging pauses trading (packs still open), clearing lifts it, and a reversal takes back what came in during a
+/// window: previewed first, applied on request, logged, with the ledger still balancing.
+#[tokio::test]
+async fn tripwire_flag_clear_and_reverse() {
+    let (app, db) = need_db!(own_setup(false));
+    let admin = make_admin(&app, &db).await;
+    let (a, sa) = player(&app, &db).await;
+    let (b, sb) = player(&app, &db).await;
+    let (ida, idb) = (user_id(&db, &a).await, user_id(&db, &b).await);
+    age(&db, &[ida, idb]).await;
+    let b_name = sb["account"]["username"].as_str().unwrap().to_string();
+    let _ = sa;
+    let (x, y) = (team_of("common", 140), team_of("common", 141));
+    give_card(&db, ida, x, "common").await;
+    give_card(&db, idb, y, "common").await;
+
+    let f = call(&app, "POST", &format!("/api/admin/anticheat/users/{ida}/flag"), Some(&admin), Some(json!({ "reason": "testing", "mode": "paused" }))).await;
+    assert_eq!(f.status, StatusCode::NO_CONTENT);
+    let t = call(&app, "POST", "/api/trades", Some(&a), Some(json!({ "pack": PACK, "to": b_name, "give": [x], "want": [y] }))).await;
+    assert_eq!(t.body["error"], "under_review");
+    assert_eq!(call(&app, "POST", "/api/open", Some(&a), Some(json!({ "pack": PACK }))).await.status, StatusCode::OK, "packs still open");
+    let c = call(&app, "POST", &format!("/api/admin/anticheat/users/{ida}/clear"), Some(&admin), Some(json!({ "reason": "ok" }))).await;
+    assert_eq!(c.status, StatusCode::NO_CONTENT);
+    let t = call(&app, "POST", "/api/trades", Some(&a), Some(json!({ "pack": PACK, "to": b_name, "give": [x], "want": [y] }))).await;
+    assert_eq!(t.status, StatusCode::OK, "{}", t.body);
+
+    // 10 packs and 300 parts come in; then the window is reversed.
+    let start = frc_packs_server::model::now_ms();
+    let before = kit::packs(&db, idb, PACK).await;
+    let mut after = before.clone();
+    after.sealed += 10;
+    kit::change(&db, idb, move |p, tx| frc_packs_server::model::save_pack(tx, p, &before, &after, "claim")).await;
+    kit::change(&db, idb, |p, _| p.parts += 300).await;
+    let end = frc_packs_server::model::now_ms();
+    let path = format!("/api/admin/anticheat/users/{idb}/reverse");
+    let sealed_before = kit::packs(&db, idb, PACK).await.sealed;
+    let pv = call(&app, "POST", &path, Some(&admin), Some(json!({ "from": start, "to": end }))).await;
+    assert_eq!(pv.status, StatusCode::OK, "{}", pv.body);
+    assert_eq!((pv.body["tookPacks"].as_i64(), pv.body["tookParts"].as_i64(), pv.body["applied"].as_bool()), (Some(10), Some(300), Some(false)));
+    assert_eq!(kit::packs(&db, idb, PACK).await.sealed, sealed_before, "a preview changes nothing");
+    let ap = call(&app, "POST", &path, Some(&admin), Some(json!({ "from": start, "to": end, "apply": true }))).await;
+    assert_eq!(ap.body["applied"], true, "{}", ap.body);
+    assert_eq!(kit::packs(&db, idb, PACK).await.sealed, sealed_before - 10);
+    let log = call(&app, "GET", "/api/admin/anticheat/log", Some(&admin), None).await.body;
+    let actions: Vec<&str> = log.as_array().unwrap().iter().map(|a| a["action"].as_str().unwrap()).collect();
+    assert_eq!(actions, vec!["reverse", "clear", "flag"], "every action is logged, newest first");
+    let audit = call(&app, "GET", "/api/admin/audit", Some(&admin), None).await.body;
+    assert_eq!(audit["mismatches"].as_array().unwrap().len(), 0, "the ledger still balances: {audit}");
+    drop_table(&db).await;
+}
+
+/// Flags are shadow flags by default: the player notices nothing, and Tripwire logs what they do. Over 60 packs in an
+/// hour pauses trading whatever the setting. With shadow flags off, a flag pauses trading.
+#[tokio::test]
+async fn tripwire_shadow_flags() {
+    let (app, db) = need_db!(own_setup(false));
+    let admin = make_admin(&app, &db).await;
+    let (a, _) = player(&app, &db).await;
+    let (b, sb) = player(&app, &db).await;
+    let (ida, idb) = (user_id(&db, &a).await, user_id(&db, &b).await);
+    age(&db, &[ida, idb]).await;
+    let b_name = sb["account"]["username"].as_str().unwrap().to_string();
+    for _ in 0..4 {
+        give_card(&db, ida, team_of("common", 142), "common").await;
+        give_card(&db, idb, team_of("common", 143), "common").await;
+    }
+    let offer = || json!({ "pack": PACK, "to": b_name, "give": [team_of("common", 142)], "want": [team_of("common", 143)] });
+    let take = |n: i32| {
+        let db = db.clone();
+        async move {
+            let before = kit::packs(&db, ida, PACK).await;
+            let mut after = before.clone();
+            after.sealed += n;
+            kit::change(&db, ida, move |p, tx| frc_packs_server::model::save_pack(tx, p, &before, &after, "claim")).await;
+        }
+    };
+    // 35 packs in an hour: flagged, silently. Trading carries on, and shows up on the watchlist.
+    take(35).await;
+    let p = frc_packs_server::model::profile(&db, ida).await.unwrap().unwrap();
+    assert!(p.flagged.is_some() && p.flag_mode.is_none());
+    let t = call(&app, "POST", "/api/trades", Some(&a), Some(offer())).await;
+    assert_eq!(t.status, StatusCode::OK, "a shadow flag doesn't stop trading: {}", t.body);
+    let st = call(&app, "GET", "/api/state", Some(&a), None).await.body;
+    assert!(!st.to_string().contains("flag"), "the player can't see they're flagged");
+    let ov = call(&app, "GET", "/api/admin/anticheat/overview", Some(&admin), None).await.body;
+    let w = ov["watchlist"].as_array().unwrap().iter().find(|w| w["id"] == ida.to_string()).expect("on the watchlist");
+    assert_eq!(w["mode"], "shadow");
+    assert!(w["activity"][0]["what"].as_str().unwrap().contains("offered a trade"), "{w}");
+    // Shadow flags off: the same flag pauses trading.
+    let off = call(&app, "POST", "/api/admin/anticheat/config", Some(&admin), Some(json!({ "shadowDefault": false }))).await;
+    assert_eq!(off.status, StatusCode::OK);
+    let t = call(&app, "POST", "/api/trades", Some(&a), Some(offer())).await;
+    assert_eq!(t.body["error"], "under_review");
+    call(&app, "POST", "/api/admin/anticheat/config", Some(&admin), Some(json!({ "shadowDefault": true }))).await;
+    assert_eq!(call(&app, "POST", "/api/trades", Some(&a), Some(offer())).await.status, StatusCode::OK);
+    // 30 more in the same hour (65): paused, whatever the setting.
+    take(30).await;
+    let p = frc_packs_server::model::profile(&db, ida).await.unwrap().unwrap();
+    assert_eq!(p.flag_mode.as_deref(), Some("paused"));
+    assert_eq!(call(&app, "POST", "/api/trades", Some(&a), Some(offer())).await.body["error"], "under_review");
+    drop_table(&db).await;
+}
+
+/// Retired endpoints are canaries: still "not found", but each call is logged with who made it, and shows in the scan.
+#[tokio::test]
+async fn tripwire_canaries() {
+    let (app, db) = need_db!(own_setup(false));
+    let admin = make_admin(&app, &db).await;
+    let (c, _) = player(&app, &db).await;
+    let id = user_id(&db, &c).await;
+    for path in ["/api/hand", "/api/hand", "/api/craft/mythic"] {
+        let r = call(&app, "POST", path, Some(&c), Some(json!({ "pack": PACK }))).await;
+        assert_eq!(r.status, StatusCode::NOT_FOUND, "{path}");
+    }
+    let ov = call(&app, "GET", "/api/admin/anticheat/overview", Some(&admin), None).await.body;
+    let hits = ov["canaries"].as_array().unwrap();
+    assert_eq!(hits.len(), 3);
+    assert!(hits.iter().all(|h| h["username"].is_string()), "{ov}");
+    let scan = call(&app, "GET", "/api/admin/anticheat/scan", Some(&admin), None).await.body;
+    let f = finding(&scan, id, "canary").expect("canary calls show in the scan");
+    assert!(f["evidence"].to_string().contains("/api/hand 2 times"), "{f}");
+    drop_table(&db).await;
 }

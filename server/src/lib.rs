@@ -3,6 +3,7 @@
 pub mod accounts;
 pub mod activity;
 pub mod admin;
+pub mod anticheat;
 pub mod announce;
 pub mod api;
 pub mod auth;
@@ -88,7 +89,10 @@ pub fn app(db: Db, cfg: Config) -> anyhow::Result<Router> {
         battler: Arc::new(battler::content::Content::load(&cfg.data_dir)?),
     });
     let mut router = Router::new()
-        .nest("/api/admin", admin::routes().merge(feedback::admin_routes()).merge(tiers::routes()))
+        .nest(
+            "/api/admin",
+            admin::routes().merge(feedback::admin_routes()).merge(tiers::routes()).merge(anticheat::respond::routes()),
+        )
         .nest(
             "/api",
             api::routes()

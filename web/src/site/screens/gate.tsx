@@ -52,7 +52,7 @@ export function SignIn({ guest, onDone }: { guest: boolean; onDone: (s: State) =
     <div class="au">
       <div class="au-hero" aria-hidden="true">
         <span class="au-p l"><PackArt k="gold" /></span>
-        <span class="au-p r"><PackArt k="myth" /></span>
+        <span class="au-p r"><PackArt k="gold" /></span>
         <span class="au-p c"><PackArt k="std" /></span>
       </div>
       <h1 class="au-brand"><Logo /><Wordmark /></h1>

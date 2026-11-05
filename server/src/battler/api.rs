@@ -533,7 +533,11 @@ async fn save(db: &Db, g: &mut Game, ver: i64, was_over: bool, mut tx: Tx) -> Ap
 async fn settle_wager(db: &Db, g: &Game) -> ApiResult<()> {
     let users = [g.seat(0).uid, g.seat(1).uid];
     let winner = if g.status == Status::Final { g.outcome.as_ref().and_then(|o| o.winner) } else { None };
-    crate::wagers::settle(db, content::PACK, &g.id, users, winner).await
+    let ended = match &g.outcome {
+        Some(o) if g.status == Status::Final => o.reason.as_str(),
+        _ => "cancelled",
+    };
+    crate::wagers::settle(db, content::PACK, &g.id, users, winner, ended).await
 }
 
 fn not_found() -> ApiError {
@@ -1156,11 +1160,22 @@ async fn accept_wager(State(st): State<Shared>, user: User, Path(id): Path<Strin
             let mut held: [crate::wagers::Held; 2] = Default::default();
             for s in 0..2 {
                 let p = crate::api::me(db, uids[s]).await?;
+                crate::anticheat::gate(db, &p, s == side, &format!("locked a wager in match {id}")).await?;
                 // A brand-new account can't win parts or packs (nor stake them: checked with the stake).
                 if w.stakes[1 - s].has_goods() && crate::wagers::too_new(&p) {
                     return Err(ApiError::new(
                         StatusCode::CONFLICT,
                         if s == side { "too_new" } else { "they_too_new" },
+                    ));
+                }
+                // Either player could win the other's stake, so both must have room for it under the daily limits
+                // trades use: a thrown match can't move more than a trade could.
+                let other = &w.stakes[1 - s];
+                let parts = i32::try_from(other.parts).unwrap_or(i32::MAX);
+                if crate::trades::over_daily(&p, other.packs + other.boosted, parts) {
+                    return Err(ApiError::new(
+                        StatusCode::CONFLICT,
+                        if s == side { "trade_limit" } else { "their_trade_limit" },
                     ));
                 }
                 held[s] =
@@ -1170,6 +1185,7 @@ async fn accept_wager(State(st): State<Shared>, user: User, Path(id): Path<Strin
             crate::wagers::escrow(db, content::PACK, &mut tx, uids, &held, &format!("wager {id}")).await?;
             w.held = held;
             w.status = "locked".into();
+            w.locked_at = Some(now_ms());
             g.lock_wager(now_ms()).map_err(refused)?;
         } else {
             g.set_wager(true, now_ms()).map_err(refused)?; // so the other player sees the acceptance

@@ -19,14 +19,14 @@ import {
 import { wrapper } from "../rip";
 import { snap } from "./faces";
 
-export type Kind = "std" | "gold" | "myth" | "test";
+export type Kind = "std" | "gold" | "test";
 
 /** The strip's height as a share of the pack's (the seam is at its bottom). The same as the CSS pack. */
 const SEAM = 0.13;
 /** Each face is this far in front of (or behind) the middle, as a share of the pack's width (--pth: 2.6cqw). */
 const PTH = 0.026;
 /** The wrapper's darkest color, for the pack's edges. */
-const EDGE: Record<Kind, string> = { std: "#141a46", gold: "#5e3207", myth: "#04262e", test: "#23104a" };
+const EDGE: Record<Kind, string> = { std: "#141a46", gold: "#5e3207", test: "#23104a" };
 /** CSS perspective(900px): the camera sits this far from the screen. */
 const PERSP = 900;
 

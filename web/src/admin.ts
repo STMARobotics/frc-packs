@@ -4,6 +4,7 @@
 import "./style.css";
 import "./admin.css";
 import { setupRarities } from "./rarities";
+import { setupTripwire } from "./tripwire";
 import { api, ApiError, explain, type AdminUser, type Feedback, type FeedbackStatus, type Invite, type Report, type Rules } from "./api";
 
 type Kid = Node | string | null | undefined | false;
@@ -261,33 +262,6 @@ function manage(u: AdminUser): HTMLElement {
   const panel = h("div", { class: "manage" });
   const result = h("div", { class: "result", hidden: true });
 
-  const packs = h("input", { class: "input num", type: "number", inputmode: "numeric", min: "1", max: "100", value: "1", "aria-label": "Packs to give" });
-  panel.append(
-    h(
-      "div",
-      { class: "mrow" },
-      h("span", {}, "Give packs"),
-      packs,
-      button(
-        "Give",
-        async (b) => {
-          const n = Number(packs.value);
-          if (!(Number.isInteger(n) && n >= 1 && n <= 100)) return say("Give 1 to 100 packs at a time.", true);
-          b.disabled = true;
-          try {
-            await api.admin.givePacks(u.id, n);
-            say(`Gave ${plural(n, "pack")} to ${u.username ?? "the guest"}.`);
-            await loadUsers();
-          } catch (e) {
-            fail(e);
-          } finally {
-            b.disabled = false;
-          }
-        },
-        "cta small",
-      ),
-    ),
-  );
   panel.append(history(u));
   if (self) {
     panel.append(h("p", { class: "meta" }, "This is your account. Change your password in Settings on the main page."));
@@ -689,27 +663,30 @@ function paintFeedback() {
 
 // ---------- start ----------
 
-/** Computers get two tabs: people and feedback, and configuration (rules, rarities, health). Phones get only the first. */
+/** Computers get three tabs: people and feedback, configuration (rules, rarities, health), and Tripwire (the
+    anticheat). Phones get only the first. */
 function setupTabs() {
-  const people = $("#groupPeople"), config = $("#groupConfig");
-  const tabP = $("#tabPeople"), tabC = $("#tabConfig");
-  let loaded = false;
-  const show = (cfg: boolean) => {
-    people.hidden = cfg;
-    config.hidden = !cfg;
-    tabP.setAttribute("aria-selected", String(!cfg));
-    tabC.setAttribute("aria-selected", String(cfg));
-    try { sessionStorage.setItem("adminTab", cfg ? "config" : "people"); } catch { /* storage can be off */ }
-    if (cfg && !loaded) {
-      loaded = true;
-      setupRarities(say);
+  type Tab = "people" | "config" | "tripwire";
+  const groups: Record<Tab, HTMLElement> = { people: $("#groupPeople"), config: $("#groupConfig"), tripwire: $("#groupTripwire") };
+  const tabs: Record<Tab, HTMLElement> = { people: $("#tabPeople"), config: $("#tabConfig"), tripwire: $("#tabTripwire") };
+  const loaded = new Set<Tab>();
+  const show = (t: Tab) => {
+    for (const k of Object.keys(groups) as Tab[]) {
+      groups[k].hidden = k !== t;
+      tabs[k].setAttribute("aria-selected", String(k === t));
+    }
+    try { sessionStorage.setItem("adminTab", t); } catch { /* storage can be off */ }
+    if (!loaded.has(t)) {
+      loaded.add(t);
+      if (t === "config") setupRarities(say);
+      if (t === "tripwire") setupTripwire(say);
     }
   };
-  tabP.onclick = () => show(false);
-  tabC.onclick = () => show(true);
+  for (const k of Object.keys(tabs) as Tab[]) tabs[k].onclick = () => show(k);
   let saved: string | null = null;
   try { saved = sessionStorage.getItem("adminTab"); } catch { /* storage can be off */ }
-  show(saved === "config" && window.matchMedia("(min-width: 900px)").matches);
+  const wide = window.matchMedia("(min-width: 900px)").matches;
+  show(wide && (saved === "config" || saved === "tripwire") ? saved : "people");
 }
 
 async function boot() {

@@ -10,7 +10,7 @@
   --line: #1f4650;
   --panel: #0a222b;
   --display: "Lilita One", "Arial Rounded MT Bold", system-ui, sans-serif;
-  --body: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --body: "Mona Sans", "Segoe UI", system-ui, sans-serif;
   /* The card in the stack is as big as the screen allows after the header, status bar, hint and buttons (about 380px), so short phones don't have to scroll. */
   --cw: clamp(170px, min(74vw, 290px, calc((100svh - 380px) / 1.4)), 290px);
 }

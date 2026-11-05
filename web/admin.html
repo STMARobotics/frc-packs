@@ -10,7 +10,7 @@
 <link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Chakra+Petch:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Mona+Sans:wght@200..900&display=swap">
 </head>
 <body class="adminpage">
 <div class="app">
@@ -25,6 +25,7 @@
     <nav class="admin-tabs" role="tablist" aria-label="Admin sections">
       <button type="button" role="tab" id="tabPeople" aria-selected="true">People and feedback</button>
       <button type="button" role="tab" id="tabConfig" aria-selected="false">Configuration</button>
+      <button type="button" role="tab" id="tabTripwire" aria-selected="false">Tripwire</button>
     </nav>
     <p class="hint-txt desk-note">Game settings, rarities and health checks are on the computer version of this page.</p>
     <div class="agroup" id="groupPeople">
@@ -102,6 +103,13 @@
       <p class="meta">After a change to which teams are Mythic, each player's cards move to the new rarities the next time they open the game (with 1,000 parts and a note if they lost a Mythic). This does it for everyone now, and is safe to press again.</p>
       <div class="mrow"><button type="button" class="cta small" id="retierBtn">Update everyone's rarities</button></div>
       <div class="result" id="retierOut" hidden></div>
+    </section>
+    </div>
+    <div class="agroup desk" id="groupTripwire" hidden>
+    <section class="card tw-suite" aria-labelledby="twTitle">
+      <div class="card-head"><h2 id="twTitle">Tripwire</h2><span class="count" id="twCount"></span></div>
+      <nav class="tw-tabs" role="tablist" aria-label="Tripwire" id="twTabs"></nav>
+      <div id="twBody"></div>
     </section>
     </div>
   </main>

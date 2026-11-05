@@ -20,7 +20,7 @@ const js = file(/<script type="module" crossorigin src="\.\/([^"]+)"/).replace(/
 const css = file(/<link rel="stylesheet" crossorigin href="\.\/([^"]+)"/).replace(/<\/style/gi, '<\\/style');
 // The page as the artifact wants it: no document skeleton of its own (it gets one when published).
 const page = `<title>FRC Packs Opening Preview</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Chakra+Petch:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Mona+Sans:wght@200..900&display=swap">
 <style>${css}</style>
 <div id="app"></div>
 <script>document.body.classList.add("s-page");</script>

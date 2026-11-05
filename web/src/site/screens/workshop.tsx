@@ -8,7 +8,6 @@ import { applyCollection, applyState, fail, heldCopies, inv, prefs, setPrefs, st
 import { cx } from "../ui";
 import { sfx } from "../sfx";
 
-const MYTHIC_COST = 10000;
 const SCRAPPABLE: Tier[] = ["common", "uncommon", "rare", "legendary"]; // Mythic copies are never scrapped
 
 function readPick(): Record<Tier, boolean> {
@@ -64,12 +63,12 @@ export function Workshop() {
     try { scrapped(await api.scrapExtras(PACK, tiers)); } catch (e) { fail(e); }
     setBusy("");
   };
-  const craft = async (mythic: boolean) => {
-    setBusy(mythic ? "mythic" : "craft");
+  const craft = async () => {
+    setBusy("craft");
     try {
-      applyState(await (mythic ? api.craftMythic() : api.craft()));
+      applyState(await api.craft());
       sfx.promote();
-      toast(mythic ? "Mythic pack crafted. It's in its own stack on the Open tab." : "Boosted pack crafted. It's in its own gold stack on the Open tab.");
+      toast("Boosted pack crafted. It's in its own gold stack on the Open tab.");
     } catch (e) { fail(e); }
     setBusy("");
   };
@@ -80,8 +79,7 @@ export function Workshop() {
         <div class="s-parts"><span>Parts</span><b>{s.parts.toLocaleString()}</b></div>
         <div class="s-bar gold"><i style={{ transform: `scaleX(${Math.min(1, s.parts / cost)})` }} /></div>
         <small class="s-dim">{s.parts >= cost ? `${Math.floor(s.parts / cost)} boosted pack${s.parts >= cost * 2 ? "s" : ""} ready` : `${cost - s.parts} more for a boosted pack`}</small>
-        <button type="button" class="s-btn wide" disabled={s.parts < cost || !!busy} onClick={() => craft(false)}>Craft boosted pack · {cost}</button>
-        {s.parts >= MYTHIC_COST && <button type="button" class="s-btn ghost wide" disabled={!!busy} onClick={() => craft(true)}>Mythic pack · {MYTHIC_COST.toLocaleString()} (3 Mythics)</button>}
+        <button type="button" class="s-btn wide" disabled={s.parts < cost || !!busy} onClick={craft}>Craft boosted pack · {cost}</button>
         <small class="s-dim">Boosted packs have better odds: Legendary or better in about half, Mythic 4× as likely.</small>
       </section>
       <section class="s-panel">

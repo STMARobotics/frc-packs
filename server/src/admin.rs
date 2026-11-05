@@ -25,7 +25,6 @@ pub fn routes() -> Router<Shared> {
         .route("/invites/{code}/delete", post(delete_invite))
         .route("/users", get(users))
         .route("/users/{id}/password", post(reset_password))
-        .route("/users/{id}/packs", post(give_packs))
         .route("/users/{id}/disabled", post(set_disabled))
         .route("/users/{id}/admin", post(set_admin))
         .route("/users/{id}/delete", post(delete_user))
@@ -346,6 +345,12 @@ async fn save_settings(State(s): State<Shared>, _admin: Admin, Json(r): Json<Rul
     .val(":f", sv(r.donate_url.clone().unwrap_or_default()));
     let mut tx = Tx::new();
     tx.update("", "SETTINGS", "SETTINGS", set, None);
+    // Every version of the rules, kept so the anticheat's supply check knows what the timer paid at any moment.
+    let at = now_ms();
+    let mut hist = crate::db::key("SETTINGS", format!("HIST#{}", crate::db::pad(at, 15)));
+    hist.insert("at".into(), n(at));
+    hist.insert("rules".into(), sv(serde_json::to_string(&r).unwrap_or_default()));
+    tx.put(hist);
     tx.commit(&s.db).await?;
     Ok(Json(r))
 }
@@ -500,38 +505,6 @@ async fn reset_password(State(s): State<Shared>, admin: Admin, Path(id): Path<Uu
     .await?;
     accounts::end_sessions(&s.db, id, None).await?;
     Ok(Json(json!({ "password": password })))
-}
-
-#[derive(Deserialize)]
-struct GivePacks {
-    count: i32,
-}
-
-/// Adds sealed packs of the current pack to the account, e.g. as a reward.
-async fn give_packs(
-    State(s): State<Shared>,
-    _admin: Admin,
-    Path(id): Path<Uuid>,
-    Json(req): Json<GivePacks>,
-) -> ApiResult<StatusCode> {
-    if !(1..=100).contains(&req.count) {
-        return Err(err(StatusCode::BAD_REQUEST, "bad_request"));
-    }
-    let free_id = s.catalog().await.claimable().id().to_string();
-    let free = free_id.as_str();
-    let db = &s.db;
-    retry!(async {
-        let mut p = model::profile(db, id).await?.ok_or(err(StatusCode::NOT_FOUND, "not_found"))?;
-        let before = model::pack_row(db, id, free).await?;
-        let mut after = before.clone();
-        after.sealed += req.count;
-        let mut tx = Tx::new();
-        model::save_pack(&mut tx, id, &before, &after, "admin gift");
-        let parts = p.parts;
-        model::save_user(&mut tx, &mut p, parts, "admin gift");
-        tx.commit(db).await.map_err(ApiError::from)
-    })?;
-    Ok(StatusCode::NO_CONTENT)
 }
 
 #[derive(Deserialize)]

@@ -1,12 +1,27 @@
 // The app's version and its patch notes, newest first. Bump VERSION and add a release at the top with each update
 // players should hear about: everyone who's played before sees the newest one once (screens/notes.tsx), and Settings
 // shows the version and every release. 0.x while in beta: the middle number for a weekly release, the last for the
-// feedback updates and fixes in between.
-export const VERSION = "0.11.2";
+// feedback updates and fixes in between. How to bump and how the notes should read: CONTRIBUTING.md.
+export const VERSION = "0.12.0";
 
 export interface Release { v: string; date: string; title: string; items: string[] }
 
 export const NOTES: Release[] = [
+  {
+    v: "0.12.0",
+    date: "2026-11-05",
+    title: "Packs, trading and a new font",
+    items: [
+      "New font for everything except titles (Mona Sans)",
+      "Picking up a pack opens it. If you leave halfway through, it finishes the next time you open the app",
+      "Removed the Back button when you're holding a pack",
+      "Removed Mythic packs",
+      "New accounts can get cards in trades right away, and give cards, packs and parts after their first day",
+      "Wagers count toward the daily trade limit (10 packs and 2,000 parts a day)",
+      "Fixed the Mythic pack craft button showing in the workshop when Mythic packs couldn't be crafted",
+      "Added Tripwire, a new anticheat. It runs on the server, not your device, and doesn't add any wait to opening, trading or anything else, so if something's slow, it isn't Tripwire",
+    ],
+  },
   {
     v: "0.11.2",
     date: "2026-11-02",

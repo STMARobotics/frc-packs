@@ -62,8 +62,6 @@ export interface PackState {
   sealed: number;
   /** How many of the sealed packs are boosted (they have their own stack). */
   boosted: number;
-  /** How many of the boosted packs are Mythic packs (three Mythics each). */
-  mythic: number;
   opened: number;
   pity: { m: number; l: number };
 }
@@ -417,9 +415,7 @@ export const api = {
   /** `boosted` picks the kind: true for a boosted pack, false for a standard one; left out, boosted goes first. */
   /** Picks up a pack: it's minted now, and its cards (best last, with their serial numbers) come back, so the opening
       can be ready before the tear. */
-  hand: (pack: string, boosted?: boolean, mythic = false) =>
-    call<{ best: Tier; boosted: boolean; cards?: { num: number; tier: Tier; serial: number }[] }>("POST", "/api/hand", { pack, boosted, mythic }),
-  open: (pack: string, boosted?: boolean, mythic = false) => act<{ opening: Opening; state: State; streakReward: boolean }>("/api/open", { pack, boosted, mythic }),
+  open: (pack: string, boosted?: boolean) => act<{ opening: Opening; state: State; streakReward: boolean }>("/api/open", { pack, boosted }),
   progress: (id: number, revealed: number) => call<void>("POST", `/api/openings/${id}/progress`, { revealed }),
   collection: (pack: string) => call<Collection>("GET", `/api/collection/${encodeURIComponent(pack)}`),
   /** Scrap extra copies of one team (the first copy is always kept). */
@@ -477,7 +473,6 @@ export const api = {
   /** Spend parts on a boosted pack. */
   craft: () => act<State>("/api/craft"),
   /** Spend 10,000 parts on a Mythic pack (three Mythics). */
-  craftMythic: () => act<State>("/api/craft/mythic"),
   /** The pack recipe. `v` (the app version) makes each release fetch it fresh: the file is cached for hours. */
   /** Robots' Battler effects as their cards say them, by team (published or shipped with the game). */
   robotEffects: () => call<Record<string, { name: string | null; text: string }>>("GET", "/api/battler/effects"),
@@ -503,7 +498,6 @@ export const api = {
     feedbackStatus: (id: number, status: FeedbackStatus, note: string) =>
       call<{ rewarded: boolean }>("POST", `/api/admin/feedback/${id}/status`, { status, note }),
     resolveReport: (id: number) => call<void>("POST", `/api/admin/reports/${id}/resolve`),
-    givePacks: (id: string, count: number) => call<void>("POST", `/api/admin/users/${id}/packs`, { count }),
     setAdmin: (id: string, admin: boolean) => call<void>("POST", `/api/admin/users/${id}/admin`, { admin }),
     setDisabled: (id: string, disabled: boolean) => call<void>("POST", `/api/admin/users/${id}/disabled`, { disabled }),
     deleteUser: (id: string, confirm: string) => call<void>("POST", `/api/admin/users/${id}/delete`, { confirm }),
@@ -515,11 +509,34 @@ export const api = {
     ledger: (id: string) => call<LedgerEntry[]>("GET", `/api/admin/users/${id}/ledger`),
     audit: () => call<Audit>("GET", "/api/admin/audit"),
     retier: () => call<{ players: number; compensated: number }>("POST", "/api/admin/retier", {}),
+    tripwireOverview: () => call<TripwireOverview>("GET", "/api/admin/anticheat/overview"),
+    tripwireConfig: (c: TripwireConfig) => call<TripwireConfig>("POST", "/api/admin/anticheat/config", c),
+    tripwireScan: () => call<TripwireReport>("GET", "/api/admin/anticheat/scan"),
+    tripwireLog: () => call<TripwireAction[]>("GET", "/api/admin/anticheat/log"),
+    tripwireFlag: (id: string, reason: string, mode?: TripwireMode) => call<void>("POST", `/api/admin/anticheat/users/${id}/flag`, { reason, mode }),
+    tripwireClear: (id: string, reason: string) => call<void>("POST", `/api/admin/anticheat/users/${id}/clear`, { reason }),
+    tripwireReverse: (id: string, from: number, to: number, apply: boolean) =>
+      call<TripwireReversal>("POST", `/api/admin/anticheat/users/${id}/reverse`, { from, to, apply }),
     tiers: () => call<TierOverview>("GET", "/api/admin/tiers"),
     previewTiers: (w: { tiers: Record<string, TierName> }) => call<TierPreview>("POST", "/api/admin/tiers/preview", w),
     applyTiers: (w: { tiers: Record<string, TierName>; parts: number; note: string }) => call<TierOverview>("POST", "/api/admin/tiers/apply", w),
   },
 };
+
+/** Tripwire (the anticheat): one scan's findings. */
+export type TripwireMode = "shadow" | "paused";
+export interface TripwireConfig { shadowDefault: boolean }
+export interface TripwireFinding { check: "supply" | "luck" | "funnel" | "wager" | "pacing" | "canary" | "integrity"; score: number; evidence: string[] }
+export interface TripwireSuspect { id: string; username: string | null; score: number; flagged: string | null; flagMode: TripwireMode | null; disabled: boolean; findings: TripwireFinding[] }
+export interface TripwireWatched { id: string; username: string | null; reason: string; mode: TripwireMode; modeSet: boolean; flaggedAt: number | null; disabled: boolean; activity: { at: number; what: string }[] }
+export interface TripwireCanary { at: number; path: string; username: string | null; visitor: string }
+export interface TripwireOverview { name: string; config: TripwireConfig; players: number; watchlist: TripwireWatched[]; canaries: TripwireCanary[] }
+export interface TripwireReport { at: number; players: number; suspects: TripwireSuspect[]; notes: string[] }
+export interface TripwireAction { at: number; admin: string; user: string; action: string; detail: string }
+export interface TripwireReversal {
+  packs: number; boosted: number; parts: number; cards: string[];
+  tookPacks: number; tookBoosted: number; tookParts: number; tookCards: string[]; gone: string[]; applied: boolean;
+}
 
 /** Friendly words for the server's error codes. */
 export function explain(e: unknown): string {
@@ -555,8 +572,10 @@ export function explain(e: unknown): string {
     not_your_trade: "That trade isn't yours to answer.",
     not_enough_to_trade: "You don't have that many packs or parts to trade (boosted packs can't be traded).",
     they_lack: "They don't have that many packs or parts.",
-    too_new: "New accounts can trade packs and parts after their first day. You can trade cards right away.",
-    they_too_new: "They joined today. New accounts can trade packs and parts after their first day.",
+    too_new: "New accounts can get cards in trades right away, and give cards, packs and parts after their first day.",
+    they_too_new: "They joined today. New accounts can give cards, packs and parts after their first day.",
+    under_review: "Trading is paused on your account while we take a look. Packs still open as usual.",
+    they_under_review: "They can't trade right now.",
     trade_limit: "You can take in up to 10 packs and 2,000 parts a day through trades. Try a smaller trade, or tomorrow.",
     their_trade_limit: "They've taken in as many packs or parts as they can today through trades. Try a smaller trade, or tomorrow.",
     in_progress: "Still working on that. Give it a moment.",

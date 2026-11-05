@@ -58,20 +58,8 @@ pub async fn add_parts(db: &Db, user: Uuid, parts: i64) {
 /// Sets a player's sealed and boosted packs of a pack.
 pub async fn set_packs(db: &Db, user: Uuid, pack: &str, sealed: i32, boosted: i32) {
     let before = model::pack_row(db, user, pack).await.unwrap();
-    let after = PackRow { sealed, boosted, mythic: 0, ..before.clone() };
-    change(db, user, move |_, tx| model::save_pack(tx, user, &before, &after, WHY)).await;
-}
-
-/// Gives a player this many more Mythic packs (boosted packs with three Mythics).
-pub async fn set_mythic_packs(db: &Db, user: Uuid, pack: &str, mythic: i32) {
-    let before = model::pack_row(db, user, pack).await.unwrap();
-    let after = PackRow {
-        sealed: before.sealed + mythic,
-        boosted: before.boosted + mythic,
-        mythic: before.mythic + mythic,
-        ..before.clone()
-    };
-    change(db, user, move |_, tx| model::save_pack(tx, user, &before, &after, WHY)).await;
+    let after = PackRow { sealed, boosted, ..before.clone() };
+    change(db, user, move |p, tx| model::save_pack(tx, p, &before, &after, WHY)).await;
 }
 
 pub async fn add_sealed(db: &Db, user: Uuid, pack: &str, more: i32) {
@@ -107,7 +95,16 @@ pub async fn finish_missions(db: &Db, user: Uuid) {
     change(db, user, move |_, tx| model::save_day(tx, user, &mut d.clone())).await;
 }
 
-/// Puts a pack in a player's hand with these cards (`[{num, tier}, ...]`).
+/// Plants the cards (`[{num, tier}, ...]`) the player's next pack opens with. Only a server with DEV_TOOLS on uses
+/// them; with it off they're ignored.
+pub async fn rig_next(db: &Db, user: Uuid, pack: &str, cards: &Value) {
+    let mut it = key(upk(user), format!("RIG#{pack}"));
+    it.insert("cards".into(), crate::db::s(cards.to_string()));
+    db.put(it).await.unwrap();
+}
+
+/// A legacy pack in hand with these cards (`[{num, tier}, ...]`), as players had before picking up and opening became
+/// one step. Opening a pack releases it.
 pub async fn set_hand(db: &Db, user: Uuid, pack: &str, boosted: bool, cards: &Value) {
     let mut it = key(upk(user), format!("HAND#{pack}#{}", u8::from(boosted)));
     it.insert("cards".into(), crate::db::s(cards.to_string()));

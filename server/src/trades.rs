@@ -246,7 +246,8 @@ fn too_new(p: &Profile) -> bool {
     p.created_at > now_ms() - NEW_ACCOUNT_HOURS * 3_600_000
 }
 
-fn over_daily(p: &Profile, packs: i32, parts: i32) -> bool {
+/// Whether taking in these packs and parts now would go over the daily limits. Wagers use it too.
+pub(crate) fn over_daily(p: &Profile, packs: i32, parts: i32) -> bool {
     if packs == 0 && parts == 0 {
         return false;
     }
@@ -256,7 +257,7 @@ fn over_daily(p: &Profile, packs: i32, parts: i32) -> bool {
 
 /// Whether a player has these standard sealed packs, boosted packs (not Mythic packs) and parts.
 fn has_goods(p: &Profile, row: &PackRow, packs: i32, boosted: i32, parts: i32) -> bool {
-    p.parts >= i64::from(parts) && row.standard() >= packs && row.boosted - row.mythic >= boosted
+    p.parts >= i64::from(parts) && row.standard() >= packs && row.boosted >= boosted
 }
 
 /// Picks one tradeable copy for each team listed (a team listed twice gets two different copies): the newest one, so a
@@ -326,6 +327,9 @@ async fn offer(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Jso
     let r = retry!(async {
         let mut p = api::me(db, user.id).await?;
         let to = api::me(db, to.id).await?;
+        let who = |x: &Profile| x.username.clone().unwrap_or_default();
+        crate::anticheat::gate(db, &p, true, &format!("offered a trade to {}", who(&to))).await?;
+        crate::anticheat::gate(db, &to, false, &format!("was offered a trade by {}", who(&p))).await?;
         if open_trades_of(db, user.id).await?.iter().filter(|t| t.from_user == user.id).count() >= MAX_OPEN {
             return Err(err(StatusCode::CONFLICT, "too_many_offers"));
         }
@@ -348,6 +352,13 @@ async fn offer(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Jso
             return Err(err(StatusCode::CONFLICT, "too_new"));
         }
         if (req.want_packs > 0 || req.want_boosted > 0 || req.want_parts > 0) && too_new(&to) {
+            return Err(err(StatusCode::CONFLICT, "they_too_new"));
+        }
+        // A brand-new account can receive cards but not give any away (alts can't pass on their first pack).
+        if (!req.give.is_empty() || !req.give_specials.is_empty()) && too_new(&p) {
+            return Err(err(StatusCode::CONFLICT, "too_new"));
+        }
+        if (!req.want.is_empty() || !req.want_specials.is_empty()) && too_new(&to) {
             return Err(err(StatusCode::CONFLICT, "they_too_new"));
         }
         if over_daily(&p, req.want_packs + req.want_boosted, req.want_parts) {
@@ -629,11 +640,17 @@ async fn accept(State(s): State<Shared>, user: User, Path(id): Path<i64>) -> Api
         }
         let pack = api::pack(&s, &t.pack).await?;
         let (from_p, to_p) = tokio::try_join!(api::me(db, t.from_user), api::me(db, t.to_user))?;
+        let who = |x: &Profile| x.username.clone().unwrap_or_default();
+        crate::anticheat::gate(db, &to_p, true, &format!("accepted trade {id} from {}", who(&from_p))).await?;
+        crate::anticheat::gate(db, &from_p, false, &format!("trade {id} accepted by {}", who(&to_p))).await?;
         if over_daily(&to_p, t.give_packs + t.give_boosted, t.give_parts) {
             return Err(err(StatusCode::CONFLICT, "trade_limit"));
         }
         if over_daily(&from_p, t.want_packs + t.want_boosted, t.want_parts) {
             return Err(err(StatusCode::CONFLICT, "their_trade_limit"));
+        }
+        if (!t.want.is_empty() || !t.want_specials.is_empty()) && too_new(&to_p) {
+            return Err(err(StatusCode::CONFLICT, "too_new"));
         }
         if from_p.disabled {
             close(db, id, "failed").await?;
@@ -771,7 +788,7 @@ async fn accept(State(s): State<Shared>, user: User, Path(id): Path<i64>) -> Api
         crate::missions::count(&mut day, crate::missions::Kind::Traded, 1);
         model::save_day(&mut tx, user.id, &mut day);
         for side in [&mut from, &mut to] {
-            model::save_pack(&mut tx, side.p.id, &side.row_before, &side.row, &reason);
+            model::save_pack(&mut tx, &mut side.p, &side.row_before, &side.row, &reason);
             model::save_stats(&mut tx, side.p.id, pack.id(), &side.stats);
             let parts = side.parts_before;
             model::save_user(&mut tx, &mut side.p, parts, &reason);

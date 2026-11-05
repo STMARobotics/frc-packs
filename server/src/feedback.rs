@@ -211,7 +211,7 @@ async fn set_status(
             let before = model::pack_row(db, uid, &free).await?;
             let mut after = before.clone();
             after.sealed += REWARD_PACKS;
-            model::save_pack(&mut tx, uid, &before, &after, "feedback reward");
+            model::save_pack(&mut tx, &mut p, &before, &after, "feedback reward");
             let what = if kind == "bug" { "bug report" } else { "idea" };
             let thanks = format!("Your {what} \"{title}\" was accepted. Thank you! Here's a free pack.");
             p.notice = Some(match p.notice.take() {

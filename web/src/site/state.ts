@@ -70,7 +70,7 @@ export function stash(c: { num: number; serial: number; isNew: boolean }) {
   if (c.isNew) setPrefs((x) => { x.unseen[c.num] = 1; });
 }
 
-export const packOf = (s: State) => s.packs.find((p) => p.id === PACK) ?? { id: PACK, sealed: 0, boosted: 0, mythic: 0, opened: 0, pity: { m: 0, l: 0 } };
+export const packOf = (s: State) => s.packs.find((p) => p.id === PACK) ?? { id: PACK, sealed: 0, boosted: 0, opened: 0, pity: { m: 0, l: 0 } };
 
 let syncing = false;
 /** Asks the server for the latest (another tab or device may have changed things). */
