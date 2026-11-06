@@ -46,6 +46,14 @@ def battler_stats(path):
 
 BATTLER = battler_stats(data / "battler-2026.txt")
 
+def previous_tiers(path):
+    """Each team's rarity in the pack as it was built last time: a team already in the pack keeps it."""
+    if not path.exists():
+        return {}
+    return {t["num"]: t["tier"] for t in json.loads(path.read_text(encoding="utf-8"))["teams"]}
+
+PREVIOUS = previous_tiers(data / "packs" / "cmp26.json")
+
 def champs_teams(path):
     """team|name|champs EPA|champs W-L|division|season EPA rank|location, one line per team."""
     teams, seen = [], set()
@@ -91,6 +99,11 @@ def champs_teams(path):
             t["tier"] = "mythic"
         elif t["tier"] == "mythic" or t["num"] in LEGENDARIES:
             t["tier"] = "legendary"
+    # November 2026: the roster became the full one (82 teams had been missing). Teams already in the pack keep their
+    # rarity, so nobody's cards change; the new ones get theirs from their rank above.
+    for t in teams:
+        if t["num"] in PREVIOUS:
+            t["tier"] = PREVIOUS[t["num"]]
     return teams
 
 # The only Mythic teams (chosen by hand, October 2026). Changing this changes cards people already own: the server

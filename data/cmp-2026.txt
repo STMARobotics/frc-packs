@@ -1,517 +1,599 @@
-# 2026 FIRST Championship (Houston), 8 divisions. Source: Statbotics API v3 team_events, fetched 2026-10-06 through a summarizing fetch.
-# team|name|champs EPA|champs qual W-L|division|2026 season EPA rank (- if outside the sampled top 613)|location (- if unknown)
-88|TJ²|154.32|2-8|Newton|-|-
-148|Robowranglers|177.85|6-4|Newton|133|TX
-180|S.P.A.M.|203.8|3-7|Newton|94|FL
-195|CyberKnights|204.3|5-5|Newton|68|CT
-233|The Pink Team|121.15|4-6|Newton|586|FL
-341|Miss Daisy|185.68|6-4|Newton|95|PA
-346|RoboHawks|146.98|7-3|Newton|154|VA
-386|Team Voltage|112.98|2-8|Newton|490|FL
-424|Rust Belt Robotics|119.39|3-7|Newton|395|NY
-599|The Robodox|188.96|7-3|Newton|105|CA
-604|Quixilver|214.95|8-2|Newton|46|CA
-687|The Nerd Herd|153.94|6-4|Newton|180|CA
-695|Bison Robotics|211.19|7-3|Newton|52|OH
-818|The Steel Armadillos|110.91|3-7|Newton|402|MI
-868|TechHOUNDS|139.93|6-4|Newton|356|IN
-930|Mukwonago BEARs|141.33|5-5|Newton|266|WI
-948|NRG (Newport Robotics Group)|182.45|5-5|Newton|91|WA
-973|Greybots|224.84|8-2|Newton|40|CA
-1108|Panther Robotics|125.06|4-6|Newton|427|KS
-1540|Flaming Chickens|205.22|6-4|Newton|66|OR
-1577|Steampunk|109.28|5-5|Newton|554|Israel
-1796|RoboTigers|266.52|7-3|Newton|20|NY
-1807|Redbird Robotics|70.37|5-5|Newton|-|-
-1833|Team BEAN|237.17|8-2|Newton|36|GA
-1884|Griffins|41.58|1-9|Newton|1414|United Kingdom
-1902|Exploding Bacon|48.32|4-6|Newton|-|-
-1922|Oz-Ram|159.35|6-4|Newton|137|NH
-2046|Bear Metal|285.67|5-5|Newton|23|WA
-2052|KnightKrawler|176.69|8-2|Newton|130|MN
-2067|Apple Pi|179.11|4-6|Newton|190|CT
-2194|Fondy Fire|154.85|4-6|Newton|201|WI
-2370|IBOTS|143.29|4-6|Newton|244|VT
-2586|Copper Bots|82.41|4-6|Newton|-|-
-2713|Red Hawk Robotics|143.23|6-4|Newton|248|MA
-2783|Engineers of Tomorrow|159.0|6-4|Newton|261|KY
-2910|Jack in the Bot|282.06|9-1|Newton|12|WA
-2996|Cougars Gone Wired|167.46|6-4|Newton|191|CO
-3005|RoboChargers|132.92|4-6|Newton|369|TX
-3044|Team 0xBE4|107.57|5-5|Newton|361|NY
-3256|WarriorBorgs|188.66|4-6|Newton|101|CA
-3276|TOOLCATS|129.76|4-6|Newton|232|MN
-3354|PrepaTec - TecDroid|109.39|6-4|Newton|312|Mexico
-3966|Gryphon Command|142.85|7-3|Newton|218|TN
-4099|The Falcons|137.22|6-4|Newton|293|MD
-4206|Robo Vikes|153.68|4-6|Newton|220|TX
-4253|Raid Zero|56.36|1-9|Newton|-|-
-4400|Cerbotics - Peñoles|204.09|5-5|Newton|64|Mexico
-4561|TerrorBytes|134.89|5-5|Newton|273|NC
-4590|GreenBlitz|103.54|6-4|Newton|359|Israel
-5216|E-Ville Empire|133.09|5-5|Newton|240|MI
-5414|Pearadox|78.1|2-8|Newton|-|-
-5549|Gryphon Robotics|139.38|9-1|Newton|247|VA
-5736|Kingsmen Robotics|233.03|5-5|Newton|47|NY
-5948|PrepaTec - Lebotics|116.4|8-2|Newton|393|Mexico
-5951|Makers Assemble|121.63|3-7|Newton|278|Israel
-6036|Peninsula Robotics|207.97|8-2|Newton|92|CA
-6352|LAUNCH TEAM|71.27|2-8|Newton|591|AZ
-6436|NARBULUT PARS ROBOTICS|134.18|5-5|Newton|274|Türkiye
-6647|PrepaTec - VOLTEC|191.1|4-6|Newton|104|Mexico
-6988|ACI35|34.15|4-6|Newton|-|-
-7160|Ludington O-Bots|128.92|6-4|Newton|358|MI
-8046|LakerBots|151.85|3-7|Newton|158|NH
-8373|The Flying Octopi|139.02|5-5|Newton|225|MI
-9029|Team NF|97.41|3-7|Newton|530|Türkiye
-9067|The Goonies|-|-|Newton|725|AR
-27|Team RUSH|311.27|8-2|Archimedes|7|MI
-103|Cybersonics|165.86|7-2|Archimedes|152|PA
-131|CHAOS|151.34|4-6|Archimedes|290|NH
-167|Children of the Corn|112.49|3-7|Archimedes|313|IA
-548|Robostangs|126.88|5-5|Archimedes|299|MI
-587|The Hedgehogs|28.8|4-6|Archimedes|-|-
-971|Spartan Robotics|164.39|6-4|Archimedes|98|CA
-1114|Simbotics|306.3|10-0|Archimedes|9|ON
-1189|Gearheads|159.07|5-5|Archimedes|182|MI
-1218|SCH Robotics|131.83|6-4|Archimedes|394|PA
-1241|THEORY6|206.91|9-1|Archimedes|41|ON
-1261|Robo Lions Team1261|148.38|6-4|Archimedes|176|GA
-1501|Team THRUST|133.94|3-7|Archimedes|442|IN
-1511|Rolling Thunder|96.66|6-4|Archimedes|481|NY
-1619|Up-A-Creek Robotics|144.2|6-4|Archimedes|212|CO
-1646|Precision Guessworks|55.46|1-9|Archimedes|-|-
-1648|G3 Robotics|78.52|2-7|Archimedes|-|-
-1731|Fresta Valley Robotics Club|129.83|3-7|Archimedes|469|VA
-1868|Space Cookies|190.69|5-5|Archimedes|89|CA
-1912|Team Combustion|99.78|7-3|Archimedes|-|-
-2075|Enigma Robotics|123.4|5-5|Archimedes|279|MI
-2106|The Junkyard Dogs|200.59|8-1|Archimedes|86|VA
-2137|The Oxford RoboCats|177.74|6-4|Archimedes|166|MI
-2539|Krypton Cougars|191.19|6-4|Archimedes|100|PA
-2583|Orange Dynamite|129.7|3-7|Archimedes|305|TX
-2767|Stryke Force|210.0|7-3|Archimedes|120|MI
-2826|Wave Robotics|72.37|4-6|Archimedes|-|-
-2847|The MegaHertz|137.11|4-6|Archimedes|493|MN
-2851|Crevolution|145.93|3-7|Archimedes|258|MI
-2881|Lady Cans|127.31|8-2|Archimedes|392|TX
-2960|Automation Nation|131.92|7-3|Archimedes|184|MI
-3006|Red Rock Robotics|183.73|6-4|Archimedes|157|UT
-3045|Gear Gremlins|214.44|8-2|Archimedes|57|CA
-3284|Camdenton LASER 3284|57.66|6-4|Archimedes|-|-
-3476|Code Orange|220.93|5-5|Archimedes|61|CA
-3494|The Quadrangles|123.19|5-5|Archimedes|336|IN
-3572|Wavelength|115.22|5-5|Archimedes|260|MI
-3604|Goon Squad|100.93|4-5|Archimedes|433|MI
-4096|Ctrl-Z|140.27|5-5|Archimedes|371|IL
-4272|Maverick Robotics|155.65|6-4|Archimedes|285|IN
-4403|PrepaTec - ROULT - Peñoles|166.7|3-7|Archimedes|239|Mexico
-4593|Rapid Acceleration|135.83|4-6|Archimedes|249|SD
-4646|Wildcard Robotics|184.04|5-5|Archimedes|90|IA
-4728|ROCORI Robotics|137.65|1-9|Archimedes|460|MN
-5010|Tiger Dynasty|122.45|4-6|Archimedes|340|IN
-5066|Singularity|128.37|1-9|Archimedes|325|MI
-5338|RoboLoCo|131.3|2-8|Archimedes|431|VA
-5468|Chaos Theory|209.96|8-2|Archimedes|116|OR
-5665|FENERBAHÇE DOGUS SPARC|57.7|4-6|Archimedes|1001|Türkiye
-5801|CTC Inspire|70.5|4-6|Archimedes|-|-
-5829|Awtybots|99.55|3-7|Archimedes|544|TX
-5940|BREAD|216.77|10-0|Archimedes|81|CA
-6459|AG Robotik|217.07|3-7|Archimedes|67|Türkiye
-6907|The G.O.A.T|128.64|7-3|Archimedes|331|China
-7166|Red Thunder Robotics|190.11|7-3|Archimedes|131|MI
-7407|Wired Boars|185.27|5-5|Archimedes|168|CT
-7525|Pioneers|56.43|4-6|Archimedes|-|-
-7598|SCA Constellations|57.81|4-6|Archimedes|-|-
-8608|Alpha Bots|173.33|9-1|Archimedes|118|MI
-8817|Buccaneer Robotics|87.71|1-9|Archimedes|729|FL
-8884|Knight Owls|123.74|6-4|Archimedes|403|Canada
-9001|Delta Force|81.64|5-5|Archimedes|558|Romania
-9032|RoboWhales|183.31|7-3|Archimedes|132|NC
-9084|Octobots|145.53|5-5|Archimedes|330|CA
-59|RamTech|140.06|4-6|Curie|328|FL
-125|NUTRONs|286.17|7-3|Curie|10|MA
-166|Chop Shop|149.18|4-6|Curie|265|NH
-254|The Cheesy Poofs|337.72|9-1|Curie|2|CA
-294|Beach Cities Robotics|155.64|7-3|Curie|229|CA
-302|The Dragons|77.75|5-5|Curie|-|-
-571|Paragon Robotics|171.41|7-3|Curie|194|CT
-589|Falkon Robotics|52.41|3-7|Curie|-|-
-870|TEAM R. I. C. E.|189.15|4-6|Curie|99|NY
-987|HIGHROLLERS|124.93|3-7|Curie|209|NV
-1024|Kil-A-Bytes|143.8|5-5|Curie|288|IN
-1477|Texas Torque|111.27|4-6|Curie|510|TX
-1498|The Polar Pilots|147.78|7-3|Curie|227|MI
-1684|The Chimeras|105.04|3-7|Curie|588|MI
-1714|MORE Robotics|144.48|5-5|Curie|252|WI
-1987|Broncobots|249.08|9-1|Curie|25|MO
-2053|Southern Tier Robotics|91.81|3-7|Curie|-|-
-2357|System Meltdown|110.87|4-6|Curie|584|MO
-2412|Robototes|117.92|7-3|Curie|364|WA
-2443|Blue Thunder|63.79|6-4|Curie|1023|HI
-2637|Phantom Catz|93.45|4-6|Curie|-|-
-2682|Boneyard Robotics 2682|30.13|7-3|Curie|-|-
-2724|Avalanche Robotics|134.01|6-4|Curie|276|NC
-2992|The S.S. Prometheus|169.63|4-6|Curie|140|LA
-3128|The Aluminum Narwhals|178.09|9-1|Curie|108|CA
-3181|Pittsford Panthers|146.31|5-5|Curie|211|NY
-3197|HexHounds|168.59|3-7|Curie|135|WI
-3792|Army Ants|58.07|3-7|Curie|-|-
-3847|Spectrum|155.44|5-5|Curie|-|-
-3932|The Dirty Mechanics|102.08|4-6|Curie|585|FL
-4027|Centre Punch|131.94|3-7|Curie|477|PA
-4256|Cyborg Cats|86.12|1-9|Curie|-|-
-4611|OZone|159.83|6-4|Curie|217|OH
-4786|Nicolet FEAR|95.96|3-7|Curie|-|-
-5166|Fabricators|90.94|5-5|Curie|-|-
-5193|Pantheon|188.05|7-3|Curie|60|MI
-5199|Robot Dolphins From Outer Space|168.93|10-0|Curie|164|CA
-5460|Strike Zone|250.1|7-3|Curie|29|MI
-5572|Rosbots|122.51|4-6|Curie|354|TX
-5712|Hemlock's Gray Matter|135.56|5-5|Curie|415|MI
-5907|CC Shambots|217.07|10-0|Curie|45|MI
-5987|Galaxia in memory of David Zohar|147.26|6-4|Curie|202|Israel
-6045|Sabre Robotics|132.78|7-3|Curie|317|MN
-6366|RAM Rodz Robotics|114.42|2-8|Curie|347|SC
-6369|Mercenary Robotics|276.08|7-3|Curie|16|TX
-6413|Degrees of Freedom|106.15|4-6|Curie|436|AZ
-6417|Fridolins|111.43|4-6|Curie|419|Switzerland
-6497|Pymble P-Platers|132.11|4-6|Curie|362|Australia
-6510|Pymble Pride|73.74|4-6|Curie|-|-
-6615|Bellevillains|120.01|3-7|Curie|355|MI
-6773|Max Throttle Mavericks|141.26|3-7|Curie|272|TX
-6800|Valor|249.6|9-1|Curie|17|TX
-7028|Binary Battalion|163.88|9-1|Curie|178|MN
-7421|PrepaTec - OVERTURE|121.76|5-5|Curie|390|Mexico
-7539|Elev8|139.9|2-8|Curie|315|India
-7565|SESI SENAI ROBONÁTICOS|110.04|6-4|Curie|407|Brazil
-7567|SESI SENAI OCTOPUS|74.0|2-8|Curie|-|-
-8280|K9.0 Robotics|90.05|6-4|Curie|-|-
-8575|The Due Westerners|101.43|4-6|Curie|-|-
-8595|This Is How We Play|145.44|7-3|Curie|246|Chinese Taipei
-8613|Barker Greybacks|108.75|6-4|Curie|457|Australia
-8725|MistyPanther|126.32|4-5|Curie|456|Chinese Taipei
-9023|Future Martians|201.68|8-2|Curie|53|WA
-9066|Cavalo Vendado|25.7|4-6|Curie|-|-
-9068|The Chargers|178.37|7-3|Curie|139|CO
-11|MORT|135.53|5-5|Daly|287|NJ
-176|Aces High|188.52|7-3|Daly|85|CT
-272|Cyber Crusaders|147.93|6-4|Daly|268|PA
-303|The T.E.S.T. Team|68.94|2-8|Daly|1003|NJ
-316|LUNATECS|223.51|9-1|Daly|58|NJ
-340|G.R.R. (Greater Rochester Robotics)|159.85|8-2|Daly|161|NY
-469|Las Guerrillas|144.96|6-4|Daly|195|MI
-624|CRyptonite|97.49|4-6|Daly|589|TX
-972|Iron Claw|149.61|5-5|Daly|308|CA
-999|MechaRAMS|36.26|3-7|Daly|-|-
-1058|PVC Pirates|155.93|6-4|Daly|241|NH
-1155|SciBorgs|41.88|3-7|Daly|-|-
-1156|Under Control|215.04|3-6|Daly|87|Brazil
-1323|MadTown Robotics|324.59|10-0|Daly|3|CA
-1325|Inverse Paradox|241.92|8-2|Daly|31|ON
-1538|The Holy Cows|169.48|3-7|Daly|295|CA
-1629|Garrett Coalition (GaCo)|126.47|4-6|Daly|575|MD
-1676|The Pascack PI-oneers|123.72|4-6|Daly|404|NJ
-1720|PhyXTGears|125.43|7-3|Daly|443|IN
-1727|REX|114.56|2-8|Daly|549|MD
-1741|Red Alert|43.41|3-7|Daly|-|-
-1880|Warriors of East Harlem|85.52|4-6|Daly|703|NY
-1939|THE KUHNIGHTS|104.07|8-2|Daly|511|MO
-2073|EagleForce|174.18|7-3|Daly|177|CA
-2338|Gear It Forward|170.65|5-5|Daly|206|IL
-2399|The Fighting Unicorns|118.14|5-5|Daly|432|OH
-2429|The Blockheads|106.13|6-4|Daly|-|-
-2472|Centurions|117.35|7-3|Daly|324|MN
-2530|Inconceivable|90.93|3-7|Daly|-|-
-2718|Team OKC e'possums|96.48|4-6|Daly|-|-
-2883|F.R.E.D.|127.18|5-5|Daly|417|MN
-3008|Team Magma|25.81|4-6|Daly|-|-
-3100|The Lightning Turtles|118.98|3-7|Daly|391|MN
-3314|Mechanical Mustangs|123.74|7-3|Daly|350|NJ
-3339|BumbleB|140.14|5-5|Daly|284|Israel
-3478|PrepaTec - LamBot|171.97|5-5|Daly|159|Mexico
-3538|RoboJackets|191.38|8-2|Daly|83|MI
-3646|INTEGRA BAHCESEHIR|45.04|3-7|Daly|-|-
-3656|Dexter Dreadbots|162.81|5-5|Daly|198|MI
-3880|Tiki Techs|25.16|5-5|Daly|-|-
-3990|Tech for Kids|114.76|2-8|Daly|541|QC
-4028|The Beak Squad|203.8|9-1|Daly|75|OH
-4065|Nerds of Prey|145.84|1-9|Daly|474|FL
-4188|Columbus Space Program|115.26|7-3|Daly|352|GA
-4189|Chargers|129.78|4-6|Daly|377|GA
-4414|HighTide|368.09|10-0|Daly|1|CA
-4674|RoboJacks|89.37|6-4|Daly|572|MN
-4678|CyberCavs|216.9|7-3|Daly|44|ON
-5534|Onaway Onabots|80.08|3-7|Daly|-|-
-5550|BRONChO BOTS|78.15|4-6|Daly|-|-
-5557|BB-R8ERS|42.11|4-6|Daly|-|-
-5813|Morpheus|195.36|6-4|Daly|70|NH
-5847|Ironclad|169.17|5-5|Daly|255|IL
-5937|MI Robotics|144.88|6-4|Daly|254|WA
-6017|PrepaTec - Cyberius|148.06|6-4|Daly|294|Mexico
-6106|PrepaTec - TecGear|41.83|3-7|Daly|-|-
-6391|Ursuline Bearbotics|88.1|4-6|Daly|-|-
-6696|Cardinal Dynamics|123.6|5-5|Daly|343|OR
-6919|The Commodores|138.52|6-4|Daly|250|GA
-6941|IronPulse Robotics|149.26|5-5|Daly|214|China
-6998|Unipards|61.66|4-6|Daly|-|-
-7520|Team MineKee|189.66|5-5|Daly|146|ON
-7632|An Kang Robotics Maker|134.41|4-6|Daly|370|Chinese Taipei
-7712|ACCN UMOJA|70.95|6-4|Daly|545|ON
-16|Bomb Squad|104.45|1-8|Galileo|538|AR
-51|Wings of Fire|143.0|6-4|Galileo|302|MI
-111|WildStang|179.85|5-5|Galileo|162|IL
-364|Team Fusion 364|115.72|2-8|Galileo|503|MS
-449|The Blair Robot Project|196.2|8-2|Galileo|106|MD
-484|Roboforce|186.35|7-3|Galileo|114|PA
-614|Night Hawks|92.27|4-5|Galileo|-|-
-931|Perpetual Chaos|78.24|5-5|Galileo|-|-
-1023|Bedford Express|135.3|6-4|Galileo|256|MI
-1391|The Metal Moose|163.58|5-5|Galileo|189|PA
-1403|Cougar Robotics|149.13|4-6|Galileo|314|NJ
-1506|Metal Muscle|156.25|9-1|Galileo|199|MI
-1533|Triple Strange|92.38|1-9|Galileo|-|-
-1690|Orbit|265.91|8-2|Galileo|5|Israel
-1756|Argos|155.97|5-5|Galileo|231|IL
-1768|Nashoba Robotics|251.69|7-3|Galileo|24|MA
-1816|The Green Machine|52.86|3-7|Galileo|-|-
-2054|Tech Vikes|159.38|5-5|Galileo|210|MI
-2231|OnyxTronix|190.3|7-3|Galileo|72|Israel
-2393|Robotichauns|109.57|4-6|Galileo|455|TN
-2468|Team Appreciate|200.84|7-3|Galileo|56|TX
-2491|NoMythic|165.81|6-4|Galileo|155|MN
-2556|RadioActive Roaches|118.05|5-4|Galileo|412|FL
-2582|PantherBots|153.48|5-5|Galileo|280|TX
-2590|Nemesis|136.43|4-6|Galileo|304|NJ
-2635|Lake Monsters|41.62|2-8|Galileo|-|-
-2813|Gear Heads|189.53|6-4|Galileo|82|CA
-3082|Chicken Bot Pie|43.22|3-7|Galileo|-|-
-3243|Amperes|112.41|5-4|Galileo|441|UT
-3501|Firebots|162.62|6-4|Galileo|219|CA
-3544|Spartiates|89.96|3-7|Galileo|-|-
-3753|BulahBots!|106.02|4-6|Galileo|494|LA
-3931|Cockadoodle Dominators|123.72|8-2|Galileo|307|OK
-3937|Breakaway|182.41|4-6|Galileo|136|AR
-4020|Cyber Tribe|176.18|6-4|Galileo|167|TN
-4087|Voodoo Voltage|118.94|3-7|Galileo|515|LA
-4125|Confidential|67.59|4-6|Galileo|1022|OR
-4322|Clockwork|162.97|4-6|Galileo|185|CA
-4450|Olympia Robotics Federation|115.8|3-7|Galileo|316|WA
-4469|R.A.I.D.|205.5|8-2|Galileo|48|WA
-4607|C.I.S.|124.43|5-5|Galileo|396|MN
-4655|Stateline Robotics|147.02|6-4|Galileo|271|IL
-4766|Team SCREAM Jr.|126.15|6-4|Galileo|342|MO
-5181|Explorer Robotics|88.68|2-8|Galileo|-|-
-5577|Kinematic Wolves|68.72|4-6|Galileo|-|-
-5653|Iron Mosquitos|115.76|4-6|Galileo|439|MN
-5705|DESERT EAGLES - JOHN DEERE|23.89|3-7|Galileo|-|-
-5895|Peddie Robotics|194.02|5-5|Galileo|88|NJ
-5913|Patriotics|157.59|9-1|Galileo|147|MN
-6201|The Highlanders|46.65|3-7|Galileo|-|-
-6429|4th Dimension|100.85|3-7|Galileo|-|-
-6487|Clockwork Knights|104.15|4-6|Galileo|582|China
-6528|Terror Bytes|112.75|8-2|Galileo|351|MI
-6665|C-Otters|38.57|6-4|Galileo|-|-
-6911|SO BOTZ|76.34|5-5|Galileo|-|-
-6985|ENKA TECH|132.61|1-9|Galileo|454|Türkiye
-7183|W.A.R.|156.19|7-3|Galileo|208|NV
-7415|Jaguar Robotics|181.09|7-2|Galileo|153|CA
-7769|The CREW|309.04|9-1|Galileo|4|MI
-7840|EMONER ROBOTICS|101.59|2-8|Galileo|710|Türkiye
-7915|Ripon Robotics|129.18|4-6|Galileo|379|WI
-8069|Super Hornets|43.6|2-7|Galileo|-|-
-8119|TigerBotics|140.76|3-7|Galileo|310|CA
-8159|Golden Horn|178.54|7-3|Galileo|119|Türkiye
-8229|Balikbayan Bots|-|-|Galileo|318|NV
-188|Blizzard|111.64|5-5|Hopper|389|Canada
-238|Crusaders|192.43|8-2|Hopper|113|NH
-401|Copperhead Robotics|124.49|2-8|Hopper|296|VA
-494|Martians|155.1|6-4|Hopper|197|MI
-503|Frog Force|178.24|6-4|Hopper|150|MI
-540|TALON 540 Godwin Robotics|93.53|3-7|Hopper|-|-
-573|Mech Warriors|88.77|7-3|Hopper|604|MI
-581|Blazing Bulldogs|243.44|7-3|Hopper|30|CA
-761|TechPUPS|134.46|5-5|Hopper|320|IN
-910|The Foley Freeze|99.6|5-5|Hopper|516|MI
-1014|Bad Robots|69.26|5-5|Hopper|721|OH
-1259|Paradigm Shift|126.52|4-6|Hopper|421|WI
-1287|Aluminum Assault|78.45|3-7|Hopper|-|-
-1296|Full Metal Jackets|173.99|6-4|Hopper|103|TX
-1625|Winnovation|119.62|4-6|Hopper|367|IL
-1701|Robocubs|173.57|8-2|Hopper|128|MI
-1706|Ratchet Rockers|249.07|10-0|Hopper|27|MO
-1710|The Ravonics Revolution|154.34|6-4|Hopper|173|KS
-1732|Hilltopper Robotics|205.42|7-3|Hopper|59|WI
-1787|The Flying Circuits|149.0|6-4|Hopper|192|OH
-1986|Team Titanium|169.78|5-5|Hopper|163|MO
-2056|OP Robotics|322.56|9-1|Hopper|6|ON
-2102|Team Paradox|158.07|4-6|Hopper|291|CA
-2199|Robo-Lions|99.87|4-6|Hopper|594|MD
-2220|Blue Twilight|89.7|4-6|Hopper|-|-
-2383|Ninjineers|138.02|5-5|Hopper|269|FL
-2486|CocoNuts|94.21|6-4|Hopper|420|AZ
-2607|The Fighting RoboVikings|109.99|5-5|Hopper|-|-
-2659|RoboWarriors|155.56|7-3|Hopper|175|CA
-2834|Bionic Black Hawks|57.95|1-9|Hopper|-|-
-3015|Ranger Robotics|203.86|5-5|Hopper|69|NY
-3035|Droid Rage|133.76|4-6|Hopper|233|TX
-3175|Knight Vision|105.05|2-8|Hopper|399|MI
-3297|Full Metal Jackets|114.01|3-7|Hopper|468|MN
-3467|Windham Windup|272.34|6-4|Hopper|18|NH
-3506|YETI Robotics|113.14|5-5|Hopper|579|NC
-3512|Spartatroniks|151.94|3-7|Hopper|235|CA
-3539|Byting Bulldogs|157.69|3-7|Hopper|483|MI
-3641|The Flying Toasters|168.61|5-5|Hopper|143|MI
-4143|MARS/WARS|163.62|5-5|Hopper|172|IL
-4174|Mustang Robotics|156.83|6-4|Hopper|117|MN
-4191|IMC|12.34|4-6|Hopper|-|-
-4201|The Vitruvian Bots|149.8|5-5|Hopper|333|CA
-4613|Barker Redbacks|68.5|5-5|Hopper|-|-
-4698|Raider Robotics|205.22|4-6|Hopper|79|CA
-5000|HAMMERHEADS|216.53|8-2|Hopper|34|MA
-5086|Cadillac Connectors|139.12|4-6|Hopper|301|MI
-5348|Charger Robotics|73.89|5-5|Hopper|-|-
-5406|Celt-X|188.61|6-4|Hopper|93|ON
-5454|Obsidian|92.6|5-5|Hopper|458|AR
-6121|RoboVikes|96.85|4-6|Hopper|472|MI
-6152|Robo-Falcons|152.91|0-10|Hopper|234|MI
-6200|PrepaTec - XRAMS|0|1-9|Hopper|-|-
-6328|Mechanical Advantage|219.58|7-3|Hopper|76|MA
-6329|The Bucks' Wrath|274.81|9-1|Hopper|22|ME
-6517|So-Kno Robo|134.25|5-5|Hopper|253|TN
-6639|The Mechanical Minds|59.21|3-7|Hopper|-|-
-7287|Esquimalt Atom Smashers|44.49|4-6|Hopper|-|-
-7451|AvengerRobotics|36.11|2-8|Hopper|-|-
-8005|Mega MeadowBots|119.67|5-5|Hopper|378|NV
-8044|Denham Venom|240.69|7-3|Hopper|26|LA
-8214|Cyber Unicorn|208.89|4-6|Hopper|50|China
-8267|Riptide Robotics|148.26|4-6|Hopper|179|NY
-8513|Sisters 1st|188.66|8-2|Hopper|63|NJ
-8|Paly Robotics|145.24|6-4|Johnson|181|CA
-33|Killer Bees|173.32|8-2|Johnson|124|MI
-48|Team E.L.I.T.E.|115.94|3-7|Johnson|363|OH
-67|The HOT Team|191.24|7-3|Johnson|77|MI
-117|Steel Dragons|177.38|7-3|Johnson|102|PA
-118|Robonauts|187.71|6-4|Johnson|138|TX
-179|Children of the Swamp|133.66|4-6|Johnson|267|FL
-190|Gompei and the HERD|167.61|8-2|Johnson|156|MA
-245|Adambots|78.86|2-8|Johnson|-|-
-321|RoboLancers|25.73|3-7|Johnson|-|-
-334|TechKnights|78.97|2-8|Johnson|-|-
-360|The Revolution|177.91|4-6|Johnson|123|WA
-422|The Mech Tech Dragons|142.83|5-5|Johnson|300|VA
-498|The Cobra Commanders|232.05|7-3|Johnson|32|AZ
-619|Cavalier Robotics|128.06|4-6|Johnson|499|VA
-772|Sabre Bytes Robotics|20.22|3-7|Johnson|-|-
-836|The RoboBees|166.15|8-2|Johnson|169|MD
-955|Ctrl C|177.65|7-3|Johnson|223|OR
-1002|CircuitRunners Robotics|182.66|4-6|Johnson|111|GA
-1073|The Force Team|162.54|5-5|Johnson|297|NH
-1076|PiHi Samurai|77.11|4-6|Johnson|717|MI
-1306|BadgerBOTS|159.46|5-5|Johnson|207|WI
-1792|Round Table Robotics|141.06|9-1|Johnson|259|WI
-1908|ShoreBots|140.48|4-6|Johnson|309|VA
-2040|DERT|121.3|6-4|Johnson|388|IL
-2096|RoboActive|57.54|4-6|Johnson|-|-
-2252|The Mavericks|138.61|4-6|Johnson|349|OH
-2337|EngiNERDs|173.49|8-2|Johnson|174|MI
-2522|Royal Robotics|139.21|7-3|Johnson|461|WA
-2619|The Charge|84.5|5-5|Johnson|-|-
-2638|Rebel Robotics|120.88|4-6|Johnson|424|NY
-2704|Roaring Robotics|79.07|3-7|Johnson|-|-
-2848|Rangers|145.74|5-5|Johnson|282|TX
-2877|LigerBots|190.34|6-4|Johnson|144|MA
-3061|Huskie Robotics|100.39|6-4|Johnson|405|IL
-3255|SuperNURDs|192.07|6-4|Johnson|80|CA
-3414|Hackbots|186.47|5-5|Johnson|134|MI
-3536|Electro Eagles|96.78|6-4|Johnson|410|MI
-3603|Cyber Coyotes|101.85|4-6|Johnson|607|MI
-3620|Average Joes|157.49|6-4|Johnson|160|MI
-3630|Stampede|49.32|6-4|Johnson|-|-
-3770|BlitzCreek|87.87|4-6|Johnson|-|-
-4391|BraveBots|176.81|8-2|Johnson|142|MI
-4451|ROBOTZ Garage|137.05|6-4|Johnson|264|SC
-4522|Team SCREAM|227.18|10-0|Johnson|33|MO
-4635|PrepaTec - Botbusters|174.08|6-4|Johnson|145|Mexico
-4946|The Alpha Dogs|231.18|6-4|Johnson|54|ON
-4967|That ONE Team|101.29|4-6|Johnson|-|-
-5026|Iron Panthers|196.86|7-2|Johnson|112|CA
-5968|Little Apple Cyborgs|49.13|5-5|Johnson|-|-
-6324|The Blue Devils|164.2|9-1|Johnson|170|NH
-6652|Tigres|40.95|2-7|Johnson|-|-
-6766|AtomStorm|110.68|1-9|Johnson|495|China
-6829|Ignite Robotics|96.65|3-7|Johnson|609|GA
-6940|Violet Z|68.3|3-7|Johnson|-|-
-7220|Steel Falcons|182.58|7-3|Johnson|122|MI
-7257|Semiconductors|112.64|4-6|Johnson|-|-
-7403|Lightning Blue Lizards|23.51|2-8|Johnson|-|-
-7551|Extreme Mechanism|28.05|2-8|Johnson|-|-
-7558|ALT-F4|263.97|8-2|Johnson|15|ON
-7563|SESI SENAI MEGAZORD|110.49|5-5|Johnson|425|Brazil
-8612|Calvin Christian Robotics|130.65|7-3|Johnson|346|MI
-9072|TigerBots|175.19|5-5|Johnson|121|MD
-9277|Sparkans|79.13|2-8|Johnson|-|-
-9483|Overcharge|-|-|Johnson|21|Türkiye
-68|Truck Town Thunder|158.38|6-4|Milstein|204|MI
-70|More Martians|129.49|4-6|Milstein|382|MI
-201|The FEDS|160.69|8-2|Milstein|196|MI
-263|Aftershock|88.98|5-5|Milstein|612|NY
-287|Floyd Robotics|148.28|7-3|Milstein|243|NY
-343|Metal-In-Motion|72.03|7-3|Milstein|-|-
-353|POBots|67.04|6-4|Milstein|-|-
-359|Hawaiian Kids|226.82|7-3|Milstein|35|HI
-686|Bovine Intervention|141.78|8-2|Milstein|277|MD
-694|StuyPulse|237.98|10-0|Milstein|39|NY
-1640|Sab-BOT-age|134.24|7-3|Milstein|251|PA
-1671|Buchanan Bird Brains|121.05|5-5|Milstein|426|CA
-1678|Citrus Circuits|286.82|9-1|Milstein|13|CA
-1771|North Gwinnett Robotics|201.71|8-2|Milstein|127|GA
-2122|Team Tators|214.17|7-3|Milstein|43|ID
-2169|KING TeC|14.34|2-8|Milstein|-|-
-2200|BCR Blackout|188.88|6-4|Milstein|110|ON
-2333|Sapulpa Robotics Team|59.32|2-8|Milstein|-|-
-2403|Plasma Robotics|95.61|3-7|Milstein|724|AZ
-2481|Roboteers|293.52|8-2|Milstein|8|IL
-2601|Steel Hawks|76.67|3-7|Milstein|-|-
-2630|Thunderbolts|150.82|7-3|Milstein|187|Israel
-2811|StormBots|52.29|2-8|Milstein|-|-
-2846|FireBears|99.76|4-6|Milstein|434|MN
-2905|Sultans of Turkiye|196.03|7-3|Milstein|125|Türkiye
-2974|Walton Robotics|157.11|7-3|Milstein|245|GA
-3075|Ha-Dream Team|105.92|4-6|Milstein|435|Israel
-3245|Ravens|85.58|4-6|Milstein|-|-
-3277|ProDigi|92.67|3-7|Milstein|552|MN
-3419|RoHawks|79.34|3-6|Milstein|-|-
-3492|P.A.R.T.s|68.58|5-5|Milstein|1030|WV
-3637|The Daleks|112.02|4-6|Milstein|467|NJ
-3707|TechnoDogs|135.59|4-6|Milstein|230|MI
-3928|Team Neutrino|143.22|4-6|Milstein|263|IA
-4089|Stealth Robotics|180.83|7-3|Milstein|73|WA
-4122|Ossining OBOTS|108.89|4-6|Milstein|375|NY
-4270|Crusaders|108.93|7-3|Milstein|447|HI
-4362|Gems|176.69|5-5|Milstein|203|MI
-4421|FORGE Robotics|131.71|4-6|Milstein|228|AB
-4476|W.A.F.F.L.E.S.|223.51|5-5|Milstein|49|ON
-4481|Team Rembrandts|201.39|6-3|Milstein|51|Netherlands
-4499|The Highlanders|220.86|8-2|Milstein|37|CO
-4795|Eastbots|130.71|8-2|Milstein|348|NC
-4905|Andromeda One|76.17|8-2|Milstein|-|-
-4907|Thunderstamps|139.99|5-5|Milstein|334|ON
-4915|Spartronics|162.5|6-4|Milstein|213|WA
-5462|2Paw Robotics|112.47|4-6|Milstein|480|MI
-5985|Project Bucephalus|30.07|4-6|Milstein|-|-
-6002|ZooBOTix|211.53|6-4|Milstein|62|MI
-6090|Wayland Wildcats|214.87|5-5|Milstein|65|MI
-6238|Popcorn Penguins|126.08|8-2|Milstein|360|CA
-6925|W.A.Robotics|60.74|3-7|Milstein|-|-
-6989|KAISER|140.5|3-7|Milstein|400|Türkiye
-7039|XO|125.0|6-4|Milstein|-|-
-7250|OsCODEa|108.5|5-5|Milstein|-|-
-7426|PAIR OF DICE ROBOTICS|209.88|5-5|Milstein|71|NV
-7457|suPURDUEper Robotics|200.33|10-0|Milstein|55|IN
-7594|Nautilus|57.38|3-6|Milstein|-|-
-7717|Steam Punks|39.09|3-7|Milstein|-|-
-7763|Carrborobotics|42.26|3-7|Milstein|-|-
-7890|SeQuEnCe|111.78|3-7|Milstein|535|NC
-8020|CyberpunK|82.99|4-6|Milstein|-|-
-8158|Bosphorus Robotics|17.09|1-9|Milstein|-|-
+# 2026 FIRST Championship (Houston), 8 divisions. Source: Statbotics API v3 team_events (tools/champs_roster.py).
+# team|name|champs EPA|champs qual W-L|division|2026 season EPA rank (- if not fetched yet)|location (- if unknown)
+27|Team RUSH|295.15|8-2|Archimedes|7|MI
+103|Cybersonics|176.70|7-2|Archimedes|152|PA
+131|CHAOS|140.81|4-6|Archimedes|290|NH
+167|Children of the Corn|135.75|3-7|Archimedes|313|IA
+548|Robostangs|138.16|5-5|Archimedes|299|MI
+587|The Hedgehogs|50.46|4-6|Archimedes|1349|NC
+971|Spartan Robotics|195.61|6-4|Archimedes|98|CA
+1114|Simbotics|287.57|10-0|Archimedes|9|ON
+1189|Gearheads|167.09|5-5|Archimedes|182|MI
+1218|SCH Robotics|123.78|6-4|Archimedes|394|PA
+1241|THEORY6|228.64|9-1|Archimedes|41|ON
+1261|Robo Lions Team1261|168.98|6-4|Archimedes|176|GA
+1501|Team THRUST|118.70|3-7|Archimedes|442|IN
+1511|Rolling Thunder|113.05|6-4|Archimedes|481|NY
+1619|Up-A-Creek Robotics|159.13|6-4|Archimedes|212|CO
+1646|Precision Guessworks|56.68|1-9|Archimedes|1212|IN
+1648|G3 Robotics|70.46|2-7|Archimedes|946|GA
+1731|Fresta Valley Robotics Club|114.93|3-7|Archimedes|469|VA
+1868|Space Cookies|197.01|5-5|Archimedes|89|CA
+1912|Team Combustion|95.82|7-3|Archimedes|619|LA
+2075|Enigma Robotics|144.05|5-5|Archimedes|279|MI
+2106|The Junkyard Dogs|198.48|8-1|Archimedes|86|VA
+2137|The Oxford RoboCats|171.42|6-4|Archimedes|166|MI
+2539|Krypton Cougars|195.34|6-4|Archimedes|100|PA
+2583|Orange Dynamite|137.50|3-7|Archimedes|305|TX
+2767|Stryke Force|186.22|7-3|Archimedes|120|MI
+2826|Wave Robotics|81.10|4-6|Archimedes|779|WI
+2847|The MegaHertz|111.63|4-6|Archimedes|493|MN
+2851|Crevolution|148.52|3-7|Archimedes|258|MI
+2881|Lady Cans|124.17|8-2|Archimedes|392|TX
+2960|Automation Nation|167.01|7-3|Archimedes|184|MI
+3006|Red Rock Robotics|175.67|6-4|Archimedes|157|UT
+3045|Gear Gremlins|213.71|8-2|Archimedes|57|CA
+3284|Camdenton LASER 3284|55.44|6-4|Archimedes|1241|MO
+3476|Code Orange|211.99|5-5|Archimedes|61|CA
+3494|The Quadrangles|132.25|5-5|Archimedes|336|IN
+3572|Wavelength|148.49|5-5|Archimedes|260|MI
+3604|Goon Squad|119.93|4-5|Archimedes|433|MI
+4096|Ctrl-Z|126.43|5-5|Archimedes|371|IL
+4272|Maverick Robotics|142.04|6-4|Archimedes|285|IN
+4403|PrepaTec - ROULT - Peñoles|152.38|3-7|Archimedes|239|Mexico
+4593|Rapid Acceleration|150.30|4-6|Archimedes|249|SD
+4646|Wildcard Robotics|196.86|5-5|Archimedes|90|IA
+4728|ROCORI Robotics|116.07|1-9|Archimedes|460|MN
+5010|Tiger Dynasty|131.77|4-6|Archimedes|340|IN
+5066|Singularity|133.68|1-9|Archimedes|325|MI
+5338|RoboLoCo|120.13|2-8|Archimedes|431|VA
+5468|Chaos Theory|188.43|8-2|Archimedes|116|OR
+5665|FENERBAHÇE DOGUS SPARC|67.05|4-6|Archimedes|1001|Türkiye
+5801|CTC Inspire|78.50|4-6|Archimedes|819|MO
+5829|Awtybots|104.63|3-7|Archimedes|544|TX
+5940|BREAD|206.66|10-0|Archimedes|81|CA
+6459|AG Robotik|206.43|3-7|Archimedes|67|Türkiye
+6907|The G.O.A.T|133.11|7-3|Archimedes|331|China
+7166|Red Thunder Robotics|183.66|7-3|Archimedes|131|MI
+7407|Wired Boars|175.77|5-5|Archimedes|168|CT
+7525|Pioneers|60.71|4-6|Archimedes|1113|TN
+7598|SCA Constellations|62.00|4-6|Archimedes|1091|MI
+8608|Alpha Bots|187.20|9-1|Archimedes|118|MI
+8817|Buccaneer Robotics|85.52|1-9|Archimedes|729|FL
+8884|Knight Owls|122.86|6-4|Archimedes|403|ON
+9001|Delta Force|103.10|5-5|Archimedes|558|Romania
+9032|RoboWhales|183.57|7-3|Archimedes|132|NC
+9084|Octobots|133.50|5-5|Archimedes|330|CA
+9126|Silver Hawks|95.96|5-5|Archimedes|618|Chinese Taipei
+9401|Midas' Mayhem|171.44|6-4|Archimedes|165|MO
+9427|iDeer|89.26|4-5|Archimedes|687|Chinese Taipei
+9470|Ctrl-Alt-Defeat|283.50|9-1|Archimedes|14|CA
+9771|FPRO|54.96|1-8|Archimedes|1247|MI
+10015|Bubbles|87.98|1-9|Archimedes|700|ON
+10021|Guerin Catholic Golden Gears|195.91|8-2|Archimedes|97|IN
+10162|Viking Robotics|28.19|0-10|Archimedes|2357|FL
+11019|X.PLORE|95.81|3-7|Archimedes|620|China
+11297|Iron Corsairs|23.64|1-9|Archimedes|2696|NC
+11387|G.L.E.A.M. - Grass Lake Engineering and Mechanics|60.55|5-5|Archimedes|1117|MI
+59|RamTech|133.64|4-6|Curie|328|FL
+125|NUTRONs|283.42|7-3|Curie|10|MA
+166|Chop Shop|146.72|4-6|Curie|265|NH
+254|The Cheesy Poofs|329.08|9-1|Curie|2|CA
+294|Beach Cities Robotics|155.34|7-3|Curie|229|CA
+302|The Dragons|82.20|5-5|Curie|765|MI
+571|Paragon Robotics|163.93|7-3|Curie|194|CT
+589|Falkon Robotics|57.11|3-7|Curie|1204|CA
+870|TEAM R. I. C. E.|195.37|4-6|Curie|99|NY
+987|HIGHROLLERS|160.17|3-7|Curie|209|NV
+1024|Kil-A-Bytes|141.56|5-5|Curie|288|IN
+1477|Texas Torque|109.88|4-6|Curie|510|TX
+1498|The Polar Pilots|155.80|7-3|Curie|227|MI
+1684|The Chimeras|99.87|3-7|Curie|588|MI
+1714|MORE Robotics|149.72|5-5|Curie|252|WI
+1987|Broncobots|257.92|9-1|Curie|25|MO
+2053|Southern Tier Robotics|94.08|3-7|Curie|641|NY
+2357|System Meltdown|100.50|4-6|Curie|584|MO
+2412|Robototes|127.86|7-3|Curie|364|WA
+2443|Blue Thunder|65.70|6-4|Curie|1023|HI
+2637|Phantom Catz|82.81|4-6|Curie|759|CA
+2682|Boneyard Robotics 2682|33.37|7-3|Curie|2072|NC
+2724|Avalanche Robotics|144.75|6-4|Curie|276|NC
+2992|The S.S. Prometheus|181.47|4-6|Curie|140|LA
+3128|The Aluminum Narwhals|191.08|9-1|Curie|108|CA
+3181|Pittsford Panthers|159.50|5-5|Curie|211|NY
+3197|HexHounds|182.91|3-7|Curie|135|WI
+3792|Army Ants|45.01|3-7|Curie|1528|MO
+3847|Spectrum|157.62|5-5|Curie|222|TX
+3932|The Dirty Mechanics|100.30|4-6|Curie|585|FL
+4027|Centre Punch|113.82|3-7|Curie|477|PA
+4256|Cyborg Cats|60.04|1-9|Curie|1123|MO
+4611|OZone|158.60|6-4|Curie|217|OH
+4786|Nicolet FEAR|78.87|3-7|Curie|814|WI
+5166|Fabricators|94.18|5-5|Curie|638|MI
+5193|Pantheon|212.05|7-3|Curie|60|MI
+5199|Robot Dolphins From Outer Space|171.75|10-0|Curie|164|CA
+5460|Strike Zone|252.77|7-3|Curie|29|MI
+5572|Rosbots|129.14|4-6|Curie|354|TX
+5712|Hemlock's Gray Matter|121.91|5-5|Curie|415|MI
+5907|CC Shambots|223.75|10-0|Curie|45|MI
+5987|Galaxia in memory of David Zohar|161.92|6-4|Curie|202|Israel
+6045|Sabre Robotics|135.02|7-3|Curie|317|MN
+6366|RAM Rodz Robotics|129.94|2-8|Curie|347|SC
+6369|Mercenary Robotics|274.16|7-3|Curie|16|TX
+6413|Degrees of Freedom|119.30|4-6|Curie|436|AZ
+6417|Fridolins|121.39|4-6|Curie|419|Switzerland
+6497|Pymble P-Platers|128.33|4-6|Curie|362|Australia
+6510|Pymble Pride|95.75|4-6|Curie|624|Australia
+6615|Bellevillains|129.14|3-7|Curie|355|MI
+6773|Max Throttle Mavericks|145.90|3-7|Curie|272|TX
+6800|Valor|268.75|9-1|Curie|17|TX
+7028|Binary Battalion|168.73|9-1|Curie|178|MN
+7421|PrepaTec - OVERTURE|124.29|5-5|Curie|390|Mexico
+7539|Elev8|135.21|2-8|Curie|315|India
+7565|SESI SENAI ROBONÁTICOS|122.41|6-4|Curie|407|Brazil
+7567|SESI SENAI OCTOPUS|75.08|2-8|Curie|870|Brazil
+8280|K9.0 Robotics|80.65|6-4|Curie|786|MI
+8575|The Due Westerners|91.62|4-6|Curie|660|SC
+8595|This Is How We Play|151.60|7-3|Curie|246|Chinese Taipei
+8613|Barker Greybacks|117.71|6-4|Curie|457|Australia
+8725|MistyPanther|116.71|4-5|Curie|456|Chinese Taipei
+9023|Future Martians|215.36|8-2|Curie|53|WA
+9066|Cavalo Vendado|43.14|4-6|Curie|1596|Brazil
+9068|The Chargers|181.64|5-5|Curie|139|CO
+9077|The Crown|65.06|3-7|Curie|1035|Türkiye
+9200|SESI SENAI STARDUST|50.85|2-8|Curie|1336|Brazil
+9609|Paraducks|176.88|6-4|Curie|151|India
+10254|Regal Seagulls|188.99|6-4|Curie|115|MA
+10349|Pontiac Firebirds|115.38|3-7|Curie|466|MI
+10922|Amped|69.43|5-4|Curie|968|Chinese Taipei
+11167|Team Titan|16.23|0-10|Curie|3207|SC
+11304|Meowbotics - Fresnillo PLC|4.57|2-7|Curie|3653|Mexico
+11318|Freedom Robotics|47.83|3-7|Curie|1427|VA
+11|MORT|141.59|5-5|Daly|287|NJ
+176|Aces High|199.19|7-3|Daly|85|CT
+272|Cyber Crusaders|146.42|6-4|Daly|268|PA
+303|The T.E.S.T. Team|66.85|2-8|Daly|1003|NJ
+316|LUNATECS|213.69|9-1|Daly|58|NJ
+340|G.R.R. (Greater Rochester Robotics)|172.51|8-2|Daly|161|NY
+469|Las Guerrillas|163.75|6-4|Daly|195|MI
+624|CRyptonite|99.81|4-6|Daly|589|TX
+972|Iron Claw|136.59|5-5|Daly|308|CA
+999|MechaRAMS|41.52|3-7|Daly|1671|CT
+1058|PVC Pirates|152.22|6-4|Daly|241|NH
+1155|SciBorgs|33.86|3-7|Daly|2046|NY
+1156|Under Control|197.83|3-6|Daly|87|Brazil
+1323|MadTown Robotics|329.65|10-0|Daly|3|CA
+1325|Inverse Paradox|245.67|8-2|Daly|31|ON
+1538|The Holy Cows|140.04|3-7|Daly|295|CA
+1629|Garrett Coalition (GaCo)|101.53|4-6|Daly|575|MD
+1676|The Pascack PI-oneers|122.85|4-6|Daly|404|NJ
+1720|PhyXTGears|118.52|7-3|Daly|443|IN
+1727|REX|104.02|2-8|Daly|549|MD
+1741|Red Alert|52.64|3-7|Daly|1294|IN
+1880|Warriors of East Harlem|87.39|4-6|Daly|703|NY
+1939|THE KUHNIGHTS|109.86|8-2|Daly|511|MO
+2073|EagleForce|168.75|7-3|Daly|177|CA
+2338|Gear It Forward|160.49|5-5|Daly|206|IL
+2399|The Fighting Unicorns|120.11|5-5|Daly|432|OH
+2429|The Blockheads|94.55|6-4|Daly|633|CA
+2472|Centurions|133.94|7-3|Daly|324|MN
+2530|Inconceivable|81.00|3-7|Daly|781|MN
+2718|Team OKC e'possums|109.11|4-6|Daly|519|OK
+2883|F.R.E.D.|121.60|5-5|Daly|417|MN
+3008|Team Magma|37.32|4-6|Daly|1858|HI
+3100|The Lightning Turtles|124.20|3-7|Daly|391|MN
+3314|Mechanical Mustangs|129.43|7-3|Daly|350|NJ
+3339|BumbleB|142.48|5-5|Daly|284|Israel
+3478|PrepaTec - LamBot|173.95|5-5|Daly|159|Mexico
+3538|RoboJackets|200.30|8-2|Daly|83|MI
+3646|INTEGRA BAHCESEHIR|41.85|3-7|Daly|1652|Türkiye
+3656|Dexter Dreadbots|163.28|5-5|Daly|198|MI
+3880|Tiki Techs|28.71|5-5|Daly|2329|HI
+3990|Tech for Kids|105.11|2-8|Daly|541|QC
+4028|The Beak Squad|203.94|9-1|Daly|75|OH
+4065|Nerds of Prey|133.60|1-9|Daly|474|FL
+4188|Columbus Space Program|129.28|7-3|Daly|352|GA
+4189|Chargers|125.73|4-6|Daly|377|GA
+4414|HighTide|376.64|10-0|Daly|1|CA
+4674|RoboJacks|101.68|6-4|Daly|572|MN
+4678|CyberCavs|224.37|7-3|Daly|44|ON
+5534|Onaway Onabots|77.23|3-7|Daly|833|MI
+5550|BRONChO BOTS|68.58|4-6|Daly|981|OK
+5557|BB-R8ERS|45.15|4-6|Daly|1522|FL
+5813|Morpheus|204.91|6-4|Daly|70|NH
+5847|Ironclad|149.25|5-5|Daly|255|IL
+5937|MI Robotics|149.30|6-4|Daly|254|WA
+6017|PrepaTec - Cyberius|140.16|6-4|Daly|294|Mexico
+6106|PrepaTec - TecGear|45.11|3-7|Daly|1525|Mexico
+6391|Ursuline Bearbotics|82.44|4-6|Daly|762|MO
+6696|Cardinal Dynamics|131.07|5-5|Daly|343|OR
+6919|The Commodores|150.05|6-4|Daly|250|GA
+6941|IronPulse Robotics|158.95|5-5|Daly|214|China
+6998|Unipards|70.89|4-6|Daly|938|Chinese Taipei
+7520|Team MineKee|178.34|5-5|Daly|146|ON
+7632|An Kang Robotics Maker|126.64|4-6|Daly|370|Chinese Taipei
+7712|ACCN UMOJA|104.63|6-4|Daly|545|ON
+8393|The Giant Diencephalic BrainSTEM Robotics Team|123.09|4-6|Daly|401|PA
+8724|Mayhem|101.24|6-4|Daly|577|NH
+9094|The Earthquakers|137.46|5-5|Daly|306|PA
+9175|BrainMachine-FRC|72.61|6-4|Daly|905|Brazil
+9545|Caracal Robotics|102.77|3-7|Daly|562|Türkiye
+10002|BotBuilders|58.12|1-9|Daly|1171|Australia
+10213|BALTA|141.61|8-2|Daly|286|Türkiye
+10229|Event Horizon|44.38|2-8|Daly|1543|NY
+10619|Rana's Rivets|8.77|2-8|Daly|3550|SC
+11141|AlphaZ|125.97|3-7|Daly|376|Romania
+11178|Revelation|64.18|5-5|Daly|1051|TX
+16|Bomb Squad|105.98|1-8|Galileo|538|AR
+51|Wings of Fire|137.83|6-4|Galileo|302|MI
+111|WildStang|172.03|5-5|Galileo|162|IL
+364|Team Fusion 364|110.34|2-8|Galileo|503|MS
+449|The Blair Robot Project|192.36|8-2|Galileo|106|MD
+484|Roboforce|189.33|7-3|Galileo|114|PA
+614|Night Hawks|83.53|4-5|Galileo|749|VA
+931|Perpetual Chaos|68.83|5-5|Galileo|980|MO
+1023|Bedford Express|149.12|6-4|Galileo|256|MI
+1391|The Metal Moose|164.82|5-5|Galileo|189|PA
+1403|Cougar Robotics|135.73|4-6|Galileo|314|NJ
+1506|Metal Muscle|163.07|9-1|Galileo|199|MI
+1533|Triple Strange|58.41|1-9|Galileo|1157|NC
+1690|Orbit|309.29|8-2|Galileo|5|Israel
+1756|Argos|153.97|5-5|Galileo|231|IL
+1768|Nashoba Robotics|259.43|7-3|Galileo|24|MA
+1816|The Green Machine|51.86|3-7|Galileo|1302|MN
+2054|Tech Vikes|159.88|5-5|Galileo|210|MI
+2231|OnyxTronix|204.43|7-3|Galileo|72|Israel
+2393|Robotichauns|116.91|4-6|Galileo|455|TN
+2468|Team Appreciate|214.43|7-3|Galileo|56|TX
+2491|NoMythic|176.05|6-4|Galileo|155|MN
+2556|RadioActive Roaches|122.07|5-4|Galileo|412|FL
+2582|PantherBots|143.64|5-5|Galileo|280|TX
+2590|Nemesis|137.54|4-6|Galileo|304|NJ
+2635|Lake Monsters|33.80|2-8|Galileo|2049|OR
+2813|Gear Heads|200.67|6-4|Galileo|82|CA
+3082|Chicken Bot Pie|19.92|3-7|Galileo|2985|MN
+3243|Amperes|118.75|5-4|Galileo|441|UT
+3501|Firebots|158.39|6-4|Galileo|219|CA
+3544|Spartiates|95.81|3-7|Galileo|621|QC
+3753|BulahBots!|111.60|4-6|Galileo|494|LA
+3931|Cockadoodle Dominators|136.96|8-2|Galileo|307|OK
+3937|Breakaway|182.56|4-6|Galileo|136|AR
+4020|Cyber Tribe|171.40|6-4|Galileo|167|TN
+4087|Voodoo Voltage|109.31|3-7|Galileo|515|LA
+4125|Confidential|65.72|4-6|Galileo|1022|OR
+4322|Clockwork|166.89|4-6|Galileo|185|CA
+4450|Olympia Robotics Federation|135.17|3-7|Galileo|316|WA
+4469|R.A.I.D.|221.14|8-2|Galileo|48|WA
+4607|C.I.S.|123.34|5-5|Galileo|396|MN
+4655|Stateline Robotics|145.97|6-4|Galileo|271|IL
+4766|Team SCREAM Jr.|131.39|6-4|Galileo|342|MO
+5181|Explorer Robotics|77.02|2-8|Galileo|923|PA
+5577|Kinematic Wolves|60.77|4-6|Galileo|1111|MI
+5653|Iron Mosquitos|118.90|4-6|Galileo|439|MN
+5705|DESERT EAGLES - JOHN DEERE|37.39|3-7|Galileo|1857|Mexico
+5895|Peddie Robotics|197.75|5-5|Galileo|88|NJ
+5913|Patriotics|178.31|9-1|Galileo|147|MN
+6201|The Highlanders|42.12|3-7|Galileo|1640|MA
+6429|4th Dimension|85.08|3-7|Galileo|734|Türkiye
+6487|Clockwork Knights|100.92|4-6|Galileo|582|China
+6528|Terror Bytes|129.29|8-2|Galileo|351|MI
+6665|C-Otters|46.19|6-4|Galileo|1488|CA
+6911|SO BOTZ|82.56|5-5|Galileo|761|NY
+6985|ENKA TECH|116.94|1-9|Galileo|454|Türkiye
+7183|W.A.R.|160.25|7-3|Galileo|208|NV
+7415|Jaguar Robotics|176.45|7-2|Galileo|153|CA
+7769|The CREW|314.75|9-1|Galileo|4|MI
+7840|EMONER ROBOTICS|86.96|2-8|Galileo|710|Türkiye
+7915|Ripon Robotics|125.61|4-6|Galileo|379|WI
+8069|Super Hornets|50.79|2-7|Galileo|1337|MO
+8119|TigerBotics|136.08|3-7|Galileo|310|CA
+8159|Golden Horn|186.73|7-3|Galileo|119|Türkiye
+8229|Balikbayan Bots|134.95|7-3|Galileo|318|NV
+8858|Beast from the East|124.53|6-4|Galileo|385|TX
+9496|LYNK|253.19|8-2|Galileo|28|NC
+9572|CC Shambytes|158.71|5-5|Galileo|216|MI
+10034|GammaLand|39.26|3-7|Galileo|1764|Chinese Taipei
+10980|The Deadbolts|126.33|7-3|Galileo|372|CO
+10991|PioBytes|48.39|5-5|Galileo|1415|OR
+11214|[CY]BEARCATS robotics|-11.61|1-9|Galileo|3722|GA
+11242|Golden Eagle Mechanics|86.30|5-5|Galileo|720|TX
+11244|Avrasya Robotics|22.30|4-6|Galileo|2807|Türkiye
+11417|Nano Knights|49.80|7-2|Galileo|1370|NC
+188|Blizzard|124.35|5-5|Hopper|389|ON
+238|Crusaders|189.71|8-2|Hopper|113|NH
+401|Copperhead Robotics|140.01|2-8|Hopper|296|VA
+494|Martians|163.50|6-4|Hopper|197|MI
+503|Frog Force|177.09|6-4|Hopper|150|MI
+540|TALON 540 Godwin Robotics|88.02|3-7|Hopper|699|VA
+573|Mech Warriors|97.64|7-3|Hopper|604|MI
+581|Blazing Bulldogs|251.27|7-3|Hopper|30|CA
+761|TechPUPS|134.52|5-5|Hopper|320|IN
+910|The Foley Freeze|109.27|5-5|Hopper|516|MI
+1014|Bad Robots|86.24|5-5|Hopper|721|OH
+1259|Paradigm Shift|121.12|4-6|Hopper|421|WI
+1287|Aluminum Assault|75.73|3-7|Hopper|854|SC
+1296|Full Metal Jackets|194.57|6-4|Hopper|103|TX
+1625|Winnovation|127.62|4-6|Hopper|367|IL
+1701|Robocubs|185.34|8-2|Hopper|128|MI
+1706|Ratchet Rockers|256.00|10-0|Hopper|27|MO
+1710|The Ravonics Revolution|169.68|6-4|Hopper|173|KS
+1732|Hilltopper Robotics|213.39|7-3|Hopper|59|WI
+1787|The Flying Circuits|164.07|6-4|Hopper|192|OH
+1986|Team Titanium|171.78|5-5|Hopper|163|MO
+2056|OP Robotics|308.58|9-1|Hopper|6|ON
+2102|Team Paradox|140.75|4-6|Hopper|291|CA
+2199|Robo-Lions|98.79|4-6|Hopper|594|MD
+2220|Blue Twilight|91.07|4-6|Hopper|666|MN
+2383|Ninjineers|146.24|5-5|Hopper|269|FL
+2486|CocoNuts|121.19|6-4|Hopper|420|AZ
+2607|The Fighting RoboVikings|96.21|5-5|Hopper|615|PA
+2659|RoboWarriors|169.15|7-3|Hopper|175|CA
+2834|Bionic Black Hawks|55.69|1-9|Hopper|1235|MI
+3015|Ranger Robotics|205.35|5-5|Hopper|69|NY
+3035|Droid Rage|153.81|4-6|Hopper|233|TX
+3175|Knight Vision|123.15|2-8|Hopper|399|MI
+3297|Full Metal Jackets|115.26|3-7|Hopper|468|MN
+3467|Windham Windup|266.45|6-4|Hopper|18|NH
+3506|YETI Robotics|107.42|5-5|Hopper|579|NC
+3512|Spartatroniks|153.61|3-7|Hopper|235|CA
+3539|Byting Bulldogs|112.89|3-7|Hopper|483|MI
+3641|The Flying Toasters|179.60|5-5|Hopper|143|MI
+4143|MARS/WARS|170.01|5-5|Hopper|172|IL
+4174|Mustang Robotics|187.27|6-4|Hopper|117|MN
+4191|IMC|20.19|4-6|Hopper|2961|Türkiye
+4201|The Vitruvian Bots|132.79|5-5|Hopper|333|CA
+4613|Barker Redbacks|88.38|5-5|Hopper|696|Australia
+4698|Raider Robotics|202.52|4-6|Hopper|79|CA
+5000|HAMMERHEADS|235.75|8-2|Hopper|34|MA
+5086|Cadillac Connectors|137.88|4-6|Hopper|301|MI
+5348|Charger Robotics|45.90|5-5|Hopper|1497|MN
+5406|Celt-X|196.45|6-4|Hopper|93|ON
+5454|Obsidian|116.22|5-5|Hopper|458|AR
+6121|RoboVikes|113.93|4-6|Hopper|472|MI
+6152|Robo-Falcons|153.73|0-10|Hopper|234|MI
+6200|PrepaTec - XRAMS|4.73|1-9|Hopper|3649|Mexico
+6328|Mechanical Advantage|203.81|7-3|Hopper|76|MA
+6329|The Bucks' Wrath|266.45|9-1|Hopper|22|ME
+6517|So-Kno Robo|149.65|5-5|Hopper|253|TN
+6639|The Mechanical Minds|70.46|3-7|Hopper|947|NC
+7287|Esquimalt Atom Smashers|68.09|4-6|Hopper|987|BC
+7451|AvengerRobotics|51.47|2-8|Hopper|1315|GA
+8005|Mega MeadowBots|125.70|5-5|Hopper|378|NV
+8044|Denham Venom|256.51|7-3|Hopper|26|LA
+8214|Cyber Unicorn|217.08|4-6|Hopper|50|China
+8267|Riptide Robotics|168.52|4-6|Hopper|179|NY
+8513|Sisters 1st|210.27|8-2|Hopper|63|NJ
+8749|Farmersville Robotics|191.46|8-2|Hopper|107|TX
+9449|Yellowjackets|85.47|5-5|Hopper|731|AB
+9692|Sigma|124.43|2-8|Hopper|386|India
+9785|Alectrona|230.66|9-1|Hopper|38|ON
+10131|Royal Turtles|199.85|6-4|Hopper|84|China
+10907|ROBOLYNX|25.63|3-7|Hopper|2545|Türkiye
+11024|HYPERNOVA|22.76|1-9|Hopper|2762|CA
+11118|The Baybies|104.20|6-4|Hopper|547|China
+11270|Nova|156.53|6-4|Hopper|226|ON
+11493|Pixel Knights|76.45|5-5|Hopper|842|MI
+8|Paly Robotics|168.21|6-4|Johnson|181|CA
+33|Killer Bees|185.69|8-2|Johnson|124|MI
+48|Team E.L.I.T.E.|128.18|3-7|Johnson|363|OH
+67|The HOT Team|202.97|7-3|Johnson|77|MI
+117|Steel Dragons|194.90|7-3|Johnson|102|PA
+118|Robonauts|182.35|6-4|Johnson|138|TX
+179|Children of the Swamp|146.46|4-6|Johnson|267|FL
+190|Gompei and the HERD|175.82|8-2|Johnson|156|MA
+245|Adambots|84.61|2-8|Johnson|739|MI
+321|RoboLancers|46.51|3-7|Johnson|1472|PA
+334|TechKnights|74.71|2-8|Johnson|875|NY
+360|The Revolution|185.82|4-6|Johnson|123|WA
+422|The Mech Tech Dragons|137.89|5-5|Johnson|300|VA
+498|The Cobra Commanders|242.83|7-3|Johnson|32|AZ
+619|Cavalier Robotics|111.26|4-6|Johnson|499|VA
+772|Sabre Bytes Robotics|14.94|3-7|Johnson|3282|ON
+836|The RoboBees|170.99|8-2|Johnson|169|MD
+955|Ctrl C|157.43|7-3|Johnson|223|OR
+1002|CircuitRunners Robotics|190.39|4-6|Johnson|111|GA
+1073|The Force Team|139.54|5-5|Johnson|297|NH
+1076|PiHi Samurai|86.56|4-6|Johnson|717|MI
+1306|BadgerBOTS|160.41|5-5|Johnson|207|WI
+1792|Round Table Robotics|148.49|9-1|Johnson|259|WI
+1908|ShoreBots|136.45|4-6|Johnson|309|VA
+2040|DERT|124.38|6-4|Johnson|388|IL
+2096|RoboActive|40.89|4-6|Johnson|1693|Israel
+2252|The Mavericks|129.67|4-6|Johnson|349|OH
+2337|EngiNERDs|169.03|8-2|Johnson|174|MI
+2522|Royal Robotics|116.06|7-3|Johnson|461|WA
+2619|The Charge|96.15|5-5|Johnson|616|MI
+2638|Rebel Robotics|120.91|4-6|Johnson|424|NY
+2704|Roaring Robotics|77.56|3-7|Johnson|829|IL
+2848|Rangers|143.36|5-5|Johnson|282|TX
+2877|LigerBots|179.51|6-4|Johnson|144|MA
+3061|Huskie Robotics|122.64|6-4|Johnson|405|IL
+3255|SuperNURDs|202.25|6-4|Johnson|80|CA
+3414|Hackbots|182.99|5-5|Johnson|134|MI
+3536|Electro Eagles|122.13|6-4|Johnson|410|MI
+3603|Cyber Coyotes|97.51|4-6|Johnson|607|MI
+3620|Average Joes|173.76|6-4|Johnson|160|MI
+3630|Stampede|52.62|6-4|Johnson|1295|MN
+3770|BlitzCreek|79.91|4-6|Johnson|795|MI
+4391|BraveBots|180.60|8-2|Johnson|142|MI
+4451|ROBOTZ Garage|147.18|6-4|Johnson|264|SC
+4522|Team SCREAM|241.76|10-0|Johnson|33|MO
+4635|PrepaTec - Botbusters|178.75|6-4|Johnson|145|Mexico
+4946|The Alpha Dogs|214.21|6-4|Johnson|54|ON
+4967|That ONE Team|85.15|4-6|Johnson|733|MI
+5026|Iron Panthers|190.28|7-2|Johnson|112|CA
+5968|Little Apple Cyborgs|53.42|5-5|Johnson|1282|KS
+6324|The Blue Devils|169.97|9-1|Johnson|170|NH
+6652|Tigres|40.20|2-7|Johnson|1714|Mexico
+6766|AtomStorm|111.53|1-9|Johnson|495|China
+6829|Ignite Robotics|97.33|3-7|Johnson|610|GA
+6940|Violet Z|41.54|3-7|Johnson|1669|China
+7220|Steel Falcons|185.91|7-3|Johnson|122|MI
+7257|Semiconductors|95.28|4-6|Johnson|628|MN
+7403|Lightning Blue Lizards|37.16|2-8|Johnson|1864|Colombia
+7551|Extreme Mechanism|23.24|2-8|Johnson|2722|Chinese Taipei
+7558|ALT-F4|278.87|8-2|Johnson|15|ON
+7563|SESI SENAI MEGAZORD|120.69|5-5|Johnson|425|Brazil
+8612|Calvin Christian Robotics|129.96|7-3|Johnson|346|MI
+9072|TigerBots|185.99|5-5|Johnson|121|MD
+9277|Sparkans|79.48|2-8|Johnson|799|AB
+9483|Overcharge|261.31|7-3|Johnson|21|Türkiye
+9484|Robot's District|95.46|3-7|Johnson|626|Brazil
+9597|Luban Robotics|161.16|5-5|Johnson|205|China
+9646|The Marinators|41.91|4-6|Johnson|1647|NY
+9757|Mecha Marauders|109.17|2-8|Johnson|517|MI
+10014|REBELLION|110.62|5-5|Johnson|501|TX
+10114|Phantom Talons|48.79|2-8|Johnson|1401|Chinese Taipei
+10217|Catahoula Blue Dogs|56.32|5-5|Johnson|1222|LA
+10340|ITKAN Girls|177.88|6-4|Johnson|148|TX
+10396|Mostra|51.66|0-10|Johnson|1309|Türkiye
+11269|Batteries Not Included|29.00|3-7|Johnson|2308|VT
+68|Truck Town Thunder|161.25|6-4|Milstein|204|MI
+70|More Martians|125.12|4-6|Milstein|382|MI
+201|The FEDS|163.71|8-2|Milstein|196|MI
+263|Aftershock|96.88|5-5|Milstein|613|NY
+287|Floyd Robotics|151.98|7-3|Milstein|243|NY
+343|Metal-In-Motion|72.21|7-3|Milstein|914|SC
+353|POBots|78.87|6-4|Milstein|813|NY
+359|Hawaiian Kids|234.75|7-3|Milstein|35|HI
+686|Bovine Intervention|144.36|8-2|Milstein|277|MD
+694|StuyPulse|230.56|10-0|Milstein|39|NY
+1640|Sab-BOT-age|149.79|7-3|Milstein|251|PA
+1671|Buchanan Bird Brains|120.66|5-5|Milstein|426|CA
+1678|Citrus Circuits|283.29|9-1|Milstein|13|CA
+1771|North Gwinnett Robotics|185.41|8-2|Milstein|127|GA
+2122|Team Tators|226.54|7-3|Milstein|43|ID
+2169|KING TeC|16.29|2-8|Milstein|3203|MN
+2200|BCR Blackout|190.42|6-4|Milstein|110|ON
+2333|Sapulpa Robotics Team|45.85|2-8|Milstein|1499|OK
+2403|Plasma Robotics|86.11|3-7|Milstein|724|AZ
+2481|Roboteers|291.74|8-2|Milstein|8|IL
+2601|Steel Hawks|94.22|3-7|Milstein|637|NY
+2630|Thunderbolts|166.09|7-3|Milstein|187|Israel
+2811|StormBots|51.33|2-8|Milstein|1322|WA
+2846|FireBears|119.85|4-6|Milstein|434|MN
+2905|Sultans of Turkiye|185.62|7-3|Milstein|125|Türkiye
+2974|Walton Robotics|151.67|7-3|Milstein|245|GA
+3075|Ha-Dream Team|119.64|4-6|Milstein|435|Israel
+3245|Ravens|83.31|4-6|Milstein|753|UT
+3277|ProDigi|103.75|3-7|Milstein|552|MN
+3419|RoHawks|77.84|3-6|Milstein|827|NY
+3492|P.A.R.T.s|65.26|5-5|Milstein|1030|WV
+3637|The Daleks|115.36|4-6|Milstein|467|NJ
+3707|TechnoDogs|154.37|4-6|Milstein|230|MI
+3928|Team Neutrino|147.28|4-6|Milstein|263|IA
+4089|Stealth Robotics|204.14|7-3|Milstein|73|WA
+4122|Ossining OBOTS|126.02|4-6|Milstein|375|NY
+4270|Crusaders|118.20|7-3|Milstein|447|HI
+4362|Gems|161.53|5-5|Milstein|203|MI
+4421|FORGE Robotics|155.56|4-6|Milstein|228|AB
+4476|W.A.F.F.L.E.S.|219.88|5-5|Milstein|49|ON
+4481|Team Rembrandts|215.89|6-3|Milstein|51|Netherlands
+4499|The Highlanders|231.05|8-2|Milstein|37|CO
+4795|Eastbots|129.87|8-2|Milstein|348|NC
+4905|Andromeda One|83.50|8-2|Milstein|750|MA
+4907|Thunderstamps|132.59|5-5|Milstein|334|ON
+4915|Spartronics|162.74|6-4|Milstein|213|WA
+5462|2Paw Robotics|113.12|4-6|Milstein|480|MI
+5985|Project Bucephalus|43.87|4-6|Milstein|1570|Australia
+6002|ZooBOTix|211.86|6-4|Milstein|62|MI
+6090|Wayland Wildcats|207.48|5-5|Milstein|65|MI
+6238|Popcorn Penguins|128.53|8-2|Milstein|360|CA
+6925|W.A.Robotics|60.83|3-7|Milstein|1110|GA
+6989|KAISER|123.10|3-7|Milstein|400|Türkiye
+7039|XO|133.04|6-4|Milstein|332|Israel
+7250|OsCODEa|128.96|5-5|Milstein|357|MI
+7426|PAIR OF DICE ROBOTICS|204.83|5-5|Milstein|71|NV
+7457|suPURDUEper Robotics|214.68|10-0|Milstein|55|IN
+7594|Nautilus|55.72|3-6|Milstein|1233|China
+7717|Steam Punks|32.35|3-7|Milstein|2117|Dominican Republic
+7763|Carrborobotics|40.02|3-7|Milstein|1726|NC
+7890|SeQuEnCe|106.36|3-7|Milstein|535|NC
+8020|CyberpunK|83.63|4-6|Milstein|747|Chinese Taipei
+8158|Bosphorus Robotics|7.73|1-9|Milstein|3586|Türkiye
+8429|Valence Robotics|114.92|4-6|Milstein|470|NC
+8808|SWLA Tech Pirates|117.45|3-7|Milstein|449|LA
+8873|Rockefeller Robotics|91.10|5-5|Milstein|664|MI
+9140|The Robobots|131.88|5-5|Milstein|338|TX
+9635|Cyber Rabbit|122.32|5-5|Milstein|408|China
+9644|NEIA Robotics|39.06|3-7|Milstein|1774|MA
+10101|Critical Hit|35.86|3-7|Milstein|1928|AL
+10604|Demirören Robotics|34.08|0-10|Milstein|2032|Türkiye
+10633|BeeBotics|122.43|3-7|Milstein|406|MI
+10950|The Northern Knights|18.29|2-8|Milstein|3086|AK
+11065|STEAMex Overheat|38.61|2-8|Milstein|1797|Mexico
+88|TJ²|156.93|2-8|Newton|224|MA
+148|Robowranglers|183.13|6-4|Newton|133|TX
+180|S.P.A.M.|196.26|3-7|Newton|94|FL
+195|CyberKnights|206.01|5-5|Newton|68|CT
+233|The Pink Team|100.25|4-6|Newton|586|FL
+341|Miss Daisy|196.07|6-4|Newton|95|PA
+346|RoboHawks|176.32|7-3|Newton|154|VA
+386|Team Voltage|111.90|2-8|Newton|490|FL
+424|Rust Belt Robotics|123.52|3-7|Newton|395|NY
+599|The Robodox|193.41|7-3|Newton|105|CA
+604|Quixilver|222.47|8-2|Newton|46|CA
+687|The Nerd Herd|168.41|6-4|Newton|180|CA
+695|Bison Robotics|215.75|7-3|Newton|52|OH
+818|The Steel Armadillos|122.90|3-7|Newton|402|MI
+868|TechHOUNDS|151.20|6-4|Newton|356|IN
+930|Mukwonago BEARs|146.58|5-5|Newton|266|WI
+948|NRG (Newport Robotics Group)|196.63|5-5|Newton|91|WA
+973|Greybots|229.32|8-2|Newton|40|CA
+1108|Panther Robotics|120.60|4-6|Newton|427|KS
+1540|Flaming Chickens|206.50|6-4|Newton|66|OR
+1577|Steampunk|103.49|5-5|Newton|554|Israel
+1796|RoboTigers|263.45|7-3|Newton|20|NY
+1807|Redbird Robotics|74.29|5-5|Newton|884|NJ
+1833|Team BEAN|233.52|8-2|Newton|36|GA
+1884|Griffins|48.39|1-9|Newton|1414|United Kingdom
+1902|Exploding Bacon|55.81|4-6|Newton|1229|FL
+1922|Oz-Ram|182.48|6-4|Newton|137|NH
+2046|Bear Metal|281.91|5-5|Newton|23|WA
+2052|KnightKrawler|184.73|8-2|Newton|130|MN
+2067|Apple Pi|164.72|4-6|Newton|190|CT
+2194|Fondy Fire|162.11|4-6|Newton|201|WI
+2370|IBOTS|151.76|4-6|Newton|244|VT
+2586|Copper Bots|95.80|4-6|Newton|622|MI
+2713|Red Hawk Robotics|150.41|6-4|Newton|248|MA
+2783|Engineers of Tomorrow|148.44|6-4|Newton|261|KY
+2910|Jack in the Bot|303.84|9-1|Newton|12|WA
+2996|Cougars Gone Wired|164.32|6-4|Newton|191|CO
+3005|RoboChargers|127.42|4-6|Newton|369|TX
+3044|Team 0xBE4|128.46|5-5|Newton|361|NY
+3256|WarriorBorgs|195.14|4-6|Newton|101|CA
+3276|TOOLCATS|153.89|4-6|Newton|232|MN
+3354|PrepaTec - TecDroid|135.82|6-4|Newton|312|Mexico
+3966|Gryphon Command|158.58|7-3|Newton|218|TN
+4099|The Falcons|140.16|6-4|Newton|293|MD
+4206|Robo Vikes|158.13|4-6|Newton|220|TX
+4253|Raid Zero|82.41|1-9|Newton|763|Chinese Taipei
+4400|Cerbotics - Peñoles|209.43|5-5|Newton|64|Mexico
+4561|TerrorBytes|145.63|5-5|Newton|273|NC
+4590|GreenBlitz|128.55|6-4|Newton|359|Israel
+5216|E-Ville Empire|152.33|5-5|Newton|240|MI
+5414|Pearadox|67.94|2-8|Newton|990|TX
+5549|Gryphon Robotics|150.73|9-1|Newton|247|VA
+5736|Kingsmen Robotics|222.38|5-5|Newton|47|NY
+5948|PrepaTec - Lebotics|123.79|8-2|Newton|393|Mexico
+5951|Makers Assemble|144.17|3-7|Newton|278|Israel
+6036|Peninsula Robotics|196.46|8-2|Newton|92|CA
+6352|LAUNCH TEAM|99.01|2-8|Newton|591|AZ
+6436|NARBULUT PARS ROBOTICS|145.03|5-5|Newton|274|Türkiye
+6647|PrepaTec - VOLTEC|194.03|4-6|Newton|104|Mexico
+6988|ACI35|41.15|4-6|Newton|1685|Türkiye
+7160|Ludington O-Bots|128.71|6-4|Newton|358|MI
+8046|LakerBots|174.27|3-7|Newton|158|NH
+8373|The Flying Octopi|156.80|5-5|Newton|225|MI
+9029|Team NF|107.51|3-7|Newton|530|Türkiye
+9067|The Goonies|86.03|5-5|Newton|725|AR
+9128|ITKAN Robotics|265.56|9-1|Newton|19|TX
+9245|Laker Dreadnoughts|142.95|4-6|Newton|283|MI
+9408|Warren Warbots|184.85|8-2|Newton|129|CA
+9450|Velocity Raptors|94.08|2-8|Newton|640|WA
+10291|MUTUM-X|98.40|5-5|Newton|599|Brazil
+10553|Orange Overdrive|78.84|5-5|Newton|816|WI
+10903|The Ionizers|80.85|4-6|Newton|784|NV
+10935|Krono|68.47|3-7|Newton|984|Israel
+10979|Tiger Robotics|36.91|3-7|Newton|1878|PA
+11463|SHC Robotics|55.17|3-7|Newton|1246|CA
