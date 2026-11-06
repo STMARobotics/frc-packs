@@ -596,7 +596,11 @@ async fn admin_changes_rarities_without_a_deploy() {
 
     let ov = call(&app, "GET", "/api/admin/tiers", Some(&admin), None).await;
     assert_eq!(ov.status, StatusCode::OK);
-    assert_eq!(ov.body["teams"].as_array().unwrap().len(), recipe()["teams"].as_array().unwrap().len(), "every team in the pack");
+    assert_eq!(
+        ov.body["teams"].as_array().unwrap().len(),
+        recipe()["teams"].as_array().unwrap().len(),
+        "every team in the pack"
+    );
     assert!(call(&app, "GET", "/api/admin/tiers", Some(&a), None).await.status.is_client_error(), "admins only");
 
     // Preview: 1114 goes from Mythic to Legendary, 7028 up to Mythic; nothing is saved yet.
