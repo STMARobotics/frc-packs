@@ -155,6 +155,9 @@ pub fn run(all: &[Item], pack: &Pack, rules: &Rules, dev_tools: bool, now: i64) 
     let mut wagers: Vec<(crate::wagers::Wager, [Uuid; 2])> = Vec::new();
     let mut games: HashMap<String, [Uuid; 2]> = HashMap::new();
     let mut wager_items: Vec<crate::wagers::Wager> = Vec::new();
+    // What each transfer moved, by its ledger reason ("trade <id>", "wager <game>"): cards, parts, packs (standard and
+    // boosted). What its players received can't be more than this, whoever's account is still around.
+    let mut moved: HashMap<String, (i64, i64, i64)> = HashMap::new();
     for it in all {
         let pk = get_s(it, "pk").unwrap_or_default();
         let sk = get_s(it, "sk").unwrap_or_default();
@@ -208,7 +211,22 @@ pub fn run(all: &[Item], pack: &Pack, rules: &Rules, dev_tools: bool, now: i64) 
             }
         } else if pk.starts_with("BG#") && sk == "WAGER" {
             if let Ok(w) = from_item::<crate::wagers::Wager>(it.clone()) {
+                let held = w.held.iter().fold((0, 0, 0), |(c, p, k), h| {
+                    (c + h.cards.len() as i64, p + h.parts, k + i64::from(h.packs + h.boosted))
+                });
+                moved.insert(format!("wager {}", w.game), held);
                 wager_items.push(w);
+            }
+        } else if pk.starts_with("TRADE#") && sk == "TRADE" {
+            if let Ok(t) = from_item::<crate::trades::Trade>(it.clone()) {
+                moved.insert(
+                    format!("trade {}", t.id),
+                    (
+                        (t.give.len() + t.want.len()) as i64,
+                        i64::from(t.give_parts + t.want_parts),
+                        i64::from(t.give_packs + t.want_packs + t.give_boosted + t.want_boosted),
+                    ),
+                );
             }
         }
     }
@@ -326,8 +344,10 @@ pub fn run(all: &[Item], pack: &Pack, rules: &Rules, dev_tools: bool, now: i64) 
         }
     }
 
-    // Trades and wagers only move things: per trade or match, nothing can come out of nowhere (a trade can add one
-    // pack per division set it finishes).
+    // Trades and wagers only move things: per trade or match, its players can't receive more than its record says it
+    // moved (a trade can also add one pack per division set it finishes). This holds even when one side's account was
+    // deleted later (and its ledger with it). A transfer with no record left falls back to its ledger lines summing to
+    // nothing, which is only checked while every player in it still exists.
     let mut by_transfer: HashMap<String, Vec<(Uuid, LedgerLine)>> = HashMap::new();
     for (uid, pl) in &players {
         for l in &pl.lines {
@@ -336,8 +356,12 @@ pub fn run(all: &[Item], pack: &Pack, rules: &Rules, dev_tools: bool, now: i64) 
             }
         }
     }
+    let mut unchecked = 0;
     for (reason, lines) in &by_transfer {
-        let total = |items: &[&str]| -> i64 {
+        let received = |items: &[&str]| -> i64 {
+            lines.iter().filter(|(_, l)| l.delta > 0 && items.contains(&l.item.as_str())).map(|(_, l)| l.delta).sum()
+        };
+        let net = |items: &[&str]| -> i64 {
             lines.iter().filter(|(_, l)| items.contains(&l.item.as_str())).map(|(_, l)| l.delta).sum()
         };
         let users: HashSet<Uuid> = lines.iter().map(|(u, _)| *u).collect();
@@ -348,17 +372,31 @@ pub fn run(all: &[Item], pack: &Pack, rules: &Rules, dev_tools: bool, now: i64) 
             .flat_map(|pl| pl.sets.iter())
             .filter(|t| **t >= lo - 10_000 && **t <= hi + 10_000)
             .count() as i64;
-        let packs_allowed = if reason.starts_with("trade ") { sets_then } else { 0 };
+        let set_packs = if reason.starts_with("trade ") { sets_then } else { 0 };
         let mut ev = Vec::new();
-        let packs = total(&["packs", "boosted"]);
-        if packs > packs_allowed {
-            ev.push(format!("\"{reason}\" made {packs} packs out of nothing"));
-        }
-        for item in ["parts", "card"] {
-            let t = total(&[item]);
-            if t > 0 {
-                ev.push(format!("\"{reason}\" made {t} {item} out of nothing"));
+        if let Some(&(cards, parts, packs)) = moved.get(reason) {
+            let (got_c, got_p, got_k) = (received(&["card"]), received(&["parts"]), received(&["packs", "boosted"]));
+            if got_c > cards {
+                ev.push(format!("\"{reason}\" gave out {got_c} cards, but only {cards} went into it"));
             }
+            if got_p > parts {
+                ev.push(format!("\"{reason}\" gave out {got_p} parts, but only {parts} went into it"));
+            }
+            if got_k > packs + set_packs {
+                ev.push(format!("\"{reason}\" gave out {got_k} packs, but only {} went into it", packs + set_packs));
+            }
+        } else if users.iter().all(|u| players.get(u).is_some_and(|pl| pl.p.is_some())) {
+            if net(&["packs", "boosted"]) > set_packs {
+                ev.push(format!("\"{reason}\" made {} packs out of nothing", net(&["packs", "boosted"])));
+            }
+            for item in ["parts", "card"] {
+                let t = net(&[item]);
+                if t > 0 {
+                    ev.push(format!("\"{reason}\" made {t} {item} out of nothing"));
+                }
+            }
+        } else {
+            unchecked += 1;
         }
         if !ev.is_empty() {
             for (u, l) in lines {
@@ -369,6 +407,11 @@ pub fn run(all: &[Item], pack: &Pack, rules: &Rules, dev_tools: bool, now: i64) 
                 }
             }
         }
+    }
+    if unchecked > 0 {
+        notes.push(format!(
+            "{unchecked} old trades or matches weren't checked: their record is gone and a player in them has deleted their account."
+        ));
     }
 
     // ---------- luck: Mythics against each opening's real odds ----------
@@ -595,6 +638,83 @@ mod tests {
         let faster = Rules { claim_minutes: 60, ..r.clone() };
         let mixed = claim_ceiling(&[(0, r), (DAY_MS / 2, faster)], 0, DAY_MS);
         assert!(mixed >= 6 + 12, "half a day at each speed: {mixed}");
+    }
+
+    fn line(at: i64, item: &str, delta: i64, detail: &str, reason: &str) -> LedgerLine {
+        LedgerLine { at, item: item.into(), delta, detail: Some(detail.into()), reason: reason.into() }
+    }
+
+    /// A won wager: the winner's ledger, a wager record holding `staked` cards, and (unless deleted) the loser's.
+    fn wager_table(staked: usize, paid: i64, loser_deleted: bool) -> (Vec<Item>, Uuid) {
+        use crate::db::item;
+        let (win, lose) = (Uuid::from_u128(1), Uuid::from_u128(2));
+        let mut all = Vec::new();
+        for (u, name) in [(win, "winner"), (lose, "loser")] {
+            if u == lose && loser_deleted {
+                continue;
+            }
+            let p = Profile { id: u, username: Some(name.into()), created_at: 0, ..Default::default() };
+            all.push(item(crate::model::upk(u), "PROFILE", &p));
+        }
+        let card = |i: usize| crate::model::CardRow {
+            id: i as i64,
+            pack: "cmp26".into(),
+            team: 100 + i as i32,
+            tier: "common".into(),
+            serial: 1,
+            opening_id: None,
+            slot: None,
+            obtained: "pack".into(),
+            created_at: 0,
+        };
+        let mut w = crate::wagers::Wager::new("g1");
+        w.held[1].cards = (0..staked).map(card).collect();
+        w.status = "settled".into();
+        w.winner = Some(0);
+        all.push(item("BG#g1", "WAGER", &w));
+        for i in 0..paid {
+            all.push(item(
+                crate::model::upk(win),
+                format!("LED#{i}"),
+                &line(1, "card", 1, &format!("{} #1", 100 + i), "wager g1"),
+            ));
+        }
+        if !loser_deleted {
+            for i in 0..staked {
+                all.push(item(
+                    crate::model::upk(lose),
+                    format!("LED#{i}"),
+                    &line(0, "card", -1, &format!("{} #1", 100 + i), "wager g1"),
+                ));
+            }
+        }
+        (all, win)
+    }
+
+    #[test]
+    fn a_wager_is_checked_against_its_record() {
+        let pack = {
+            let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../data/packs");
+            let mut c = crate::packs::Catalog::load(&dir).unwrap();
+            c.packs.remove(c.packs.iter().position(|p| p.id() == "cmp26").unwrap())
+        };
+        let rules = Rules::default();
+        let supply = |all: &[Item], u: Uuid| {
+            let r = run(all, &pack, &rules, false, DAY_MS).unwrap();
+            r.suspects
+                .iter()
+                .find(|s| s.id == u)
+                .map(|s| s.findings.iter().any(|f| f.check == "supply"))
+                .unwrap_or(false)
+        };
+        let (all, win) = wager_table(1, 1, false);
+        assert!(!supply(&all, win), "a fair wager");
+        let (all, win) = wager_table(1, 1, true);
+        assert!(!supply(&all, win), "the loser deleting their account later doesn't make it look like a dupe");
+        let (all, win) = wager_table(1, 2, true);
+        assert!(supply(&all, win), "paying out more than went in is caught, even with the loser gone");
+        let (all, win) = wager_table(1, 2, false);
+        assert!(supply(&all, win), "and with both still here");
     }
 
     #[test]
