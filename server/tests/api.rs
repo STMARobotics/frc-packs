@@ -297,7 +297,11 @@ async fn picking_up_is_opening() {
     let (app, db) = need_db!(setup(false));
     let (c, _) = player(&app, &db).await;
     let r = call(&app, "POST", "/api/hand", Some(&c), Some(json!({ "pack": PACK }))).await;
-    assert!(r.status == StatusCode::NOT_FOUND || r.status == StatusCode::METHOD_NOT_ALLOWED, "no /api/hand: {}", r.status);
+    assert!(
+        r.status == StatusCode::NOT_FOUND || r.status == StatusCode::METHOD_NOT_ALLOWED,
+        "no /api/hand: {}",
+        r.status
+    );
     let o = call(&app, "POST", "/api/open", Some(&c), Some(json!({ "pack": PACK }))).await;
     assert_eq!(o.status, StatusCode::OK, "{}", o.body);
     let cards = o.body["opening"]["cards"].as_array().unwrap();
@@ -912,8 +916,13 @@ async fn admins_cannot_give_packs() {
     let target = user_id(&db, &c).await;
     let before = sealed(&call(&app, "GET", "/api/state", Some(&c), None).await.body);
     let admin = make_admin(&app, &db).await;
-    let r = call(&app, "POST", &format!("/api/admin/users/{target}/packs"), Some(&admin), Some(json!({ "count": 50 }))).await;
-    assert!(r.status == StatusCode::NOT_FOUND || r.status == StatusCode::METHOD_NOT_ALLOWED, "gift route gone, got {}", r.status);
+    let r = call(&app, "POST", &format!("/api/admin/users/{target}/packs"), Some(&admin), Some(json!({ "count": 50 })))
+        .await;
+    assert!(
+        r.status == StatusCode::NOT_FOUND || r.status == StatusCode::METHOD_NOT_ALLOWED,
+        "gift route gone, got {}",
+        r.status
+    );
     assert_eq!(sealed(&call(&app, "GET", "/api/state", Some(&c), None).await.body), before);
 }
 
@@ -2844,7 +2853,10 @@ async fn tripwire_finds_impossible_supply_and_luck() {
     assert!(luck["score"].as_i64().unwrap() >= 80, "{luck}");
     assert_eq!(r.body["suspects"][0]["id"], cid.to_string(), "the cheat is at the top");
     let hid = user_id(&db, &honest).await;
-    assert!(r.body["suspects"].as_array().unwrap().iter().all(|s| s["id"] != hid.to_string()), "the honest player isn't listed");
+    assert!(
+        r.body["suspects"].as_array().unwrap().iter().all(|s| s["id"] != hid.to_string()),
+        "the honest player isn't listed"
+    );
     drop_table(&db).await;
 }
 
@@ -2864,14 +2876,46 @@ async fn tripwire_flag_clear_and_reverse() {
     give_card(&db, ida, x, "common").await;
     give_card(&db, idb, y, "common").await;
 
-    let f = call(&app, "POST", &format!("/api/admin/anticheat/users/{ida}/flag"), Some(&admin), Some(json!({ "reason": "testing", "mode": "paused" }))).await;
+    let f = call(
+        &app,
+        "POST",
+        &format!("/api/admin/anticheat/users/{ida}/flag"),
+        Some(&admin),
+        Some(json!({ "reason": "testing", "mode": "paused" })),
+    )
+    .await;
     assert_eq!(f.status, StatusCode::NO_CONTENT);
-    let t = call(&app, "POST", "/api/trades", Some(&a), Some(json!({ "pack": PACK, "to": b_name, "give": [x], "want": [y] }))).await;
+    let t = call(
+        &app,
+        "POST",
+        "/api/trades",
+        Some(&a),
+        Some(json!({ "pack": PACK, "to": b_name, "give": [x], "want": [y] })),
+    )
+    .await;
     assert_eq!(t.body["error"], "under_review");
-    assert_eq!(call(&app, "POST", "/api/open", Some(&a), Some(json!({ "pack": PACK }))).await.status, StatusCode::OK, "packs still open");
-    let c = call(&app, "POST", &format!("/api/admin/anticheat/users/{ida}/clear"), Some(&admin), Some(json!({ "reason": "ok" }))).await;
+    assert_eq!(
+        call(&app, "POST", "/api/open", Some(&a), Some(json!({ "pack": PACK }))).await.status,
+        StatusCode::OK,
+        "packs still open"
+    );
+    let c = call(
+        &app,
+        "POST",
+        &format!("/api/admin/anticheat/users/{ida}/clear"),
+        Some(&admin),
+        Some(json!({ "reason": "ok" })),
+    )
+    .await;
     assert_eq!(c.status, StatusCode::NO_CONTENT);
-    let t = call(&app, "POST", "/api/trades", Some(&a), Some(json!({ "pack": PACK, "to": b_name, "give": [x], "want": [y] }))).await;
+    let t = call(
+        &app,
+        "POST",
+        "/api/trades",
+        Some(&a),
+        Some(json!({ "pack": PACK, "to": b_name, "give": [x], "want": [y] })),
+    )
+    .await;
     assert_eq!(t.status, StatusCode::OK, "{}", t.body);
 
     // 10 packs and 300 parts come in; then the window is reversed.
@@ -2886,7 +2930,10 @@ async fn tripwire_flag_clear_and_reverse() {
     let sealed_before = kit::packs(&db, idb, PACK).await.sealed;
     let pv = call(&app, "POST", &path, Some(&admin), Some(json!({ "from": start, "to": end }))).await;
     assert_eq!(pv.status, StatusCode::OK, "{}", pv.body);
-    assert_eq!((pv.body["tookPacks"].as_i64(), pv.body["tookParts"].as_i64(), pv.body["applied"].as_bool()), (Some(10), Some(300), Some(false)));
+    assert_eq!(
+        (pv.body["tookPacks"].as_i64(), pv.body["tookParts"].as_i64(), pv.body["applied"].as_bool()),
+        (Some(10), Some(300), Some(false))
+    );
     assert_eq!(kit::packs(&db, idb, PACK).await.sealed, sealed_before, "a preview changes nothing");
     let ap = call(&app, "POST", &path, Some(&admin), Some(json!({ "from": start, "to": end, "apply": true }))).await;
     assert_eq!(ap.body["applied"], true, "{}", ap.body);
@@ -2914,14 +2961,16 @@ async fn tripwire_shadow_flags() {
         give_card(&db, ida, team_of("common", 142), "common").await;
         give_card(&db, idb, team_of("common", 143), "common").await;
     }
-    let offer = || json!({ "pack": PACK, "to": b_name, "give": [team_of("common", 142)], "want": [team_of("common", 143)] });
+    let offer =
+        || json!({ "pack": PACK, "to": b_name, "give": [team_of("common", 142)], "want": [team_of("common", 143)] });
     let take = |n: i32| {
         let db = db.clone();
         async move {
             let before = kit::packs(&db, ida, PACK).await;
             let mut after = before.clone();
             after.sealed += n;
-            kit::change(&db, ida, move |p, tx| frc_packs_server::model::save_pack(tx, p, &before, &after, "claim")).await;
+            kit::change(&db, ida, move |p, tx| frc_packs_server::model::save_pack(tx, p, &before, &after, "claim"))
+                .await;
         }
     };
     // 35 packs in an hour: flagged, silently. Trading carries on, and shows up on the watchlist.
@@ -2937,7 +2986,8 @@ async fn tripwire_shadow_flags() {
     assert_eq!(w["mode"], "shadow");
     assert!(w["activity"][0]["what"].as_str().unwrap().contains("offered a trade"), "{w}");
     // Shadow flags off: the same flag pauses trading.
-    let off = call(&app, "POST", "/api/admin/anticheat/config", Some(&admin), Some(json!({ "shadowDefault": false }))).await;
+    let off =
+        call(&app, "POST", "/api/admin/anticheat/config", Some(&admin), Some(json!({ "shadowDefault": false }))).await;
     assert_eq!(off.status, StatusCode::OK);
     let t = call(&app, "POST", "/api/trades", Some(&a), Some(offer())).await;
     assert_eq!(t.body["error"], "under_review");

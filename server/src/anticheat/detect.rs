@@ -200,7 +200,8 @@ pub fn run(all: &[Item], pack: &Pack, rules: &Rules, dev_tools: bool, now: i64) 
                 players.entry(u).or_default().feedback_rewards += 1;
             }
         } else if pk.starts_with("BG#") && sk == "GAME" {
-            if let Some(g) = get_s(it, "state").and_then(|v| serde_json::from_str::<crate::battler::game::Game>(&v).ok())
+            if let Some(g) =
+                get_s(it, "state").and_then(|v| serde_json::from_str::<crate::battler::game::Game>(&v).ok())
                 && let (Some(a), Some(b)) = (&g.seats[0], &g.seats[1])
             {
                 games.insert(g.id.clone(), [a.uid, b.uid]);
@@ -228,7 +229,8 @@ pub fn run(all: &[Item], pack: &Pack, rules: &Rules, dev_tools: bool, now: i64) 
     if history_from.is_none() {
         notes.push("Timer claims aren't checked yet: the settings have no saved history (it starts the next time the settings are saved in the admin panel).".into());
     }
-    let max_level_parts = (pack.recipe.teams.len() as i64 / crate::missions::LEVEL_TEAMS) * i64::from(crate::missions::LEVEL_PARTS);
+    let max_level_parts =
+        (pack.recipe.teams.len() as i64 / crate::missions::LEVEL_TEAMS) * i64::from(crate::missions::LEVEL_PARTS);
     let max_mission_day = crate::missions::max_daily_parts();
     for pl in players.values_mut() {
         let Some(p) = &pl.p else { continue };
@@ -272,12 +274,17 @@ pub fn run(all: &[Item], pack: &Pack, rules: &Rules, dev_tools: bool, now: i64) 
             let claimed: i64 = pl
                 .lines
                 .iter()
-                .filter(|l| l.reason == "claim" && l.delta > 0 && l.at >= from && matches!(l.item.as_str(), "packs" | "boosted"))
+                .filter(|l| {
+                    l.reason == "claim" && l.delta > 0 && l.at >= from && matches!(l.item.as_str(), "packs" | "boosted")
+                })
                 .map(|l| l.delta)
                 .sum();
             let ceiling = claim_ceiling(&history, from.max(p.created_at), now);
             if claimed > ceiling {
-                ev.push(format!("{claimed} packs from the timer since {}, but the timer could pay at most {ceiling}", fmt_time(from.max(p.created_at))));
+                ev.push(format!(
+                    "{claimed} packs from the timer since {}, but the timer could pay at most {ceiling}",
+                    fmt_time(from.max(p.created_at))
+                ));
             }
         }
         let crafted = sum(&|r| r == "craft", &["boosted"], true);
@@ -330,7 +337,9 @@ pub fn run(all: &[Item], pack: &Pack, rules: &Rules, dev_tools: bool, now: i64) 
         }
     }
     for (reason, lines) in &by_transfer {
-        let total = |items: &[&str]| -> i64 { lines.iter().filter(|(_, l)| items.contains(&l.item.as_str())).map(|(_, l)| l.delta).sum() };
+        let total = |items: &[&str]| -> i64 {
+            lines.iter().filter(|(_, l)| items.contains(&l.item.as_str())).map(|(_, l)| l.delta).sum()
+        };
         let users: HashSet<Uuid> = lines.iter().map(|(u, _)| *u).collect();
         let (lo, hi) = lines.iter().fold((i64::MAX, i64::MIN), |(a, b), (_, l)| (a.min(l.at), b.max(l.at)));
         let sets_then = users
@@ -369,7 +378,8 @@ pub fn run(all: &[Item], pack: &Pack, rules: &Rules, dev_tools: bool, now: i64) 
         if dev_tools && pl.p.as_ref().is_some_and(|p| p.demo) {
             continue;
         }
-        let recorded: Vec<&Opening> = pl.openings.iter().filter(|o| o.mythics.is_some() && o.pity_m.is_some()).collect();
+        let recorded: Vec<&Opening> =
+            pl.openings.iter().filter(|o| o.mythics.is_some() && o.pity_m.is_some()).collect();
         if recorded.is_empty() {
             continue;
         }
@@ -384,7 +394,13 @@ pub fn run(all: &[Item], pack: &Pack, rules: &Rules, dev_tools: bool, now: i64) 
         let got = recorded.iter().filter(|o| o.mythics.unwrap_or(0) > 0).count();
         let expected: f64 = ps.iter().sum();
         let p = tail(&ps, got);
-        let score = if got >= 2 && p < 1e-7 { 95 } else if got >= 2 && p < 1e-5 { 80 } else { 0 };
+        let score = if got >= 2 && p < 1e-7 {
+            95
+        } else if got >= 2 && p < 1e-5 {
+            80
+        } else {
+            0
+        };
         if score > 0 {
             pl.findings.push(Finding {
                 check: "luck",
@@ -440,10 +456,19 @@ pub fn run(all: &[Item], pack: &Pack, rules: &Rules, dev_tools: bool, now: i64) 
             (Some(a), Some(b)) => linked(a, b),
             _ => None,
         };
-        let score = if link.is_some() && net > 2_000 { 70 } else if net > 20_000 { 50 } else { 0 };
+        let score = if link.is_some() && net > 2_000 {
+            70
+        } else if net > 20_000 {
+            50
+        } else {
+            0
+        };
         if score > 0 {
-            let name = |u: Uuid| players.get(&u).and_then(|p| p.p.as_ref()).and_then(|p| p.username.clone()).unwrap_or_default();
-            let mut ev = vec![format!("took in {net} parts' worth more from {} than they gave back, in 7 days", name(giver))];
+            let name = |u: Uuid| {
+                players.get(&u).and_then(|p| p.p.as_ref()).and_then(|p| p.username.clone()).unwrap_or_default()
+            };
+            let mut ev =
+                vec![format!("took in {net} parts' worth more from {} than they gave back, in 7 days", name(giver))];
             if let Some(l) = &link {
                 ev.push(format!("{} and {}: {l}", name(giver), name(taker)));
             }
@@ -456,7 +481,8 @@ pub fn run(all: &[Item], pack: &Pack, rules: &Rules, dev_tools: bool, now: i64) 
     // ---------- thrown wagers: goods staked, then a forfeit or timeout within two minutes ----------
     let mut thrown: HashMap<(Uuid, Uuid), Vec<String>> = HashMap::new();
     for (w, users) in &wagers {
-        let (Some(locked), Some(done), Some(ended), Some(winner)) = (w.locked_at, w.finished_at, &w.ended, w.winner) else {
+        let (Some(locked), Some(done), Some(ended), Some(winner)) = (w.locked_at, w.finished_at, &w.ended, w.winner)
+        else {
             continue;
         };
         if !matches!(ended.as_str(), "forfeit" | "timeout") || done - locked > 120_000 {
@@ -490,7 +516,11 @@ pub fn run(all: &[Item], pack: &Pack, rules: &Rules, dev_tools: bool, now: i64) 
         let mut times: Vec<i64> = pl.openings.iter().map(|o| o.opened_at).collect();
         let most = busiest(&mut times, 60_000);
         if most > 30 {
-            pl.findings.push(Finding { check: "pacing", score: 30, evidence: vec![format!("{most} packs opened within one minute")] });
+            pl.findings.push(Finding {
+                check: "pacing",
+                score: 30,
+                evidence: vec![format!("{most} packs opened within one minute")],
+            });
         }
     }
 
@@ -506,7 +536,11 @@ pub fn run(all: &[Item], pack: &Pack, rules: &Rules, dev_tools: bool, now: i64) 
         let mut ev: Vec<String> = by.iter().map(|(p, k)| format!("called {p} {k} times")).collect();
         ev.sort();
         ev.push("The app doesn't call these any more: a script, or an app left open since before the update.".into());
-        pl.findings.push(Finding { check: "canary", score: if pl.canaries.len() >= 10 { 45 } else { 25 }, evidence: ev });
+        pl.findings.push(Finding {
+            check: "canary",
+            score: if pl.canaries.len() >= 10 { 45 } else { 25 },
+            evidence: ev,
+        });
     }
 
     // ---------- the report ----------

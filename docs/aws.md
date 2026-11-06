@@ -134,12 +134,13 @@ Resources that AWS does not support tagging cannot receive the tag.
 ## Deploying from GitHub
 
 Pull requests run `.github/workflows/ci.yml`: formatting, lint, the server tests against DynamoDB Local, the site build
-and the CDK checks. Pushing to `main` runs the same checks and, only if they pass, `.github/workflows/deploy.yml` builds
-the Lambda package on Linux (avoiding cross-compilation problems on developer machines) and deploys the CDK stacks.
+and the CDK checks. Pushing to `main` runs the same checks and, only if they pass, deploys the built assets to the CDK
+stacks. The Lambda package is built on Linux (avoiding cross-compilation problems on developer machines). Manually
+dispatching this workflow on `main` also validates before deploying.
 `.github/workflows/audit.yml` looks weekly for known vulnerabilities, and Dependabot opens update pull requests.
 
 To make every deploy wait for a person to approve it, add `environment: production` under the `deploy` job in
-`deploy.yml` and add required reviewers in the repository's Settings > Environments > production. **Changing this changes
+`ci.yml` and add required reviewers in the repository's Settings > Environments > production. **Changing this changes
 the identity GitHub presents to AWS** (from `ref:refs/heads/main` to `environment:production`), so update the role's
 trust policy in the same change or the deploy will stop working. Also turn on branch protection for `main` (require pull
 requests and the `ci` checks).
@@ -150,4 +151,4 @@ One-time setup:
 2. Create a role trusted only by this repository's `main` branch (for the STMA fork,
    `repo:STMARobotics/frc-packs:ref:refs/heads/main`). Grant it permission to deploy the CDK stacks and use their
    bootstrapped assets in both `us-east-1` and `us-east-2`. Its ARN is configured directly in
-   `.github/workflows/deploy.yml`.
+   `.github/workflows/ci.yml`.

@@ -143,7 +143,13 @@ pub async fn check(db: &Db, pack: &str, p: &Profile, stake: &Stake) -> ApiResult
         db,
         p,
         true,
-        &format!("staked {} parts, {} packs, {} boosted, {} cards", stake.parts, stake.packs, stake.boosted, stake.teams.len()),
+        &format!(
+            "staked {} parts, {} packs, {} boosted, {} cards",
+            stake.parts,
+            stake.packs,
+            stake.boosted,
+            stake.teams.len()
+        ),
     )
     .await?;
     if stake.has_goods() && too_new(p) {
