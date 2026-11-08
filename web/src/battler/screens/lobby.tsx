@@ -40,7 +40,7 @@ export function Lobby() {
           <button type="button" class="b-btn wide ghost" onClick={host} disabled={!!busy}>{busy === "host" ? <Spinner small /> : "Host a private match"}</button>
           <h2 class="b-h2">Join a friend</h2>
           <form class="b-codejoin" onSubmit={join}>
-            <input class="b-input b-code" value={code} onInput={(e) => setCode(e.currentTarget.value.toUpperCase())} maxLength={6} placeholder="Match code" aria-label="Match code"
+            <input autoComplete="off" data-1p-ignore data-lpignore="true" data-form-type="other" class="b-input b-code" value={code} onInput={(e) => setCode(e.currentTarget.value.toUpperCase())} maxLength={6} placeholder="Match code" aria-label="Match code"
               autocomplete="off" autocapitalize="characters" spellcheck={false} />
             <button type="submit" class="b-btn" disabled={!!busy}>{busy === "code" ? <Spinner small /> : "Join"}</button>
           </form>

@@ -13,6 +13,12 @@ const fmt = (ms: number) => {
   return `${h}:${String(m).padStart(2, "0")}:${String(x).padStart(2, "0")}`;
 };
 
+/** A countdown whose width never changes as it ticks: the title font's digits aren't all the same width, so each one
+    gets a box of its own. */
+function Clock({ text }: { text: string }) {
+  return <span class="st-clock" aria-label={text}>{[...text].map((ch) => <i class={ch === ":" ? "st-colon" : undefined} aria-hidden="true">{ch}</i>)}</span>;
+}
+
 /** Ticks once a second; only the component using it redraws. */
 export function useNow(ms = 1000) {
   const [, tick] = useState(0);
@@ -50,7 +56,7 @@ export function StatusBar() {
   return (
     <section class="s-status">
       <div class="st-timer">
-        <small>Next pack</small><b>{n ? "Ready" : fmt(left)}</b>
+        <small>Next pack</small><b>{n ? "Ready" : <Clock text={fmt(left)} />}</b>
       </div>
       <div class={cx("st-meter", pity >= soft && "hot")} title={`Packs since your last Mythic. Odds climb after ${soft}; one is guaranteed by pack ${hard}.`}>
         <small>Mythic meter</small>

@@ -244,6 +244,21 @@ pub async fn wishlist(db: &Db, user: Uuid, pack: &str) -> ApiResult<Vec<i32>> {
     marked(db, user, "WISH", pack).await
 }
 
+/// Takes teams a player just got (from a pack, a trade or a match) off their wishlist. After the cards are theirs, and
+/// only a nicety: if it fails, the team stays on the list until they take it off.
+pub async fn unwish(db: &Db, user: Uuid, pack: &str, got: impl IntoIterator<Item = i32>) {
+    let got: std::collections::HashSet<i32> = got.into_iter().collect();
+    if got.is_empty() {
+        return;
+    }
+    let Ok(list) = wishlist(db, user, pack).await else { return };
+    for t in list.into_iter().filter(|t| got.contains(t)) {
+        if let Err(e) = db.delete(&upk(user), &mark_sk("WISH", pack, t)).await {
+            tracing::warn!("couldn't take {t} off a wishlist: {e}");
+        }
+    }
+}
+
 #[derive(Deserialize)]
 struct ShowcaseReq {
     pack: String,

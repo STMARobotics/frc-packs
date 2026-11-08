@@ -1166,6 +1166,7 @@ async fn open(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Json
         }
     })?;
     let Ok((opening, streak_reward)) = r else { return idem_lost(&s.db, user.id, &key, "open").await };
+    crate::profiles::unwish(&s.db, user.id, pack.id(), opening.cards.iter().map(|c| c.num)).await;
     let state = load_state(&s, user.id).await?;
     let done = OpenOut { opening, streak_reward, state };
     idem_end(&s.db, user.id, &key, "open", &done).await?;
@@ -1268,6 +1269,9 @@ struct ScrapExtrasReq {
     pack: String,
     /// Scrap every extra copy of these tiers.
     tiers: Vec<Tier>,
+    /// Copies of each team to keep (1 to 5; 1 if left out): the earliest ones.
+    #[serde(default)]
+    keep: Option<i32>,
 }
 
 #[derive(Serialize)]
@@ -1321,9 +1325,11 @@ async fn scrap_copies(
     tiers: &[Tier],
     limit: usize,
     only: Option<i32>,
+    keep: usize,
     key: &IdemKey,
     kind: &str,
 ) -> ApiResult<Option<(i64, i64, i64)>> {
+    let keep = keep.max(1);
     // Teams by their tier in the recipe. Extra Legendary copies can be scrapped (you always keep one); Mythic copies
     // never are.
     let wanted: HashSet<i32> = tiers
@@ -1350,14 +1356,14 @@ async fn scrap_copies(
             let mut extras = 0usize;
             let mut pick: Vec<&CardRow> = Vec::new();
             for copies in by_team.values() {
-                extras += copies.len().saturating_sub(1).min(limit);
-                // The first copy that's free to scrap is kept; then the newest ones go, up to `limit`.
+                extras += copies.len().saturating_sub(keep).min(limit);
+                // The first `keep` copies that are free to scrap are kept; then the newest ones go, up to `limit`.
                 let free: Vec<&&CardRow> = copies.iter().filter(|c| !held.contains(&c.id)).collect();
                 if let Some(serial) = only {
                     pick.extend(free.iter().skip(1).filter(|c| c.serial == serial).take(1).map(|c| **c));
                     continue;
                 }
-                let take = free.len().saturating_sub(1).min(limit);
+                let take = free.len().saturating_sub(keep).min(limit);
                 pick.extend(free[free.len() - take..].iter().map(|c| **c));
             }
             pick.sort_by_key(|c| (c.team, c.id));
@@ -1471,7 +1477,7 @@ async fn scrap(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Jso
         return Ok(done);
     }
     let Some(r) =
-        scrap_copies(&s, user.id, &pack, Some(&[req.num]), &[tier], req.count as usize, req.serial, &key, "scrap")
+        scrap_copies(&s, user.id, &pack, Some(&[req.num]), &[tier], req.count as usize, req.serial, 1, &key, "scrap")
             .await?
     else {
         return idem_lost(&s.db, user.id, &key, "scrap").await;
@@ -1496,7 +1502,9 @@ async fn scrap_extras(
     if let Some(done) = idem_begin(&s.db, user.id, &key, "scrap_extras").await? {
         return Ok(done);
     }
-    let Some(r) = scrap_copies(&s, user.id, &pack, None, &req.tiers, usize::MAX, None, &key, "scrap_extras").await?
+    let keep = req.keep.unwrap_or(1).clamp(1, 5) as usize;
+    let Some(r) =
+        scrap_copies(&s, user.id, &pack, None, &req.tiers, usize::MAX, None, keep, &key, "scrap_extras").await?
     else {
         return idem_lost(&s.db, user.id, &key, "scrap_extras").await;
     };

@@ -34,7 +34,7 @@ export function Face({ t, tier, serial }: { t: T; tier: Tier; serial?: number | 
   return (
     <div class="face front btf">
       <div class="inner v2 bt b2" style={{ "--nl": nameScale(t.name) }}>
-        <div class="head"><span class="avatar none">{t.num}</span><span class="tname">{t.name}</span></div>
+        <div class="head">{t.avatar ? <span class="avatar"><img alt="" draggable={false} decoding="async" src={`/photos/avatars/${t.num}.png`} /></span> : <span class="avatar none">{t.num}</span>}<span class="tname">{t.name}</span></div>
         <div class="fwrap">
           <div class="fphoto">
             {t.photo

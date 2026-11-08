@@ -350,7 +350,12 @@ pub async fn settle(
         w.ended = Some(ended.to_string());
         put(&mut tx, &mut w);
         match tx.commit(db).await {
-            Ok(()) => return Ok(()),
+            Ok(()) => {
+                for (uid, g) in &gets {
+                    crate::profiles::unwish(db, *uid, pack, g.cards.iter().map(|c| c.team)).await;
+                }
+                return Ok(());
+            }
             // Someone's collection changed while this was being put together (or it was paid out already): again.
             Err(DbError::Conflict(_)) => continue,
             Err(e) => return Err(e.into()),

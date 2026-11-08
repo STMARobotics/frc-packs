@@ -257,7 +257,7 @@ function EditProfile() {
       </div>
       <label class="ed-bio">
         <span><b>Bio</b><small class={cx(bad && "bad")}>{bio.trim().length}/160</small></span>
-        <textarea class="s-input" rows={3} maxLength={200} value={bio} placeholder="Your team, your favorite robot, what you're collecting…" onInput={(e) => setBio(e.currentTarget.value)} />
+        <textarea autoComplete="off" data-1p-ignore data-lpignore="true" data-form-type="other" class="s-input" rows={3} maxLength={200} value={bio} placeholder="Your team, your favorite robot, what you're collecting…" onInput={(e) => setBio(e.currentTarget.value)} />
       </label>
       <button type="button" class="s-btn wide" disabled={busy || bad} onClick={save}>{busy ? <Spinner small /> : "Save"}</button>
       <p class="s-dim ed-note">Your picture and banner come from cards you own. Keep it friendly: everyone can see your profile.</p>
@@ -287,7 +287,7 @@ function PickCard({ slot, chosen, onDone }: { slot: Slot; chosen: number[]; onDo
         {many ? <button type="button" class="s-btn small" onClick={() => { onDone(sel); back(); }}>Done · {sel.length}/3</button>
           : chosen.length > 0 && <button type="button" class="s-btn small ghost" onClick={() => { onDone([]); back(); }}>{slot === "avatar" ? "Use initials" : "Plain"}</button>}
       </header>
-      <input class="s-input" type="search" placeholder="Team number or name" value={q} onInput={(e) => setQ(e.currentTarget.value)} aria-label="Find a team" />
+      <input autoComplete="off" data-1p-ignore data-lpignore="true" data-form-type="other" class="s-input" type="search" placeholder="Team number or name" value={q} onInput={(e) => setQ(e.currentTarget.value)} aria-label="Find a team" />
       <div class="ed-grid">
         {list.map((n) => {
           const t = BY_NUM.get(n)!, i = sel.indexOf(n);
@@ -326,7 +326,7 @@ function Report({ name }: { name: string }) {
     <div class="au-sheet" role="dialog" aria-modal="true" aria-label={`Report ${name}`}>
       <h2>Report {name}</h2>
       <div class="s-chips">{REASONS.map(([k, l]) => <button type="button" class={cx("s-chip", why === k && "on")} aria-pressed={why === k} onClick={() => setWhy(k)}>{l}</button>)}</div>
-      <textarea class="s-input" rows={3} maxLength={500} placeholder="What happened? (optional)" value={details} onInput={(e) => setDetails(e.currentTarget.value)} />
+      <textarea autoComplete="off" data-1p-ignore data-lpignore="true" data-form-type="other" class="s-input" rows={3} maxLength={500} placeholder="What happened? (optional)" value={details} onInput={(e) => setDetails(e.currentTarget.value)} />
       <div class="s-row2"><button type="button" class="s-btn" disabled={!why || busy} onClick={send}>Send report</button><button type="button" class="s-btn ghost" onClick={back}>Cancel</button></div>
     </div>
   );

@@ -136,7 +136,7 @@ function StakeEditor({ g, start }: { g: GameView; start: Stake }) {
     <div class="b-stakeed">
       <h2>Your stake</h2>
       <label class="b-stakerow"><span>Parts <small>{m.parts} available</small></span>
-        <input class="b-input b-num" type="number" inputMode="numeric" min={0} max={m.parts} step={10} value={s.parts || ""} placeholder="0" onInput={(e) => setS({ ...s, parts: Math.max(0, Math.min(m.parts, Math.floor(+e.currentTarget.value || 0))) })} />
+        <input autoComplete="off" data-1p-ignore data-lpignore="true" data-form-type="other" class="b-input b-num" type="number" inputMode="numeric" min={0} max={m.parts} step={10} value={s.parts || ""} placeholder="0" onInput={(e) => setS({ ...s, parts: Math.max(0, Math.min(m.parts, Math.floor(+e.currentTarget.value || 0))) })} />
       </label>
       <div class="b-stakerow"><span>Packs <small>{m.standard} sealed</small></span><Stepper n={s.packs} minus={() => setS({ ...s, packs: s.packs - 1 })} plus={() => setS({ ...s, packs: s.packs + 1 })} canPlus={s.packs < m.standard} /></div>
       <div class="b-stakerow"><span>Boosted packs <small>{m.boosted} sealed</small></span><Stepper n={s.boosted} minus={() => setS({ ...s, boosted: s.boosted - 1 })} plus={() => setS({ ...s, boosted: s.boosted + 1 })} canPlus={s.boosted < m.boosted} /></div>
@@ -153,7 +153,7 @@ function StakeEditor({ g, start }: { g: GameView; start: Stake }) {
         </>
       )}
       <h3 class="b-h2">Cards {!!s.teams.length && <small>{s.teams.length} chosen</small>}</h3>
-      <input class="b-input" type="search" placeholder="Search number or name" value={q} onInput={(e) => setQ(e.currentTarget.value)} aria-label="Search your cards" />
+      <input autoComplete="off" data-1p-ignore data-lpignore="true" data-form-type="other" class="b-input" type="search" placeholder="Search number or name" value={q} onInput={(e) => setQ(e.currentTarget.value)} aria-label="Search your cards" />
       <div class="b-stakecards">
         {list.map((c) => {
           const r = ROBOT.get(c.num);

@@ -66,6 +66,18 @@
 .td-on { top: 4px; background: var(--ac); color: #04131b; }
 .td-want { bottom: 34px; background: rgba(7, 12, 24, .9); color: var(--gold); }
 .td-want.mine { color: #ff7aa2; }
+/* Whether the other side already has it, on the card's foot. */
+.td-has { position: absolute; left: 4px; right: 4px; bottom: 4px; padding: 1px 4px; border-radius: 6px; background: rgba(7, 12, 24, .85); color: var(--dim); font-size: 9px; font-weight: 700; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.td-has.none { color: var(--ac); }
+.td-pick.held .s-mini { opacity: .45; }
+.td-held { background: var(--s3); color: var(--tx); }
+.s-chip.held { opacity: .5; }
+.s-chip.held small { font-weight: 600; }
+.td-see { justify-self: start; }
+.td-slotcard { display: block; width: 100%; height: 100%; padding: 0; border: 0; background: none; cursor: pointer; }
+.td-slot.full .td-x { border: 0; cursor: pointer; z-index: 1; }
+.td-teams { margin-bottom: 4px; }
+.td-teams .s-mini { width: 44px; flex: none; }
 .td-info { position: absolute; top: -6px; right: -6px; width: 24px; height: 24px; border: 0; border-radius: 50%; background: var(--s3); color: var(--tx); font: 700 12px var(--body); cursor: pointer; box-shadow: 0 2px 4px rgba(0, 0, 0, .5); }
 .td-copies { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; display: grid; gap: 8px; max-width: 720px; margin: 0 auto; padding: 16px 16px calc(20px + env(safe-area-inset-bottom)); border-radius: 20px 20px 0 0; background: var(--s2); box-shadow: 0 -10px 30px rgba(0, 0, 0, .5); animation: s-up .22s var(--ease); }
 @keyframes s-up { from { transform: translateY(100%); } }

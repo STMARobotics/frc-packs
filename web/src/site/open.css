@@ -58,6 +58,10 @@
 .op-kind span { grid-column: 2; line-height: 1; }
 .op-kind.op-on { background: var(--s3); color: var(--tx); box-shadow: inset 0 0 0 1.5px var(--pa); }
 .op-kind.op-none { opacity: .5; }
+/* The summary's "Boosted ×3": the other stack, with a little pack in its colors. */
+.op-other { --pa: #8fe9ff; --pb: #3c6cf0; display: inline-flex; align-items: center; gap: 7px; }
+.op-other.k-gold { --pa: #ffe58a; --pb: #e9a32a; }
+.op-other i { width: 11px; height: 16px; border-radius: 2px; background: linear-gradient(165deg, var(--pa), var(--pb)); }
 
 /* ---------- over the tabs ---------- */
 .s-layer.k-open { overflow: clip; overscroll-behavior: none; background: radial-gradient(120% 70% at 50% 35%, #182241, #07090f 70%); }
@@ -86,17 +90,6 @@
 .op-fx { position: fixed; inset: 0; z-index: 65; width: 100%; height: 100%; pointer-events: none; }
 .op-flash { position: fixed; inset: 0; z-index: 80; background: #fff; opacity: 0; pointer-events: none; }
 .op-link { padding: 8px 12px; border: 0; background: none; color: var(--dim); font: 700 13px var(--body); cursor: pointer; }
-
-/* ---------- the wheel ---------- */
-.op-wheel { display: grid; justify-items: center; gap: 14px; width: 100%; }
-.op-ringwrap { --pw: min(36vw, 180px, calc((100svh - 380px) / 1.6)); --R: calc(var(--pw) * 1.75); position: relative; width: calc(100% + 32px); margin-inline: -16px; height: calc(var(--pw) * 1.52 + 96px);
-  perspective: 1000px; perspective-origin: 50% 20%; overflow: hidden; touch-action: pan-y; cursor: grab; outline: none; }
-.op-ringwrap.op-drag { cursor: grabbing; }
-.op-floor { position: absolute; left: 10%; right: 10%; bottom: 10px; height: 46px; border-radius: 50%; background: radial-gradient(closest-side, rgba(79, 216, 255, .2), transparent); }
-.op-ring { position: absolute; left: calc(50% - var(--pw) / 2); top: 30px; width: var(--pw); aspect-ratio: 5 / 7.6; transform-style: preserve-3d; transform: translateZ(calc(var(--R) * -1)) rotateX(-7deg); }
-.op-pick { position: absolute; inset: 0; padding: 0; border: 0; border-radius: 12px; background: none; cursor: pointer; transform: rotateY(calc(var(--i) * 36deg)) translateZ(var(--R)); -webkit-tap-highlight-color: transparent; }
-.op-pick::before { content: ""; position: absolute; inset: 2% 3%; border-radius: 12px; box-shadow: 0 0 26px 4px rgba(120, 200, 255, .45); opacity: 0; transition: opacity .15s; pointer-events: none; }
-.op-pick.op-front::before { opacity: 1; }
 
 /* ---------- the pack in your hand ---------- */
 .op-hold { position: relative; z-index: 2; width: var(--op-pw); }
@@ -207,6 +200,7 @@
 .op-tag .op-ribbon { animation-delay: .5s; }
 .op-sc.op-best::before { content: ""; position: absolute; inset: 0; border-radius: calc(var(--op-sw) * .055); box-shadow: 0 0 0 2px var(--tc), 0 0 26px 2px var(--tc); pointer-events: none; }
 .op-sum-b { width: min(100%, 420px); }
+.op-sum-b:has(.op-other) > :first-child { grid-column: 1 / -1; }
 
 /* ---------- moments ---------- */
 .op-rip { position: absolute; --c: #fff; }

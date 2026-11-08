@@ -1,4 +1,4 @@
-// Settings: your account (name, username, password, sign out), notifications, sound, the pack wheel, feedback, the app
+// Settings: your account (name, username, password, sign out), notifications, sound, feedback, the app
 // version and patch notes, and the admin and developer tools when they apply.
 import type { ComponentChildren } from "preact";
 import { useEffect, useState } from "preact/hooks";
@@ -83,7 +83,8 @@ function Settings() {
             if (!u || !pw) throw new Error("Enter the new username and your password.");
             const n = await api.changeUsername(u, pw); applyState(n); return `Username changed to ${n.account.username}.`;
           })}>
-            <input class="s-input" name="u" maxLength={20} autoCapitalize="none" spellcheck={false} autoComplete="username" defaultValue={a.username} aria-label="New username" />
+            <input type="text" name="username" autoComplete="username" value={a.username} readOnly hidden />
+            <input class="s-input" name="u" maxLength={20} autoCapitalize="none" spellcheck={false} autoComplete="off" data-1p-ignore data-lpignore="true" defaultValue={a.username} aria-label="New username" />
             <input class="s-input" name="pw" type="password" maxLength={128} autoComplete="current-password" placeholder="Current password" aria-label="Current password" />
             <button type="submit" class="s-btn small" disabled={busy === "form"}>Change username</button>
           </form>
@@ -96,6 +97,7 @@ function Settings() {
             if (next.length < 8) throw new Error("New passwords need at least 8 characters.");
             await api.changePassword(cur, next); return "Password changed.";
           })}>
+            <input type="text" name="username" autoComplete="username" value={a.username} readOnly hidden />
             <input class="s-input" name="cur" type="password" autoComplete="current-password" placeholder="Current password" maxLength={128} aria-label="Current password" />
             <input class="s-input" name="next" type="password" autoComplete="new-password" placeholder="New password (8+ characters)" maxLength={128} aria-label="New password" />
             <button type="submit" class="s-btn small" disabled={busy === "form"}>Save</button>
@@ -109,7 +111,6 @@ function Settings() {
           <Toggle on={ps === "on"} disabled={!(ps === "on" || ps === "off") || busy === "push"} onClick={() => run("push", togglePush)} />
         </Line>
         <Line title="Sound"><Toggle on={!p.muted} onClick={() => setPrefs((x) => { x.muted = !x.muted; })} /></Line>
-        <Line title="Pack wheel every time" note="Pick from the wheel of 10 each time you open another pack."><Toggle on={p.wheel2} onClick={() => setPrefs((x) => { x.wheel2 = !x.wheel2; })} /></Line>
       </section>
 
       <section class="sg-group"><h2 class="s-h2">About</h2>
@@ -169,8 +170,8 @@ function FeedbackForm() {
       <header class="s-head"><button type="button" class="s-icon" onClick={back} aria-label="Back">‹</button><h1>Feedback</h1></header>
       <form class="sg-form col" onSubmit={send}>
         <div class="s-chips">{KINDS.map(([k, l]) => <button type="button" class={cx("s-chip", kind === k && "on")} aria-pressed={kind === k} onClick={() => setKind(k)}>{l}</button>)}</div>
-        <input class="s-input" name="title" maxLength={100} placeholder="Short title" aria-label="Title" />
-        <textarea class="s-input" name="details" maxLength={2000} rows={5} placeholder="What happened, or what would you like?" aria-label="Details" />
+        <input autoComplete="off" data-1p-ignore data-lpignore="true" data-form-type="other" class="s-input" name="title" maxLength={100} placeholder="Short title" aria-label="Title" />
+        <textarea autoComplete="off" data-1p-ignore data-lpignore="true" data-form-type="other" class="s-input" name="details" maxLength={2000} rows={5} placeholder="What happened, or what would you like?" aria-label="Details" />
         <button type="submit" class="s-btn" disabled={busy}>Send</button>
       </form>
       <h2 class="s-h2">Yours</h2>

@@ -6,7 +6,7 @@
 import { useEffect, useState } from "preact/hooks";
 import { api, type CardRef, type Special, type Trade, type TradeMatch } from "../../api";
 import { store, useStore } from "../../lib/store";
-import { BY_NUM, byRarity, ORDER, PACK, TIERS, type T } from "../data";
+import { BY_NUM, byRarity, ORDER, PACK, TEAMS as TEAM_LIST, TIERS, type T } from "../data";
 import { ago, applyCollection, applyState, fail, inv, loadSocial, packOf, setPrefs, social, specials as mySpecials, st, toast, trades } from "../state";
 import { Avatar, back, cx, push, Spinner, Tabs } from "../ui";
 import { sfx } from "../sfx";
@@ -129,6 +129,10 @@ export function TradeTab({ active }: { active: boolean }) {
     api.trades().then((t) => { trades.set(t); toOffers(t); }, () => {});
     api.specials().then(mySpecials.set, () => {});
     loadSocial();
+    // Offers change on the other side too (accepted, declined, a new one): a look every 30 seconds while you're here,
+    // and none while the app is in the background.
+    const t = setInterval(() => { if (document.visibilityState === "visible") api.trades().then(trades.set, () => {}); }, 30_000);
+    return () => clearInterval(t);
   }, [active]);
   return (
     <div class="s-screen s-trade">
@@ -218,9 +222,12 @@ function PickPlayer() {
   useEffect(() => { api.tradeMatches(PACK).then(setMatches, () => setMatches([])); }, []);
   const players = (so?.players ?? []).filter((p) => p.name.toLowerCase() !== me && (!q.trim() || p.name.toLowerCase().includes(q.trim().toLowerCase()) || (p.firstName ?? "").toLowerCase().includes(q.trim().toLowerCase())));
   const known = new Set(players.map((p) => p.name.toLowerCase()));
+  // Looking for a team rather than a player: its card shows who has it (and who has spares) to trade with.
+  const needle = q.trim().toLowerCase();
+  const teams = needle ? TEAM_LIST.filter((t) => String(t.num) === needle || (needle.length >= 3 && t.name.toLowerCase().includes(needle))).slice(0, 4) : [];
   return (
     <>
-      <input class="s-input" type="search" placeholder="Who do you want to trade with?" value={q} onInput={(e) => setQ(e.currentTarget.value)}
+      <input autoComplete="off" data-1p-ignore data-lpignore="true" data-form-type="other" class="s-input" type="search" placeholder="A player, or a team you're after" value={q} onInput={(e) => setQ(e.currentTarget.value)}
         onKeyDown={(e) => { if (e.key === "Enter" && q.trim()) choose(sugg[0] ?? q.trim()); }} autoCapitalize="none" spellcheck={false} aria-label="Player" />
       {!q.trim() && matches && matches.length > 0 && (
         <section class="td-matches">
@@ -236,6 +243,15 @@ function PickPlayer() {
           </div>
           <h2 class="s-h2">Everyone</h2>
         </section>
+      )}
+      {teams.length > 0 && (
+        <div class="s-list td-teams">
+          {teams.map((t) => (
+            <button type="button" class="td-person" onClick={() => openCard(t.num)}>
+              <Mini num={t.num} /><span class="td-mwho"><b>{t.name}</b><small>{t.num} · {inv.get()[t.num]?.length ? `you have ×${inv.get()[t.num].length}` : "you don't have it"} · see who has it</small></span>
+            </button>
+          ))}
+        </div>
       )}
       <div class="s-list">
         {sugg.filter((n) => !known.has(n.toLowerCase())).map((n) => (
@@ -257,9 +273,12 @@ function Side({ label, picks, goods, specials, side }: { label: string; picks: P
       <div class="td-side-h"><b>{label}</b><small>{picks.length}/{MAX}</small></div>
       <div class="td-slots">
         {picks.map((p, i) => (
-          <button key={`${p.num}:${p.serial}:${i}`} type="button" class="td-slot full" onClick={() => remove(i)} aria-label={`Remove ${BY_NUM.get(p.num)!.name}`}>
-            <Mini num={p.num} foot={p.serial ? `No. ${p.serial}` : undefined} /><span class="td-x">×</span>
-          </button>
+          <span key={`${p.num}:${p.serial}:${i}`} class="td-slot full">
+            <button type="button" class="td-slotcard" onClick={() => inspect(side, p.num)} aria-label={`${BY_NUM.get(p.num)!.name}: see or change the copy`}>
+              <Mini num={p.num} foot={p.serial ? `No. ${p.serial}` : "Any copy"} />
+            </button>
+            <button type="button" class="td-x" onClick={() => remove(i)} aria-label={`Take ${BY_NUM.get(p.num)!.name} off`}>×</button>
+          </span>
         ))}
         {picks.length < MAX && <button type="button" class="td-slot" onClick={() => openPicker(side)} aria-label="Add a card"><span>+</span></button>}
       </div>
@@ -296,11 +315,30 @@ export function Mini({ num, foot }: { num: number; foot?: string }) {
 
 // ---------- the picker: cards, or packs and parts, for one side ----------
 
-function openPicker(side: "give" | "get", kind: "cards" | "goods" = "cards") {
-  push(() => <Picker side={side} start={kind} />, "page");
+/** `num`: a card on the table, its copies open to see or change which one. */
+function openPicker(side: "give" | "get", kind: "cards" | "goods" = "cards", num?: number) {
+  push(() => <Picker side={side} start={kind} focus={num} />, "page");
 }
 
-function Picker({ side, start }: { side: "give" | "get"; start: "cards" | "goods" }) {
+/** A card on the table: its copies, to see or change which one goes; with only one copy, the card itself. */
+function inspect(side: "give" | "get", num: number) {
+  const d = draft.get(), cards = (side === "give" ? inv.get() : d.theirs ?? {})[num] ?? [];
+  if (cards.length > 1) return openPicker(side, "cards", num);
+  openCard(num, undefined, { serial: cards[0], from: side === "give" ? "Your card." : `${d.name}'s card.` });
+}
+
+/** Why each copy of yours that can't go in an offer now can't: in the pack you're opening, in an offer you sent, or
+    asked for in one sent to you. */
+function heldWhy(s: { pending?: { cards: { num: number; serial: number }[] } | null }) {
+  const why = new Map<string, string>();
+  s.pending?.cards.forEach((c) => why.set(`${c.num}:${c.serial}`, "in the pack you're opening"));
+  const tr = trades.get();
+  tr.outgoing.forEach((x) => x.youGive.forEach((c) => why.set(`${c.num}:${c.serial}`, `in your offer to ${x.with}`)));
+  tr.incoming.forEach((x) => x.youGive.forEach((c) => why.set(`${c.num}:${c.serial}`, `asked for by ${x.with}`)));
+  return why;
+}
+
+function Picker({ side, start, focus }: { side: "give" | "get"; start: "cards" | "goods"; focus?: number }) {
   const d = useStore(draft);
   const s = useStore(st)!;
   const myCards = useStore(inv);
@@ -308,28 +346,30 @@ function Picker({ side, start }: { side: "give" | "get"; start: "cards" | "goods
   const [kind, setKind] = useState(start);
   const [q, setQ] = useState("");
   const [tier, setTier] = useState<"all" | T["tier"]>("all");
-  const [copies, setCopies] = useState<number | null>(null);
-  const [onlySpares, setOnlySpares] = useState(false);
   const mine = side === "give";
   const cards: Record<number, number[]> = mine ? myCards : d.theirs ?? {};
+  const [copies, setCopies] = useState<number | null>(focus != null && (cards[focus]?.length ?? 0) > 1 ? focus : null);
+  const [onlySpares, setOnlySpares] = useState(false);
+  const [needIt, setNeedIt] = useState(false);
   const picks = mine ? d.give : d.get;
-  // Your copies the server won't put in another offer: in a pack you're still opening, or already offered by you.
-  const held = new Set<string>();
-  if (mine) {
-    s.pending?.cards.forEach((c) => held.add(`${c.num}:${c.serial}`));
-    trades.get().outgoing.forEach((x) => x.youGive.forEach((c) => held.add(`${c.num}:${c.serial}`)));
-  }
+  // Your copies the server won't put in another offer, and why.
+  const held = mine ? heldWhy(s) : new Map<string, string>();
   const free = (n: number) => cards[n].filter((sn) => !held.has(`${n}:${sn}`)).length;
+  const otherSide: Record<number, number[]> = mine ? d.theirs ?? {} : myCards;
   const needle = q.trim().toLowerCase();
   const list = Object.keys(cards).map(Number).map((n) => BY_NUM.get(n)).filter((t): t is T => !!t && cards[t.num].length > 0)
     .filter((t) => (tier === "all" || t.tier === tier) && (!needle || String(t.num).startsWith(needle) || t.name.toLowerCase().includes(needle)))
     .filter((t) => !onlySpares || cards[t.num].length > 1)
+    .filter((t) => !needIt || !otherSide[t.num]?.length)
     // Your spares first when you're giving, so your only copies aren't the first thing on offer.
     .sort((a, b) => (mine ? Number(cards[b.num].length > 1) - Number(cards[a.num].length > 1) : 0) || byRarity(a, b));
   const onTable = (n: number) => picks.filter((p) => p.num === n).length;
 
   const tap = (n: number) => {
-    if (mine && !onTable(n) && !free(n)) return toast("That card is in a pack you're still opening or in another offer you sent.", true, 3000);
+    if (mine && !onTable(n) && !free(n)) {
+      const why = [...new Set(cards[n].map((sn) => held.get(`${n}:${sn}`)).filter(Boolean))];
+      return toast(`Can't offer it right now: ${cards[n].length > 1 ? "every copy is " : "it's "}${why.join(", or ")}.`, true, 3500);
+    }
     if (cards[n].length > 1) return setCopies(n);
     if (onTable(n)) { sfx.tick(); return edit((x) => { const a = mine ? x.give : x.get; a.splice(a.findIndex((p) => p.num === n), 1); }); }
     if (picks.length >= MAX) return toast(`Up to ${MAX} cards on each side.`, true);
@@ -371,7 +411,7 @@ function Picker({ side, start }: { side: "give" | "get"; start: "cards" | "goods
             <div class="gd-row">
               <span class="gd-art parts" />
               <span class="gd-t"><b>Parts</b><small>{max.parts} {mine ? "available" : "they have"}</small></span>
-              <input class="s-input gd-in" type="number" inputMode="numeric" min={0} max={max.parts} step={10} value={goods.parts || ""} placeholder="0" aria-label="Parts" onChange={(e) => setGoods("parts", Math.floor(+e.currentTarget.value || 0))} />
+              <input autoComplete="off" data-1p-ignore data-lpignore="true" data-form-type="other" class="s-input gd-in" type="number" inputMode="numeric" min={0} max={max.parts} step={10} value={goods.parts || ""} placeholder="0" aria-label="Parts" onChange={(e) => setGoods("parts", Math.floor(+e.currentTarget.value || 0))} />
             </div>
             {specs.length > 0 && <>
               <h2 class="s-h2">Special editions</h2>
@@ -385,23 +425,26 @@ function Picker({ side, start }: { side: "give" | "get"; start: "cards" | "goods
         )
       ) : (
         <>
-          <input class="s-input" type="search" placeholder="Search number or name" value={q} onInput={(e) => setQ(e.currentTarget.value)} aria-label="Search cards" />
+          <input autoComplete="off" data-1p-ignore data-lpignore="true" data-form-type="other" class="s-input" type="search" placeholder="Search number or name" value={q} onInput={(e) => setQ(e.currentTarget.value)} aria-label="Search cards" />
           <div class="s-chips">{(["all", ...ORDER] as const).map((t) => (
             <button type="button" class={cx("s-chip", tier === t && "on")} aria-pressed={tier === t} style={t !== "all" ? { "--tc": TIERS[t].color } : undefined} onClick={() => setTier(t)}>{t === "all" ? "All" : <b>{TIERS[t].label}</b>}</button>
-          ))}<button type="button" class={cx("s-chip", onlySpares && "on")} aria-pressed={onlySpares} onClick={() => setOnlySpares(!onlySpares)}>Spares</button></div>
-          {!list.length ? <div class="s-empty">{needle || tier !== "all" || onlySpares ? "No cards match." : mine ? "Open some packs first." : `${d.name} has no cards yet.`}</div> : (
+          ))}<button type="button" class={cx("s-chip", onlySpares && "on")} aria-pressed={onlySpares} onClick={() => setOnlySpares(!onlySpares)}>{mine ? "Spares" : "Their spares"}</button>
+          {(!mine || d.theirs) && <button type="button" class={cx("s-chip", needIt && "on")} aria-pressed={needIt} onClick={() => setNeedIt(!needIt)}>{mine ? `${d.name} needs` : "You need"}</button>}</div>
+          {!list.length ? <div class="s-empty">{needle || tier !== "all" || onlySpares || needIt ? "No cards match." : mine ? "Open some packs first." : `${d.name} has no cards yet.`}</div> : (
             <div class="td-grid">
               {list.slice(0, 120).map((t) => {
-                const n = t.num, on = onTable(n), total = cards[n].length;
+                const n = t.num, on = onTable(n), total = cards[n].length, stuck = mine && !on && !free(n), other = otherSide[n]?.length ?? 0;
                 return (
                   <div class="td-cell" key={n}>
-                    <button type="button" class={cx("td-pick", on > 0 && "on")} aria-pressed={on > 0} onClick={() => tap(n)}>
+                    <button type="button" class={cx("td-pick", on > 0 && "on", stuck && "held")} aria-pressed={on > 0} onClick={() => tap(n)}>
                       <Mini num={n} foot={total > 1 ? `×${total}` : mine ? "Only copy" : TIERS[t.tier].label} />
                       {on > 0 && <span class="td-on">{total > 1 ? `${on} of ${total}` : "On table"}</span>}
+                      {stuck && <span class="td-on td-held">In a trade</span>}
+                      {(!mine || d.theirs) && <span class={cx("td-has", !other && "none")}>{mine ? (other ? `They have ×${other}` : "They need it") : other ? `You have ×${other}` : "You need it"}</span>}
                       {mine && d.theirWish.includes(n) && <span class="td-want">They want</span>}
                       {!mine && (s.wishlist ?? []).includes(n) && <span class="td-want mine">♥ Yours</span>}
                     </button>
-                    <button type="button" class="td-info" aria-label={`See ${t.name}`} onClick={() => openCard(n, undefined, { serial: cards[n]?.slice().sort((x, y) => x - y)[0], serials: cards[n]?.slice().sort((x, y) => x - y), from: mine ? `You have ${total === 1 ? "1 copy" : `${total} copies`}.` : `${d.name} has ${total === 1 ? "1 copy" : `${total} copies`}.` })}>i</button>
+                    <button type="button" class="td-info" aria-label={`See ${t.name}`} onClick={() => openCard(n, undefined, { serial: cards[n]?.slice().sort((x, y) => x - y)[0], serials: cards[n]?.slice().sort((x, y) => x - y), from: mine ? "Your card." : `${d.name} has ${total === 1 ? "1 copy" : `${total} copies`}.` })}>i</button>
                   </div>
                 );
               })}
@@ -413,13 +456,15 @@ function Picker({ side, start }: { side: "give" | "get"; start: "cards" | "goods
       {copies !== null && (
         <div class="td-copies" role="dialog">
           <div class="s-head"><b>{BY_NUM.get(copies)!.name} <small class="s-dim">{copies}</small></b><span class="cw-gap" /><button type="button" class="s-btn small" onClick={() => setCopies(null)}>Done</button></div>
-          <p class="s-dim">Pick the copies to {mine ? "give" : "ask for"}. Low serials are worth more.</p>
+          <p class="s-dim">Pick the copies to {mine ? "give" : "ask for"}. Low serials are worth more.{picks.some((p) => p.num === copies && !p.serial) ? ` "Any copy" lets the server pick ${mine ? "your" : "their"} newest.` : ""}</p>
           <div class="s-chips">
             {cards[copies].slice().sort((a, b) => a - b).map((sn) => {
-              const on = picks.some((p) => p.num === copies && p.serial === sn);
-              return <button type="button" class={cx("s-chip", on && "on", sn <= 10 && "low")} aria-pressed={on} disabled={held.has(`${copies}:${sn}`)} onClick={() => toggleCopy(copies, sn)}>No. {sn}</button>;
+              const on = picks.some((p) => p.num === copies && p.serial === sn), why = held.get(`${copies}:${sn}`);
+              return <button type="button" class={cx("s-chip", on && "on", sn <= 10 && "low", why && "held")} aria-pressed={on} aria-disabled={!!why}
+                onClick={() => (why ? toast(`No. ${sn} is ${why}.`, true, 3000) : toggleCopy(copies, sn))}>No. {sn}{why && <small> · in use</small>}</button>;
             })}
           </div>
+          <button type="button" class="s-chipbtn td-see" onClick={() => openCard(copies, undefined, { serials: cards[copies].slice().sort((a, b) => a - b), from: mine ? "Your card." : `${d.name}'s card.` })}>See the card</button>
         </div>
       )}
     </div>

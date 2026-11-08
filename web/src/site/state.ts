@@ -21,16 +21,16 @@ export let skew = 0;
 const PREFS = "frcpacks.prefs";
 /** `sort` and `compact`: how the binder lays out your cards. */
 export type BinderSort = "rarity" | "copies" | "serial" | "number" | "name";
-interface Prefs { muted: boolean; wheel2: boolean; unseen: Record<number, 1>; sort: BinderSort; compact: boolean }
+interface Prefs { muted: boolean; unseen: Record<number, 1>; sort: BinderSort; compact: boolean }
 const SORTS: BinderSort[] = ["rarity", "copies", "serial", "number", "name"];
 function readPrefs(): Prefs {
   try {
     const p = JSON.parse(localStorage.getItem(PREFS) || "{}");
     return {
-      muted: p.muted === true, wheel2: p.wheel2 === true, unseen: p.unseen && typeof p.unseen === "object" && !Array.isArray(p.unseen) ? p.unseen : {},
+      muted: p.muted === true, unseen: p.unseen && typeof p.unseen === "object" && !Array.isArray(p.unseen) ? p.unseen : {},
       sort: SORTS.includes(p.sort) ? p.sort : "rarity", compact: p.compact === true,
     };
-  } catch { return { muted: false, wheel2: false, unseen: {}, sort: "rarity", compact: false }; }
+  } catch { return { muted: false, unseen: {}, sort: "rarity", compact: false }; }
 }
 export const prefs = store<Prefs>(readPrefs());
 export function setPrefs(f: (p: Prefs) => void) {

@@ -228,6 +228,20 @@ async function main() {
     await a.waitForSelector('.b-arena.reveal', { timeout: 15000 });
     await b.waitForSelector('.b-arena.reveal', { timeout: 15000 });
     await resetStats(a);
+    // Nothing sticks out sideways once you've locked in (the page can't scroll left and right).
+    for (const [pg, who] of [[a, 'A'], [b, 'B']]) {
+      await pg.waitForTimeout(400);
+      const wide = await pg.evaluate(() => {
+        const W = document.documentElement.clientWidth, out = [];
+        for (const el of document.querySelectorAll('body *')) {
+          const r = el.getBoundingClientRect();
+          if (r.width && (r.right > W + 1 || r.left < -1) && getComputedStyle(el).position !== 'fixed') out.push(`${el.className} ${Math.round(r.left)}..${Math.round(r.right)}`);
+        }
+        return { scroll: document.documentElement.scrollWidth - W, out: out.slice(0, 6) };
+      });
+      if (wide.scroll > 0) log('round', round, who, 'sideways overflow', JSON.stringify(wide));
+      assert(wide.scroll <= 0, `${who} can't scroll sideways after locking in (round ${round})`);
+    }
     if (round === 1 || round === 5) {
       await a.waitForTimeout(1300); await shot(a, `r${round}-reveal-flip`);
       await a.waitForTimeout(3200); await shot(a, `r${round}-reveal-auto`);

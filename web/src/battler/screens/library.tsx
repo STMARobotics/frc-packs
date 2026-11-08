@@ -25,7 +25,7 @@ export function Library() {
     <div class="b-screen">
       <Head title="Library" />
       <Tabs value={t} onChange={setT} options={[["robots", `Robots ${robots.length}`], ["PART", "Parts"], ["LORE", "Lore"]]} />
-      <input class="b-input" type="search" placeholder="Search" value={q} onInput={(e) => setQ(e.currentTarget.value)} />
+      <input autoComplete="off" data-1p-ignore data-lpignore="true" data-form-type="other" class="b-input" type="search" placeholder="Search" value={q} onInput={(e) => setQ(e.currentTarget.value)} />
       {t === "robots" ? (
         shownRobots.length ? (
           <div class="b-cardgrid">

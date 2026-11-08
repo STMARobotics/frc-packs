@@ -126,7 +126,7 @@ export function DeckEditor({ id }: { id: string }) {
   const parts = d.support.filter((s) => SUPPORT.get(s)?.kind === "PART").length;
   return (
     <div class="b-screen b-editor">
-      <Head title={<input class="b-input b-deckname" maxLength={30} value={d.name} aria-label="Deck name" onInput={(e) => { const v = e.currentTarget.value; change((x) => { x.name = v; }); }} />} back="#decks">
+      <Head title={<input autoComplete="off" data-1p-ignore data-lpignore="true" data-form-type="other" class="b-input b-deckname" maxLength={30} value={d.name} aria-label="Deck name" onInput={(e) => { const v = e.currentTarget.value; change((x) => { x.name = v; }); }} />} back="#decks">
         <span class={cx("b-savestate", saving)}>{saving === "saved" ? "Saved" : "Saving…"}</span>
       </Head>
       <div class="b-counts">
@@ -198,7 +198,7 @@ function RobotPicker({ mode, owned, change }: { mode: "captain" | "robots"; owne
   return (
     <div class="b-picker">
       <h2>{mode === "captain" ? "Captain" : `Robots ${d.robots.length}/${CAT.rules.deck_robots}`}</h2>
-      <input class="b-input" type="search" placeholder="Search your robots" value={q} onInput={(e) => setQ(e.currentTarget.value)} />
+      <input autoComplete="off" data-1p-ignore data-lpignore="true" data-form-type="other" class="b-input" type="search" placeholder="Search your robots" value={q} onInput={(e) => setQ(e.currentTarget.value)} />
       <div class="b-list tight">
         {list.map((r) => {
           const here = mode === "captain" ? d.captain === r.team : d.robots.includes(r.team);
