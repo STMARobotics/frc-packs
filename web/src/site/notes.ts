@@ -2,11 +2,42 @@
 // players should hear about: everyone who's played before sees the newest one once (screens/notes.tsx), and Settings
 // shows the version and every release. 0.x while in beta: the middle number for a weekly release, the last for the
 // feedback updates and fixes in between. How to bump and how the notes should read: CONTRIBUTING.md.
-export const VERSION = "0.12.0";
+export const VERSION = "0.13.0";
 
 export interface Release { v: string; date: string; title: string; items: string[] }
 
 export const NOTES: Release[] = [
+  {
+    v: "0.13.0",
+    date: "2026-11-08",
+    title: "Bug reports and trading",
+    items: [
+      "Mostly fixes from your bug reports. Thanks for sending them",
+      "Every card has its 2026 robot photo, or the drawing if the team doesn't have one yet",
+      "Cards show the team's avatar next to its name",
+      "Removed the pack wheel",
+      "Added a button on the pack summary to open your other kind of pack, like Boosted ×3",
+      "Your wishlist drops a team once you get it from a pack, a trade or a match",
+      "Added Keep 1, 2 or 3 of each to the workshop's scrap button",
+      "Search for a team on the Trade tab to see who has it",
+      "Trade cards say whether the other player already has them",
+      "Added You need and Their spares filters when picking their cards",
+      "Tap a card in an offer to check its serial or pick a different copy",
+      "A card you can't put in an offer now says why, like in your offer to someone else",
+      "Battler cards show their whole effect",
+      "Fixed tapping a card in a trade offer taking it off",
+      "Fixed a trade you just sent not showing under Sent until you reloaded",
+      "Fixed trade lists not updating after the other player answered",
+      "Fixed notifications sometimes only showing up once you opened the app",
+      "Fixed the COPY tag missing or showing NEW on some cards while opening",
+      "Fixed a revealed card sometimes showing behind the ones under it",
+      "Fixed the next pack timer changing width every second",
+      "Fixed the top bar scrolling away on iPhone",
+      "Fixed the Battler hand covering part and lore text",
+      "Fixed the Battler screen sliding sideways after locking in (I couldn't make it happen here, so tell me if it still does)",
+      "Fixed browsers offering your password in search boxes and the feedback form",
+    ],
+  },
   {
     v: "0.12.0",
     date: "2026-11-05",
