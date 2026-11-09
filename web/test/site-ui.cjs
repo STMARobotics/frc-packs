@@ -38,8 +38,10 @@ async function setup(name, packs) {
   }
   return c;
 }
-async function openDevPack(c) {
+// Opens a pack of these five teams.
+async function openPlanted(c, teams) {
   await c.call('POST', '/api/dev/pack', { pack: 'cmp26' });
+  await c.call('POST', '/api/dev/rig', { pack: 'cmp26', teams });
   const opening = await c.call('POST', '/api/open', { pack: 'cmp26' }, { 'Idempotency-Key': Math.random().toString(36).slice(2) + Date.now() });
   await c.call('POST', `/api/openings/${opening.opening.id}/progress`, { revealed: 5 });
 }
@@ -51,15 +53,6 @@ async function main() {
   const A = await setup('sia' + tag, 12);
   const B = await setup('sib' + tag, 3);
   const collection = async (c) => (await c.call('GET', '/api/collection/cmp26')).cards;
-  let aCards = await collection(A), bCards = await collection(B);
-  let mutual = aCards.filter((a) => bCards.some((b) => b.num === a.num));
-  for (let i = 0; !mutual.length && i < 10; i++) {
-    await openDevPack(B);
-    bCards = await collection(B);
-    mutual = aCards.filter((a) => bCards.some((b) => b.num === a.num));
-  }
-  assert(mutual.length > 0, 'test players share a card for duplicate-ownership cues');
-  let giveNum = mutual[0].num, getNum = (mutual[1] || mutual[0]).num;
   const browser = await chromium.launch();
   const ctx = await browser.newContext({ viewport: { width: +(process.env.W || 390), height: +(process.env.H || 844) }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
   await ctx.addCookies([{ name: 'sid', value: A.sid(), url: BASE }]);
@@ -220,39 +213,24 @@ async function main() {
   assert((await A.call('GET', '/api/state')).pending === null, 'the picked-up pack is finished on the server');
 
   // Social, then a trade: A offers B a card for one of B's; B accepts in their own browser.
-  aCards = await collection(A); bCards = await collection(B);
-  const theirsHas = (num) => bCards.some((card) => card.num === num);
-  const mineHas = (num) => aCards.some((card) => card.num === num);
-  let sharedSpare = aCards.find((a) => a.serials.length > 1 && theirsHas(a.num));
-  let myNeedOnly = aCards.find((a) => a.serials.length === 1 && !theirsHas(a.num));
-  let myNeedSpare = aCards.find((a) => a.serials.length > 1 && !theirsHas(a.num));
-  let mySpareOnly = aCards.find((a) => a.serials.length > 1 && theirsHas(a.num));
-  let partnerNeedOnly = bCards.find((b) => b.serials.length === 1 && !mineHas(b.num));
-  let partnerNeedSpare = bCards.find((b) => b.serials.length > 1 && !mineHas(b.num));
-  let partnerSpareOnly = bCards.find((b) => b.serials.length > 1 && mineHas(b.num));
-  for (let i = 0; (!sharedSpare || !myNeedOnly || !myNeedSpare || !mySpareOnly || !partnerNeedOnly || !partnerNeedSpare || !partnerSpareOnly) && i < 30; i++) {
-    if (!partnerNeedOnly || !partnerNeedSpare || !partnerSpareOnly) await openDevPack(B);
-    if (!sharedSpare || !myNeedOnly || !myNeedSpare || !mySpareOnly) await openDevPack(A);
-    aCards = await collection(A);
-    bCards = await collection(B);
-    sharedSpare = aCards.find((a) => a.serials.length > 1 && theirsHas(a.num));
-    myNeedOnly = aCards.find((a) => a.serials.length === 1 && !theirsHas(a.num));
-    myNeedSpare = aCards.find((a) => a.serials.length > 1 && !theirsHas(a.num));
-    mySpareOnly = aCards.find((a) => a.serials.length > 1 && theirsHas(a.num));
-    partnerNeedOnly = bCards.find((b) => b.serials.length === 1 && !mineHas(b.num));
-    partnerNeedSpare = bCards.find((b) => b.serials.length > 1 && !mineHas(b.num));
-    partnerSpareOnly = bCards.find((b) => b.serials.length > 1 && mineHas(b.num));
-  }
-  assert(sharedSpare && myNeedOnly && myNeedSpare && mySpareOnly && partnerNeedOnly && partnerNeedSpare && partnerSpareOnly, 'test players have missing cards, duplicates, and overlapping duplicates on both sides');
-  giveNum = sharedSpare.num;
-  getNum = partnerNeedSpare.num;
-  const ownedGetNum = sharedSpare.num;
-  const newGiveNum = myNeedOnly.num;
-  const wantedGiveNum = myNeedSpare.num;
-  const myNeedOnlyNum = myNeedOnly.num, mySpareOnlyNum = mySpareOnly.num;
-  const myNeedSpareNum = myNeedSpare.num;
-  const partnerNeedOnlyNum = partnerNeedOnly.num, partnerSpareOnlyNum = partnerSpareOnly.num;
-  const partnerNeedSpareNum = partnerNeedSpare.num;
+  // Packs are random, so the mix of cards the trade screen sorts by is planted: commons neither player has yet, each
+  // the only team a search for its number finds.
+  const held = new Set([...await collection(A), ...await collection(B)].map((c) => c.num));
+  const { teams } = await A.call('GET', '/packs/cmp26.json');
+  const fresh = teams.filter((t) => t.tier === 'common' && !held.has(t.num)
+    && teams.every((o) => o.num === t.num || (!String(o.num).startsWith(String(t.num)) && !o.name.includes(String(t.num))))).map((t) => t.num);
+  assert(fresh.length >= 14, `enough unowned commons to plant (${fresh.length})`);
+  const [giveNum, wantedGiveNum, newGiveNum, getNum, partnerNeedOnlyNum, partnerSpareOnlyNum, ...filler] = fresh;
+  // A: two of what both have and of what B needs, one of what only A has. B: two of what A needs and of what both have.
+  await openPlanted(A, [giveNum, wantedGiveNum, newGiveNum, partnerSpareOnlyNum, filler[0]]);
+  await openPlanted(A, [giveNum, wantedGiveNum, filler[1], filler[2], filler[3]]);
+  await openPlanted(B, [giveNum, getNum, partnerNeedOnlyNum, partnerSpareOnlyNum, filler[4]]);
+  await openPlanted(B, [getNum, partnerSpareOnlyNum, filler[5], filler[6], filler[7]]);
+  const copies = async (c, num) => (await collection(c)).find((card) => card.num === num)?.serials.length;
+  const aGiveCopies = await copies(A, giveNum), bGetCopies = await copies(B, getNum);
+  assert(aGiveCopies === 2 && bGetCopies === 2, 'the planted packs arrived');
+  const ownedGetNum = giveNum;
+  const myNeedOnlyNum = newGiveNum, mySpareOnlyNum = giveNum, myNeedSpareNum = wantedGiveNum, partnerNeedSpareNum = getNum;
   await B.call('POST', '/api/wishlist', { pack: 'cmp26', team: wantedGiveNum, on: true });
   await B.call('POST', '/api/wishlist', { pack: 'cmp26', team: mySpareOnlyNum, on: true });
   await A.call('POST', '/api/wishlist', { pack: 'cmp26', team: getNum, on: true });
@@ -411,8 +389,8 @@ async function main() {
   }
   await p.click('.td-picker .s-head >> text=Done');
   assert(await p.$('.td-side.get .td-owner-cue.owned'), 'composer flags a card the current player already owns');
-  assert((await p.textContent(`.td-side.give .td-spare-cue[data-num="${giveNum}"]`)).includes(`×${sharedSpare.serials.length}`)
-    && (await p.textContent(`.td-side.get .td-spare-cue[data-num="${getNum}"]`)).includes(`×${partnerNeedSpare.serials.length}`),
+  assert((await p.textContent(`.td-side.give .td-spare-cue[data-num="${giveNum}"]`)).includes(`×${aGiveCopies}`)
+    && (await p.textContent(`.td-side.get .td-spare-cue[data-num="${getNum}"]`)).includes(`×${bGetCopies}`),
     'trade summary shows copy counts for spare cards on both sides');
   await shot('trade-table');
   await p.click('.s-trade .s-btn.wide');

@@ -667,6 +667,36 @@ async fn dev_tools_are_off_by_default() {
     }
     let r = call(&app, "POST", "/api/dev/demo", Some(&c), Some(json!({ "on": true }))).await;
     assert_eq!(r.status, StatusCode::FORBIDDEN);
+    let teams: Vec<_> = (0..5).map(|i| team_of("mythic", i)).collect();
+    let r = call(&app, "POST", "/api/dev/rig", Some(&c), Some(json!({ "pack": PACK, "teams": teams }))).await;
+    assert_eq!(r.status, StatusCode::FORBIDDEN);
+    let o = call(&app, "POST", "/api/open", Some(&c), Some(json!({ "pack": PACK }))).await;
+    assert_eq!(o.status, StatusCode::OK, "{}", o.body);
+    let opened: Vec<_> = o.body["opening"]["cards"].as_array().unwrap().iter().map(|c| c["num"].clone()).collect();
+    assert!(teams.iter().any(|t| !opened.contains(&json!(t))), "the refused rig didn't plant anything");
+}
+
+/// The browser tests plant their next pack; only five different teams from that pack are accepted.
+#[tokio::test]
+async fn dev_rig_plants_the_next_pack() {
+    let (app, db) = need_db!(setup(true));
+    let (c, _) = player(&app, &db).await;
+    let teams: Vec<_> = (0..5).map(|i| team_of("common", i)).collect();
+    for bad in [
+        json!(teams[..4]),
+        json!([teams[0], teams[0], teams[1], teams[2], teams[3]]),
+        json!([teams[0], teams[1], teams[2], teams[3], -1]),
+    ] {
+        let r = call(&app, "POST", "/api/dev/rig", Some(&c), Some(json!({ "pack": PACK, "teams": bad }))).await;
+        assert_eq!(r.status, StatusCode::BAD_REQUEST, "{bad}");
+    }
+    let r = call(&app, "POST", "/api/dev/rig", Some(&c), Some(json!({ "pack": PACK, "teams": teams }))).await;
+    assert_eq!(r.status, StatusCode::OK, "{}", r.body);
+    let o = call(&app, "POST", "/api/open", Some(&c), Some(json!({ "pack": PACK }))).await;
+    assert_eq!(o.status, StatusCode::OK, "{}", o.body);
+    let opened: Vec<_> = o.body["opening"]["cards"].as_array().unwrap().iter().map(|c| c["num"].clone()).collect();
+    assert_eq!(opened.len(), 5);
+    assert!(teams.iter().all(|t| opened.contains(&json!(t))), "{opened:?}");
 }
 
 #[tokio::test]

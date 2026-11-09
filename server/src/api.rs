@@ -115,6 +115,7 @@ pub fn routes() -> Router<Shared> {
         .route("/craft/mythic", post(crate::anticheat::canary))
         .route("/dev/demo", post(dev_demo))
         .route("/dev/pack", post(dev_pack))
+        .route("/dev/rig", post(dev_rig))
         .route("/dev/skip-timer", post(dev_skip_timer))
         .route("/dev/age", post(dev_age))
         .route("/dev/reset", post(dev_reset))
@@ -1600,6 +1601,27 @@ async fn dev_pack(State(s): State<Shared>, user: User, Json(req): Json<PackReq>)
         model::save_user(&mut tx, &mut p, parts, "dev tools");
         tx.commit(&s.db).await.map_err(ApiError::from)
     })?;
+    state_json(&s, user.id).await
+}
+
+#[derive(Deserialize)]
+struct RigReq {
+    pack: String,
+    teams: Vec<i32>,
+}
+
+/// Plants the cards the player's next pack opens with (for the browser tests): five different teams from the pack.
+async fn dev_rig(State(s): State<Shared>, user: User, Json(req): Json<RigReq>) -> ApiResult<Json<StateOut>> {
+    dev(&s)?;
+    let pack = pack(&s, &req.pack).await?;
+    let cards: Option<Vec<Rolled>> =
+        req.teams.iter().map(|num| pack.team_tier.get(num).map(|tier| Rolled { num: *num, tier: *tier })).collect();
+    let Some(cards) = cards.filter(|c| valid_cards(&pack, c)) else {
+        return Err(err(StatusCode::BAD_REQUEST, "bad_rig"));
+    };
+    let mut it = crate::db::key(upk(user.id), format!("RIG#{}", pack.id()));
+    it.insert("cards".into(), sv(serde_json::to_string(&cards).map_err(|e| DbError::Other(e.to_string()))?));
+    s.db.put(it).await?;
     state_json(&s, user.id).await
 }
 
