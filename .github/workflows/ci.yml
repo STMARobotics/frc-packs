@@ -51,6 +51,50 @@ jobs:
         run: npm run build
       - name: Check infrastructure with built assets (including activity publishing)
         run: npm run cdk:test
+      - name: Install Playwright Chromium
+        run: npm exec -w web -- playwright install --with-deps chromium
+      # Serves web/dist from the build step above, using the job's DynamoDB Local in a table of its own. DEV_TOOLS is set
+      # only here, so nothing else in the job (the built assets included) sees it.
+      - name: Start API server for browser tests
+        working-directory: server
+        env:
+          DEV_TOOLS: '1'
+          TABLE_NAME: frc-packs-ui
+        run: |
+          cargo build --locked
+          nohup target/debug/frc-packs-server > "$RUNNER_TEMP/ui-server.log" 2>&1 &
+          server=$!
+          for _ in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:3000/api/health > /dev/null 2>&1; then
+              # Make sure the site itself is served too, not only the API.
+              curl -fsS http://127.0.0.1:3000/ | grep -q 'id="app"' || { echo 'web/dist is not being served'; exit 1; }
+              echo "Server is up (pid $server)"
+              exit 0
+            fi
+            kill -0 "$server" 2> /dev/null || { echo 'Server exited early'; cat "$RUNNER_TEMP/ui-server.log"; exit 1; }
+            sleep 1
+          done
+          echo 'Server did not answer within 60s'
+          cat "$RUNNER_TEMP/ui-server.log"
+          exit 1
+      - name: Browser UI test (site)
+        timeout-minutes: 10
+        env:
+          BASE_URL: http://127.0.0.1:3000
+        run: npm run ui:test
+      - name: Browser UI test (social)
+        timeout-minutes: 10
+        run: node web/test/social-ui.cjs http://127.0.0.1:3000
+      - name: Upload browser test evidence on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-test-evidence
+          path: |
+            web/test/shots-site
+            web/test/shots-social
+            ${{ runner.temp }}/ui-server.log
+          if-no-files-found: ignore
       - name: Archive built assets
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         run: tar -czf built-assets.tar.gz -C cdk .build
