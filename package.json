@@ -23,6 +23,8 @@
     "cdk:diff": "npm exec -w cdk -- cdk diff --",
     "cdk:deploy": "npm run build && npm run deploy --workspace=cdk",
     "cdk:test": "npm run test --workspace=cdk",
+    "ui:test": "npm run test --workspace=web",
+    "server:test": "cargo test --manifest-path server/Cargo.toml --locked",
     "check:activity-contract": "node scripts/check-activity-contract.cjs"
   },
   "workspaces": [

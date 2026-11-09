@@ -395,6 +395,7 @@ function Picker({ side, start, focus }: { side: "give" | "get"; start: "cards" |
   // Your copies the server won't put in another offer, and why.
   const held = mine ? heldWhy(s) : new Map<string, string>();
   const free = (n: number) => cards[n].filter((sn) => !held.has(`${n}:${sn}`)).length;
+  const otherSide: Record<number, number[]> = mine ? d.theirs ?? {} : myCards;
   const isSpare = (n: number) => cards[n].length > 1 && (!mine || free(n) > 0);
   // Cards the other side has none of. Until their collection has loaded, nothing counts as needed.
   const isNeeded = (n: number) => mine ? !!d.theirs && !d.theirs[n]?.length : !myCards[n]?.length;
@@ -483,15 +484,16 @@ function Picker({ side, start, focus }: { side: "give" | "get"; start: "cards" |
           {!list.length ? <div class="s-empty">{needle || tier !== "all" || hasFilters ? "No cards match." : mine ? "Open some packs first." : `${d.name} has no cards yet.`}</div> : (
             <div class="td-grid">
               {list.slice(0, 120).map((t) => {
-                const n = t.num, on = onTable(n), total = cards[n].length, stuck = mine && !on && !free(n);
+                const n = t.num, on = onTable(n), total = cards[n].length, stuck = mine && !on && !free(n), other = otherSide[n]?.length ?? 0;
                 return (
                   <div class="td-cell" key={n} data-num={n}>
                     <button type="button" class={cx("td-pick", on > 0 && "on", stuck && "held")} aria-pressed={on > 0} onClick={() => tap(n)}>
                       <Mini num={n} foot={total > 1 ? `×${total}` : mine ? "Only copy" : TIERS[t.tier].label} />
                       {on > 0 && <span class="td-on">{total > 1 ? `${on} of ${total}` : "On table"}</span>}
-                      {stuck && <span class="td-on td-held">In a trade</span>}
+                      {stuck && <span class="td-on td-held" title={[...new Set(cards[n].map((sn) => held.get(`${n}:${sn}`)).filter(Boolean))].join(", ")}>In a trade</span>}
                     </button>
                     <div class="td-picker-cues" aria-label="Trade hints">
+                      {other > 0 && <span class="td-picker-cue owned">{mine ? "They have" : "You have"} ×{other}</span>}
                       {isNeeded(n) && <span class="td-picker-cue need">{mine ? "They need" : "You need"}</span>}
                       {isWishlisted(n) && <span class="td-picker-cue wishlist">{mine ? "Their wishlist" : "Your wishlist"}</span>}
                     </div>

@@ -80,9 +80,11 @@ Odds over 200,000 simulated packs, the pity guarantees, and API tests against a 
 
 ```sh
 cd web && npx playwright install chromium   # once
-npm run build                               # then start the server with DEV_TOOLS=1 (it serves web/dist)
-npm test                                    # a browser bot signs up and plays packs against the server
+npm run build                               # build the site served by the API
 ```
+
+With DynamoDB Local running, start the API from `server/` in another terminal with `DYNAMODB_ENDPOINT=http://localhost:8765 DEV_TOOLS=1 cargo run`. Then, from the repository root, `npm run ui:test` runs the browser UI test, `npm run server:test` the Rust tests and `npm run cdk:test` the CDK tests. The browser test can target another running server with `BASE_URL`.
+
 Set `ADMIN_USER` and `ADMIN_PASSWORD` to the admin account to check the admin panel too.
 
 ## Not done yet

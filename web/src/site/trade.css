@@ -82,6 +82,7 @@
 .td-teams .s-mini { width: 44px; flex: none; }
 .td-picker-cues { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; min-height: 16px; margin-top: 3px; }
 .td-picker-cue { padding: 2px 6px; border-radius: 999px; background: var(--s3); color: var(--dim); font-size: 9px; font-weight: 700; line-height: 1.2; text-align: center; }
+.td-picker-cue.owned { background: rgba(60, 220, 180, .14); color: var(--ac); }
 .td-picker-cue.need { background: rgba(255, 211, 107, .14); color: var(--gold); }
 .td-picker-cue.wishlist { background: rgba(255, 122, 162, .14); color: #ff7aa2; }
 .td-info { position: absolute; top: -6px; right: -6px; width: 24px; height: 24px; border: 0; border-radius: 50%; background: var(--s3); color: var(--tx); font: 700 12px var(--body); cursor: pointer; box-shadow: 0 2px 4px rgba(0, 0, 0, .5); }
@@ -105,7 +106,7 @@
 .td-offer header small { display: block; font-size: 12px; color: var(--dim); }
 .td-o-side { display: grid; gap: 6px; }
 .td-o-side > small { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
-.td-o-cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.td-o-cards { display: grid; grid-template-columns: repeat(5, 1fr); align-items: start; gap: 6px; }
 .td-o-card { padding: 0; border: 0; background: none; cursor: pointer; }
 .td-own { display: block; margin-top: 3px; color: var(--dim); font: 700 10px var(--body); text-align: center; }
 .hi-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
