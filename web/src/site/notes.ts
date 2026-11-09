@@ -2,11 +2,22 @@
 // players should hear about: everyone who's played before sees the newest one once (screens/notes.tsx), and Settings
 // shows the version and every release. 0.x while in beta: the middle number for a weekly release, the last for the
 // feedback updates and fixes in between. How to bump and how the notes should read: CONTRIBUTING.md.
-export const VERSION = "0.13.0";
+export const VERSION = "0.13.1";
 
 export interface Release { v: string; date: string; title: string; items: string[] }
 
 export const NOTES: Release[] = [
+  {
+    v: "0.13.1",
+    date: "2026-11-08",
+    title: "More trading, from Andy",
+    items: [
+      "Added a Wishlist filter when picking cards for a trade, and the filters work together",
+      "Cards you're picking say whether they need it or it's on their wishlist",
+      "Cards on the trade table say whether the other player already owns one or it's new to them",
+      "Offers sent to you show the same, plus whether the trade looks even",
+    ],
+  },
   {
     v: "0.13.0",
     date: "2026-11-08",
