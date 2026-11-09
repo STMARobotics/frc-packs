@@ -84,7 +84,7 @@ export function Binder({ active }: { active: boolean }) {
       {pg === "workshop" ? <Workshop /> : (
         <>
           <SpecialRow list={mine} />
-          <input class="s-input" type="search" placeholder="Search number, name or place" value={q} onInput={(e) => setQ(e.currentTarget.value)} aria-label="Search the binder" />
+          <input autoComplete="off" data-1p-ignore data-lpignore="true" data-form-type="other" class="s-input" type="search" placeholder="Search number, name or place" value={q} onInput={(e) => setQ(e.currentTarget.value)} aria-label="Search the binder" />
           <div class="s-filters">
             <select class="s-select" value={isDiv ? "all" : f} onChange={(e) => setF(e.currentTarget.value)} aria-label="Rarity">
               <option value="all">All rarities</option>

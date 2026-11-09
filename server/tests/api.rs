@@ -3025,3 +3025,84 @@ async fn tripwire_canaries() {
     assert!(f["evidence"].to_string().contains("/api/hand 2 times"), "{f}");
     drop_table(&db).await;
 }
+
+#[tokio::test]
+async fn scrapping_extras_can_keep_more_than_one() {
+    let (app, db) = need_db!(setup(true));
+    let (c, _) = player(&app, &db).await;
+    let id = user_id(&db, &c).await;
+    let team = team_of("common", 120);
+    let mut serials = Vec::new();
+    for _ in 0..4 {
+        serials.push(give_card(&db, id, team, "common").await);
+    }
+    let r = call(
+        &app,
+        "POST",
+        "/api/scrap/extras",
+        Some(&c),
+        Some(json!({ "pack": PACK, "tiers": ["common"], "keep": 2 })),
+    )
+    .await;
+    assert_eq!(r.status, StatusCode::OK, "{}", r.body);
+    assert_eq!(r.body["scrapped"], 2);
+    let kept = r.body["collection"]["cards"].as_array().unwrap().iter().find(|x| x["num"] == team).unwrap().clone();
+    let mut got: Vec<i64> = kept["serials"].as_array().unwrap().iter().map(|v| v.as_i64().unwrap()).collect();
+    got.sort();
+    assert_eq!(got, vec![i64::from(serials[0]), i64::from(serials[1])], "the two earliest copies are kept");
+    // Out of range asks are held to 1 to 5.
+    let r = call(
+        &app,
+        "POST",
+        "/api/scrap/extras",
+        Some(&c),
+        Some(json!({ "pack": PACK, "tiers": ["common"], "keep": 0 })),
+    )
+    .await;
+    assert_eq!(r.body["scrapped"], 1, "keep 0 counts as keep 1");
+}
+
+#[tokio::test]
+async fn teams_you_get_leave_your_wishlist() {
+    let (app, db) = need_db!(setup(true));
+    let (ca, _) = player(&app, &db).await;
+    let a = user_id(&db, &ca).await;
+    // From a pack.
+    let commons: Vec<i32> = (0..4).map(|i| team_of("common", 140 + i)).collect();
+    let leg = team_of("legendary", 20);
+    let still = team_of("rare", 70);
+    for t in [commons[0], still] {
+        call(&app, "POST", "/api/wishlist", Some(&ca), Some(json!({ "pack": PACK, "team": t, "on": true }))).await;
+    }
+    let mut hand: Vec<Value> = commons.iter().map(|n| json!({ "num": n, "tier": "common" })).collect();
+    hand.push(json!({ "num": leg, "tier": "legendary" }));
+    kit::rig_next(&db, a, PACK, &Value::Array(hand)).await;
+    let o = call(&app, "POST", "/api/open", Some(&ca), Some(json!({ "pack": PACK }))).await;
+    assert_eq!(o.status, StatusCode::OK, "{}", o.body);
+    assert_eq!(o.body["state"]["wishlist"], json!([still]), "the pulled team is off the list, the other stays");
+
+    // From a trade, and the new offer is in Sent straight away.
+    let (cb, sb) = player(&app, &db).await;
+    let b = user_id(&db, &cb).await;
+    age(&db, &[a, b]).await;
+    let b_name = sb["account"]["username"].as_str().unwrap().to_string();
+    give_card(&db, b, still, "rare").await;
+    let mine = give_card(&db, a, team_of("common", 160), "common").await;
+    let _ = mine;
+    let r = call(
+        &app,
+        "POST",
+        "/api/trades",
+        Some(&ca),
+        Some(json!({ "to": b_name, "pack": PACK, "give": [team_of("common", 160)], "want": [still] })),
+    )
+    .await;
+    assert_eq!(r.status, StatusCode::OK, "{}", r.body);
+    assert_eq!(r.body["outgoing"].as_array().unwrap().len(), 1, "the offer just sent is listed");
+    let id = r.body["outgoing"][0]["id"].as_i64().unwrap();
+    tokio::time::sleep(std::time::Duration::from_millis(300)).await;
+    let ok = call(&app, "POST", &format!("/api/trades/{id}/accept"), Some(&cb), Some(json!({}))).await;
+    assert_eq!(ok.status, StatusCode::OK, "{}", ok.body);
+    let st = call(&app, "GET", "/api/state", Some(&ca), None).await.body;
+    assert_eq!(st["wishlist"], json!([]), "a team got in a trade leaves the list too");
+}

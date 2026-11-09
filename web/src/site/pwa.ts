@@ -3,6 +3,7 @@
 // - Notifications: on iPhone they only work once FRC Packs is on the home screen (Apple's rule).
 import { api } from "../api";
 import { store } from "../lib/store";
+import { sync } from "./state";
 
 type InstallPrompt = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> };
 export const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
@@ -59,6 +60,8 @@ export async function install() {
 export function setupPwa() {
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").then((r) => { reg = r; check(); }, () => check());
   else check();
+  // A notification just came in (a trade offer, an accepted trade): catch up now, not on the next look.
+  if ("serviceWorker" in navigator) navigator.serviceWorker.addEventListener("message", (e) => { if (e.data?.type === "push") sync(); });
   addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); prompt = e as InstallPrompt; canInstall.set(true); });
   addEventListener("appinstalled", () => { prompt = null; canInstall.set(false); });
 }

@@ -443,9 +443,17 @@ export function createPackGL(canvas: HTMLCanvasElement, host: HTMLElement): Pack
     const memo = new Map<HTMLElement, [number, number]>();
     const dimEl = host.querySelector<HTMLElement>(".op-dim"), dim = dimEl ? +getComputedStyle(dimEl).opacity * 0.9 : 0;
     let busy = !!dimEl && moving([dimEl]);
+    // The canvas is over the page, so a card still waiting for its picture (drawn by the page meanwhile) would show
+    // under the cards beneath it. Until it's up, those are drawn by the page too, in the page's order.
+    const pend = [...waiting].filter((w) => w.isConnected && !w.classList.contains("op-ribbon"));
     toGL.setMatrixValue(`translate(${-W / 2}px, ${H / 2}px) scale(1, -1)`);
     for (const m of mirrors.values()) {
       if (!m.el.isConnected) { dropMirror(m); continue; }
+      if (pend.some((w) => w !== m.el && m.el.compareDocumentPosition(w) & Node.DOCUMENT_POSITION_FOLLOWING)) {
+        m.mesh.visible = m.shadow.visible = false;
+        if (m.shown) { m.shown = false; delete m.el.dataset.glOn; }
+        continue;
+      }
       let M = new DOMMatrix(), op = 1, lit = false;
       for (const x of m.chain) {
         const cs = getComputedStyle(x);
@@ -600,11 +608,14 @@ export function createPackGL(canvas: HTMLCanvasElement, host: HTMLElement): Pack
     mirror(els) {
       if (!snapsOk || lost) return false;
       for (const [el, key] of els) {
-        if (mirrors.has(el) || waiting.has(el)) continue;
+        // An element whose picture changed (a tag that turned from NEW to COPY #2 when the server answered) gets the
+        // new one; the old one stays up until it's made.
+        if (mirrors.get(el)?.key === key || waiting.has(el)) continue;
         waiting.add(el);
         cardPic(key, el).then((tex) => {
           waiting.delete(el);
-          if (tex && el.isConnected && !mirrors.has(el)) addMirror(el, key, tex);
+          const old = mirrors.get(el);
+          if (tex && el.isConnected && old?.key !== key) { if (old) dropMirror(old); addMirror(el, key, tex); }
         });
       }
       wake();

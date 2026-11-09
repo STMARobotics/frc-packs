@@ -73,8 +73,19 @@
 .td-on { top: 4px; background: var(--ac); color: #04131b; }
 .td-picker-cues { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; min-height: 16px; margin-top: 3px; }
 .td-picker-cue { padding: 2px 6px; border-radius: 999px; background: var(--s3); color: var(--dim); font-size: 9px; font-weight: 700; line-height: 1.2; text-align: center; }
+.td-picker-cue.owned { background: rgba(60, 220, 180, .14); color: var(--ac); }
 .td-picker-cue.need { background: rgba(255, 211, 107, .14); color: var(--gold); }
 .td-picker-cue.wishlist { background: rgba(255, 122, 162, .14); color: #ff7aa2; }
+.td-pick.held .s-mini { opacity: .45; }
+.td-held { background: var(--s3); color: var(--tx); }
+.s-chip.held { opacity: .5; }
+.s-chip.held small { font-weight: 600; }
+.td-see { justify-self: start; }
+.td-slotcard { display: block; width: 100%; height: 100%; padding: 0; border: 0; background: none; cursor: pointer; }
+.td-slot.full .td-x { border: 0; cursor: pointer; z-index: 1; }
+.td-teams { margin-bottom: 4px; }
+.td-teams .s-mini { width: 44px; flex: none; }
+.td-spare-cue { display: block; margin-top: 3px; color: var(--dim); font: 700 9px/1.2 var(--body); text-align: center; }
 .td-info { position: absolute; top: -6px; right: -6px; width: 24px; height: 24px; border: 0; border-radius: 50%; background: var(--s3); color: var(--tx); font: 700 12px var(--body); cursor: pointer; box-shadow: 0 2px 4px rgba(0, 0, 0, .5); }
 .td-copies { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; display: grid; gap: 8px; max-width: 720px; margin: 0 auto; padding: 16px 16px calc(20px + env(safe-area-inset-bottom)); border-radius: 20px 20px 0 0; background: var(--s2); box-shadow: 0 -10px 30px rgba(0, 0, 0, .5); animation: s-up .22s var(--ease); }
 @keyframes s-up { from { transform: translateY(100%); } }

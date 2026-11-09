@@ -6,7 +6,47 @@ every ~2 days in between, and hotfixes whenever something big breaks. Every rele
 
 ## Planned
 
-- **Targeted crafting.** Spend parts on a specific card you're missing, Common to Rare only, priced high so it doesn't
+### 0.14: the parts shop (#78)
+
+Five cards for parts, changing every day at midnight Central. This replaces "targeted crafting" below.
+
+- **The five:** two Common, one Uncommon, one Rare, and one Legendary on Thursdays only. They're picked from the date
+  with a hash, the same five for everyone, so the shop costs nothing to run: no rotation job and no table writes until
+  someone buys. Teams already in your binder show "You have ×N", the same as in trading.
+- **Prices:** Common 75, Uncommon 180, Rare 600, Legendary 2,500 parts. Each is about 15× its scrap value, and a Rare
+  costs more than a boosted pack (500), so packs stay the better deal unless you're after one particular card.
+  Prices live in the admin settings like `boost_cost`.
+- **Limits:** one of each slot per player per day. Mythics are never in the shop.
+- **What you get:** a new copy with a fresh serial, minted like a pulled card (`PRINT#` count, ledger reason `shop`).
+  The wishlist rule applies: buying a team takes it off.
+- **Tripwire before it ships:** the shop is a new way for cards to come in, so the supply check needs a rule for it.
+  Shop cards have to match `shop` lines that spent the right parts, at most one per slot per day. The intake alarm
+  counts shop cards too. Pen-test items: buying the same slot twice at once, buying after midnight with yesterday's
+  list, and a price change partway through a purchase.
+- **UI:** a Shop tab next to Workshop in the Binder, a countdown to the next rotation, and a heart on any shop card
+  that's on your wishlist.
+
+### Waiting on a decision
+
+- **#76: Figtree** for titles, to match Puncher, Stats and FMEA, instead of Lilita One. Mona Sans stays for body text.
+- **#64: Uncommon and Mythic** are both teal. The proposal is a true blue for Uncommon.
+- **#51:** the Claim button at the bottom of the Open tab instead of the top.
+
+### Battler v2 (its own release)
+
+- #73: scoring visuals during the reveal, and a win chance before you lock in.
+- #61: RP instead of Elo on profiles. Elo already scales with your opponent; it only looks flat because most people
+  are near 1000.
+- #60: a short tutorial the first time, instead of the reveal on entering a match.
+- #57: spectating a friend's match.
+
+### Tripwire, still to build
+
+- A nightly scan. Needs a scheduled job in `cdk/`, so it waits for the maintainer's review.
+- An incremental scan (only what changed since the last one), sign-in rate limits stored in DynamoDB, and rating
+  rules for the Battler.
+
+- **Targeted crafting** (replaced by the 0.14 shop). Spend parts on a specific card you're missing, Common to Rare only, priced high so it doesn't
   replace opening packs. Legendary and Mythic stay pack-only. The server checks the card is in the pack and the player
   can afford it; the card gets a fresh serial like a pulled card and is recorded in the ledger. Show it on a missing
   card in the binder ("Craft for N parts").

@@ -108,10 +108,16 @@ async fn get_trade(db: &Db, id: i64) -> ApiResult<Option<Trade>> {
 
 /// Every trade a player is in, either side, newest first (at most `limit` per side).
 async fn trades_of(db: &Db, user: Uuid, limit: Option<i32>) -> ApiResult<Vec<Trade>> {
+    trades_with(db, user, limit, None).await
+}
+
+/// `fresh`: a trade just written, which the indexes may not show yet.
+async fn trades_with(db: &Db, user: Uuid, limit: Option<i32>, fresh: Option<i64>) -> ApiResult<Vec<Trade>> {
     let tu = format!("TU#{user}");
     let (made, got) = tokio::try_join!(db.index("gsi1", &tu, limit, true), db.index("gsi2", &tu, limit, true))?;
     // The indexes catch up a moment after a write; read each trade itself for its current status.
-    let ids: HashSet<i64> = made.iter().chain(got.iter()).filter_map(|it| crate::db::get_n(it, "id")).collect();
+    let mut ids: HashSet<i64> = made.iter().chain(got.iter()).filter_map(|it| crate::db::get_n(it, "id")).collect();
+    ids.extend(fresh);
     let keys: Vec<Item> = ids.iter().map(|id| key(trade_pk(*id), "TRADE")).collect();
     let mut out: Vec<Trade> = db.batch_get(keys).await?.into_iter().map(from_item).collect::<Result<_, _>>()?;
     out.sort_by_key(|t| std::cmp::Reverse(t.id));
@@ -402,13 +408,13 @@ async fn offer(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Jso
         let parts = p.parts;
         model::save_user(&mut tx, &mut p, parts, "offer");
         match tx.commit(db).await {
-            Ok(()) => Ok(Some((p.username.clone().unwrap_or_else(|| "Someone".into()), give.len(), want.len()))),
+            Ok(()) => Ok(Some((p.username.clone().unwrap_or_else(|| "Someone".into()), give.len(), want.len(), id))),
             Err(DbError::Conflict("req")) => Ok(None),
             Err(e) => Err(e.into()),
         }
     })?;
-    let Some((me, gave, wanted)) = r else { return api::idem_lost(db, user.id, &key, "offer").await };
-    let out = list_in(db, user.id).await?;
+    let Some((me, gave, wanted, new_id)) = r else { return api::idem_lost(db, user.id, &key, "offer").await };
+    let out = list_with(db, user.id, Some(new_id)).await?;
     api::idem_end(db, user.id, &key, "offer", &out).await?;
     let stuff = |n: usize, packs: i32, parts: i32| {
         let mut bits = Vec::new();
@@ -500,7 +506,12 @@ async fn still_there(db: &Db, owner: Uuid, pack: &str, cards: &[TradeCard]) -> A
 }
 
 async fn list_in(db: &Db, me: Uuid) -> ApiResult<TradesOut> {
-    let rows = trades_of(db, me, Some(150)).await?;
+    list_with(db, me, None).await
+}
+
+/// The lists, sure to include `fresh` (a trade just made, which the indexes may not show for a moment).
+async fn list_with(db: &Db, me: Uuid, fresh: Option<i64>) -> ApiResult<TradesOut> {
+    let rows = trades_with(db, me, Some(150), fresh).await?;
     let mut out = TradesOut { incoming: vec![], outgoing: vec![], recent: vec![] };
     let mut names: std::collections::HashMap<Uuid, String> = std::collections::HashMap::new();
     let mut open_n = 0;
@@ -804,6 +815,8 @@ async fn accept(State(s): State<Shared>, user: User, Path(id): Path<i64>) -> Api
         }
     })?;
     let Some((mine, t, me)) = r else { return Err(err(StatusCode::CONFLICT, "trade_stale")) };
+    crate::profiles::unwish(db, t.to_user, &t.pack, t.give.iter().map(|c| c.team)).await;
+    crate::profiles::unwish(db, t.from_user, &t.pack, t.want.iter().map(|c| c.team)).await;
     // Other open offers that promised any of these cards can't happen any more.
     let moved: HashSet<i64> = t.give.iter().chain(t.want.iter()).map(|c| c.id).collect();
     let moved_sp: HashSet<i64> = t.give_specials.iter().chain(t.want_specials.iter()).copied().collect();

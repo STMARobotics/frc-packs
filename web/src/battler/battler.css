@@ -140,7 +140,9 @@
 .b-nophoto { display: grid; place-items: center; background: #0d1626; color: var(--dim); font: 400 14px var(--display); }
 .b-nophoto.big { position: absolute; inset: 0; font-size: calc(var(--cw) * .14); color: rgba(255, 255, 255, .45); background: radial-gradient(circle at 50% 40%, #1e2a44, #0b111d); }
 .b-teststats { position: absolute; right: 5%; top: 5%; z-index: 3; padding: .3em .45em; border-radius: 5px; background: rgba(255, 180, 60, .92); color: #2a1500; font: 700 max(7px, calc(var(--cw) * .032)) / 1 var(--body); letter-spacing: .05em; text-transform: uppercase; }
-.b-card .effect p { font-size: calc(var(--cw) * .036); }
+/* The whole effect, however long: its box grows and the photo above gives up the room. */
+.b-card .inner.bt .effect { height: auto; min-height: calc(var(--cw) * .165); }
+.b-card .effect p { font-size: calc(var(--cw) * .036); text-wrap: pretty; }
 .b-back { width: 100%; height: 100%; display: grid; place-items: center; border-radius: calc(var(--lw, 100px) * .055); background: repeating-linear-gradient(45deg, #1d2a4a 0 7px, #16203a 7px 14px); box-shadow: inset 0 0 0 3px #3b4f86, 0 4px 12px rgba(0, 0, 0, .45); }
 .b-back i { width: 38%; aspect-ratio: 1; border-radius: 50%; border: 3px solid #5b72b8; opacity: .6; }
 .b-cardgrid { --gw: min(168px, calc((100vw - 44px) / 2)); display: grid; grid-template-columns: repeat(auto-fill, var(--gw)); justify-content: center; gap: 12px; }
@@ -316,6 +318,8 @@
 
 /* ---------- the draft ---------- */
 body.b-in-game #app { max-width: 520px; padding-inline: 12px; }
+/* In a match nothing may pan the page sideways (Safari lets a fanned hand or a bubble near the edge do it). */
+html:has(body.b-in-game), body.b-in-game { overflow-x: clip; overscroll-behavior-x: none; }
 .b-draft { --dw: min(230px, 60vw, calc((100svh - 420px) / 1.4)); display: grid; gap: 10px; padding-top: calc(8px + env(safe-area-inset-top)); }
 .dr-head { display: flex; align-items: center; gap: 10px; }
 .dr-head > div { flex: 1; }
@@ -377,7 +381,7 @@ body.b-in-game #app { max-width: 520px; padding-inline: 12px; }
 
 /* ---------- the arena ---------- */
 /* Card width: a third of the screen, or less on short screens so the whole match fits without scrolling. */
-.b-arena { --lw: clamp(72px, min(calc((min(100vw, 520px) - 48px) / 3), calc((100svh - 478px) / 2.8)), 136px);
+.b-arena { --lw: clamp(72px, min(calc((min(100vw, 520px) - 48px) / 3), calc((100svh - 512px) / 2.8)), 136px);
   display: grid; gap: 8px; padding: calc(6px + env(safe-area-inset-top)) 0 0; min-height: calc(100svh - 24px); align-content: start; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .b-pbar { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 16px; background: var(--s1); transition: box-shadow .25s; }
 .b-pbar.ready { box-shadow: inset 0 0 0 2px var(--good); }
@@ -483,11 +487,11 @@ body.b-in-game #app { max-width: 520px; padding-inline: 12px; }
 .b-tug .me { color: var(--me); } .b-tug .op { color: var(--op); }
 
 /* your hand */
-.b-handarea { position: relative; height: 124px; margin-bottom: -30px; }
+.b-handarea { position: relative; height: 124px; margin-bottom: -4px; } /* the cards only tuck a little under the bar: their text stays clear of it */
 .b-handarea.locked .b-hand { opacity: .45; pointer-events: none; }
 .b-hand { position: relative; height: 100%; }
 .b-hand.empty { display: grid; place-items: center; }
-.b-hcard { --k: var(--part); position: absolute; left: 50%; bottom: -12px; width: 92px; height: 128px; margin-left: -46px; padding: 7px; display: grid; grid-template-rows: auto auto 1fr; gap: 3px; align-content: start; border: 0; border-radius: 10px; background: linear-gradient(165deg, #1f2b47, #141b2e); box-shadow: inset 0 0 0 2px var(--k), 0 6px 14px rgba(0, 0, 0, .5); color: var(--tx); font: inherit; text-align: left; cursor: grab; touch-action: none; z-index: var(--i);
+.b-hcard { --k: var(--part); position: absolute; left: 50%; bottom: -4px; width: 92px; height: 128px; margin-left: -46px; padding: 7px; display: grid; grid-template-rows: auto auto 1fr; gap: 3px; align-content: start; border: 0; border-radius: 10px; background: linear-gradient(165deg, #1f2b47, #141b2e); box-shadow: inset 0 0 0 2px var(--k), 0 6px 14px rgba(0, 0, 0, .5); color: var(--tx); font: inherit; text-align: left; cursor: grab; touch-action: none; z-index: var(--i);
   transform: translate(var(--x), var(--y)) rotate(var(--r)); transform-origin: 50% 120%; transition: transform .22s var(--ease), opacity .15s; animation: b-deal .4s var(--ease) both; animation-delay: calc(var(--i) * 60ms); }
 .b-hcard.lore { --k: var(--lore); background: linear-gradient(165deg, #3a2156, #1d1530); }
 @keyframes b-deal { from { opacity: 0; transform: translate(0, 90px) rotate(0) scale(.85); } }

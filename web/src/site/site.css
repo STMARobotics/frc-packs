@@ -216,6 +216,9 @@
 .st-timer, .st-meter { display: grid; align-content: center; gap: 2px; padding: 10px 14px; border-radius: 14px; background: var(--s1); }
 .st-timer small, .st-meter small { font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
 .st-timer b { font: 400 22px var(--display); font-variant-numeric: tabular-nums; }
+.st-clock { white-space: nowrap; }
+.st-clock i { display: inline-block; width: .58em; font-style: normal; text-align: center; }
+.st-clock i.st-colon { width: .3em; }
 .st-meter { grid-template-columns: 1fr auto; column-gap: 8px; }
 .st-meter small { grid-column: 1 / -1; }
 .st-meter em { font-style: normal; font-weight: 700; font-size: 12px; color: var(--dim); font-variant-numeric: tabular-nums; }
@@ -339,3 +342,5 @@ body.s-page.pad :focus { outline: 3px solid var(--ac); outline-offset: 3px; }
 .ed-tile b { position: absolute; left: 0; right: 0; bottom: 0; padding: 2px 6px; background: linear-gradient(transparent, rgba(0, 0, 0, .8)); font: 700 12px var(--body); text-align: left; }
 .ed-tile.on { box-shadow: inset 0 0 0 3px var(--ac); }
 .ed-tile em { position: absolute; top: 4px; right: 4px; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--ac); color: #001018; font: 700 12px var(--body); font-style: normal; }
+
+.ws-keep { align-items: center; }

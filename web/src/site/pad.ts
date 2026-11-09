@@ -1,7 +1,7 @@
 // Playing with a controller (any standard gamepad: Xbox, PlayStation, Switch Pro in a browser that maps it). A screen
-// can take buttons for itself with usePad (the pack in your hand: A opens, X turns it over, B puts it back). Otherwise
+// can take buttons for itself with usePad (the pack in your hand: A or B opens it, X turns it over). Otherwise
 // the d-pad or left stick moves a focus ring between controls and A presses; something that handles arrow keys itself
-// (the wheel, the card stack: data-pad-keys) gets arrows and Enter instead; data-pad-first is where the ring starts. B closes the top screen, LB / RB switch
+// (the card stack: data-pad-keys) gets arrows and Enter instead; data-pad-first is where the ring starts. B closes the top screen, LB / RB switch
 // tabs and Start claims free packs. Phone buzzes rumble the controller too.
 import { useEffect, useRef } from "preact/hooks";
 import { setRumble } from "./sfx";

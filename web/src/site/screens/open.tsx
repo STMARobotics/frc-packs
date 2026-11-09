@@ -1,5 +1,5 @@
 // Opening packs. On the Open tab: your packs (standard, boosted and Mythic stacks, each with its count). Tap one and,
-// over the tabs: the wheel of 10 (a setting), the pack in your hand (turn it over for the odds, swipe across the top to
+// over the tabs: the pack in your hand (turn it over for the odds, swipe across the top to
 // tear it; the light leaking out is the best card's color), the five cards one at a time (Rare and better wait face
 // down until you flip them, and a Mythic gets a moment of its own), and the summary. The server decides everything; a
 // pack torn but not finished is picked up again from the Open tab. Where WebGL works (and motion isn't reduced), the
@@ -9,7 +9,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
 import { api, type Opening, type State, type Tier } from "../../api";
 import { useStore } from "../../lib/store";
 import { BY_NUM, DIV_TEAMS, DIVS, PACK, RECIPE, TEAMS, TIERS } from "../data";
-import { applyState, fail, inv, packOf, prefs, sets, st, stash, sync, toast } from "../state";
+import { applyState, fail, inv, packOf, sets, st, stash, sync, toast } from "../state";
 import { back, Card, cx, Face, plural, push } from "../ui";
 import { buzz, sfx } from "../sfx";
 import { openCard } from "./cardview";
@@ -21,7 +21,6 @@ const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 /** The WebGL pack's code (and Three.js with it), fetched the first time a pack is tapped. */
 let glCode: Promise<typeof import("../gl/pack")> | null = null;
 const loadGL = () => (RM ? null : (glCode ??= import("../gl/pack").catch(() => (glCode = null) as never)));
-const N = 10; // packs on the wheel
 
 export type Kind = "std" | "gold" | "test";
 const NAME: Record<Kind, string> = { std: "Standard", gold: "Boosted", test: "Test" };
@@ -146,7 +145,8 @@ export function OpenHome() {
   const kinds: Kind[] = ["std"];
   if (c.gold) kinds.push("gold");
   if (s.account.admin) kinds.push("test");
-  const cur: Kind = kinds.includes(k) ? k : c.std ? "std" : c.gold ? "gold" : "std";
+  // The stack picked last, unless it ran out and the other one has packs.
+  const cur: Kind = kinds.includes(k) && (k === "test" || c[k] || !(c.std + c.gold)) ? k : c.std ? "std" : c.gold ? "gold" : "std";
   kind = cur;
   const n = c[cur], left = usable(s.pending) ? s.pending : null;
   const go = () => {
@@ -224,12 +224,12 @@ function particles(cv: HTMLCanvasElement) {
 
 // ---------- the opening, over the tabs ----------
 
-type Phase = "wheel" | "hold" | "cutting" | "deal" | "stack" | "summary";
+type Phase = "hold" | "cutting" | "deal" | "stack" | "summary";
 
 function Flow({ resume }: { resume?: Opening }) {
   const mine = useStore(inv);
   const done = useStore(sets);
-  const [phase, setPhase] = useState<Phase>(resume ? "stack" : prefs.get().wheel2 ? "wheel" : "hold");
+  const [phase, setPhase] = useState<Phase>(resume ? "stack" : "hold");
   const ph = useRef(phase);
   const go = (p: Phase) => { ph.current = p; setPhase(p); };
   // A pack picked up again after a reload looks like the one that was opened, not like the last stack picked.
@@ -240,7 +240,6 @@ function Flow({ resume }: { resume?: Opening }) {
   const kr = useRef<Kind>(k0);
   const k = kr.current;
   const [round, setRound] = useState(0); // a new pack in hand starts fresh
-  const [from, setFrom] = useState<DOMRect | null>(null); // where the pack was on the wheel
   const [best, setBest] = useState<Tier | null>(null);
   const [torn, setTorn] = useState(false);
   const [dropping, setDropping] = useState(false);
@@ -359,8 +358,8 @@ function Flow({ resume }: { resume?: Opening }) {
     const have = inv.get()[c.num]?.length ?? 0;
     return { num: c.num, tier: c.tier, serial: c.serial ?? 0, isNew: have === 0, copy: have + 1 };
   });
-  const toHand = (r: DOMRect | null) => {
-    setFrom(r); setTorn(false); setDropping(false); setRound((x) => x + 1);
+  const toHand = () => {
+    setTorn(false); setDropping(false); setRound((x) => x + 1);
     go("hold");
     pickUp();
   };
@@ -646,16 +645,22 @@ function Flow({ resume }: { resume?: Opening }) {
     }
   }, [phase]);
   const left = () => { const c = counts(); return kr.current === "test" ? 1 : c.std + c.gold; };
-  /** Another pack of the same kind, or the other kind when that ran out. */
-  const again = () => {
+  /** The other stack, when it has packs: the summary offers it next to "Open another". */
+  const otherKind = (): Kind | null => {
+    if (kr.current === "test") return null;
+    const c = counts(), o: Kind = kr.current === "gold" ? "std" : "gold";
+    return c[o] > 0 && c[kr.current] > 0 ? o : null;
+  };
+  /** Another pack of the same kind (or `want`), or the other kind when that ran out. */
+  const again = (want?: Kind) => {
     const c = counts();
-    let nk = kr.current;
+    let nk = want ?? kr.current;
     if (nk !== "test" && !c[nk]) nk = c.std ? "std" : c.gold ? "gold" : nk;
     if (nk !== "test" && !c[nk]) return back();
     kind = kr.current = nk;
     setDeck(null); setIdx(0); at.current = 0; setUp([]); setPromo([]); setGone([]); setSkipped(null); setRay("");
     sfx.pick();
-    if (prefs.get().wheel2) { setTorn(false); setDropping(false); go("wheel"); } else toHand(null);
+    toHand();
   };
 
   /** Open without swiping. Turned over? Face it first, then tear it. */
@@ -684,6 +689,7 @@ function Flow({ resume }: { resume?: Opening }) {
   const b4 = deck?.[4], bt = b4 && BY_NUM.get(b4.num);
   const news = deck?.filter((c) => c.isNew && !c.test).length ?? 0;
   const owned = Object.keys(mine).length;
+  const other = phase === "summary" ? otherKind() : null;
   let near: { d: string; miss: number } | null = null;
   if (phase === "summary") for (const d of DIVS) {
     if (done.has(d)) continue;
@@ -695,11 +701,10 @@ function Flow({ resume }: { resume?: Opening }) {
       <i class="op-rays" />
       <div ref={stage} class="op-stage">
         <i class="op-dim" />
-        {phase === "wheel" && <Wheel k={k} onPick={(r) => { sfx.pick(); toHand(r); }} onBack={back} />}
         {(holding || stacked) && (
           <div class="op-main">
             {holding && (
-              <Hold key={round} k={k} gl={gl} best={best} from={from} active={phase === "hold"} torn={torn} dropping={dropping} grip={grip}
+              <Hold key={round} k={k} gl={gl} best={best} active={phase === "hold"} torn={torn} dropping={dropping} grip={grip}
                 onEarly={startOpen} onCut={cut} onLand={() => { sfx.thud(1); shake(false); }} />
             )}
             {stacked && (
@@ -747,7 +752,8 @@ function Flow({ resume }: { resume?: Opening }) {
         )}
         {phase === "summary" && (
           <div class="s-row2 op-sum-b">
-            <button type="button" class="s-btn" onClick={left() ? again : back}>{left() ? "Open another" : "Done"}</button>
+            <button type="button" class="s-btn" onClick={left() ? () => again() : back}>{left() ? "Open another" : "Done"}</button>
+            {other && <button type="button" class={cx("s-btn ghost op-other", `k-${other}`)} onClick={() => again(other)}><i />{NAME[other]} ×{counts()[other]}</button>}
             {left() > 0 && <button type="button" class="s-btn ghost" onClick={back}>Done</button>}
           </div>
         )}
@@ -813,97 +819,9 @@ function StackCard({ c, k, up, flipped, promo, charging, aura, gone, w }: { c: D
   );
 }
 
-// ---------- the wheel of 10 ----------
-
-function Wheel({ k, onPick, onBack }: { k: Kind; onPick: (r: DOMRect) => void; onBack: () => void }) {
-  const wrap = useRef<HTMLDivElement>(null), ring = useRef<HTMLDivElement>(null);
-  const me = useRef({ dragged: false, front: -1 });
-  useEffect(() => {
-    const w = wrap.current!, r = ring.current!, picks = [...r.children] as HTMLElement[], m = me.current;
-    let a = 0, raf = 0, g: { x: number; a: number; t: number; v: number; lx: number; id: number; cap: boolean } | null = null;
-    // Runs every frame while the wheel turns, so it only writes transforms and opacities.
-    const set = (v: number) => {
-      a = v;
-      r.style.transform = `translateZ(calc(var(--R) * -1)) rotateX(-7deg) rotateY(${v}deg)`;
-      const f = ((Math.round(-v / 36) % N) + N) % N;
-      picks.forEach((el, i) => {
-        el.style.opacity = (1 - ((1 - Math.cos(((i * 36 + v) * Math.PI) / 180)) / 2) * 0.6).toFixed(3);
-        if ((i === f) !== el.classList.contains("op-front")) { el.classList.toggle("op-front", i === f); el.setAttribute("aria-selected", String(i === f)); }
-      });
-      if (f !== m.front) { if (m.front !== -1) { sfx.tick(); buzz(4); } m.front = f; }
-    };
-    const spinTo = (target: number, ms: number) => {
-      cancelAnimationFrame(raf);
-      if (RM || !ms) return set(target);
-      const from = a, t0 = performance.now();
-      const step = (now: number) => {
-        const t = Math.min(1, (now - t0) / ms);
-        set(from + (target - from) * (1 - Math.pow(1 - t, 3)));
-        if (t < 1) raf = requestAnimationFrame(step);
-      };
-      raf = requestAnimationFrame(step);
-    };
-    const snap = () => spinTo(Math.round(a / 36) * 36, 380);
-    const target = -36 * Math.floor(N / 2);
-    // The packs shuffle around on the way in, then settle with one in front.
-    if (RM) set(target); else { set(target + 540); spinTo(target, 1100); }
-    const down = (e: PointerEvent) => { cancelAnimationFrame(raf); m.dragged = false; g = { x: e.clientX, a, t: performance.now(), v: 0, lx: e.clientX, id: e.pointerId, cap: false }; };
-    const move = (e: PointerEvent) => {
-      if (!g) return;
-      const dx = e.clientX - g.x;
-      if (!g.cap && Math.abs(dx) > 6) { g.cap = true; m.dragged = true; w.classList.add("op-drag"); try { w.setPointerCapture(g.id); } catch { /* fine */ } }
-      if (!g.cap) return;
-      const now = performance.now();
-      g.v = ((e.clientX - g.lx) * 0.32) / Math.max(1, now - g.t); g.lx = e.clientX; g.t = now;
-      set(g.a + dx * 0.32);
-    };
-    const upH = () => {
-      if (!g) return;
-      const was = g;
-      g = null;
-      w.classList.remove("op-drag");
-      if (!was.cap) return;
-      setTimeout(() => { m.dragged = false; }, 0);
-      // It coasts with the flick's speed, then clicks into place on the nearest pack.
-      let v = Math.max(-2.5, Math.min(2.5, was.v)), last = performance.now();
-      if (RM) return snap();
-      const coast = (now: number) => {
-        const dt = now - last;
-        last = now; v *= Math.pow(0.94, dt / 16);
-        set(a + v * dt);
-        if (Math.abs(v) > 0.05) raf = requestAnimationFrame(coast); else snap();
-      };
-      raf = requestAnimationFrame(coast);
-    };
-    const key = (e: KeyboardEvent) => {
-      if (e.key === "ArrowLeft" || e.key === "ArrowRight") { e.preventDefault(); spinTo(Math.round(a / 36) * 36 + (e.key === "ArrowLeft" ? -36 : 36), 260); }
-      else if (e.key === "Enter" || e.key === " ") { e.preventDefault(); picks[m.front < 0 ? 5 : m.front].click(); }
-    };
-    w.addEventListener("pointerdown", down); w.addEventListener("pointermove", move); w.addEventListener("pointerup", upH); w.addEventListener("pointercancel", upH); w.addEventListener("keydown", key);
-    w.focus({ preventScroll: true });
-    return () => { cancelAnimationFrame(raf); w.removeEventListener("pointerdown", down); w.removeEventListener("pointermove", move); w.removeEventListener("pointerup", upH); w.removeEventListener("pointercancel", upH); w.removeEventListener("keydown", key); };
-  }, []);
-  return (
-    <div class="op-wheel">
-      <div ref={wrap} class={cx("op-ringwrap", `k-${k}`)} tabIndex={0} data-pad-keys role="listbox" aria-label="Choose a pack. Arrow keys turn the wheel.">
-        <i class="op-floor" />
-        <div ref={ring} class="op-ring">
-          {Array.from({ length: N }, (_, i) => (
-            <button type="button" class="op-pick" role="option" tabIndex={-1} style={{ "--i": i }} aria-label={`Pack ${i + 1} of ${N}`}
-              onClick={(e) => { if (!me.current.dragged) onPick(e.currentTarget.getBoundingClientRect()); }}>
-              <PackArt k={k} />
-            </button>
-          ))}
-        </div>
-      </div>
-      <button type="button" class="s-btn ghost small" onClick={onBack}>Back</button>
-    </div>
-  );
-}
-
 // ---------- the pack in your hand ----------
 
-interface HoldProps { k: Kind; gl: PackGL | null; best: Tier | null; from: DOMRect | null; active: boolean; torn: boolean; dropping: boolean; grip: { current: HTMLDivElement | null }; onEarly: () => void; onCut: () => void; onLand: () => void }
+interface HoldProps { k: Kind; gl: PackGL | null; best: Tier | null; active: boolean; torn: boolean; dropping: boolean; grip: { current: HTMLDivElement | null }; onEarly: () => void; onCut: () => void; onLand: () => void }
 
 /** Turns the pack in your hand (it shows the odds on the back) and tears it with a swipe across the top. Exposed so
     the buttons under it can do the same. */
@@ -963,10 +881,9 @@ function Hold(p: HoldProps) {
   useEffect(() => { p.gl?.quiet("swipe", swiping); }, [p.gl, swiping]);
   useEffect(() => { if (p.dropping) drawn?.drop(); }, [drawn, p.dropping]);
 
-  // It lands in your hand with some weight: from the wheel, or dropped in from above.
+  // It drops into your hand with some weight.
   useLayoutEffect(() => {
-    if (p.from && lift.current) flyFrom(lift.current, p.from, 460);
-    const t = setTimeout(p.onLand, RM ? 0 : p.from ? 440 : 380);
+    const t = setTimeout(p.onLand, RM ? 0 : 380);
     return () => clearTimeout(t);
   }, []);
   useEffect(() => {
@@ -1052,7 +969,7 @@ function Hold(p: HoldProps) {
   return (
     <div class={cx("op-hold", `k-${p.k}`, p.torn && "op-torn", p.dropping && "op-drop", away && "op-away", drawn && "op-gl")} data-best={p.best ?? ""}>
       <div ref={p.grip} class="op-grip" onPointerDown={down} onPointerMove={move} onPointerUp={upH} onPointerCancel={upH}>
-        <div ref={lift} class={cx("op-lift", !p.from && "op-in")}>
+        <div ref={lift} class="op-lift op-in">
           <div ref={shakeEl} class="op-shake">
             <div ref={rotEl} class="op-rot"><PackArt k={p.k} odds /></div>
             <i class="op-cutzone" aria-hidden="true" />

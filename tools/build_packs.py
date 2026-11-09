@@ -80,6 +80,8 @@ def champs_teams(path):
             "div": p[4], "srank": srank, "loc": "" if p[6] == "-" else place(p[6]), "region": "" if p[6] == "-" else region(p[6]),
             # Robot photo at /photos/<num>.webp (from The Blue Alliance); teams without one get a drawing.
             "photo": (data / "photos" / f"{num}.webp").exists(),
+            # Their TBA avatar at /photos/avatars/<num>.png (tools/tba_media.py), in the ring by the name.
+            "avatar": (data / "photos" / "avatars" / f"{num}.png").exists(),
         })
         if num in BATTLER:
             teams[-1]["bt"] = BATTLER[num]

@@ -14,6 +14,8 @@ export interface Team {
   rank: number;
   tier: Tier;
   photo: boolean;
+  /** Has a team avatar (at /photos/avatars/<num>.png). */
+  avatar?: boolean;
 }
 
 export interface Odds {
@@ -425,7 +427,8 @@ export const api = {
   /** Every copy you have of one team, oldest first. */
   copies: (pack: string, num: number) => call<Copy[]>("GET", `/api/copies/${encodeURIComponent(pack)}/${num}`),
   /** Scrap every extra copy of these tiers. */
-  scrapExtras: (pack: string, tiers: Tier[]) => act<Scrapped>("/api/scrap/extras", { pack, tiers }),
+  /** `keep`: copies of each team to keep (the earliest ones), 1 to 5. */
+  scrapExtras: (pack: string, tiers: Tier[], keep = 1) => act<Scrapped>("/api/scrap/extras", { pack, tiers, keep }),
   /** Players whose username contains `q`, for picking who to trade with. */
   specials: () => call<Special[]>("GET", "/api/specials"),
   playerSpecials: (name: string) => call<Special[]>("GET", `/api/players/${encodeURIComponent(name)}/specials`),

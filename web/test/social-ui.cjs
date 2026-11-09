@@ -153,7 +153,7 @@ async function main() {
   // Ask for one card fewer: take one off their side (what B gets).
   const getSide = q.locator('.td-side.get');
   const before = await getSide.locator('.td-slot.full').count();
-  await getSide.locator('.td-slot.full').first().click();
+  await getSide.locator('.td-slot.full .td-x').first().click(); // the × takes it off (tapping the card opens it)
   assert(await getSide.locator('.td-slot.full').count() === before - 1, 'B changes the counter before sending it');
   await shot('counter-offer', q);
   await q.click('.s-trade button.s-btn.wide');

@@ -228,6 +228,9 @@ async fn send(db: &Db, user: Uuid, note: &Note) -> anyhow::Result<()> {
         for (k, v) in parts.headers.iter() {
             r = r.header(k.as_str(), v.as_bytes());
         }
+        // Without this, phones saving battery hold "normal" pushes until they're woken up, so a trade offer could
+        // only show up once the app was opened. There are few of these, so each one may wake the phone.
+        r = r.header("Urgency", "high");
         match r.send().await {
             Ok(res) if res.status() == reqwest::StatusCode::NOT_FOUND || res.status() == reqwest::StatusCode::GONE => {
                 db.delete(&push_pk(&endpoint), "PUSH").await?;

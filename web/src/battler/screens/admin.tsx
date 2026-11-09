@@ -43,7 +43,7 @@ export function Admin() {
   return (
     <div class="b-screen">
       <Head title="Card admin"><span class="b-dim b-small">{done}/{CAT.robots.length} published</span></Head>
-      <input class="b-input" type="search" placeholder="Search team or name" value={q} onInput={(e) => setQ(e.currentTarget.value)} />
+      <input autoComplete="off" data-1p-ignore data-lpignore="true" data-form-type="other" class="b-input" type="search" placeholder="Search team or name" value={q} onInput={(e) => setQ(e.currentTarget.value)} />
       <Tabs value={filter} onChange={setFilter} options={[["all", "All"], ["none", "No effect"], ["draft", "Draft"], ["published", "Published"]]} />
       <div class="b-list tight">
         {list.map((r) => {

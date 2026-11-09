@@ -46,6 +46,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 25,
     "tele": 66,
@@ -69,6 +70,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 25,
     "tele": 57,
@@ -92,6 +94,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 26,
     "tele": 57,
@@ -115,6 +118,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 22,
     "tele": 59,
@@ -138,6 +142,7 @@
    "loc": "Israel",
    "region": "Israel",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 24,
     "tele": 55,
@@ -161,6 +166,7 @@
    "loc": "ON, Canada",
    "region": "Ontario",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 28,
     "tele": 56,
@@ -184,6 +190,7 @@
    "loc": "WA, USA",
    "region": "Washington",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 16,
     "tele": 51,
@@ -207,6 +214,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 25,
     "tele": 52,
@@ -230,6 +238,7 @@
    "loc": "IL, USA",
    "region": "Illinois",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 21,
     "tele": 52,
@@ -253,6 +262,7 @@
    "loc": "ON, Canada",
    "region": "Ontario",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 24,
     "tele": 47,
@@ -275,7 +285,8 @@
    "srank": 14,
    "loc": "CA, USA",
    "region": "California",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 20,
     "tele": 49,
@@ -299,6 +310,7 @@
    "loc": "MA, USA",
    "region": "Massachusetts",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 18,
     "tele": 54,
@@ -322,6 +334,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 20,
     "tele": 49,
@@ -345,6 +358,7 @@
    "loc": "WA, USA",
    "region": "Washington",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 19,
     "tele": 45,
@@ -368,6 +382,7 @@
    "loc": "ON, Canada",
    "region": "Ontario",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 18,
     "tele": 53,
@@ -391,6 +406,7 @@
    "loc": "TX, USA",
    "region": "Texas",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 20,
     "tele": 50,
@@ -414,6 +430,7 @@
    "loc": "TX, USA",
    "region": "Texas",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 18,
     "tele": 48,
@@ -437,6 +454,7 @@
    "loc": "NH, USA",
    "region": "New Hampshire",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 16,
     "tele": 50,
@@ -460,6 +478,7 @@
    "loc": "ME, USA",
    "region": "Maine",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 19,
     "tele": 47,
@@ -482,7 +501,8 @@
    "srank": 19,
    "loc": "TX, USA",
    "region": "Texas",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 19,
     "tele": 47,
@@ -506,6 +526,7 @@
    "loc": "NY, USA",
    "region": "New York",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 18,
     "tele": 51,
@@ -529,6 +550,7 @@
    "loc": "Türkiye",
    "region": "Türkiye",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 19,
     "tele": 50,
@@ -552,6 +574,7 @@
    "loc": "MA, USA",
    "region": "Massachusetts",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 14,
     "tele": 47,
@@ -575,6 +598,7 @@
    "loc": "MO, USA",
    "region": "Missouri",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 16,
     "tele": 53,
@@ -598,6 +622,7 @@
    "loc": "LA, USA",
    "region": "Louisiana",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 19,
     "tele": 44,
@@ -621,6 +646,7 @@
    "loc": "MO, USA",
    "region": "Missouri",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 16,
     "tele": 50,
@@ -643,7 +669,8 @@
    "srank": 28,
    "loc": "NC, USA",
    "region": "North Carolina",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 20,
     "tele": 45,
@@ -667,6 +694,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 22,
     "tele": 46,
@@ -690,6 +718,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 19,
     "tele": 42,
@@ -713,6 +742,7 @@
    "loc": "ON, Canada",
    "region": "Ontario",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 15,
     "tele": 44,
@@ -736,6 +766,7 @@
    "loc": "AZ, USA",
    "region": "Arizona",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 21,
     "tele": 46,
@@ -759,6 +790,7 @@
    "loc": "MO, USA",
    "region": "Missouri",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 21,
     "tele": 39,
@@ -782,6 +814,7 @@
    "loc": "MA, USA",
    "region": "Massachusetts",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 15,
     "tele": 42,
@@ -805,6 +838,7 @@
    "loc": "HI, USA",
    "region": "Hawaii",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 13,
     "tele": 46,
@@ -828,6 +862,7 @@
    "loc": "GA, USA",
    "region": "Georgia",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 19,
     "tele": 41,
@@ -850,7 +885,8 @@
    "srank": 37,
    "loc": "CO, USA",
    "region": "Colorado",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 17,
     "tele": 39,
@@ -874,6 +910,7 @@
    "loc": "ON, Canada",
    "region": "Ontario",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 12,
     "tele": 45,
@@ -897,6 +934,7 @@
    "loc": "NY, USA",
    "region": "New York",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 14,
     "tele": 44,
@@ -920,6 +958,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 13,
     "tele": 43,
@@ -943,6 +982,7 @@
    "loc": "ON, Canada",
    "region": "Ontario",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 14,
     "tele": 40,
@@ -965,7 +1005,8 @@
    "srank": 43,
    "loc": "ID, USA",
    "region": "Idaho",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 18,
     "tele": 37,
@@ -989,6 +1030,7 @@
    "loc": "ON, Canada",
    "region": "Ontario",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 15,
     "tele": 38,
@@ -1012,6 +1054,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 40,
@@ -1035,6 +1078,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 14,
     "tele": 40,
@@ -1058,6 +1102,7 @@
    "loc": "NY, USA",
    "region": "New York",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 20,
     "tele": 37,
@@ -1081,6 +1126,7 @@
    "loc": "WA, USA",
    "region": "Washington",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 41,
@@ -1104,6 +1150,7 @@
    "loc": "ON, Canada",
    "region": "Ontario",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 40,
@@ -1127,6 +1174,7 @@
    "loc": "China",
    "region": "China",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 19,
     "tele": 36,
@@ -1150,6 +1198,7 @@
    "loc": "Netherlands",
    "region": "Netherlands",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 13,
     "tele": 43,
@@ -1173,6 +1222,7 @@
    "loc": "OH, USA",
    "region": "Ohio",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 15,
     "tele": 37,
@@ -1196,6 +1246,7 @@
    "loc": "WA, USA",
    "region": "Washington",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 12,
     "tele": 42,
@@ -1219,6 +1270,7 @@
    "loc": "IN, USA",
    "region": "Indiana",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 17,
     "tele": 40,
@@ -1241,7 +1293,8 @@
    "srank": 56,
    "loc": "TX, USA",
    "region": "Texas",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 14,
     "tele": 37,
@@ -1265,6 +1318,7 @@
    "loc": "ON, Canada",
    "region": "Ontario",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 18,
     "tele": 37,
@@ -1288,6 +1342,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 16,
     "tele": 37,
@@ -1311,6 +1366,7 @@
    "loc": "NJ, USA",
    "region": "New Jersey",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 18,
     "tele": 32,
@@ -1334,6 +1390,7 @@
    "loc": "WI, USA",
    "region": "Wisconsin",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 15,
     "tele": 38,
@@ -1357,6 +1414,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 16,
     "tele": 36,
@@ -1380,6 +1438,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 18,
     "tele": 37,
@@ -1403,6 +1462,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 16,
     "tele": 35,
@@ -1426,6 +1486,7 @@
    "loc": "NJ, USA",
    "region": "New Jersey",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 17,
     "tele": 37,
@@ -1449,6 +1510,7 @@
    "loc": "Mexico",
    "region": "Mexico",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 38,
@@ -1472,6 +1534,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 15,
     "tele": 31,
@@ -1495,6 +1558,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 14,
     "tele": 31,
@@ -1518,6 +1582,7 @@
    "loc": "OR, USA",
    "region": "Oregon",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 13,
     "tele": 36,
@@ -1540,7 +1605,8 @@
    "srank": 67,
    "loc": "Türkiye",
    "region": "Türkiye",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 41,
@@ -1564,6 +1630,7 @@
    "loc": "CT, USA",
    "region": "Connecticut",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 14,
     "tele": 39,
@@ -1587,6 +1654,7 @@
    "loc": "NY, USA",
    "region": "New York",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 12,
     "tele": 38,
@@ -1610,6 +1678,7 @@
    "loc": "NH, USA",
    "region": "New Hampshire",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 40,
@@ -1632,7 +1701,8 @@
    "srank": 71,
    "loc": "NV, USA",
    "region": "Nevada",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 12,
     "tele": 34,
@@ -1656,6 +1726,7 @@
    "loc": "Israel",
    "region": "Israel",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 17,
     "tele": 35,
@@ -1679,6 +1750,7 @@
    "loc": "WA, USA",
    "region": "Washington",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 13,
     "tele": 36,
@@ -1702,6 +1774,7 @@
    "loc": "OH, USA",
    "region": "Ohio",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 14,
     "tele": 35,
@@ -1725,6 +1798,7 @@
    "loc": "MA, USA",
    "region": "Massachusetts",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 19,
     "tele": 35,
@@ -1748,6 +1822,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 14,
     "tele": 36,
@@ -1771,6 +1846,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 16,
     "tele": 34,
@@ -1793,7 +1869,8 @@
    "srank": 80,
    "loc": "CA, USA",
    "region": "California",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 13,
     "tele": 34,
@@ -1817,6 +1894,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 14,
     "tele": 33,
@@ -1840,6 +1918,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 13,
     "tele": 37,
@@ -1862,7 +1941,8 @@
    "srank": 84,
    "loc": "China",
    "region": "China",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 37,
@@ -1886,6 +1966,7 @@
    "loc": "CT, USA",
    "region": "Connecticut",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 17,
     "tele": 35,
@@ -1909,6 +1990,7 @@
    "loc": "VA, USA",
    "region": "Virginia",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 14,
     "tele": 38,
@@ -1932,6 +2014,7 @@
    "loc": "Brazil",
    "region": "Brazil",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 13,
     "tele": 36,
@@ -1955,6 +2038,7 @@
    "loc": "NJ, USA",
    "region": "New Jersey",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 14,
     "tele": 35,
@@ -1978,6 +2062,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 15,
     "tele": 32,
@@ -2001,6 +2086,7 @@
    "loc": "IA, USA",
    "region": "Iowa",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 13,
     "tele": 33,
@@ -2024,6 +2110,7 @@
    "loc": "WA, USA",
    "region": "Washington",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 14,
     "tele": 34,
@@ -2047,6 +2134,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 13,
     "tele": 36,
@@ -2070,6 +2158,7 @@
    "loc": "ON, Canada",
    "region": "Ontario",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 39,
@@ -2093,6 +2182,7 @@
    "loc": "FL, USA",
    "region": "Florida",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 17,
     "tele": 34,
@@ -2116,6 +2206,7 @@
    "loc": "PA, USA",
    "region": "Pennsylvania",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 12,
     "tele": 38,
@@ -2138,7 +2229,8 @@
    "srank": 97,
    "loc": "IN, USA",
    "region": "Indiana",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 12,
     "tele": 33,
@@ -2162,6 +2254,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 37,
@@ -2185,6 +2278,7 @@
    "loc": "NY, USA",
    "region": "New York",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 16,
     "tele": 32,
@@ -2208,6 +2302,7 @@
    "loc": "PA, USA",
    "region": "Pennsylvania",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 13,
     "tele": 33,
@@ -2231,6 +2326,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 16,
     "tele": 34,
@@ -2254,6 +2350,7 @@
    "loc": "PA, USA",
    "region": "Pennsylvania",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 37,
@@ -2276,7 +2373,8 @@
    "srank": 103,
    "loc": "TX, USA",
    "region": "Texas",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 12,
     "tele": 33,
@@ -2300,6 +2398,7 @@
    "loc": "Mexico",
    "region": "Mexico",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 13,
     "tele": 35,
@@ -2323,6 +2422,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 13,
     "tele": 36,
@@ -2346,6 +2446,7 @@
    "loc": "MD, USA",
    "region": "Maryland",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 14,
     "tele": 34,
@@ -2369,6 +2470,7 @@
    "loc": "TX, USA",
    "region": "Texas",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 14,
     "tele": 32,
@@ -2392,6 +2494,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 12,
     "tele": 33,
@@ -2415,6 +2518,7 @@
    "loc": "ON, Canada",
    "region": "Ontario",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 18,
     "tele": 33,
@@ -2438,6 +2542,7 @@
    "loc": "GA, USA",
    "region": "Georgia",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 16,
     "tele": 34,
@@ -2461,6 +2566,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 14,
     "tele": 34,
@@ -2484,6 +2590,7 @@
    "loc": "NH, USA",
    "region": "New Hampshire",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 34,
@@ -2507,6 +2614,7 @@
    "loc": "PA, USA",
    "region": "Pennsylvania",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 12,
     "tele": 33,
@@ -2529,7 +2637,8 @@
    "srank": 115,
    "loc": "MA, USA",
    "region": "Massachusetts",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 37,
@@ -2553,6 +2662,7 @@
    "loc": "OR, USA",
    "region": "Oregon",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 33,
@@ -2576,6 +2686,7 @@
    "loc": "MN, USA",
    "region": "Minnesota",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 32,
@@ -2599,6 +2710,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 35,
@@ -2621,7 +2733,8 @@
    "srank": 119,
    "loc": "Türkiye",
    "region": "Türkiye",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 14,
     "tele": 31,
@@ -2645,6 +2758,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 16,
     "tele": 32,
@@ -2668,6 +2782,7 @@
    "loc": "MD, USA",
    "region": "Maryland",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 33,
@@ -2691,6 +2806,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 14,
     "tele": 34,
@@ -2714,6 +2830,7 @@
    "loc": "WA, USA",
    "region": "Washington",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 36,
@@ -2737,6 +2854,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 31,
@@ -2760,6 +2878,7 @@
    "loc": "Türkiye",
    "region": "Türkiye",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 12,
     "tele": 35,
@@ -2783,6 +2902,7 @@
    "loc": "GA, USA",
    "region": "Georgia",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 16,
     "tele": 34,
@@ -2806,6 +2926,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 13,
     "tele": 34,
@@ -2828,7 +2949,8 @@
    "srank": 129,
    "loc": "CA, USA",
    "region": "California",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 13,
     "tele": 31,
@@ -2852,6 +2974,7 @@
    "loc": "MN, USA",
    "region": "Minnesota",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 12,
     "tele": 30,
@@ -2875,6 +2998,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 14,
     "tele": 29,
@@ -2898,6 +3022,7 @@
    "loc": "NC, USA",
    "region": "North Carolina",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 35,
@@ -2921,6 +3046,7 @@
    "loc": "TX, USA",
    "region": "Texas",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 32,
@@ -2944,6 +3070,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 13,
     "tele": 32,
@@ -2967,6 +3094,7 @@
    "loc": "WI, USA",
    "region": "Wisconsin",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 34,
@@ -2990,6 +3118,7 @@
    "loc": "AR, USA",
    "region": "Arkansas",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 31,
@@ -3013,6 +3142,7 @@
    "loc": "NH, USA",
    "region": "New Hampshire",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 33,
@@ -3036,6 +3166,7 @@
    "loc": "TX, USA",
    "region": "Texas",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 32,
@@ -3059,6 +3190,7 @@
    "loc": "CO, USA",
    "region": "Colorado",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 33,
@@ -3082,6 +3214,7 @@
    "loc": "LA, USA",
    "region": "Louisiana",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 12,
     "tele": 32,
@@ -3105,6 +3238,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 30,
@@ -3128,6 +3262,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 13,
     "tele": 29,
@@ -3151,6 +3286,7 @@
    "loc": "MA, USA",
    "region": "Massachusetts",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 12,
     "tele": 33,
@@ -3174,6 +3310,7 @@
    "loc": "Mexico",
    "region": "Mexico",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 14,
     "tele": 31,
@@ -3197,6 +3334,7 @@
    "loc": "ON, Canada",
    "region": "Ontario",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 34,
@@ -3219,7 +3357,8 @@
    "srank": 147,
    "loc": "MN, USA",
    "region": "Minnesota",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 12,
     "tele": 35,
@@ -3242,7 +3381,8 @@
    "srank": 148,
    "loc": "TX, USA",
    "region": "Texas",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 13,
     "tele": 32,
@@ -3266,6 +3406,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 32,
@@ -3289,6 +3430,7 @@
    "loc": "India",
    "region": "India",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 14,
     "tele": 29,
@@ -3311,7 +3453,8 @@
    "srank": 152,
    "loc": "PA, USA",
    "region": "Pennsylvania",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 29,
@@ -3335,6 +3478,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 16,
     "tele": 30,
@@ -3358,6 +3502,7 @@
    "loc": "VA, USA",
    "region": "Virginia",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 34,
@@ -3381,6 +3526,7 @@
    "loc": "MN, USA",
    "region": "Minnesota",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 28,
@@ -3404,6 +3550,7 @@
    "loc": "MA, USA",
    "region": "Massachusetts",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 30,
@@ -3427,6 +3574,7 @@
    "loc": "CT, USA",
    "region": "Connecticut",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 12,
     "tele": 25,
@@ -3450,6 +3598,7 @@
    "loc": "UT, USA",
    "region": "Utah",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 12,
     "tele": 30,
@@ -3473,6 +3622,7 @@
    "loc": "NH, USA",
    "region": "New Hampshire",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 32,
@@ -3496,6 +3646,7 @@
    "loc": "Mexico",
    "region": "Mexico",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 13,
     "tele": 31,
@@ -3519,6 +3670,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 32,
@@ -3542,6 +3694,7 @@
    "loc": "NY, USA",
    "region": "New York",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 12,
     "tele": 31,
@@ -3565,6 +3718,7 @@
    "loc": "IL, USA",
    "region": "Illinois",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 32,
@@ -3588,6 +3742,7 @@
    "loc": "MO, USA",
    "region": "Missouri",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 13,
     "tele": 31,
@@ -3611,6 +3766,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 29,
@@ -3633,7 +3789,8 @@
    "srank": 165,
    "loc": "MO, USA",
    "region": "Missouri",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 30,
@@ -3657,6 +3814,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 15,
     "tele": 25,
@@ -3679,7 +3837,8 @@
    "srank": 167,
    "loc": "TN, USA",
    "region": "Tennessee",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 13,
     "tele": 29,
@@ -3703,6 +3862,7 @@
    "loc": "MD, USA",
    "region": "Maryland",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 30,
@@ -3726,6 +3886,7 @@
    "loc": "IL, USA",
    "region": "Illinois",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 14,
     "tele": 30,
@@ -3749,6 +3910,7 @@
    "loc": "NH, USA",
    "region": "New Hampshire",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 30,
@@ -3772,6 +3934,7 @@
    "loc": "KS, USA",
    "region": "Kansas",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 13,
     "tele": 31,
@@ -3795,6 +3958,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": false,
    "bt": {
     "auto": 7,
     "tele": 32,
@@ -3818,6 +3982,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 29,
@@ -3841,6 +4006,7 @@
    "loc": "GA, USA",
    "region": "Georgia",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 30,
@@ -3864,6 +4030,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 28,
@@ -3887,6 +4054,7 @@
    "loc": "MN, USA",
    "region": "Minnesota",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 16,
     "tele": 28,
@@ -3910,6 +4078,7 @@
    "loc": "NY, USA",
    "region": "New York",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 31,
@@ -3933,6 +4102,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 12,
     "tele": 29,
@@ -3956,6 +4126,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 30,
@@ -3979,6 +4150,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 12,
     "tele": 29,
@@ -4002,6 +4174,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 32,
@@ -4025,6 +4198,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 13,
     "tele": 28,
@@ -4047,7 +4221,8 @@
    "srank": 187,
    "loc": "Israel",
    "region": "Israel",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 15,
     "tele": 30,
@@ -4071,6 +4246,7 @@
    "loc": "PA, USA",
    "region": "Pennsylvania",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 32,
@@ -4094,6 +4270,7 @@
    "loc": "CT, USA",
    "region": "Connecticut",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 13,
     "tele": 28,
@@ -4117,6 +4294,7 @@
    "loc": "CO, USA",
    "region": "Colorado",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 28,
@@ -4140,6 +4318,7 @@
    "loc": "OH, USA",
    "region": "Ohio",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 13,
     "tele": 26,
@@ -4163,6 +4342,7 @@
    "loc": "CT, USA",
    "region": "Connecticut",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 29,
@@ -4186,6 +4366,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 27,
@@ -4209,6 +4390,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 28,
@@ -4232,6 +4414,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 29,
@@ -4255,6 +4438,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 30,
@@ -4278,6 +4462,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 27,
@@ -4301,6 +4486,7 @@
    "loc": "WA, USA",
    "region": "Washington",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 29,
@@ -4324,6 +4510,7 @@
    "loc": "WI, USA",
    "region": "Wisconsin",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 12,
     "tele": 29,
@@ -4347,6 +4534,7 @@
    "loc": "Israel",
    "region": "Israel",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 27,
@@ -4370,6 +4558,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 32,
@@ -4393,6 +4582,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 27,
@@ -4416,6 +4606,7 @@
    "loc": "China",
    "region": "China",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 28,
@@ -4439,6 +4630,7 @@
    "loc": "IL, USA",
    "region": "Illinois",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 27,
@@ -4462,6 +4654,7 @@
    "loc": "WI, USA",
    "region": "Wisconsin",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 33,
@@ -4485,6 +4678,7 @@
    "loc": "NV, USA",
    "region": "Nevada",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 32,
@@ -4508,6 +4702,7 @@
    "loc": "NV, USA",
    "region": "Nevada",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 29,
@@ -4531,6 +4726,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 30,
@@ -4554,6 +4750,7 @@
    "loc": "NY, USA",
    "region": "New York",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 29,
@@ -4577,6 +4774,7 @@
    "loc": "CO, USA",
    "region": "Colorado",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 13,
     "tele": 25,
@@ -4600,6 +4798,7 @@
    "loc": "China",
    "region": "China",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 27,
@@ -4622,7 +4821,8 @@
    "srank": 216,
    "loc": "MI, USA",
    "region": "Michigan",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 25,
@@ -4646,6 +4846,7 @@
    "loc": "OH, USA",
    "region": "Ohio",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 27,
@@ -4669,6 +4870,7 @@
    "loc": "TN, USA",
    "region": "Tennessee",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 32,
@@ -4692,6 +4894,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 28,
@@ -4714,7 +4917,8 @@
    "srank": 220,
    "loc": "TX, USA",
    "region": "Texas",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 30,
@@ -4738,6 +4942,7 @@
    "loc": "TX, USA",
    "region": "Texas",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 30,
@@ -4761,6 +4966,7 @@
    "loc": "OR, USA",
    "region": "Oregon",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 13,
     "tele": 26,
@@ -4784,6 +4990,7 @@
    "loc": "MA, USA",
    "region": "Massachusetts",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 12,
     "tele": 25,
@@ -4807,6 +5014,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 28,
@@ -4829,7 +5037,8 @@
    "srank": 226,
    "loc": "ON, Canada",
    "region": "Ontario",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 12,
     "tele": 26,
@@ -4853,6 +5062,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 26,
@@ -4876,6 +5086,7 @@
    "loc": "AB, Canada",
    "region": "Alberta",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 30,
@@ -4899,6 +5110,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 28,
@@ -4922,6 +5134,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 25,
@@ -4945,6 +5158,7 @@
    "loc": "IL, USA",
    "region": "Illinois",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 29,
@@ -4968,6 +5182,7 @@
    "loc": "MN, USA",
    "region": "Minnesota",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 12,
     "tele": 28,
@@ -4991,6 +5206,7 @@
    "loc": "TX, USA",
    "region": "Texas",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 26,
@@ -5014,6 +5230,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 30,
@@ -5037,6 +5254,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 27,
@@ -5060,6 +5278,7 @@
    "loc": "Mexico",
    "region": "Mexico",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 28,
@@ -5083,6 +5302,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 26,
@@ -5106,6 +5326,7 @@
    "loc": "NH, USA",
    "region": "New Hampshire",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 14,
     "tele": 27,
@@ -5129,6 +5350,7 @@
    "loc": "NY, USA",
    "region": "New York",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 28,
@@ -5151,7 +5373,8 @@
    "srank": 244,
    "loc": "VT, USA",
    "region": "Vermont",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 27,
@@ -5175,6 +5398,7 @@
    "loc": "GA, USA",
    "region": "Georgia",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 25,
@@ -5198,6 +5422,7 @@
    "loc": "Chinese Taipei",
    "region": "Chinese Taipei",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 28,
@@ -5221,6 +5446,7 @@
    "loc": "IN, USA",
    "region": "Indiana",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 23,
@@ -5244,6 +5470,7 @@
    "loc": "VA, USA",
    "region": "Virginia",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 27,
@@ -5267,6 +5494,7 @@
    "loc": "MA, USA",
    "region": "Massachusetts",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 32,
@@ -5290,6 +5518,7 @@
    "loc": "SD, USA",
    "region": "South Dakota",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 28,
@@ -5313,6 +5542,7 @@
    "loc": "GA, USA",
    "region": "Georgia",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 25,
@@ -5336,6 +5566,7 @@
    "loc": "PA, USA",
    "region": "Pennsylvania",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 27,
@@ -5359,6 +5590,7 @@
    "loc": "WI, USA",
    "region": "Wisconsin",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 26,
@@ -5382,6 +5614,7 @@
    "loc": "TN, USA",
    "region": "Tennessee",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 27,
@@ -5405,6 +5638,7 @@
    "loc": "WA, USA",
    "region": "Washington",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 27,
@@ -5428,6 +5662,7 @@
    "loc": "IL, USA",
    "region": "Illinois",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 12,
     "tele": 25,
@@ -5451,6 +5686,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 12,
     "tele": 28,
@@ -5474,6 +5710,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 28,
@@ -5497,6 +5734,7 @@
    "loc": "WI, USA",
    "region": "Wisconsin",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 12,
     "tele": 24,
@@ -5520,6 +5758,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 23,
@@ -5543,6 +5782,7 @@
    "loc": "KY, USA",
    "region": "Kentucky",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 29,
@@ -5566,6 +5806,7 @@
    "loc": "IA, USA",
    "region": "Iowa",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 26,
@@ -5589,6 +5830,7 @@
    "loc": "SC, USA",
    "region": "South Carolina",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 26,
@@ -5612,6 +5854,7 @@
    "loc": "NH, USA",
    "region": "New Hampshire",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 12,
     "tele": 27,
@@ -5635,6 +5878,7 @@
    "loc": "WI, USA",
    "region": "Wisconsin",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 27,
@@ -5658,6 +5902,7 @@
    "loc": "FL, USA",
    "region": "Florida",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 25,
@@ -5681,6 +5926,7 @@
    "loc": "PA, USA",
    "region": "Pennsylvania",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 29,
@@ -5703,7 +5949,8 @@
    "srank": 269,
    "loc": "FL, USA",
    "region": "Florida",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 24,
@@ -5727,6 +5974,7 @@
    "loc": "IL, USA",
    "region": "Illinois",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 29,
@@ -5750,6 +5998,7 @@
    "loc": "TX, USA",
    "region": "Texas",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 26,
@@ -5773,6 +6022,7 @@
    "loc": "NC, USA",
    "region": "North Carolina",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 28,
@@ -5795,7 +6045,8 @@
    "srank": 274,
    "loc": "Türkiye",
    "region": "Türkiye",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 24,
@@ -5819,6 +6070,7 @@
    "loc": "NC, USA",
    "region": "North Carolina",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 27,
@@ -5842,6 +6094,7 @@
    "loc": "MD, USA",
    "region": "Maryland",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 25,
@@ -5864,7 +6117,8 @@
    "srank": 278,
    "loc": "Israel",
    "region": "Israel",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 22,
@@ -5888,6 +6142,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 23,
@@ -5911,6 +6166,7 @@
    "loc": "TX, USA",
    "region": "Texas",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 25,
@@ -5934,6 +6190,7 @@
    "loc": "TX, USA",
    "region": "Texas",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 26,
@@ -5956,7 +6213,8 @@
    "srank": 283,
    "loc": "MI, USA",
    "region": "Michigan",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 22,
@@ -5980,6 +6238,7 @@
    "loc": "Israel",
    "region": "Israel",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 25,
@@ -6003,6 +6262,7 @@
    "loc": "IN, USA",
    "region": "Indiana",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 25,
@@ -6025,7 +6285,8 @@
    "srank": 286,
    "loc": "Türkiye",
    "region": "Türkiye",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 28,
@@ -6049,6 +6310,7 @@
    "loc": "NJ, USA",
    "region": "New Jersey",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 26,
@@ -6072,6 +6334,7 @@
    "loc": "IN, USA",
    "region": "Indiana",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 23,
@@ -6095,6 +6358,7 @@
    "loc": "NH, USA",
    "region": "New Hampshire",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 22,
@@ -6118,6 +6382,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 24,
@@ -6141,6 +6406,7 @@
    "loc": "MD, USA",
    "region": "Maryland",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 23,
@@ -6164,6 +6430,7 @@
    "loc": "Mexico",
    "region": "Mexico",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 27,
@@ -6187,6 +6454,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 24,
@@ -6210,6 +6478,7 @@
    "loc": "VA, USA",
    "region": "Virginia",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 25,
@@ -6233,6 +6502,7 @@
    "loc": "NH, USA",
    "region": "New Hampshire",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 20,
@@ -6256,6 +6526,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 24,
@@ -6279,6 +6550,7 @@
    "loc": "VA, USA",
    "region": "Virginia",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 26,
@@ -6302,6 +6574,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 23,
@@ -6325,6 +6598,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 24,
@@ -6348,6 +6622,7 @@
    "loc": "NJ, USA",
    "region": "New Jersey",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 12,
     "tele": 22,
@@ -6371,6 +6646,7 @@
    "loc": "TX, USA",
    "region": "Texas",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 12,
     "tele": 22,
@@ -6393,7 +6669,8 @@
    "srank": 306,
    "loc": "PA, USA",
    "region": "Pennsylvania",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 23,
@@ -6417,6 +6694,7 @@
    "loc": "OK, USA",
    "region": "Oklahoma",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 23,
@@ -6440,6 +6718,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 24,
@@ -6463,6 +6742,7 @@
    "loc": "VA, USA",
    "region": "Virginia",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 26,
@@ -6486,6 +6766,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 23,
@@ -6509,6 +6790,7 @@
    "loc": "Mexico",
    "region": "Mexico",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 24,
@@ -6532,6 +6814,7 @@
    "loc": "IA, USA",
    "region": "Iowa",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 23,
@@ -6555,6 +6838,7 @@
    "loc": "NJ, USA",
    "region": "New Jersey",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 22,
@@ -6577,7 +6861,8 @@
    "srank": 315,
    "loc": "India",
    "region": "India",
-   "photo": true,
+   "photo": false,
+   "avatar": false,
    "bt": {
     "auto": 9,
     "tele": 23,
@@ -6601,6 +6886,7 @@
    "loc": "WA, USA",
    "region": "Washington",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 22,
@@ -6624,6 +6910,7 @@
    "loc": "MN, USA",
    "region": "Minnesota",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 25,
@@ -6647,6 +6934,7 @@
    "loc": "NV, USA",
    "region": "Nevada",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 22,
@@ -6670,6 +6958,7 @@
    "loc": "IN, USA",
    "region": "Indiana",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 24,
@@ -6693,6 +6982,7 @@
    "loc": "MN, USA",
    "region": "Minnesota",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 25,
@@ -6716,6 +7006,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 25,
@@ -6739,6 +7030,7 @@
    "loc": "FL, USA",
    "region": "Florida",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 24,
@@ -6762,6 +7054,7 @@
    "loc": "FL, USA",
    "region": "Florida",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 21,
@@ -6785,6 +7078,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 26,
@@ -6808,6 +7102,7 @@
    "loc": "China",
    "region": "China",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 12,
     "tele": 23,
@@ -6830,7 +7125,8 @@
    "srank": 332,
    "loc": "Israel",
    "region": "Israel",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 25,
@@ -6854,6 +7150,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 23,
@@ -6877,6 +7174,7 @@
    "loc": "ON, Canada",
    "region": "Ontario",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 14,
     "tele": 16,
@@ -6900,6 +7198,7 @@
    "loc": "IN, USA",
    "region": "Indiana",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 22,
@@ -6923,6 +7222,7 @@
    "loc": "TX, USA",
    "region": "Texas",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 24,
@@ -6946,6 +7246,7 @@
    "loc": "IN, USA",
    "region": "Indiana",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 22,
@@ -6968,7 +7269,8 @@
    "srank": 342,
    "loc": "MO, USA",
    "region": "Missouri",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 24,
@@ -6992,6 +7294,7 @@
    "loc": "OR, USA",
    "region": "Oregon",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 25,
@@ -7015,6 +7318,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 26,
@@ -7038,6 +7342,7 @@
    "loc": "SC, USA",
    "region": "South Carolina",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 27,
@@ -7061,6 +7366,7 @@
    "loc": "NC, USA",
    "region": "North Carolina",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 23,
@@ -7084,6 +7390,7 @@
    "loc": "OH, USA",
    "region": "Ohio",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 25,
@@ -7107,6 +7414,7 @@
    "loc": "NJ, USA",
    "region": "New Jersey",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 25,
@@ -7130,6 +7438,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 22,
@@ -7153,6 +7462,7 @@
    "loc": "GA, USA",
    "region": "Georgia",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 23,
@@ -7176,6 +7486,7 @@
    "loc": "TX, USA",
    "region": "Texas",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 26,
@@ -7199,6 +7510,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 22,
@@ -7222,6 +7534,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 25,
@@ -7245,6 +7558,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 23,
@@ -7267,7 +7581,8 @@
    "srank": 359,
    "loc": "Israel",
    "region": "Israel",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 26,
@@ -7291,6 +7606,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 12,
     "tele": 22,
@@ -7313,7 +7629,8 @@
    "srank": 361,
    "loc": "NY, USA",
    "region": "New York",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 22,
@@ -7337,6 +7654,7 @@
    "loc": "Australia",
    "region": "Australia",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 25,
@@ -7360,6 +7678,7 @@
    "loc": "OH, USA",
    "region": "Ohio",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 23,
@@ -7383,6 +7702,7 @@
    "loc": "WA, USA",
    "region": "Washington",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 24,
@@ -7405,7 +7725,8 @@
    "srank": 367,
    "loc": "IL, USA",
    "region": "Illinois",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 21,
@@ -7429,6 +7750,7 @@
    "loc": "TX, USA",
    "region": "Texas",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 23,
@@ -7452,6 +7774,7 @@
    "loc": "Chinese Taipei",
    "region": "Chinese Taipei",
    "photo": true,
+   "avatar": false,
    "bt": {
     "auto": 7,
     "tele": 24,
@@ -7475,6 +7798,7 @@
    "loc": "IL, USA",
    "region": "Illinois",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 24,
@@ -7498,6 +7822,7 @@
    "loc": "CO, USA",
    "region": "Colorado",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 25,
@@ -7521,6 +7846,7 @@
    "loc": "NY, USA",
    "region": "New York",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 21,
@@ -7543,7 +7869,8 @@
    "srank": 376,
    "loc": "Romania",
    "region": "Romania",
-   "photo": false,
+   "photo": true,
+   "avatar": false,
    "bt": {
     "auto": 9,
     "tele": 24,
@@ -7567,6 +7894,7 @@
    "loc": "GA, USA",
    "region": "Georgia",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 22,
@@ -7590,6 +7918,7 @@
    "loc": "NV, USA",
    "region": "Nevada",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 25,
@@ -7612,7 +7941,8 @@
    "srank": 379,
    "loc": "WI, USA",
    "region": "Wisconsin",
-   "photo": true,
+   "photo": false,
+   "avatar": false,
    "bt": {
     "auto": 6,
     "tele": 22,
@@ -7636,6 +7966,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 22,
@@ -7659,6 +7990,7 @@
    "loc": "TX, USA",
    "region": "Texas",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 26,
@@ -7682,6 +8014,7 @@
    "loc": "India",
    "region": "India",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 23,
@@ -7705,6 +8038,7 @@
    "loc": "IL, USA",
    "region": "Illinois",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 22,
@@ -7728,6 +8062,7 @@
    "loc": "ON, Canada",
    "region": "Ontario",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 24,
@@ -7751,6 +8086,7 @@
    "loc": "Mexico",
    "region": "Mexico",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 23,
@@ -7774,6 +8110,7 @@
    "loc": "MN, USA",
    "region": "Minnesota",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 24,
@@ -7797,6 +8134,7 @@
    "loc": "TX, USA",
    "region": "Texas",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 23,
@@ -7819,7 +8157,8 @@
    "srank": 393,
    "loc": "Mexico",
    "region": "Mexico",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 25,
@@ -7843,6 +8182,7 @@
    "loc": "PA, USA",
    "region": "Pennsylvania",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 23,
@@ -7865,7 +8205,8 @@
    "srank": 395,
    "loc": "NY, USA",
    "region": "New York",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 19,
@@ -7889,6 +8230,7 @@
    "loc": "MN, USA",
    "region": "Minnesota",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 22,
@@ -7912,6 +8254,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 23,
@@ -7935,6 +8278,7 @@
    "loc": "Türkiye",
    "region": "Türkiye",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 22,
@@ -7957,7 +8301,8 @@
    "srank": 401,
    "loc": "PA, USA",
    "region": "Pennsylvania",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 18,
@@ -7981,6 +8326,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 23,
@@ -8004,6 +8350,7 @@
    "loc": "ON, Canada",
    "region": "Ontario",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 23,
@@ -8027,6 +8374,7 @@
    "loc": "NJ, USA",
    "region": "New Jersey",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 20,
@@ -8050,6 +8398,7 @@
    "loc": "IL, USA",
    "region": "Illinois",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 24,
@@ -8072,7 +8421,8 @@
    "srank": 406,
    "loc": "MI, USA",
    "region": "Michigan",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 25,
@@ -8095,7 +8445,8 @@
    "srank": 407,
    "loc": "Brazil",
    "region": "Brazil",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 23,
@@ -8118,7 +8469,8 @@
    "srank": 408,
    "loc": "China",
    "region": "China",
-   "photo": false,
+   "photo": true,
+   "avatar": false,
    "bt": {
     "auto": 10,
     "tele": 20,
@@ -8142,6 +8494,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 24,
@@ -8165,6 +8518,7 @@
    "loc": "FL, USA",
    "region": "Florida",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 24,
@@ -8188,6 +8542,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 20,
@@ -8211,6 +8566,7 @@
    "loc": "MN, USA",
    "region": "Minnesota",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 23,
@@ -8234,6 +8590,7 @@
    "loc": "Switzerland",
    "region": "Switzerland",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 24,
@@ -8257,6 +8614,7 @@
    "loc": "AZ, USA",
    "region": "Arizona",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 21,
@@ -8280,6 +8638,7 @@
    "loc": "WI, USA",
    "region": "Wisconsin",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 22,
@@ -8302,7 +8661,8 @@
    "srank": 424,
    "loc": "NY, USA",
    "region": "New York",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 12,
     "tele": 20,
@@ -8326,6 +8686,7 @@
    "loc": "Brazil",
    "region": "Brazil",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 21,
@@ -8349,6 +8710,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 4,
     "tele": 23,
@@ -8372,6 +8734,7 @@
    "loc": "KS, USA",
    "region": "Kansas",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 19,
@@ -8395,6 +8758,7 @@
    "loc": "VA, USA",
    "region": "Virginia",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 19,
@@ -8418,6 +8782,7 @@
    "loc": "OH, USA",
    "region": "Ohio",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 22,
@@ -8441,6 +8806,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 21,
@@ -8464,6 +8830,7 @@
    "loc": "MN, USA",
    "region": "Minnesota",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 21,
@@ -8487,6 +8854,7 @@
    "loc": "Israel",
    "region": "Israel",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 12,
     "tele": 22,
@@ -8510,6 +8878,7 @@
    "loc": "AZ, USA",
    "region": "Arizona",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 21,
@@ -8533,6 +8902,7 @@
    "loc": "MN, USA",
    "region": "Minnesota",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 21,
@@ -8556,6 +8926,7 @@
    "loc": "UT, USA",
    "region": "Utah",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 23,
@@ -8579,6 +8950,7 @@
    "loc": "IN, USA",
    "region": "Indiana",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 14,
     "tele": 21,
@@ -8602,6 +8974,7 @@
    "loc": "IN, USA",
    "region": "Indiana",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 22,
@@ -8624,7 +8997,8 @@
    "srank": 447,
    "loc": "HI, USA",
    "region": "Hawaii",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 25,
@@ -8648,6 +9022,7 @@
    "loc": "Australia",
    "region": "Australia",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 22,
@@ -8671,6 +9046,7 @@
    "loc": "LA, USA",
    "region": "Louisiana",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 23,
@@ -8694,6 +9070,7 @@
    "loc": "Türkiye",
    "region": "Türkiye",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 21,
@@ -8717,6 +9094,7 @@
    "loc": "TN, USA",
    "region": "Tennessee",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 21,
@@ -8739,7 +9117,8 @@
    "srank": 456,
    "loc": "Chinese Taipei",
    "region": "Chinese Taipei",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 24,
@@ -8763,6 +9142,7 @@
    "loc": "AR, USA",
    "region": "Arkansas",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 23,
@@ -8786,6 +9166,7 @@
    "loc": "MN, USA",
    "region": "Minnesota",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 4,
     "tele": 21,
@@ -8809,6 +9190,7 @@
    "loc": "WA, USA",
    "region": "Washington",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 12,
     "tele": 14,
@@ -8831,7 +9213,8 @@
    "srank": 466,
    "loc": "MI, USA",
    "region": "Michigan",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 23,
@@ -8855,6 +9238,7 @@
    "loc": "NJ, USA",
    "region": "New Jersey",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 21,
@@ -8878,6 +9262,7 @@
    "loc": "MN, USA",
    "region": "Minnesota",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 20,
@@ -8901,6 +9286,7 @@
    "loc": "VA, USA",
    "region": "Virginia",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 20,
@@ -8924,6 +9310,7 @@
    "loc": "NC, USA",
    "region": "North Carolina",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 19,
@@ -8947,6 +9334,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 23,
@@ -8970,6 +9358,7 @@
    "loc": "PA, USA",
    "region": "Pennsylvania",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 17,
@@ -8993,6 +9382,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 4,
     "tele": 21,
@@ -9016,6 +9406,7 @@
    "loc": "NY, USA",
    "region": "New York",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 21,
@@ -9039,6 +9430,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 20,
@@ -9062,6 +9454,7 @@
    "loc": "FL, USA",
    "region": "Florida",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 20,
@@ -9085,6 +9478,7 @@
    "loc": "MN, USA",
    "region": "Minnesota",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 24,
@@ -9107,7 +9501,8 @@
    "srank": 494,
    "loc": "LA, USA",
    "region": "Louisiana",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 17,
@@ -9131,6 +9526,7 @@
    "loc": "China",
    "region": "China",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 18,
@@ -9154,6 +9550,7 @@
    "loc": "VA, USA",
    "region": "Virginia",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 21,
@@ -9176,7 +9573,8 @@
    "srank": 501,
    "loc": "TX, USA",
    "region": "Texas",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 15,
@@ -9199,7 +9597,8 @@
    "srank": 503,
    "loc": "MS, USA",
    "region": "Mississippi",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 11,
     "tele": 20,
@@ -9223,6 +9622,7 @@
    "loc": "TX, USA",
    "region": "Texas",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 22,
@@ -9246,6 +9646,7 @@
    "loc": "MO, USA",
    "region": "Missouri",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 19,
@@ -9269,6 +9670,7 @@
    "loc": "LA, USA",
    "region": "Louisiana",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 19,
@@ -9292,6 +9694,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 19,
@@ -9314,7 +9717,8 @@
    "srank": 517,
    "loc": "MI, USA",
    "region": "Michigan",
-   "photo": false,
+   "photo": true,
+   "avatar": false,
    "bt": {
     "auto": 6,
     "tele": 20,
@@ -9338,6 +9742,7 @@
    "loc": "OK, USA",
    "region": "Oklahoma",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 19,
@@ -9361,6 +9766,7 @@
    "loc": "Türkiye",
    "region": "Türkiye",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 20,
@@ -9384,6 +9790,7 @@
    "loc": "NC, USA",
    "region": "North Carolina",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 14,
@@ -9407,6 +9814,7 @@
    "loc": "NC, USA",
    "region": "North Carolina",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 18,
@@ -9430,6 +9838,7 @@
    "loc": "AR, USA",
    "region": "Arkansas",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 3,
     "tele": 21,
@@ -9453,6 +9862,7 @@
    "loc": "QC, Canada",
    "region": "Quebec",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 16,
@@ -9476,6 +9886,7 @@
    "loc": "TX, USA",
    "region": "Texas",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 20,
@@ -9499,6 +9910,7 @@
    "loc": "ON, Canada",
    "region": "Ontario",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 19,
@@ -9521,7 +9933,8 @@
    "srank": 547,
    "loc": "China",
    "region": "China",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 20,
@@ -9545,6 +9958,7 @@
    "loc": "MD, USA",
    "region": "Maryland",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 18,
@@ -9568,6 +9982,7 @@
    "loc": "MN, USA",
    "region": "Minnesota",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 15,
@@ -9591,6 +10006,7 @@
    "loc": "Israel",
    "region": "Israel",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 19,
@@ -9614,6 +10030,7 @@
    "loc": "Romania",
    "region": "Romania",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 20,
@@ -9636,7 +10053,8 @@
    "srank": 562,
    "loc": "Türkiye",
    "region": "Türkiye",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 19,
@@ -9660,6 +10078,7 @@
    "loc": "MN, USA",
    "region": "Minnesota",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 20,
@@ -9683,6 +10102,7 @@
    "loc": "MD, USA",
    "region": "Maryland",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 16,
@@ -9705,7 +10125,8 @@
    "srank": 577,
    "loc": "NH, USA",
    "region": "New Hampshire",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 18,
@@ -9729,6 +10150,7 @@
    "loc": "China",
    "region": "China",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 19,
@@ -9751,7 +10173,8 @@
    "srank": 584,
    "loc": "MO, USA",
    "region": "Missouri",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 18,
@@ -9775,6 +10198,7 @@
    "loc": "FL, USA",
    "region": "Florida",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 10,
     "tele": 15,
@@ -9798,6 +10222,7 @@
    "loc": "FL, USA",
    "region": "Florida",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 16,
@@ -9821,6 +10246,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 17,
@@ -9844,6 +10270,7 @@
    "loc": "TX, USA",
    "region": "Texas",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 16,
@@ -9867,6 +10294,7 @@
    "loc": "AZ, USA",
    "region": "Arizona",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 17,
@@ -9890,6 +10318,7 @@
    "loc": "MD, USA",
    "region": "Maryland",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 16,
@@ -9912,7 +10341,8 @@
    "srank": 599,
    "loc": "Brazil",
    "region": "Brazil",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 16,
@@ -9936,6 +10366,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 4,
     "tele": 16,
@@ -9959,6 +10390,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 15,
@@ -9982,6 +10414,7 @@
    "loc": "GA, USA",
    "region": "Georgia",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 16,
@@ -10005,6 +10438,7 @@
    "loc": "NY, USA",
    "region": "New York",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 17,
@@ -10027,7 +10461,8 @@
    "srank": 615,
    "loc": "PA, USA",
    "region": "Pennsylvania",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 13,
@@ -10051,6 +10486,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 13,
@@ -10074,6 +10510,7 @@
    "loc": "Chinese Taipei",
    "region": "Chinese Taipei",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 16,
@@ -10096,7 +10533,8 @@
    "srank": 619,
    "loc": "LA, USA",
    "region": "Louisiana",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 17,
@@ -10120,6 +10558,7 @@
    "loc": "QC, Canada",
    "region": "Quebec",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 15,
@@ -10142,7 +10581,8 @@
    "srank": 620,
    "loc": "China",
    "region": "China",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 19,
@@ -10166,6 +10606,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 15,
@@ -10189,6 +10630,7 @@
    "loc": "Australia",
    "region": "Australia",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 17,
@@ -10211,7 +10653,8 @@
    "srank": 626,
    "loc": "Brazil",
    "region": "Brazil",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 16,
@@ -10235,6 +10678,7 @@
    "loc": "MN, USA",
    "region": "Minnesota",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 15,
@@ -10258,6 +10702,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 9,
     "tele": 14,
@@ -10281,6 +10726,7 @@
    "loc": "NY, USA",
    "region": "New York",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 19,
@@ -10304,6 +10750,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 18,
@@ -10327,6 +10774,7 @@
    "loc": "NY, USA",
    "region": "New York",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 13,
@@ -10349,7 +10797,8 @@
    "srank": 640,
    "loc": "WA, USA",
    "region": "Washington",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 17,
@@ -10373,6 +10822,7 @@
    "loc": "SC, USA",
    "region": "South Carolina",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 16,
@@ -10395,7 +10845,8 @@
    "srank": 664,
    "loc": "MI, USA",
    "region": "Michigan",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 2,
     "tele": 17,
@@ -10419,6 +10870,7 @@
    "loc": "MN, USA",
    "region": "Minnesota",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 3,
     "tele": 17,
@@ -10442,6 +10894,7 @@
    "loc": "Chinese Taipei",
    "region": "Chinese Taipei",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 15,
@@ -10465,6 +10918,7 @@
    "loc": "Australia",
    "region": "Australia",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 3,
     "tele": 15,
@@ -10488,6 +10942,7 @@
    "loc": "VA, USA",
    "region": "Virginia",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 12,
@@ -10510,7 +10965,8 @@
    "srank": 700,
    "loc": "ON, Canada",
    "region": "Ontario",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 14,
@@ -10534,6 +10990,7 @@
    "loc": "NY, USA",
    "region": "New York",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 4,
     "tele": 17,
@@ -10557,6 +11014,7 @@
    "loc": "Türkiye",
    "region": "Türkiye",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 16,
@@ -10580,6 +11038,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 15,
@@ -10603,6 +11062,7 @@
    "loc": "TX, USA",
    "region": "Texas",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 14,
@@ -10626,6 +11086,7 @@
    "loc": "OH, USA",
    "region": "Ohio",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 4,
     "tele": 16,
@@ -10649,6 +11110,7 @@
    "loc": "AZ, USA",
    "region": "Arizona",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 14,
@@ -10671,7 +11133,8 @@
    "srank": 725,
    "loc": "AR, USA",
    "region": "Arkansas",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 14,
@@ -10695,6 +11158,7 @@
    "loc": "FL, USA",
    "region": "Florida",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 15,
@@ -10717,7 +11181,8 @@
    "srank": 731,
    "loc": "AB, Canada",
    "region": "Alberta",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 14,
@@ -10741,6 +11206,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 12,
@@ -10764,6 +11230,7 @@
    "loc": "Türkiye",
    "region": "Türkiye",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 15,
@@ -10787,6 +11254,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 14,
@@ -10809,7 +11277,8 @@
    "srank": 747,
    "loc": "Chinese Taipei",
    "region": "Chinese Taipei",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 14,
@@ -10833,6 +11302,7 @@
    "loc": "VA, USA",
    "region": "Virginia",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 13,
@@ -10856,6 +11326,7 @@
    "loc": "MA, USA",
    "region": "Massachusetts",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 13,
@@ -10879,6 +11350,7 @@
    "loc": "UT, USA",
    "region": "Utah",
    "photo": true,
+   "avatar": false,
    "bt": {
     "auto": 4,
     "tele": 17,
@@ -10902,6 +11374,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 11,
@@ -10924,7 +11397,8 @@
    "srank": 761,
    "loc": "NY, USA",
    "region": "New York",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 3,
     "tele": 14,
@@ -10948,6 +11422,7 @@
    "loc": "MO, USA",
    "region": "Missouri",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 14,
@@ -10970,7 +11445,8 @@
    "srank": 763,
    "loc": "Chinese Taipei",
    "region": "Chinese Taipei",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 4,
     "tele": 14,
@@ -10994,6 +11470,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 18,
@@ -11017,6 +11494,7 @@
    "loc": "WI, USA",
    "region": "Wisconsin",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 4,
     "tele": 15,
@@ -11040,6 +11518,7 @@
    "loc": "MN, USA",
    "region": "Minnesota",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 13,
@@ -11062,7 +11541,8 @@
    "srank": 784,
    "loc": "NV, USA",
    "region": "Nevada",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 13,
@@ -11086,6 +11566,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 3,
     "tele": 15,
@@ -11109,6 +11590,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 11,
@@ -11132,6 +11614,7 @@
    "loc": "AB, Canada",
    "region": "Alberta",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 4,
     "tele": 13,
@@ -11154,7 +11637,8 @@
    "srank": 813,
    "loc": "NY, USA",
    "region": "New York",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 11,
@@ -11177,7 +11661,8 @@
    "srank": 814,
    "loc": "WI, USA",
    "region": "Wisconsin",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 13,
@@ -11200,7 +11685,8 @@
    "srank": 816,
    "loc": "WI, USA",
    "region": "Wisconsin",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 11,
@@ -11224,6 +11710,7 @@
    "loc": "MO, USA",
    "region": "Missouri",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 3,
     "tele": 14,
@@ -11246,7 +11733,8 @@
    "srank": 827,
    "loc": "NY, USA",
    "region": "New York",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 12,
@@ -11269,7 +11757,8 @@
    "srank": 829,
    "loc": "IL, USA",
    "region": "Illinois",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 3,
     "tele": 16,
@@ -11293,6 +11782,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 12,
@@ -11316,6 +11806,7 @@
    "loc": "PA, USA",
    "region": "Pennsylvania",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 9,
@@ -11338,7 +11829,8 @@
    "srank": 842,
    "loc": "MI, USA",
    "region": "Michigan",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 12,
@@ -11361,7 +11853,8 @@
    "srank": 854,
    "loc": "SC, USA",
    "region": "South Carolina",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 12,
@@ -11384,7 +11877,8 @@
    "srank": 870,
    "loc": "Brazil",
    "region": "Brazil",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 3,
     "tele": 12,
@@ -11408,6 +11902,7 @@
    "loc": "NY, USA",
    "region": "New York",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 12,
@@ -11431,6 +11926,7 @@
    "loc": "NJ, USA",
    "region": "New Jersey",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 9,
@@ -11453,7 +11949,8 @@
    "srank": 905,
    "loc": "Brazil",
    "region": "Brazil",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 11,
@@ -11477,6 +11974,7 @@
    "loc": "SC, USA",
    "region": "South Carolina",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 4,
     "tele": 12,
@@ -11499,7 +11997,8 @@
    "srank": 938,
    "loc": "Chinese Taipei",
    "region": "Chinese Taipei",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 4,
     "tele": 11,
@@ -11523,6 +12022,7 @@
    "loc": "GA, USA",
    "region": "Georgia",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 11,
@@ -11546,6 +12046,7 @@
    "loc": "NC, USA",
    "region": "North Carolina",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 11,
@@ -11569,6 +12070,7 @@
    "loc": "Chinese Taipei",
    "region": "Chinese Taipei",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 12,
@@ -11592,6 +12094,7 @@
    "loc": "MO, USA",
    "region": "Missouri",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 8,
     "tele": 9,
@@ -11615,6 +12118,7 @@
    "loc": "OK, USA",
    "region": "Oklahoma",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 4,
     "tele": 12,
@@ -11638,6 +12142,7 @@
    "loc": "Israel",
    "region": "Israel",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 4,
     "tele": 13,
@@ -11660,7 +12165,8 @@
    "srank": 987,
    "loc": "BC, Canada",
    "region": "British Columbia",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 9,
@@ -11684,6 +12190,7 @@
    "loc": "TX, USA",
    "region": "Texas",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 7,
     "tele": 8,
@@ -11706,7 +12213,8 @@
    "srank": 1001,
    "loc": "Türkiye",
    "region": "Türkiye",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 10,
@@ -11730,6 +12238,7 @@
    "loc": "NJ, USA",
    "region": "New Jersey",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 8,
@@ -11753,6 +12262,7 @@
    "loc": "OR, USA",
    "region": "Oregon",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 8,
@@ -11776,6 +12286,7 @@
    "loc": "HI, USA",
    "region": "Hawaii",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 3,
     "tele": 11,
@@ -11799,6 +12310,7 @@
    "loc": "WV, USA",
    "region": "West Virginia",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 8,
@@ -11821,7 +12333,8 @@
    "srank": 1035,
    "loc": "Türkiye",
    "region": "Türkiye",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 3,
     "tele": 12,
@@ -11845,6 +12358,7 @@
    "loc": "TX, USA",
    "region": "Texas",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 9,
@@ -11867,7 +12381,8 @@
    "srank": 1091,
    "loc": "MI, USA",
    "region": "Michigan",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 2,
     "tele": 10,
@@ -11891,6 +12406,7 @@
    "loc": "GA, USA",
    "region": "Georgia",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 2,
     "tele": 9,
@@ -11914,6 +12430,7 @@
    "loc": "MI, USA",
    "region": "Michigan",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 4,
     "tele": 10,
@@ -11937,6 +12454,7 @@
    "loc": "TN, USA",
    "region": "Tennessee",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 2,
     "tele": 10,
@@ -11959,7 +12477,8 @@
    "srank": 1117,
    "loc": "MI, USA",
    "region": "Michigan",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 4,
     "tele": 11,
@@ -11983,6 +12502,7 @@
    "loc": "MO, USA",
    "region": "Missouri",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 8,
@@ -12006,6 +12526,7 @@
    "loc": "NC, USA",
    "region": "North Carolina",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 7,
@@ -12028,7 +12549,8 @@
    "srank": 1171,
    "loc": "Australia",
    "region": "Australia",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 4,
     "tele": 8,
@@ -12052,6 +12574,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 3,
     "tele": 6,
@@ -12075,6 +12598,7 @@
    "loc": "IN, USA",
    "region": "Indiana",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 4,
     "tele": 8,
@@ -12098,6 +12622,7 @@
    "loc": "LA, USA",
    "region": "Louisiana",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 4,
     "tele": 8,
@@ -12120,7 +12645,8 @@
    "srank": 1229,
    "loc": "FL, USA",
    "region": "Florida",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 2,
     "tele": 8,
@@ -12143,7 +12669,8 @@
    "srank": 1233,
    "loc": "China",
    "region": "China",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 2,
     "tele": 9,
@@ -12166,7 +12693,8 @@
    "srank": 1235,
    "loc": "MI, USA",
    "region": "Michigan",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 4,
     "tele": 6,
@@ -12189,7 +12717,8 @@
    "srank": 1241,
    "loc": "MO, USA",
    "region": "Missouri",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 4,
     "tele": 8,
@@ -12213,6 +12742,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": false,
+   "avatar": false,
    "bt": {
     "auto": 3,
     "tele": 8,
@@ -12235,7 +12765,8 @@
    "srank": 1247,
    "loc": "MI, USA",
    "region": "Michigan",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 4,
     "tele": 6,
@@ -12259,6 +12790,7 @@
    "loc": "KS, USA",
    "region": "Kansas",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 4,
@@ -12282,6 +12814,7 @@
    "loc": "IN, USA",
    "region": "Indiana",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 5,
@@ -12304,7 +12837,8 @@
    "srank": 1295,
    "loc": "MN, USA",
    "region": "Minnesota",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 4,
     "tele": 7,
@@ -12328,6 +12862,7 @@
    "loc": "MN, USA",
    "region": "Minnesota",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 4,
     "tele": 7,
@@ -12351,6 +12886,7 @@
    "loc": "Türkiye",
    "region": "Türkiye",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 4,
     "tele": 8,
@@ -12373,7 +12909,8 @@
    "srank": 1315,
    "loc": "GA, USA",
    "region": "Georgia",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 4,
     "tele": 8,
@@ -12397,6 +12934,7 @@
    "loc": "WA, USA",
    "region": "Washington",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 6,
     "tele": 4,
@@ -12420,6 +12958,7 @@
    "loc": "Brazil",
    "region": "Brazil",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 3,
     "tele": 7,
@@ -12442,7 +12981,8 @@
    "srank": 1337,
    "loc": "MO, USA",
    "region": "Missouri",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 4,
     "tele": 4,
@@ -12465,7 +13005,8 @@
    "srank": 1349,
    "loc": "NC, USA",
    "region": "North Carolina",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 2,
     "tele": 6,
@@ -12489,6 +13030,7 @@
    "loc": "NC, USA",
    "region": "North Carolina",
    "photo": false,
+   "avatar": false,
    "bt": {
     "auto": 3,
     "tele": 6,
@@ -12512,6 +13054,7 @@
    "loc": "Chinese Taipei",
    "region": "Chinese Taipei",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 4,
     "tele": 5,
@@ -12534,7 +13077,8 @@
    "srank": 1414,
    "loc": "United Kingdom",
    "region": "United Kingdom",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 3,
     "tele": 4,
@@ -12557,7 +13101,8 @@
    "srank": 1415,
    "loc": "OR, USA",
    "region": "Oregon",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 5,
     "tele": 5,
@@ -12581,6 +13126,7 @@
    "loc": "VA, USA",
    "region": "Virginia",
    "photo": false,
+   "avatar": false,
    "bt": {
     "auto": 3,
     "tele": 6,
@@ -12603,7 +13149,8 @@
    "srank": 1472,
    "loc": "PA, USA",
    "region": "Pennsylvania",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 4,
     "tele": 3,
@@ -12627,6 +13174,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 2,
     "tele": 7,
@@ -12650,6 +13198,7 @@
    "loc": "MN, USA",
    "region": "Minnesota",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 2,
     "tele": 6,
@@ -12672,7 +13221,8 @@
    "srank": 1499,
    "loc": "OK, USA",
    "region": "Oklahoma",
-   "photo": true,
+   "photo": false,
+   "avatar": false,
    "bt": {
     "auto": 2,
     "tele": 7,
@@ -12696,6 +13246,7 @@
    "loc": "FL, USA",
    "region": "Florida",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 2,
     "tele": 7,
@@ -12719,6 +13270,7 @@
    "loc": "Mexico",
    "region": "Mexico",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 4,
     "tele": 4,
@@ -12741,7 +13293,8 @@
    "srank": 1528,
    "loc": "MO, USA",
    "region": "Missouri",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 3,
     "tele": 5,
@@ -12764,7 +13317,8 @@
    "srank": 1543,
    "loc": "NY, USA",
    "region": "New York",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 4,
     "tele": 5,
@@ -12788,6 +13342,7 @@
    "loc": "Australia",
    "region": "Australia",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 3,
     "tele": 6,
@@ -12810,7 +13365,8 @@
    "srank": 1596,
    "loc": "Brazil",
    "region": "Brazil",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 2,
     "tele": 6,
@@ -12834,6 +13390,7 @@
    "loc": "MA, USA",
    "region": "Massachusetts",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 2,
     "tele": 5,
@@ -12857,6 +13414,7 @@
    "loc": "NY, USA",
    "region": "New York",
    "photo": false,
+   "avatar": false,
    "bt": {
     "auto": 1,
     "tele": 5,
@@ -12879,7 +13437,8 @@
    "srank": 1652,
    "loc": "Türkiye",
    "region": "Türkiye",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 1,
     "tele": 4,
@@ -12903,6 +13462,7 @@
    "loc": "China",
    "region": "China",
    "photo": true,
+   "avatar": false,
    "bt": {
     "auto": 4,
     "tele": 2,
@@ -12925,7 +13485,8 @@
    "srank": 1671,
    "loc": "CT, USA",
    "region": "Connecticut",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 2,
     "tele": 4,
@@ -12949,6 +13510,7 @@
    "loc": "Türkiye",
    "region": "Türkiye",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 2,
     "tele": 5,
@@ -12972,6 +13534,7 @@
    "loc": "Israel",
    "region": "Israel",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 4,
     "tele": 3,
@@ -12994,7 +13557,8 @@
    "srank": 1714,
    "loc": "Mexico",
    "region": "Mexico",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 2,
     "tele": 4,
@@ -13018,6 +13582,7 @@
    "loc": "NC, USA",
    "region": "North Carolina",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 2,
     "tele": 5,
@@ -13041,6 +13606,7 @@
    "loc": "Chinese Taipei",
    "region": "Chinese Taipei",
    "photo": false,
+   "avatar": false,
    "bt": {
     "auto": 3,
     "tele": 3,
@@ -13063,7 +13629,8 @@
    "srank": 1774,
    "loc": "MA, USA",
    "region": "Massachusetts",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 2,
     "tele": 4,
@@ -13087,6 +13654,7 @@
    "loc": "Mexico",
    "region": "Mexico",
    "photo": false,
+   "avatar": false,
    "bt": {
     "auto": 2,
     "tele": 3,
@@ -13110,6 +13678,7 @@
    "loc": "Mexico",
    "region": "Mexico",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 2,
     "tele": 4,
@@ -13132,7 +13701,8 @@
    "srank": 1858,
    "loc": "HI, USA",
    "region": "Hawaii",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 1,
     "tele": 4,
@@ -13156,6 +13726,7 @@
    "loc": "Colombia",
    "region": "Colombia",
    "photo": false,
+   "avatar": false,
    "bt": {
     "auto": 2,
     "tele": 3,
@@ -13179,6 +13750,7 @@
    "loc": "PA, USA",
    "region": "Pennsylvania",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 1,
     "tele": 4,
@@ -13201,7 +13773,8 @@
    "srank": 1928,
    "loc": "AL, USA",
    "region": "Alabama",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 1,
     "tele": 3,
@@ -13225,6 +13798,7 @@
    "loc": "Türkiye",
    "region": "Türkiye",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 1,
     "tele": 2,
@@ -13248,6 +13822,7 @@
    "loc": "NY, USA",
    "region": "New York",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 1,
     "tele": 3,
@@ -13271,6 +13846,7 @@
    "loc": "OR, USA",
    "region": "Oregon",
    "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 2,
     "tele": 2,
@@ -13293,7 +13869,8 @@
    "srank": 2072,
    "loc": "NC, USA",
    "region": "North Carolina",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 1,
     "tele": 2,
@@ -13317,6 +13894,7 @@
    "loc": "Dominican Republic",
    "region": "Dominican Republic",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 1,
     "tele": 2,
@@ -13340,6 +13918,7 @@
    "loc": "VT, USA",
    "region": "Vermont",
    "photo": false,
+   "avatar": false,
    "bt": {
     "auto": 1,
     "tele": 1,
@@ -13362,7 +13941,8 @@
    "srank": 2329,
    "loc": "HI, USA",
    "region": "Hawaii",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 1,
     "tele": 1,
@@ -13386,6 +13966,7 @@
    "loc": "FL, USA",
    "region": "Florida",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 1,
     "tele": 1,
@@ -13409,6 +13990,7 @@
    "loc": "Türkiye",
    "region": "Türkiye",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 0,
     "tele": 0,
@@ -13432,6 +14014,7 @@
    "loc": "NC, USA",
    "region": "North Carolina",
    "photo": false,
+   "avatar": false,
    "bt": {
     "auto": 0,
     "tele": 0,
@@ -13455,6 +14038,7 @@
    "loc": "Chinese Taipei",
    "region": "Chinese Taipei",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 0,
     "tele": 0,
@@ -13478,6 +14062,7 @@
    "loc": "CA, USA",
    "region": "California",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 0,
     "tele": 0,
@@ -13501,6 +14086,7 @@
    "loc": "Türkiye",
    "region": "Türkiye",
    "photo": false,
+   "avatar": false,
    "bt": {
     "auto": 0,
     "tele": 0,
@@ -13523,7 +14109,8 @@
    "srank": 2961,
    "loc": "Türkiye",
    "region": "Türkiye",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 0,
     "tele": 0,
@@ -13546,7 +14133,8 @@
    "srank": 2985,
    "loc": "MN, USA",
    "region": "Minnesota",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 0,
     "tele": 0,
@@ -13570,6 +14158,7 @@
    "loc": "AK, USA",
    "region": "Alaska",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 0,
     "tele": 0,
@@ -13592,7 +14181,8 @@
    "srank": 3203,
    "loc": "MN, USA",
    "region": "Minnesota",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 0,
     "tele": 0,
@@ -13616,6 +14206,7 @@
    "loc": "SC, USA",
    "region": "South Carolina",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 0,
     "tele": 0,
@@ -13638,7 +14229,8 @@
    "srank": 3282,
    "loc": "ON, Canada",
    "region": "Ontario",
-   "photo": true,
+   "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 0,
     "tele": 0,
@@ -13662,6 +14254,7 @@
    "loc": "SC, USA",
    "region": "South Carolina",
    "photo": false,
+   "avatar": false,
    "bt": {
     "auto": 0,
     "tele": 0,
@@ -13685,6 +14278,7 @@
    "loc": "Türkiye",
    "region": "Türkiye",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 0,
     "tele": 0,
@@ -13708,6 +14302,7 @@
    "loc": "Mexico",
    "region": "Mexico",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 0,
     "tele": 0,
@@ -13731,6 +14326,7 @@
    "loc": "Mexico",
    "region": "Mexico",
    "photo": false,
+   "avatar": true,
    "bt": {
     "auto": 0,
     "tele": 0,
@@ -13753,7 +14349,8 @@
    "srank": 3722,
    "loc": "GA, USA",
    "region": "Georgia",
-   "photo": false,
+   "photo": true,
+   "avatar": true,
    "bt": {
     "auto": 0,
     "tele": 0,

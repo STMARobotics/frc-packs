@@ -32,7 +32,7 @@ export function SocialTab({ active }: { active: boolean }) {
       <Tabs value={pg} onChange={setPg} options={[["act", "Activity"], ["ppl", "Players"]]} />
       {pg === "act" ? <Activity /> : (
         <>
-          <input class="s-input" type="search" placeholder="Find a player" value={q} onInput={(e) => setQ(e.currentTarget.value)} autoCapitalize="none" spellcheck={false} aria-label="Find a player" />
+          <input autoComplete="off" data-1p-ignore data-lpignore="true" data-form-type="other" class="s-input" type="search" placeholder="Find a player" value={q} onInput={(e) => setQ(e.currentTarget.value)} autoCapitalize="none" spellcheck={false} aria-label="Find a player" />
           <div class="s-chips">{(["teams", "mythics", "legendaries", "trades"] as By[]).map((b) => (
             <button type="button" class={cx("s-chip", by === b && "on")} aria-pressed={by === b} onClick={() => setBy(b)}>{b[0].toUpperCase() + b.slice(1)}</button>
           ))}</div>
