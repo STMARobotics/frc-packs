@@ -6,7 +6,7 @@
 const { chromium } = require('playwright');
 const path = require('node:path');
 const fs = require('node:fs');
-const BASE = process.argv[2] || 'http://127.0.0.1:3000';
+const BASE = process.env.BASE_URL || process.argv[2] || 'http://127.0.0.1:3000';
 const OUT = process.argv[3] || path.join(__dirname, 'shots-site');
 fs.mkdirSync(OUT, { recursive: true });
 const assert = (c, m) => { if (!c) throw new Error('FAILED: ' + m); };
@@ -38,6 +38,11 @@ async function setup(name, packs) {
   }
   return c;
 }
+async function openDevPack(c) {
+  await c.call('POST', '/api/dev/pack', { pack: 'cmp26' });
+  const opening = await c.call('POST', '/api/open', { pack: 'cmp26' }, { 'Idempotency-Key': Math.random().toString(36).slice(2) + Date.now() });
+  await c.call('POST', `/api/openings/${opening.opening.id}/progress`, { revealed: 5 });
+}
 
 let page;
 const errors = [];
@@ -45,6 +50,16 @@ async function main() {
   const tag = Date.now().toString(36).slice(-4);
   const A = await setup('sia' + tag, 12);
   const B = await setup('sib' + tag, 3);
+  const collection = async (c) => (await c.call('GET', '/api/collection/cmp26')).cards;
+  let aCards = await collection(A), bCards = await collection(B);
+  let mutual = aCards.filter((a) => bCards.some((b) => b.num === a.num));
+  for (let i = 0; !mutual.length && i < 10; i++) {
+    await openDevPack(B);
+    bCards = await collection(B);
+    mutual = aCards.filter((a) => bCards.some((b) => b.num === a.num));
+  }
+  assert(mutual.length > 0, 'test players share a card for duplicate-ownership cues');
+  let giveNum = mutual[0].num, getNum = (mutual[1] || mutual[0]).num;
   const browser = await chromium.launch();
   const ctx = await browser.newContext({ viewport: { width: +(process.env.W || 390), height: +(process.env.H || 844) }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
   await ctx.addCookies([{ name: 'sid', value: A.sid(), url: BASE }]);
@@ -205,6 +220,43 @@ async function main() {
   assert((await A.call('GET', '/api/state')).pending === null, 'the picked-up pack is finished on the server');
 
   // Social, then a trade: A offers B a card for one of B's; B accepts in their own browser.
+  aCards = await collection(A); bCards = await collection(B);
+  const theirsHas = (num) => bCards.some((card) => card.num === num);
+  const mineHas = (num) => aCards.some((card) => card.num === num);
+  let sharedSpare = aCards.find((a) => a.serials.length > 1 && theirsHas(a.num));
+  let myNeedOnly = aCards.find((a) => a.serials.length === 1 && !theirsHas(a.num));
+  let myNeedSpare = aCards.find((a) => a.serials.length > 1 && !theirsHas(a.num));
+  let mySpareOnly = aCards.find((a) => a.serials.length > 1 && theirsHas(a.num));
+  let partnerNeedOnly = bCards.find((b) => b.serials.length === 1 && !mineHas(b.num));
+  let partnerNeedSpare = bCards.find((b) => b.serials.length > 1 && !mineHas(b.num));
+  let partnerSpareOnly = bCards.find((b) => b.serials.length > 1 && mineHas(b.num));
+  for (let i = 0; (!sharedSpare || !myNeedOnly || !myNeedSpare || !mySpareOnly || !partnerNeedOnly || !partnerNeedSpare || !partnerSpareOnly) && i < 30; i++) {
+    if (!partnerNeedOnly || !partnerNeedSpare || !partnerSpareOnly) await openDevPack(B);
+    if (!sharedSpare || !myNeedOnly || !myNeedSpare || !mySpareOnly) await openDevPack(A);
+    aCards = await collection(A);
+    bCards = await collection(B);
+    sharedSpare = aCards.find((a) => a.serials.length > 1 && theirsHas(a.num));
+    myNeedOnly = aCards.find((a) => a.serials.length === 1 && !theirsHas(a.num));
+    myNeedSpare = aCards.find((a) => a.serials.length > 1 && !theirsHas(a.num));
+    mySpareOnly = aCards.find((a) => a.serials.length > 1 && theirsHas(a.num));
+    partnerNeedOnly = bCards.find((b) => b.serials.length === 1 && !mineHas(b.num));
+    partnerNeedSpare = bCards.find((b) => b.serials.length > 1 && !mineHas(b.num));
+    partnerSpareOnly = bCards.find((b) => b.serials.length > 1 && mineHas(b.num));
+  }
+  assert(sharedSpare && myNeedOnly && myNeedSpare && mySpareOnly && partnerNeedOnly && partnerNeedSpare && partnerSpareOnly, 'test players have missing cards, duplicates, and overlapping duplicates on both sides');
+  giveNum = sharedSpare.num;
+  getNum = partnerNeedSpare.num;
+  const ownedGetNum = sharedSpare.num;
+  const newGiveNum = myNeedOnly.num;
+  const wantedGiveNum = myNeedSpare.num;
+  const myNeedOnlyNum = myNeedOnly.num, mySpareOnlyNum = mySpareOnly.num;
+  const myNeedSpareNum = myNeedSpare.num;
+  const partnerNeedOnlyNum = partnerNeedOnly.num, partnerSpareOnlyNum = partnerSpareOnly.num;
+  const partnerNeedSpareNum = partnerNeedSpare.num;
+  await B.call('POST', '/api/wishlist', { pack: 'cmp26', team: wantedGiveNum, on: true });
+  await B.call('POST', '/api/wishlist', { pack: 'cmp26', team: mySpareOnlyNum, on: true });
+  await A.call('POST', '/api/wishlist', { pack: 'cmp26', team: getNum, on: true });
+  await A.call('POST', '/api/wishlist', { pack: 'cmp26', team: partnerSpareOnlyNum, on: true });
   await p.click('.s-tabbar >> text=Social');
   await p.waitForSelector('.s-social');
   await shot('social-activity');
@@ -212,20 +264,156 @@ async function main() {
   await shot('social-players');
   await p.click('.s-tabbar >> text=Trade');
   await p.waitForSelector('.s-trade');
+  await p.reload();
+  await p.waitForSelector('.s-trade');
   await p.fill('.s-trade input[type=search]', 'sib' + tag);
   await p.click(`.td-person >> text=sib${tag}`);
   await p.waitForSelector('.td-table');
   await p.click('.td-side.give .td-slot');
   await p.waitForSelector('.td-picker .td-pick');
-  await shot('trade-picker');
-  await p.click('.td-picker .td-pick >> nth=0');
+  const hasPickerCard = async (num) => {
+    await p.fill('.td-picker input[type=search]', String(num));
+    await p.waitForTimeout(100);
+    const found = !!await p.$(`.td-picker [data-num="${num}"]`);
+    await p.fill('.td-picker input[type=search]', '');
+    await p.waitForTimeout(100);
+    return found;
+  };
+  assert(!(await p.$('.td-picker .s-icon')), 'card picker has no redundant back arrow');
+  const rarityFilter = await p.locator('.td-rarity-filters').boundingBox();
+  const needFilter = await p.locator('.td-needs-filter').boundingBox();
+  assert(needFilter.y > rarityFilter.y + rarityFilter.height, 'need/wishlist filters are on a new line below rarity filters');
+  await p.fill('.td-picker input[type=search]', String(wantedGiveNum));
+  assert(await p.$('.td-picker-cue.need'), 'my-card picker identifies cards the partner needs');
+  await p.click('.td-needs-filter');
+  await p.fill('.td-picker input[type=search]', '');
+  const myNeedCount = await p.$$('.td-picker .td-cell');
+  const myNeedsOnly = await p.$$eval('.td-picker .td-cell', (cells) => cells.every((cell) => !!cell.querySelector('.td-picker-cue.need')));
+  const myNeedOnlyVisible = await hasPickerCard(myNeedOnlyNum);
+  assert(myNeedCount.length > 1 && myNeedsOnly && myNeedOnlyVisible,
+    'needs filter includes wanted single-copy cards');
+  await p.click('.td-spares-filter');
+  const myMatchCount = await p.$$('.td-picker .td-cell');
+  const myMatchesOnly = await p.$$eval('.td-picker .td-cell', (cells) => cells.every((cell) =>
+    !!cell.querySelector('.td-picker-cue.need') && Number((cell.querySelector('.mi-foot')?.textContent ?? '').replace('×', '')) > 1));
+  assert(myMatchCount.length > 0 && myMatchesOnly, 'needs and spares filters combine');
+  await p.click('.td-needs-filter');
+  const mySparesCount = await p.$$('.td-picker .td-cell');
+  const mySparesOnly = await p.$$eval('.td-picker .td-cell', (cells) => cells.every((cell) =>
+    Number((cell.querySelector('.mi-foot')?.textContent ?? '').replace('×', '')) > 1));
+  assert(mySparesCount.length > myMatchCount.length && mySparesOnly
+    && await hasPickerCard(mySpareOnlyNum), 'spares filter works independently of needs');
+  await p.click('.td-spares-filter');
+  await p.click('.td-wishlist-filter');
+  await p.fill('.td-picker input[type=search]', '');
+  const myWishlistOnly = await p.$$eval('.td-picker .td-cell', (cells) =>
+    cells.every((cell) => !!cell.querySelector('.td-picker-cue.wishlist')));
+  assert(myWishlistOnly && await hasPickerCard(mySpareOnlyNum)
+    && !(await hasPickerCard(myNeedOnlyNum)), 'partner wishlist filter works independently of needs');
+  await p.click('.td-spares-filter');
+  const myWishlistSparesOnly = await p.$$eval('.td-picker .td-cell', (cells) =>
+    cells.every((cell) => !!cell.querySelector('.td-picker-cue.wishlist')
+      && Number((cell.querySelector('.mi-foot')?.textContent ?? '').replace('×', '')) > 1));
+  assert(myWishlistSparesOnly, 'partner wishlist combines with the spares filter');
+  await p.click('.td-needs-filter');
+  const myNeedWishlistSparesOnly = await p.$$eval('.td-picker .td-cell', (cells) =>
+    cells.every((cell) => (!!cell.querySelector('.td-picker-cue.need')
+      || !!cell.querySelector('.td-picker-cue.wishlist'))
+      && Number((cell.querySelector('.mi-foot')?.textContent ?? '').replace('×', '')) > 1));
+  assert(myNeedWishlistSparesOnly && await hasPickerCard(myNeedSpareNum)
+    && await hasPickerCard(mySpareOnlyNum), 'needs and wishlist combine as a union, narrowed by spares');
+  await p.click('.td-spares-filter');
+  const myNeedWishlist = await p.$$eval('.td-picker .td-cell', (cells) => cells.every((cell) =>
+    !!cell.querySelector('.td-picker-cue.need') || !!cell.querySelector('.td-picker-cue.wishlist')));
+  assert(myNeedWishlist && await hasPickerCard(myNeedOnlyNum)
+    && await hasPickerCard(mySpareOnlyNum), 'needs and wishlist show the union when selected together');
+  await p.click('.td-needs-filter');
+  await p.click('.td-wishlist-filter');
+  await p.fill('.td-picker input[type=search]', String(wantedGiveNum));
+  await p.click('.td-picker .td-pick');
   if (await p.$('.td-copies')) { await p.click('.td-copies .s-chip >> nth=0'); await p.click('.td-copies >> text=Done'); }
   await p.click('.td-picker .s-head >> text=Done');
+  assert(await p.$('.td-side.give .td-owner-cue.new'), 'composer flags a card missing from its recipient collection');
+  const ownerMini = await p.locator('.td-side.give .td-slot.full .s-mini').first().boundingBox();
+  const ownerChip = await p.locator('.td-side.give .td-slot.full .td-owner-cue').first().boundingBox();
+  assert(ownerChip.y >= ownerMini.y + ownerMini.height, 'ownership chip sits below the card');
+  await p.click('.td-side.give .td-slot:not(.full)');
+  await p.waitForSelector('.td-picker .td-pick');
+  await p.fill('.td-picker input[type=search]', String(newGiveNum));
+  await p.click('.td-picker .td-pick');
+  if (await p.$('.td-copies')) { await p.click('.td-copies .s-chip >> nth=0'); await p.click('.td-copies >> text=Done'); }
+  await p.click('.td-picker .s-head >> text=Done');
+  assert(await p.$('.td-side.give .td-owner-cue.new'), 'composer explicitly marks a card new to its recipient');
+  await p.click('.td-side.give .td-slot:not(.full)');
+  await p.waitForSelector('.td-picker .td-pick');
+  await p.fill('.td-picker input[type=search]', String(giveNum));
+  await p.click('.td-picker .td-pick');
+  if (await p.$('.td-copies')) { await p.click('.td-copies .s-chip >> nth=0'); await p.click('.td-copies >> text=Done'); }
+  await p.click('.td-picker .s-head >> text=Done');
+  assert(await p.$('.td-side.give .td-owner-cue.owned'), 'composer flags a card already owned by its recipient');
   await p.click('.td-side.get .td-slot');
   await p.waitForSelector('.td-picker .td-pick');
-  await p.click('.td-picker .td-pick >> nth=0');
+  const getRarityFilter = await p.locator('.td-rarity-filters').boundingBox();
+  const getNeedFilter = await p.locator('.td-needs-filter').boundingBox();
+  assert(getNeedFilter.y > getRarityFilter.y + getRarityFilter.height, 'incoming card picker filters start on a new line');
+  await p.fill('.td-picker input[type=search]', String(getNum));
+  assert(await p.$('.td-picker-cue.need'), 'partner-card picker identifies cards I need');
+  await p.click('.td-needs-filter');
+  await p.fill('.td-picker input[type=search]', '');
+  const partnerNeedsOnly = await p.$$eval('.td-picker .td-cell', (cells) => cells.every((cell) => !!cell.querySelector('.td-picker-cue.need')));
+  const partnerNeedsCount = (await p.$$('.td-picker .td-cell')).length;
+  const hasPartnerNeedOnly = !!(await p.$(`.td-picker [data-num="${partnerNeedOnlyNum}"]`));
+  assert(partnerNeedsCount > 1 && partnerNeedsOnly && hasPartnerNeedOnly, 'needs filter includes cards I need even when they are not partner spares');
+  await p.click('.td-spares-filter');
+  const theirMatchCount = await p.$$('.td-picker .td-cell');
+  const theirMatchesOnly = await p.$$eval('.td-picker .td-cell', (cells) => cells.every((cell) =>
+    !!cell.querySelector('.td-picker-cue.need') && Number((cell.querySelector('.mi-foot')?.textContent ?? '').replace('×', '')) > 1));
+  assert(theirMatchCount.length > 0 && theirMatchesOnly, 'needs and spares filters combine for partner cards');
+  await p.click('.td-needs-filter');
+  const partnerSparesOnly = await p.$$eval('.td-picker .td-cell', (cells) => cells.every((cell) =>
+    Number((cell.querySelector('.mi-foot')?.textContent ?? '').replace('×', '')) > 1));
+  const partnerSparesCount = (await p.$$('.td-picker .td-cell')).length;
+  const hasPartnerSpareOnly = !!(await p.$(`.td-picker [data-num="${partnerSpareOnlyNum}"]`));
+  assert(partnerSparesCount > theirMatchCount.length && partnerSparesOnly && hasPartnerSpareOnly, 'spares filter works independently of needs for partner cards');
+  await p.click('.td-spares-filter');
+  await p.click('.td-wishlist-filter');
+  await p.fill('.td-picker input[type=search]', '');
+  const partnerWishlistOnly = await p.$$eval('.td-picker .td-cell', (cells) =>
+    cells.every((cell) => !!cell.querySelector('.td-picker-cue.wishlist')));
+  assert(partnerWishlistOnly && await p.$(`.td-picker [data-num="${partnerSpareOnlyNum}"]`)
+    && !(await p.$(`.td-picker [data-num="${partnerNeedOnlyNum}"]`)), 'my wishlist filter works independently of needs');
+  await p.click('.td-spares-filter');
+  const partnerWishlistSparesOnly = await p.$$eval('.td-picker .td-cell', (cells) =>
+    cells.every((cell) => !!cell.querySelector('.td-picker-cue.wishlist')
+      && Number((cell.querySelector('.mi-foot')?.textContent ?? '').replace('×', '')) > 1));
+  assert(partnerWishlistSparesOnly, 'my wishlist combines with the partner spares filter');
+  await p.click('.td-needs-filter');
+  const partnerNeedWishlistSparesOnly = await p.$$eval('.td-picker .td-cell', (cells) =>
+    cells.every((cell) => (!!cell.querySelector('.td-picker-cue.need')
+      || !!cell.querySelector('.td-picker-cue.wishlist'))
+      && Number((cell.querySelector('.mi-foot')?.textContent ?? '').replace('×', '')) > 1));
+  assert(partnerNeedWishlistSparesOnly && await p.$(`.td-picker [data-num="${partnerNeedSpareNum}"]`)
+    && await p.$(`.td-picker [data-num="${partnerSpareOnlyNum}"]`), 'needs and wishlist combine as a union, narrowed by partner spares');
+  await p.click('.td-spares-filter');
+  const partnerNeedWishlist = await p.$$eval('.td-picker .td-cell', (cells) => cells.every((cell) =>
+    !!cell.querySelector('.td-picker-cue.need') || !!cell.querySelector('.td-picker-cue.wishlist')));
+  assert(partnerNeedWishlist && await p.$(`.td-picker [data-num="${partnerNeedOnlyNum}"]`)
+    && await p.$(`.td-picker [data-num="${partnerSpareOnlyNum}"]`), 'needs and wishlist show the union for partner cards');
+  await p.click('.td-needs-filter');
+  await p.click('.td-wishlist-filter');
+  await p.fill('.td-picker input[type=search]', String(getNum));
+  await p.click('.td-picker .td-pick');
   if (await p.$('.td-copies')) { await p.click('.td-copies .s-chip >> nth=0'); await p.click('.td-copies >> text=Done'); }
+  if (ownedGetNum !== getNum) {
+    await p.fill('.td-picker input[type=search]', String(ownedGetNum));
+    await p.click('.td-picker .td-pick');
+    if (await p.$('.td-copies')) { await p.click('.td-copies .s-chip >> nth=0'); await p.click('.td-copies >> text=Done'); }
+  }
   await p.click('.td-picker .s-head >> text=Done');
+  assert(await p.$('.td-side.get .td-owner-cue.owned'), 'composer flags a card the current player already owns');
+  assert((await p.textContent(`.td-side.give .td-spare-cue[data-num="${giveNum}"]`)).includes(`×${sharedSpare.serials.length}`)
+    && (await p.textContent(`.td-side.get .td-spare-cue[data-num="${getNum}"]`)).includes(`×${partnerNeedSpare.serials.length}`),
+    'trade summary shows copy counts for spare cards on both sides');
   await shot('trade-table');
   await p.click('.s-trade .s-btn.wide');
   await p.waitForSelector('.s-toast.show');
@@ -239,6 +427,13 @@ async function main() {
   b.on('pageerror', (e) => errors.push('B: ' + e));
   await b.goto(BASE + '/#trade');
   await b.waitForSelector('.td-offer');
+  await b.waitForSelector('.td-offer .td-owner-cue.owned');
+  assert(await b.$('.td-offer .td-fairbar'), 'incoming offer shows the fairness meter');
+  assert((await b.textContent('.td-offer .td-fair small')).trim().length > 0, 'incoming offer shows a fairness summary');
+  await b.click('.td-offer >> text=Counter');
+  await b.waitForSelector('.td-table');
+  assert(await b.$('.s-trade .td-fairbar'), 'counter-offer draft retains the fairness meter');
+  await b.click('.s-trade .s-tabs >> text=For you');
   await b.screenshot({ path: path.join(OUT, `${String(++n).padStart(2, '0')}-trade-incoming-b.png`) });
   await b.click('.td-offer >> text=Accept');
   await b.waitForSelector('.s-toast.show');
