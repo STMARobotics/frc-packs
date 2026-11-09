@@ -6,7 +6,7 @@
 const { chromium } = require('playwright');
 const path = require('node:path');
 const fs = require('node:fs');
-const BASE = process.argv[2] || 'http://127.0.0.1:3000';
+const BASE = process.env.BASE_URL || process.argv[2] || 'http://127.0.0.1:3000';
 const OUT = process.argv[3] || path.join(__dirname, 'shots-site');
 fs.mkdirSync(OUT, { recursive: true });
 const assert = (c, m) => { if (!c) throw new Error('FAILED: ' + m); };

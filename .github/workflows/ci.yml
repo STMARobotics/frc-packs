@@ -48,7 +48,7 @@ jobs:
       - name: Install Lambda build tooling
         run: pip install cargo-lambda
       - name: Build frontend and Lambda assets
-        run: npm run build
+        run: npm run ui:test
       - name: Check infrastructure with built assets (including activity publishing)
         run: npm run cdk:test
       - name: Archive built assets
