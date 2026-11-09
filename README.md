@@ -83,7 +83,7 @@ cd web && npx playwright install chromium   # once
 npm run build                               # build the site served by the API
 ```
 
-With DynamoDB Local running, start the API from `server/` in another terminal with `DYNAMODB_ENDPOINT=http://localhost:8765 DEV_TOOLS=1 cargo run`. Then, from the repository root, `npm run ui:test` runs the browser UI test, `npm run server:test` the Rust tests and `npm run cdk:test` the CDK tests. The browser test can target another running server with `BASE_URL`.
+With DynamoDB Local running, start the API from `server/` in another terminal with `DYNAMODB_ENDPOINT=http://localhost:8765 DEV_TOOLS=1 cargo run`. Then, from the repository root, `npm run ui:test` runs the browser UI test, `npm run server:test` the Rust tests and `npm run cdk:test` the CDK tests. The browser test can target another running server with `BASE_URL`. CI runs the browser tests the same way: the `validate` job serves the built site with `DEV_TOOLS=1` and runs `site-ui.cjs` and `social-ui.cjs`, and a failure stops the deploy.
 
 Set `ADMIN_USER` and `ADMIN_PASSWORD` to the admin account to check the admin panel too.
 
