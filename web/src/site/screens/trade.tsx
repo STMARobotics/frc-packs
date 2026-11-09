@@ -4,7 +4,7 @@
 // your newest copy, so you keep your earliest serial longest. An offer for you can be accepted, declined or answered
 // with a counter-offer. Offers for you, sent offers and history each have a tab.
 import { useEffect, useState } from "preact/hooks";
-import { api, type CardRef, type Special, type Trade, type TradeMatch } from "../../api";
+import { api, type CardRef, type Collection, type Special, type Trade, type TradeMatch } from "../../api";
 import { store, useStore } from "../../lib/store";
 import { BY_NUM, byRarity, ORDER, PACK, TIERS, type T } from "../data";
 import { ago, applyCollection, applyState, fail, inv, loadSocial, packOf, setPrefs, social, specials as mySpecials, st, toast, trades } from "../state";
@@ -143,7 +143,32 @@ export function TradeTab({ active }: { active: boolean }) {
 
 // ---------- a new trade ----------
 
-const worth = (picks: Pick[]) => picks.reduce((a, p) => a + (st.get()!.scrapParts[BY_NUM.get(p.num)!.tier] ?? 0), 0);
+const collectionCards = (collection: Collection) => {
+  const cards: Record<number, number[]> = {};
+  for (const card of collection.cards) cards[card.num] = card.serials;
+  return cards;
+};
+
+function Fairness({ giveCards, giveGoods, giveSpecials, getCards, getGoods, getSpecials }: {
+  giveCards: { num: number }[]; giveGoods: Goods; giveSpecials: number;
+  getCards: { num: number }[]; getGoods: Goods; getSpecials: number;
+}) {
+  const s = useStore(st)!;
+  const sideWorth = (cards: { num: number }[], goods: Goods, specials: number) =>
+    cards.reduce((sum, card) => sum + (BY_NUM.get(card.num) ? s.scrapParts[BY_NUM.get(card.num)!.tier] ?? 0 : 0), 0)
+    + specials * SPECIAL_WORTH + goods.packs * PACK_WORTH + goods.boosted * s.boostCost + goods.parts;
+  const give = sideWorth(giveCards, giveGoods, giveSpecials);
+  const get = sideWorth(getCards, getGoods, getSpecials);
+  if (!give && !get) return null;
+  const lean = (get - give) / (get + give);
+  const summary = Math.abs(lean) < 0.2 ? "Looks even" : lean > 0 ? (lean > 0.6 ? "A big ask" : "You get more") : lean < -0.6 ? "Very generous" : "You give more";
+  return (
+    <div class="td-fair" role="group" aria-label="Estimated trade fairness">
+      <span class="td-fairbar" style={{ "--lean": lean.toFixed(3) }}><i /></span>
+      <small>{summary}</small>
+    </div>
+  );
+}
 
 function NewTrade() {
   const d = useStore(draft);
@@ -152,9 +177,6 @@ function NewTrade() {
   const [busy, setBusy] = useState(false);
 
   if (!d.name) return <PickPlayer />;
-  const g = worth(d.give) + d.giveSpecials.length * SPECIAL_WORTH + d.giveGoods.packs * PACK_WORTH + d.giveGoods.boosted * s.boostCost + d.giveGoods.parts;
-  const w = worth(d.get) + d.getSpecials.length * SPECIAL_WORTH + d.getGoods.packs * PACK_WORTH + d.getGoods.boosted * s.boostCost + d.getGoods.parts;
-  const lean = g + w ? (w - g) / (g + w) : 0; // -1: you give it all, +1: you get it all
   const giving = d.give.length || d.giveSpecials.length || d.giveGoods.packs || d.giveGoods.boosted || d.giveGoods.parts;
   const getting = d.get.length || d.getSpecials.length || d.getGoods.packs || d.getGoods.boosted || d.getGoods.parts;
   const iWant = d.theirs ? (s.wishlist ?? []).filter((n) => d.theirs![n]).length : 0;
@@ -187,15 +209,10 @@ function NewTrade() {
       {d.counter > 0 && <p class="td-match">A counter-offer. Sending it declines theirs.</p>}
       {(iWant > 0 || theyWant > 0) && <p class="td-match">{[iWant ? `${d.name} has ${iWant} from your wishlist` : "", theyWant ? `you have ${theyWant} they want` : ""].filter(Boolean).join(" · ")}</p>}
       <div class="td-table">
-        <Side label="You give" picks={d.give} goods={d.giveGoods} specials={mySpecials.get().filter((x) => d.giveSpecials.includes(x.id))} side="give" />
-        <Side label={`You get`} picks={d.get} goods={d.getGoods} specials={d.theirSpecials.filter((x) => d.getSpecials.includes(x.id))} side="get" />
+        <Side label="You give" picks={d.give} goods={d.giveGoods} specials={mySpecials.get().filter((x) => d.giveSpecials.includes(x.id))} side="give" recipient={d.name} recipientCards={d.theirs ?? undefined} ownerCards={mine} />
+        <Side label="You get" picks={d.get} goods={d.getGoods} specials={d.theirSpecials.filter((x) => d.getSpecials.includes(x.id))} side="get" recipient="you" recipientCards={mine} ownerCards={d.theirs ?? undefined} />
       </div>
-      {g + w > 0 && (
-        <div class="td-fair">
-          <span class="td-fairbar" style={{ "--lean": lean.toFixed(3) }}><i /></span>
-          <small>{Math.abs(lean) < 0.2 ? "Looks even" : lean > 0 ? (lean > 0.6 ? "A big ask" : "You get more") : lean < -0.6 ? "Very generous" : "You give more"}</small>
-        </div>
-      )}
+      <Fairness giveCards={d.give} giveGoods={d.giveGoods} giveSpecials={d.giveSpecials.length} getCards={d.get} getGoods={d.getGoods} getSpecials={d.getSpecials.length} />
       <button type="button" class="s-btn wide" disabled={!giving || !getting || busy} onClick={send}>
         {busy ? <Spinner small /> : !giving && !getting ? "Put something on the table" : !giving ? "Add something you give" : !getting ? "Add something you want" : d.counter ? `Send counter-offer to ${d.name}` : `Send offer to ${d.name}`}
       </button>
@@ -250,22 +267,45 @@ function PickPlayer() {
   );
 }
 
-function Side({ label, picks, goods, specials, side }: { label: string; picks: Pick[]; goods: Goods; specials: Special[]; side: "give" | "get" }) {
+function Side({ label, picks, goods, specials, side, recipient, recipientCards, ownerCards }: {
+  label: string; picks: Pick[]; goods: Goods; specials: Special[]; side: "give" | "get"; recipient: string;
+  recipientCards: Record<number, number[]> | null | undefined; ownerCards: Record<number, number[]> | null | undefined;
+}) {
   const remove = (i: number) => { sfx.tick(); edit((d) => { (side === "give" ? d.give : d.get).splice(i, 1); }); };
   return (
     <div class={cx("td-side", side)}>
       <div class="td-side-h"><b>{label}</b><small>{picks.length}/{MAX}</small></div>
       <div class="td-slots">
-        {picks.map((p, i) => (
-          <button key={`${p.num}:${p.serial}:${i}`} type="button" class="td-slot full" onClick={() => remove(i)} aria-label={`Remove ${BY_NUM.get(p.num)!.name}`}>
-            <Mini num={p.num} foot={p.serial ? `No. ${p.serial}` : undefined} /><span class="td-x">×</span>
-          </button>
-        ))}
+        {picks.map((p, i) => {
+          const ownerCount = ownerCards?.[p.num]?.length ?? 0;
+          return (
+            <button key={`${p.num}:${p.serial}:${i}`} type="button" class="td-slot full" onClick={() => remove(i)} aria-label={`Remove ${BY_NUM.get(p.num)!.name}`}>
+              <Mini num={p.num} foot={p.serial ? `No. ${p.serial}` : undefined} />
+              {ownerCount > 1 && <small class="td-spare-cue" data-num={p.num} aria-label={`${side === "give" ? "You have" : "Your trade partner has"} ${ownerCount} copies`}>×{ownerCount}</small>}
+              <RecipientCue name={recipient} copies={recipientCards?.[p.num] ?? (recipientCards === undefined ? undefined : recipientCards === null ? null : [])} />
+              <span class="td-x">×</span>
+            </button>
+          );
+        })}
         {picks.length < MAX && <button type="button" class="td-slot" onClick={() => openPicker(side)} aria-label="Add a card"><span>+</span></button>}
       </div>
       <Chips goods={goods} specials={specials} onClick={() => openPicker(side, "goods")} />
     </div>
   );
+}
+
+function RecipientCue({ name, copies }: { name: string; copies: number[] | null | undefined }) {
+  if (copies === undefined) return <small class="td-owner-cue checking" aria-label={`Checking ${name}'s collection`}>Checking…</small>;
+  if (copies === null) return <small class="td-owner-cue unavailable" aria-label={`Could not check ${name}'s collection`}>Unknown</small>;
+  if (!copies.length) {
+    const recipient = name === "you" ? "you" : "them";
+    return <small class="td-owner-cue new" title={`New to ${name}`} aria-label={`New to ${name}`}>New to {recipient}</small>;
+  }
+  const owner = name === "you" ? "You" : name;
+  const verb = name === "you" ? "own" : "owns";
+  const copiesText = `${copies.length} ${copies.length === 1 ? "copy" : "copies"}`;
+  const message = `${owner} already ${verb} ${copiesText}; receiving this card would be a duplicate`;
+  return <small class="td-owner-cue owned" title={message} aria-label={message}>Owns ×{copies.length}</small>;
 }
 
 function Chips({ goods, specials, onClick }: { goods: Goods; specials: Special[]; onClick?: () => void }) {
@@ -309,6 +349,8 @@ function Picker({ side, start }: { side: "give" | "get"; start: "cards" | "goods
   const [q, setQ] = useState("");
   const [tier, setTier] = useState<"all" | T["tier"]>("all");
   const [copies, setCopies] = useState<number | null>(null);
+  const [onlyNeeds, setOnlyNeeds] = useState(false);
+  const [onlyWishlist, setOnlyWishlist] = useState(false);
   const [onlySpares, setOnlySpares] = useState(false);
   const mine = side === "give";
   const cards: Record<number, number[]> = mine ? myCards : d.theirs ?? {};
@@ -320,12 +362,23 @@ function Picker({ side, start }: { side: "give" | "get"; start: "cards" | "goods
     trades.get().outgoing.forEach((x) => x.youGive.forEach((c) => held.add(`${c.num}:${c.serial}`)));
   }
   const free = (n: number) => cards[n].filter((sn) => !held.has(`${n}:${sn}`)).length;
+  const isSpare = (n: number) => cards[n].length > 1 && (!mine || free(n) > 0);
+  const isNeeded = (n: number) => mine
+    ? d.theirs !== null && !d.theirs?.[n]?.length
+    : !myCards[n]?.length;
+  const isWishlisted = (n: number) => mine ? d.theirWish.includes(n) : (s.wishlist ?? []).includes(n);
+  const matchesFilters = (n: number) =>
+    ((!onlyNeeds && !onlyWishlist) || (onlyNeeds && isNeeded(n)) || (onlyWishlist && isWishlisted(n)))
+      && (!onlySpares || isSpare(n));
+  const hasFilters = onlyNeeds || onlyWishlist || onlySpares;
   const needle = q.trim().toLowerCase();
   const list = Object.keys(cards).map(Number).map((n) => BY_NUM.get(n)).filter((t): t is T => !!t && cards[t.num].length > 0)
     .filter((t) => (tier === "all" || t.tier === tier) && (!needle || String(t.num).startsWith(needle) || t.name.toLowerCase().includes(needle)))
-    .filter((t) => !onlySpares || cards[t.num].length > 1)
-    // Your spares first when you're giving, so your only copies aren't the first thing on offer.
-    .sort((a, b) => (mine ? Number(cards[b.num].length > 1) - Number(cards[a.num].length > 1) : 0) || byRarity(a, b));
+    .filter((t) => !hasFilters || matchesFilters(t.num))
+    // Relevant cards first, then your spares when you're giving so your only copies aren't the first thing on offer.
+    .sort((a, b) => Number(matchesFilters(b.num)) - Number(matchesFilters(a.num))
+      || (mine ? Number(cards[b.num].length > 1) - Number(cards[a.num].length > 1) : 0)
+      || byRarity(a, b));
   const onTable = (n: number) => picks.filter((p) => p.num === n).length;
 
   const tap = (n: number) => {
@@ -356,7 +409,7 @@ function Picker({ side, start }: { side: "give" | "get"; start: "cards" | "goods
 
   return (
     <div class="s-page-in td-picker">
-      <header class="s-head"><button type="button" class="s-icon" onClick={back} aria-label="Done">‹</button><h1>{mine ? "You give" : `From ${d.name}`}</h1><span class="cw-gap" /><button type="button" class="s-btn small" onClick={back}>Done</button></header>
+      <header class="s-head"><h1>{mine ? "You give" : `From ${d.name}`}</h1><span class="cw-gap" /><button type="button" class="s-btn small" onClick={back}>Done</button></header>
       <Tabs value={kind} onChange={setKind} options={[["cards", `Cards ${picks.length}/${MAX}`], ["goods", "Packs and parts"]]} />
       {kind === "goods" ? (
         !max ? <Spinner /> : (
@@ -386,21 +439,30 @@ function Picker({ side, start }: { side: "give" | "get"; start: "cards" | "goods
       ) : (
         <>
           <input class="s-input" type="search" placeholder="Search number or name" value={q} onInput={(e) => setQ(e.currentTarget.value)} aria-label="Search cards" />
-          <div class="s-chips">{(["all", ...ORDER] as const).map((t) => (
+          <div class="s-chips td-rarity-filters">{(["all", ...ORDER] as const).map((t) => (
             <button type="button" class={cx("s-chip", tier === t && "on")} aria-pressed={tier === t} style={t !== "all" ? { "--tc": TIERS[t].color } : undefined} onClick={() => setTier(t)}>{t === "all" ? "All" : <b>{TIERS[t].label}</b>}</button>
-          ))}<button type="button" class={cx("s-chip", onlySpares && "on")} aria-pressed={onlySpares} onClick={() => setOnlySpares(!onlySpares)}>Spares</button></div>
-          {!list.length ? <div class="s-empty">{needle || tier !== "all" || onlySpares ? "No cards match." : mine ? "Open some packs first." : `${d.name} has no cards yet.`}</div> : (
+          ))}</div>
+          <div class="s-chips td-picker-filters">
+            <button type="button" class={cx("s-chip", "td-needs-filter", onlyNeeds && "on")} aria-label={mine ? "Filter cards your partner needs" : "Filter cards you need"} aria-pressed={onlyNeeds} onClick={() => setOnlyNeeds(!onlyNeeds)}>Needs</button>
+            <button type="button" class={cx("s-chip", "td-wishlist-filter", onlyWishlist && "on")} aria-label={mine ? "Filter cards on your partner's wishlist" : "Filter cards on your wishlist"} aria-pressed={onlyWishlist} onClick={() => setOnlyWishlist(!onlyWishlist)}>Wishlist</button>
+            <button type="button" class={cx("s-chip", "td-spares-filter", onlySpares && "on")} aria-label={mine ? "Filter your spare cards" : "Filter your partner's spare cards"} aria-pressed={onlySpares} onClick={() => setOnlySpares(!onlySpares)}>Only Spares</button>
+          </div>
+          {!list.length ? <div class="s-empty">{needle || tier !== "all" || hasFilters ? "No cards match." : mine ? "Open some packs first." : `${d.name} has no cards yet.`}</div> : (
             <div class="td-grid">
               {list.slice(0, 120).map((t) => {
                 const n = t.num, on = onTable(n), total = cards[n].length;
                 return (
-                  <div class="td-cell" key={n}>
+                  <div class="td-cell" key={n} data-num={n}>
                     <button type="button" class={cx("td-pick", on > 0 && "on")} aria-pressed={on > 0} onClick={() => tap(n)}>
                       <Mini num={n} foot={total > 1 ? `×${total}` : mine ? "Only copy" : TIERS[t.tier].label} />
                       {on > 0 && <span class="td-on">{total > 1 ? `${on} of ${total}` : "On table"}</span>}
-                      {mine && d.theirWish.includes(n) && <span class="td-want">They want</span>}
-                      {!mine && (s.wishlist ?? []).includes(n) && <span class="td-want mine">♥ Yours</span>}
                     </button>
+                    <div class="td-picker-cues" aria-label="Trade hints">
+                      {mine && isNeeded(n) && <span class="td-picker-cue need">They need</span>}
+                      {!mine && isNeeded(n) && <span class="td-picker-cue need">You need</span>}
+                      {mine && isWishlisted(n) && <span class="td-picker-cue wishlist">Their wishlist</span>}
+                      {!mine && isWishlisted(n) && <span class="td-picker-cue wishlist">Your wishlist</span>}
+                    </div>
                     <button type="button" class="td-info" aria-label={`See ${t.name}`} onClick={() => openCard(n, undefined, { serial: cards[n]?.slice().sort((x, y) => x - y)[0], serials: cards[n]?.slice().sort((x, y) => x - y), from: mine ? `You have ${total === 1 ? "1 copy" : `${total} copies`}.` : `${d.name} has ${total === 1 ? "1 copy" : `${total} copies`}.` })}>i</button>
                   </div>
                 );
@@ -429,12 +491,36 @@ function Picker({ side, start }: { side: "give" | "get"; start: "cards" | "goods
 // ---------- offers ----------
 
 function Offers({ list, kind }: { list: Trade[]; kind: "in" | "out" }) {
+  const [counterpartyCards, setCounterpartyCards] = useState<Record<string, Record<number, number[]> | null>>({});
+  const collectionKeys = [...new Set(list.map((t) => `${t.pack}\u001f${t.with.toLowerCase()}`))].sort();
+  const requestKey = collectionKeys.join("\u001e");
+  useEffect(() => {
+    let active = true;
+    const players = new Map<string, { name: string; pack: string }>();
+    for (const t of list) players.set(`${t.pack}\u001f${t.with.toLowerCase()}`, { name: t.with, pack: t.pack });
+    setCounterpartyCards({});
+    Promise.all([...players].map(async ([key, player]) => {
+      try {
+        return [key, collectionCards(await api.playerCollection(player.name, player.pack))] as const;
+      } catch {
+        return [key, null] as const;
+      }
+    })).then((loaded) => { if (active) setCounterpartyCards(Object.fromEntries(loaded)); });
+    return () => { active = false; };
+  }, [requestKey]);
+
   if (!list.length) return <div class="s-empty">{kind === "in" ? "No offers right now. When someone wants to trade with you, it shows up here." : "Nothing sent. Offers you send wait here until they answer."}</div>;
-  return <div class="s-list">{list.map((t) => <Offer key={t.id} t={t} kind={kind} />)}</div>;
+  return <div class="s-list">{list.map((t) => {
+    const key = `${t.pack}\u001f${t.with.toLowerCase()}`;
+    return <Offer key={t.id} t={t} kind={kind} recipientCards={counterpartyCards[key]} />;
+  })}</div>;
 }
 
 /** `own`: under each card, how many copies of that team you have now (open offers only). */
-function Row({ label, cards, goods, specials, whose, own }: { label: string; cards: CardRef[]; goods: Goods; specials: Special[]; whose: string; own?: Record<number, number[]> }) {
+function Row({ label, cards, goods, specials, whose, own, recipient, recipientCards }: {
+  label: string; cards: CardRef[]; goods: Goods; specials: Special[]; whose: string; own?: Record<number, number[]>;
+  recipient?: string; recipientCards?: Record<number, number[]> | null;
+}) {
   if (!cards.length && !goods.packs && !goods.boosted && !goods.parts && !specials.length) return null;
   return (
     <div class="td-o-side">
@@ -444,6 +530,7 @@ function Row({ label, cards, goods, specials, whose, own }: { label: string; car
           <button type="button" class="td-o-card" onClick={() => openCard(c.num, undefined, { serial: c.serial, from: whose === "you" ? "Your copy in this trade." : `${whose}'s copy in this trade.` })}>
             <Mini num={c.num} foot={`No. ${c.serial}`} />
             {own && <small class="td-own">{own[c.num]?.length ? `You have ×${own[c.num].length}` : "You have none"}</small>}
+            {recipient && <RecipientCue name={recipient} copies={recipientCards === undefined ? undefined : recipientCards === null ? null : recipientCards[c.num] ?? []} />}
           </button>
         ))}
       </div>
@@ -452,7 +539,7 @@ function Row({ label, cards, goods, specials, whose, own }: { label: string; car
   );
 }
 
-function Offer({ t, kind }: { t: Trade; kind: "in" | "out" }) {
+function Offer({ t, kind, recipientCards }: { t: Trade; kind: "in" | "out"; recipientCards: Record<number, number[]> | null | undefined }) {
   const [busy, setBusy] = useState(false);
   const run = async (f: () => Promise<void>) => { setBusy(true); try { await f(); } catch (e) { fail(e); api.trades().then(trades.set, () => {}); } setBusy(false); };
   const accept = () => run(async () => {
@@ -469,8 +556,12 @@ function Offer({ t, kind }: { t: Trade; kind: "in" | "out" }) {
         <button type="button" class="td-whob" onClick={() => openProfile(t.with)}><Avatar name={t.with} /></button>
         <p>{kind === "in" ? <><b>{t.with}</b> wants to trade</> : <>Waiting on <b>{t.with}</b></>}<small>{ago(t.createdAt)}</small></p>
       </header>
-      <Row label="You give" cards={t.youGive} goods={{ packs: t.youGivePacks, boosted: t.youGiveBoosted, parts: t.youGiveParts }} specials={t.youGiveSpecials} whose="you" own={mine} />
-      <Row label="You get" cards={t.youGet} goods={{ packs: t.youGetPacks, boosted: t.youGetBoosted, parts: t.youGetParts }} specials={t.youGetSpecials} whose={t.with} own={mine} />
+      <Row label="You give" cards={t.youGive} goods={{ packs: t.youGivePacks, boosted: t.youGiveBoosted, parts: t.youGiveParts }} specials={t.youGiveSpecials} whose="you" own={mine} recipient={t.with} recipientCards={recipientCards} />
+      <Row label="You get" cards={t.youGet} goods={{ packs: t.youGetPacks, boosted: t.youGetBoosted, parts: t.youGetParts }} specials={t.youGetSpecials} whose={t.with} own={mine} recipient="you" recipientCards={mine} />
+      {kind === "in" && <Fairness
+        giveCards={t.youGive} giveGoods={{ packs: t.youGivePacks, boosted: t.youGiveBoosted, parts: t.youGiveParts }} giveSpecials={t.youGiveSpecials.length}
+        getCards={t.youGet} getGoods={{ packs: t.youGetPacks, boosted: t.youGetBoosted, parts: t.youGetParts }} getSpecials={t.youGetSpecials.length}
+      />}
       <div class={cx("s-row2", kind === "in" && "td-acts3")}>
         {kind === "in"
           ? <><button type="button" class="s-btn" disabled={busy} onClick={accept}>Accept</button><button type="button" class="s-btn ghost" disabled={busy} onClick={() => counterOffer(t)}>Counter</button><button type="button" class="s-btn ghost" disabled={busy} onClick={() => run(async () => trades.set(await api.declineTrade(t.id)))}>Decline</button></>
