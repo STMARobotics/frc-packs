@@ -641,7 +641,7 @@ function paintFeedback() {
         h(
           "div",
           { class: "item-main" },
-          h("div", { class: "who" }, h("b", {}, f.title), h("span", { class: "badge" }, KIND[f.kind] ?? f.kind), h("span", { class: "badge off" }, STATUS[f.status] ?? f.status), f.rewarded ? h("span", { class: "badge" }, "+1 pack sent") : null),
+          h("div", { class: "who" }, h("span", { class: "fb-num" }, `#${f.id}`), h("b", {}, f.title), h("span", { class: "badge" }, KIND[f.kind] ?? f.kind), h("span", { class: "badge off" }, STATUS[f.status] ?? f.status), f.rewarded ? h("span", { class: "badge" }, "+1 pack sent") : null),
           f.details ? h("div", { class: "meta fb-details" }, f.details) : null,
           h("div", { class: "meta" }, h("span", {}, `from ${f.username ?? "?"}`), h("span", {}, when(f.createdAt))),
           f.context ? h("div", { class: "meta fb-ctx" }, f.context) : null,

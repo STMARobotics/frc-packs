@@ -76,6 +76,7 @@ a.cta { text-decoration: none; display: inline-block; }
 
 .filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
 .fb-details { white-space: pre-wrap; color: var(--ink); font-size: 13px; }
+.fb-num { opacity: .6; font-variant-numeric: tabular-nums; }
 .fb-ctx { font-size: 11px; opacity: .75; overflow-wrap: anywhere; }
 
 /* Two tabs on a computer: people and feedback, and configuration. A phone only gets the first (invites, accounts,
