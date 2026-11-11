@@ -19,9 +19,9 @@ export function HomeScreen() {
         </div>
       </section>
       <nav class="b-menu">
-        <a class="b-big play" href="#play"><b>Play</b><span>{ready ? "1v1, five rounds" : "Build a deck first"}</span></a>
+        <a class="b-big play" href="#play"><b>Battle</b><span>{ready ? "1v1, five rounds" : "Build a deck first"}</span></a>
         <a class="b-big" href="#decks"><b>Decks</b><span>{plural(h.decks.length, "deck")} · {ready} ready</span></a>
-        <a class="b-big" href="#library"><b>Library</b><span>{plural(h.owned_teams.length, "robot")} · {CAT.support.length} support</span></a>
+        <a class="b-big" href="#library"><b>Binder</b><span>{plural(h.owned_teams.length, "robot")} · {CAT.support.length} support</span></a>
         <a class="b-big" href="#history"><b>History</b><span>{plural(p.games, "game")}</span></a>
         {h.is_admin && <a class="b-big admin" href="#admin"><b>Card admin</b><span>Robot effects</span></a>}
       </nav>

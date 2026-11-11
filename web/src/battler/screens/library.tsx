@@ -23,7 +23,7 @@ export function Library() {
 
   return (
     <div class="b-screen">
-      <Head title="Library" />
+      <Head title="Binder" />
       <Tabs value={t} onChange={setT} options={[["robots", `Robots ${robots.length}`], ["PART", "Parts"], ["LORE", "Lore"]]} />
       <input autoComplete="off" data-1p-ignore data-lpignore="true" data-form-type="other" class="b-input" type="search" placeholder="Search" value={q} onInput={(e) => setQ(e.currentTarget.value)} />
       {t === "robots" ? (

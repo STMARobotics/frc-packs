@@ -75,8 +75,10 @@ function Daily() {
   const [busy, setBusy] = useState("");
   const ms = s.missions ?? [], k = s.streak ?? { days: 0, today: false, alive: false, every: 7 };
   const done = ms.filter((m) => m.claimed).length, ready = ms.filter((m) => !m.claimed && m.progress >= m.goal).length;
-  const into = k.days % k.every || (k.days ? k.every : 0);
-  const toGift = k.every - (k.days % k.every || (k.today ? k.every : 0));
+  // Days into this week's streak. The day a boosted pack is earned starts a new week, so it shows 0 and the full
+  // week to go (it showed 7 filled and "0 to go").
+  const into = k.days % k.every;
+  const toGift = k.every - into;
   const toggle = () => { setOpen(!open); try { localStorage.setItem("frcpacks.daily", open ? "0" : "1"); } catch { /* fine */ } };
   const collect = async (m: Mission) => {
     setBusy(m.id);

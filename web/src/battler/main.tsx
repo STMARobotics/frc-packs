@@ -7,6 +7,7 @@
 import "../style.css";
 import "./battler.css";
 import "../nav.css";
+import { Logo, Wordmark } from "../brand";
 import { render } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { ApiError, explain } from "./api";
@@ -60,7 +61,7 @@ function App() {
   if (state === "loading") return <div class="b-center"><Spinner /></div>;
   if (state === "signin") return (
     <div class="b-center b-gate">
-      <h1>Battler</h1>
+      <h1>Battle</h1>
       <p class="b-dim">Sign in with your FRC Packs account to play with the robots you own.</p>
       <a class="b-btn" href="/">Sign in</a>
     </div>
@@ -76,7 +77,7 @@ function App() {
     <>
       {name !== "game" && (
         <header class="b-top">
-          <a class="b-brand" href="#home">Battler</a>
+          <a class="b-brand s-brand" href="#home" aria-label="FRC Packs Battle, home"><Logo /><Wordmark /></a>
           <span class="b-top-r">{h && <span class="b-elo"><b>{h.profile.elo}</b> Elo</span>}<a class="b-chip" href="/">FRC Packs</a></span>
         </header>
       )}

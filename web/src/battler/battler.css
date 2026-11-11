@@ -67,7 +67,7 @@
 
 /* ---------- top bar and screens ---------- */
 .b-top { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; margin: 0 -16px; padding: calc(10px + env(safe-area-inset-top)) 16px 10px; background: rgba(11, 14, 23, .9); }
-.b-brand { font: 400 24px var(--display); text-decoration: none; letter-spacing: .02em; color: var(--tx); }
+.b-brand { display: inline-flex; align-items: center; white-space: nowrap; font: 400 22px var(--display); text-decoration: none; color: var(--tx); }
 .b-top-r { display: flex; align-items: center; gap: 10px; }
 .b-elo { font-size: 12px; color: var(--dim); }
 .b-elo b { font: 400 17px var(--display); color: var(--tx); }

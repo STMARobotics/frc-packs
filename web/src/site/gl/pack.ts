@@ -100,7 +100,7 @@ export function createPackGL(canvas: HTMLCanvasElement, host: HTMLElement): Pack
     return null;
   }
   let lost = false;
-  canvas.addEventListener("webglcontextlost", () => { lost = true; });
+  canvas.addEventListener("webglcontextlost", () => { lost = true; giveUp(); });
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
   const scene = new Scene(), camera = new PerspectiveCamera(50, 1, 10, 4000);
   let W = 1, H = 1;
@@ -350,7 +350,9 @@ export function createPackGL(canvas: HTMLCanvasElement, host: HTMLElement): Pack
   type Mirror = { el: HTMLElement; key: string; chain: HTMLElement[]; mesh: Mesh; shadow: Mesh; u: { op: { value: number }; dim: { value: number }; sh: { value: number }; w: { value: number }; h: { value: number } }; shown: boolean; calm: boolean };
   const mirrors = new Map<HTMLElement, Mirror>(), waiting = new Set<HTMLElement>();
   const cardPics = new Map<string, Promise<Texture | null>>();
-  let snaps: Promise<unknown> = Promise.resolve(), snapsOk = true;
+  // Tags get a line of their own: they're tiny and quick to draw, and waiting behind a card whose robot photo is
+  // still downloading left a card on screen with its tag hidden (NEW and COPY missing on slow connections).
+  let snaps: Promise<unknown> = Promise.resolve(), tagSnaps: Promise<unknown> = Promise.resolve(), snapsOk = true;
   const hush = new Set<string>();
   /** Waits for a breath, and for nothing that must stay smooth to be going on. */
   const calm = () => new Promise<void>((res) => { const f = () => (hush.size ? setTimeout(f, 80) : res()); setTimeout(f, 16); });
@@ -358,11 +360,12 @@ export function createPackGL(canvas: HTMLCanvasElement, host: HTMLElement): Pack
   const cardPic = (key: string, el: HTMLElement) => {
     let p = cardPics.get(key);
     if (!p) {
-      p = snaps.then(calm).then(() => (el.isConnected ? snap(el) : null)).then(
+      const tag = key.startsWith("ribbon ");
+      p = (tag ? tagSnaps : snaps.then(calm)).then(() => (el.isConnected ? snap(el) : null)).then(
         (cv) => { if (!cv) { cardPics.delete(key); return null; } const t = new CanvasTexture(cv); t.minFilter = LinearFilter; t.generateMipmaps = false; return t; },
-        () => { snapsOk = false; cardPics.delete(key); return null; },
+        () => { giveUp(); cardPics.delete(key); return null; },
       );
-      snaps = p;
+      if (tag) tagSnaps = p; else snaps = p;
       cardPics.set(key, p);
     }
     return p;
@@ -420,6 +423,12 @@ export function createPackGL(canvas: HTMLCanvasElement, host: HTMLElement): Pack
     trim();
     wake();
   };
+  /** The browser won't let us make pictures, or WebGL went away: the page draws every card and tag again, so none is
+      left hidden behind a canvas that can't show it. */
+  function giveUp() {
+    snapsOk = false;
+    for (const m of [...mirrors.values()]) dropMirror(m);
+  }
   const dropMirror = (m: Mirror) => {
     scene.remove(m.mesh, m.shadow);
     (m.mesh.material as ShaderMaterial).dispose(); (m.shadow.material as ShaderMaterial).dispose();

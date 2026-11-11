@@ -83,7 +83,12 @@ def stats(team, ty):
         print(f"  {team}: auto+teleop+endgame = {a + p + e:.1f} but total = {t:.1f}", file=sys.stderr)
     # Phases keep their sign (the game floors a robot's final phase score at zero, not the card stat).
     phases = [jsround(n * x / t) for x in (a, p, e)]
-    return phases + [max(0, min(100, jsround(r * 100))) for r in rps], None
+    rp = [max(0, min(100, jsround(r * 100))) for r in rps]
+    # Statbotics' RP numbers are each team's share of the expected RP, not chances, so RP2 can come out above RP1. In
+    # 2026 Supercharged (RP2) takes the fuel Energized (RP1) needs and more, so it's never likelier: cap it there.
+    if SEASON == 2026:
+        rp[1] = min(rp[1], rp[0])
+    return phases + rp, None
 
 def main():
     teams = [int(l.split("|")[0]) for l in (data / f"cmp-{SEASON}.txt").read_text(encoding="utf-8").splitlines() if l[:1].isdigit()]

@@ -335,7 +335,17 @@ pub fn run(all: &[Item], pack: &Pack, rules: &Rules, dev_tools: bool, now: i64) 
         }
         let scrapped = -sum(&|r| r == "scrap", &["card"], false);
         let scrap_parts = sum(&|r| r == "scrap", &["parts"], true);
-        let scrap_max = scrapped * i64::from(Tier::Legendary.scrap_parts());
+        // Each card at most a Legendary's parts, or a Mythic's for a team that's Mythic now (one copy at a time, by
+        // hand). Rarity changes since can only make this more generous.
+        let scrap_max: i64 = pl
+            .lines
+            .iter()
+            .filter(|l| l.reason == "scrap" && l.item == "card" && l.delta < 0)
+            .map(|l| {
+                let mythic = team_of(&l.detail).and_then(|n| pack.team_tier.get(&n)) == Some(&Tier::Mythic);
+                -l.delta * i64::from(if mythic { Tier::Mythic } else { Tier::Legendary }.scrap_parts())
+            })
+            .sum();
         if scrap_parts > scrap_max {
             ev.push(format!("{scrap_parts} parts from scrapping {scrapped} cards (at most {scrap_max})"));
         }

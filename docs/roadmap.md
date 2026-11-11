@@ -6,25 +6,11 @@ every ~2 days in between, and hotfixes whenever something big breaks. Every rele
 
 ## Planned
 
-### 0.14: the parts shop (#78)
+### 0.14: the shop, one Trade tab and a new Packs screen (#78)
 
-Five cards for parts, changing every day at midnight Central. This replaces "targeted crafting" below.
-
-- **The five:** two Common, one Uncommon, one Rare, and one Legendary on Thursdays only. They're picked from the date
-  with a hash, the same five for everyone, so the shop costs nothing to run: no rotation job and no table writes until
-  someone buys. Teams already in your binder show "You have ×N", the same as in trading.
-- **Prices:** Common 75, Uncommon 180, Rare 600, Legendary 2,500 parts. Each is about 15× its scrap value, and a Rare
-  costs more than a boosted pack (500), so packs stay the better deal unless you're after one particular card.
-  Prices live in the admin settings like `boost_cost`.
-- **Limits:** one of each slot per player per day. Mythics are never in the shop.
-- **What you get:** a new copy with a fresh serial, minted like a pulled card (`PRINT#` count, ledger reason `shop`).
-  The wishlist rule applies: buying a team takes it off.
-- **Tripwire before it ships:** the shop is a new way for cards to come in, so the supply check needs a rule for it.
-  Shop cards have to match `shop` lines that spent the right parts, at most one per slot per day. The intake alarm
-  counts shop cards too. Pen-test items: buying the same slot twice at once, buying after midnight with yesterday's
-  list, and a price change partway through a purchase.
-- **UI:** a Shop tab next to Workshop in the Binder, a countdown to the next rotation, and a heart on any shop card
-  that's on your wishlist.
+A Shop tab of its own: Standard and Boosted packs always, plus three cards (one Rare or better, rarely a Mythic) and a
+division pack that change every 4 hours, with one slot you can freeze. Trade and Social become one tab, and the
+Packs screen gets a Buy button. The full plan is in [shop.md](shop.md).
 
 ### Waiting on a decision
 

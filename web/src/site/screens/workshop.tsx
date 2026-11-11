@@ -104,7 +104,7 @@ export function Workshop() {
         <button type="button" class={cx("s-btn wide", armed && "warn")} disabled={!n || !!busy} onClick={scrap}>
           {!n ? "No extras to scrap" : armed ? `Tap again to scrap ${n}` : `Scrap ${n} extra${n === 1 ? "" : "s"} · +${gain} parts`}
         </button>
-        {ex.held > 0 && <small class="s-dim">{ex.held} {ex.held === 1 ? "extra waits" : "extras wait"} for the pack you're opening or a trade offer.</small>}
+        {ex.held > 0 && <small class="s-dim">{ex.held} {ex.held === 1 ? "extra is" : "extras are"} in a trade offer or the pack you're opening, so {ex.held === 1 ? "it stays" : "they stay"}.</small>}
         {skipped.length > 0 && <small class="s-dim">{skipped.reduce((a, t) => a + ex[t], 0)} more in {skipped.map((t) => TIERS[t].label).join(" and ")}. Tap to include.</small>}
         <small class="s-dim">{keep === 1 ? "Your first copy of every team" : `Your first ${keep} copies of every team`}, and cards you keep, are never scrapped.</small>
       </section>

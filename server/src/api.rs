@@ -1260,7 +1260,7 @@ struct ScrapReq {
     num: i32,
     /// How many extra copies to scrap. The first copy you got is never scrapped.
     count: i32,
-    /// Scrap this copy in particular (one that isn't the team's first).
+    /// Scrap this copy in particular: any copy, even your only one or a Mythic (the player picked it).
     #[serde(default)]
     serial: Option<i32>,
 }
@@ -1314,8 +1314,8 @@ pub(crate) async fn held_cards(db: &Db, p: &Profile) -> ApiResult<HashSet<i64>> 
 const SCRAP_BATCH: usize = 25;
 
 /// Scraps extra copies: deletes them (their serial numbers are not reused) and adds their parts. Keeps each team's
-/// first copy, and never touches a card from a pack that is still being revealed or one in an open trade offer, or a
-/// favorite team. `teams` limits it to some teams (None = every team in `tiers`); `limit` caps copies per team.
+/// first `keep` copies and Mythics, unless `only` names one copy the player picked (then any copy can go). Never
+/// touches a card from a pack that is still being revealed, one in an open trade offer, or a favorite team. `teams` limits it to some teams (None = every team in `tiers`); `limit` caps copies per team.
 /// Returns (parts gained, copies scrapped, copies held back).
 #[allow(clippy::too_many_arguments)]
 async fn scrap_copies(
@@ -1331,11 +1331,10 @@ async fn scrap_copies(
     kind: &str,
 ) -> ApiResult<Option<(i64, i64, i64)>> {
     let keep = keep.max(1);
-    // Teams by their tier in the recipe. Extra Legendary copies can be scrapped (you always keep one); Mythic copies
-    // never are.
+    // Teams by their tier in the recipe. Mythic copies only go one at a time, picked by serial.
     let wanted: HashSet<i32> = tiers
         .iter()
-        .filter(|t| !matches!(t, Tier::Mythic))
+        .filter(|t| only.is_some() || !matches!(t, Tier::Mythic))
         .flat_map(|t| pack.pools.get(t).into_iter().flatten().copied())
         .filter(|n| teams.is_none_or(|only| only.contains(n)))
         .collect();
@@ -1361,7 +1360,7 @@ async fn scrap_copies(
                 // The first `keep` copies that are free to scrap are kept; then the newest ones go, up to `limit`.
                 let free: Vec<&&CardRow> = copies.iter().filter(|c| !held.contains(&c.id)).collect();
                 if let Some(serial) = only {
-                    pick.extend(free.iter().skip(1).filter(|c| c.serial == serial).take(1).map(|c| **c));
+                    pick.extend(free.iter().filter(|c| c.serial == serial).take(1).map(|c| **c));
                     continue;
                 }
                 let take = free.len().saturating_sub(keep).min(limit);

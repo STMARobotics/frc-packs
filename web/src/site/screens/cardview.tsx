@@ -107,7 +107,7 @@ function CardView({ num, o }: { num: number; o: CardOpts }) {
             {o.serials && o.serials.length > 1 ? <><dt>Serials</dt><dd>{o.serials.map((x) => `No. ${x}`).join(" · ")}</dd></>
               : o.serial ? <><dt>Serial</dt><dd>No. {o.serial}</dd></> : null}
             <dt>Battler</dt><dd>{t.bt ? `AUTO ${t.bt.auto} · TELE ${t.bt.tele} · END ${t.bt.end}` : "Stats coming soon"}</dd>
-            {t.bt?.effect && <><dt>Effect</dt><dd>{t.bt.effectName ? <><b>{t.bt.effectName}.</b> </> : null}{t.bt.effect}</dd></>}
+            {t.bt?.effect && <><dt>Effect</dt><dd>{t.bt.effect}</dd></>}
             <dt>RP slots</dt><dd>{names.map((n, i) => `RP${i + 1} ${n}`).join(" · ")}</dd>
           </dl>
         ) : <TiltCard num={num} serial={serial} w="min(310px, 80vw, calc((100svh - 250px) / 1.4))" />}
@@ -188,18 +188,20 @@ function Copies({ num, pick, onPick }: { num: number; pick: number | null; onPic
       </div>
       {sorted.map((c) => {
         const bd = badges(num, [c.serial]).filter(([k]) => k !== "p");
-        const why = c.first ? "Your first copy: always kept" : kept ? "Kept: never scrapped" : t.tier === "mythic" ? "Mythics are never scrapped" : c.held ? "In a trade offer or a pack being opened" : "";
+        // Any copy can be scrapped from here, even your only one or a Mythic: you picked it. Cards you keep (♥) and ones
+        // in a trade offer or a pack being opened can't.
+        const why = kept ? "Kept: never scrapped" : c.held ? "In a trade offer or a pack being opened" : "";
         return (
           <div class={cx("cw-copy", pick === c.serial && "on", c.held && "held")}>
             <button type="button" class="cw-copy-main" onClick={() => onPick(c.serial)} aria-label={`No. ${c.serial}, show it on the card`}>
               <b>No. {c.serial}</b>
               <span>{FROM[c.obtained] ?? "Yours"} · {ago(c.at)}</span>
               {(bd.length > 0 || c.first) && <span class="cw-copy-bdg">{c.first && <i class="s-bdg">First copy</i>}{bd.map(([k, l]) => <i class={`s-bdg ${k}`}>{l}</i>)}</span>}
-              {why && !c.first && <small class="s-dim">{why}</small>}
+              {why && <small class="s-dim">{why}</small>}
             </button>
             <div class="cw-copy-act">
               <button type="button" class="s-chipbtn" disabled={c.held} onClick={() => closeAll(() => offerFromBinder(num, c.serial))}>Trade</button>
-              {!why && <button type="button" class={cx("s-chipbtn", armed === c.serial && "warn")} disabled={busy === c.serial} onClick={() => scrap(c)}>{armed === c.serial ? "Tap again" : `Scrap +${each}`}</button>}
+              {!why && <button type="button" class={cx("s-chipbtn", armed === c.serial && "warn")} disabled={busy === c.serial} onClick={() => scrap(c)}>{armed === c.serial ? (list.length === 1 ? "Tap again: your only copy" : "Tap again") : `Scrap +${each}`}</button>}
             </div>
           </div>
         );
