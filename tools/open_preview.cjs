@@ -20,7 +20,8 @@ const file = (re) => fs.readFileSync(path.join(BUILD, html.match(re)[1]), 'utf8'
 const js = file(/<script type="module" crossorigin src="\.\/([^"]+)"/).replace(/<\/script/gi, '<\\/script');
 const css = file(/<link rel="stylesheet" crossorigin href="\.\/([^"]+)"/).replace(/<\/style/gi, '<\\/style');
 // The page as the artifact wants it: no document skeleton of its own (it gets one when published).
-const page = `<title>FRC Packs Opening Preview</title>
+const page = `<meta charset="utf-8">
+<title>FRC Packs Opening Preview</title>
 <style>${css}</style>
 <div id="app"></div>
 <script>document.body.classList.add("s-page");</script>
