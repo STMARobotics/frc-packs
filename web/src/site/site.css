@@ -346,35 +346,46 @@ body.s-page.pad :focus { outline: 3px solid var(--ac); outline-offset: 3px; }
 .sg-line.sg-sub { padding-left: 18px; }
 .sg-line.sg-sub b { font-weight: 600; font-size: 14px; }
 
-/* The Shop tab (screens/shop.tsx). */
-.sh-shop { display: grid; gap: 18px; }
-.sh-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
-.sh-head h1 { margin: 0; font: 400 32px var(--display); }
-.sh-head p { margin: 2px 0 0; }
-.sh-sec { display: grid; gap: 10px; }
-.sh-pack { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px; background: var(--s1); }
-.sh-pack .s-btn { min-height: 42px; padding: 0 14px; white-space: nowrap; }
-.sh-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.sh-item { display: grid; gap: 8px; padding: 10px; border-radius: 16px; background: var(--s1); align-content: start; }
+/* The Shop tab (screens/shop.tsx): three slots a row, the cards and then the packs. */
+.sh-shop { display: grid; gap: 12px; }
+.sh-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.sh-head h1 { margin: 0; font: 400 30px var(--display); }
+.sh-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.sh-item { display: grid; gap: 6px; padding: 6px; border-radius: 14px; background: var(--s1); align-content: start; }
 .sh-item.t-legendary { box-shadow: inset 0 0 0 1.5px #b478ff; }
 .sh-item.t-mythic { box-shadow: inset 0 0 0 2px #3cffdc, 0 0 24px rgba(60, 255, 220, .25); }
-.sh-item.frozen { box-shadow: inset 0 0 0 2px #9fdcff; background: linear-gradient(180deg, rgba(159, 220, 255, .12), var(--s1)); }
-.sh-item.sold .sh-what { opacity: .45; }
+.sh-item.sold .sh-what { opacity: .4; }
 .sh-what { position: relative; }
 .sh-card { display: block; width: 100%; padding: 0; border: 0; background: none; cursor: pointer; container-type: inline-size; }
 .sh-card .s-card { width: 100%; }
-.sh-div { display: grid; justify-items: center; align-content: center; gap: 6px; aspect-ratio: 5 / 7; padding: 10px; border-radius: 10px; background: var(--s2); text-align: center; }
-.sh-div .gd-art { width: 46px; height: 64px; }
-.sh-div b { font: 400 22px var(--display); }
-.sh-div small { color: var(--dim); font-size: 11.5px; }
-.sh-wish { position: absolute; left: 6px; top: 6px; color: #ff6b8a; font-size: 18px; text-shadow: 0 1px 4px rgba(0, 0, 0, .6); }
-.sh-freeze { margin-left: auto; min-height: 30px; padding: 0 10px; border: 0; border-radius: 99px; background: var(--s3); color: var(--dim); font: 700 12px var(--body); cursor: pointer; }
-.sh-freeze.on { background: #9fdcff; color: #04131b; }
-.sh-freeze:disabled { opacity: .4; cursor: default; }
-.sh-info { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; min-height: 20px; }
-.sh-info b { font: 400 16px var(--display); }
-.sh-frozen { color: #9fdcff; font-weight: 700; }
+/* The packs, drawn like the pack you open, in a 5:7 slot like the cards beside them. */
+.sh-pack { aspect-ratio: 5 / 7; display: grid; place-items: center; }
+.sh-pack .op-pack { width: 92%; }
+.sh-wish { position: absolute; left: 4px; bottom: 4px; color: #ff6b8a; font-size: 15px; text-shadow: 0 1px 4px rgba(0, 0, 0, .6); }
+/* Frozen: frost over the slot. */
+.sh-item.frozen { box-shadow: inset 0 0 0 2px #bfe8ff, 0 0 18px rgba(150, 215, 255, .35); }
+.sh-ice { position: absolute; inset: 0; border-radius: 8px; pointer-events: none;
+  background: radial-gradient(circle at 20% 15%, rgba(255, 255, 255, .55), transparent 35%), radial-gradient(circle at 85% 80%, rgba(255, 255, 255, .4), transparent 30%),
+    repeating-linear-gradient(60deg, rgba(255, 255, 255, .08) 0 2px, transparent 2px 9px), repeating-linear-gradient(-60deg, rgba(255, 255, 255, .08) 0 2px, transparent 2px 11px),
+    linear-gradient(180deg, rgba(190, 235, 255, .45), rgba(120, 190, 255, .25));
+  box-shadow: inset 0 0 16px 4px rgba(225, 245, 255, .85); backdrop-filter: saturate(.55) brightness(1.08); -webkit-backdrop-filter: saturate(.55) brightness(1.08); }
+.sh-ice::after { content: "\2744"; position: absolute; inset: 0; display: grid; place-items: center; font-size: 34px; color: rgba(255, 255, 255, .85); text-shadow: 0 0 10px rgba(120, 200, 255, .9); }
+.sh-info { display: flex; align-items: center; gap: 4px; min-height: 26px; }
+.sh-info small { flex: 1; min-width: 0; font-size: 11.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sh-freeze { flex: none; width: 26px; height: 26px; padding: 0; border: 0; border-radius: 50%; background: var(--s3); color: var(--dim); font-size: 13px; cursor: pointer; }
+.sh-freeze.on { background: #bfe8ff; color: #04131b; }
+.sh-freeze:disabled { opacity: .35; cursor: default; }
+.sh-item .s-btn.small { min-height: 34px; padding: 0 6px; font-size: 14px; }
+.sh-foot { text-align: center; }
 /* The Mythic meter is a button: tap it for what it means (#115). */
 button.st-meter { border: 0; color: inherit; text-align: left; font: inherit; cursor: pointer; }
 .st-info { display: inline-grid; place-items: center; width: 14px; height: 14px; margin-left: 4px; border-radius: 50%; background: var(--s3); font: 700 9px/1 var(--body); font-style: normal; letter-spacing: 0; color: var(--tx); vertical-align: 1px; }
 .st-why { grid-column: 1 / -1; margin: 0; padding: 10px 14px; border-radius: 14px; background: var(--s1); color: var(--dim); font-size: 13.5px; line-height: 1.45; }
+
+/* The Binder's filters: rarity chips, then division, sort, Missing and compact on one row. */
+.bn-tiers { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+.bn-tiers .s-chip { flex: none; }
+.bn-tiers .s-chip b { color: var(--tc, inherit); font-weight: 700; }
+.bn-row { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) auto auto; gap: 6px; }
+.bn-row .s-select { min-width: 0; }
+.bn-compact { width: 42px; padding: 0; justify-content: center; font-size: 18px; }

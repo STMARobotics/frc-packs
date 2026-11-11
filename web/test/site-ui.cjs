@@ -111,13 +111,13 @@ async function main() {
     } else console.log('(no duplicate card to check Copies with)');
   }
   // Filters and search.
-  await p.selectOption('.s-filters select >> nth=0', 'common');
+  await p.click('.bn-tiers b >> text="Common"');
   await shot('binder-common');
-  await p.selectOption('.s-filters select >> nth=0', 'all');
-  await p.click('.s-filters >> text=Missing');
+  await p.click('.bn-tiers >> text="All"');
+  await p.click('.bn-row >> text=Missing');
   await p.waitForTimeout(300);
   await shot('binder-missing');
-  await p.click('.s-filters >> text=Missing');
+  await p.click('.bn-row >> text=Missing');
   await p.fill('input[type=search]', '1');
   await p.waitForTimeout(300);
   await p.fill('input[type=search]', '');
@@ -138,14 +138,14 @@ async function main() {
   await shot('workshop');
   await p.click('.s-tabs >> text=Cards');
   // A card you don't have: wishlist it.
-  await p.click('.s-filters >> text=Missing');
+  await p.click('.bn-row >> text=Missing');
   await p.click('.s-ghost >> nth=0');
   await p.waitForSelector('.s-cardview');
   await p.click('.cw-top >> text=Wishlist');
   await p.waitForTimeout(400);
   await shot('ghost-card-wished');
   await p.click('.cw-top [aria-label=Close]');
-  await p.click('.s-filters >> text=Missing');
+  await p.click('.bn-row >> text=Missing');
   // Profile and settings.
   await p.click('.s-avbtn');
   await p.waitForSelector('.s-profile .pr-stats');
@@ -203,7 +203,7 @@ async function main() {
   await tapThrough(2);
   await p.reload();
   await p.waitForSelector('.op-hero');
-  assert((await p.textContent('.op-openbtn')) === 'Finish opening', 'a half-opened pack is offered again');
+  assert((await p.textContent('.op-cap')) === 'Finish opening', 'a half-opened pack is offered again');
   await p.click('.op-hero');
   await p.waitForSelector('.op-stack');
   await tapThrough(12);

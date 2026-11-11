@@ -65,7 +65,7 @@ export function StatusBar() {
         <em>{pity}/{hard}</em>
       </button>
       {/* What the meter is (#115): packs since your last Mythic, not your collection. */}
-      {why && <p class="st-why">The meter counts packs you've opened since your last Mythic. Every pack has the same small chance of one. After {soft} packs without one the chance climbs, and by pack {hard} you're sure to get one. It goes back to 0 when you pull a Mythic.</p>}
+      {why && <p class="st-why">Packs since your last Mythic. After {soft} the odds climb; by {hard} one is guaranteed.</p>}
       <Daily />
     </section>
   );
@@ -112,7 +112,7 @@ function Daily() {
           })}
           <p class="s-dim st-note">
             <span class="st-week">{Array.from({ length: k.every }, (_, i) => <i class={i + 1 <= into ? "on" : i + 1 === k.every ? "gift" : ""} />)}</span>
-            {k.today ? "Opened today. " : k.days ? "Open a pack today to keep it. " : ""}A boosted pack every {k.every} days in a row{k.days ? ` · ${toGift} to go` : ""}.
+            {k.days ? `${toGift} to a boosted pack` : `Open ${k.every} days in a row for a boosted pack`}
           </p>
         </div>
       )}

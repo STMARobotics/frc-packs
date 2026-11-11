@@ -56,7 +56,6 @@ export function Workshop() {
   const tiers = SCRAPPABLE.filter((t) => pick[t]);
   const n = tiers.reduce((a, t) => a + ex[t], 0);
   const gain = tiers.reduce((a, t) => a + ex[t] * (s.scrapParts[t] ?? 0), 0);
-  const skipped = SCRAPPABLE.filter((t) => !pick[t] && ex[t]);
 
   const toggle = (t: Tier) => {
     const p = { ...pick, [t]: !pick[t] };
@@ -74,7 +73,6 @@ export function Workshop() {
     <div class="s-workshop">
       <section class="s-panel">
         <div class="s-parts"><span>Parts</span><b>{s.parts.toLocaleString()}</b></div>
-        <small class="s-dim">Spend them in the Shop: packs, and cards that change every 4 hours.</small>
         <a class="s-btn wide ghost" href="#shop">Go to the Shop</a>
       </section>
       <section class="s-panel">
@@ -92,9 +90,7 @@ export function Workshop() {
         <button type="button" class={cx("s-btn wide", armed && "warn")} disabled={!n || !!busy} onClick={scrap}>
           {!n ? "No extras to scrap" : armed ? `Tap again to scrap ${n}` : `Scrap ${n} extra${n === 1 ? "" : "s"} · +${gain} parts`}
         </button>
-        {ex.held > 0 && <small class="s-dim">{ex.held} {ex.held === 1 ? "extra is" : "extras are"} in a trade offer or the pack you're opening, so {ex.held === 1 ? "it stays" : "they stay"}.</small>}
-        {skipped.length > 0 && <small class="s-dim">{skipped.reduce((a, t) => a + ex[t], 0)} more in {skipped.map((t) => TIERS[t].label).join(" and ")}. Tap to include.</small>}
-        <small class="s-dim">{keep === 1 ? "Your first copy of every team" : `Your first ${keep} copies of every team`}, and cards you keep, are never scrapped.</small>
+        {ex.held > 0 && <small class="s-dim">{ex.held} in trades or a pack you're opening are left alone.</small>}
       </section>
     </div>
   );

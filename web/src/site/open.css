@@ -240,7 +240,7 @@
 .op-home2 { justify-items: stretch; gap: 14px; padding-top: 10px; }
 .op-head h1 { margin: 0; font: 400 32px var(--display); }
 .op-head p { margin: 2px 0 0; }
-.op-top { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: center; gap: 14px; }
+.op-homerow { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: center; gap: 14px; }
 .op-home2 .op-hero { width: 100%; min-width: 0; max-width: 240px; justify-self: center; }
 .op-kinds2 { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 10px; }
 .op-kinds2 .op-kind { min-height: 64px; padding: 10px 14px; border-radius: 14px; grid-template-columns: auto 1fr; }
@@ -248,4 +248,5 @@
 .op-kinds2 .op-kind span { font-size: 14px; }
 .op-acts { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
 .op-openbtn { min-height: 52px; font-size: 18px; }
-.op-buybtn { min-height: 52px; padding: 0 18px; white-space: nowrap; }
+.op-buybtn { min-height: 50px; padding: 0 18px; white-space: nowrap; }
+.op-home2 .op-cap { text-align: center; }

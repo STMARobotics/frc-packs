@@ -731,7 +731,7 @@ function History() {
                   </header>
                   <Row label={verb[0]} cards={t.youGet} goods={{ packs: t.youGetPacks, boosted: t.youGetBoosted, parts: t.youGetParts }} specials={t.youGetSpecials} whose={t.with} />
                   <Row label={verb[1]} cards={t.youGive} goods={{ packs: t.youGivePacks, boosted: t.youGiveBoosted, parts: t.youGiveParts }} specials={t.youGiveSpecials} whose="you" />
-                  {t.status === "failed" && <p class="s-dim">Someone no longer had something in it, so it was called off.</p>}
+                  {t.status === "failed" && <p class="s-dim">Called off: something in it was gone.</p>}
                 </article>
               </>
             );

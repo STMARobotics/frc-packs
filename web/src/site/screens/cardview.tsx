@@ -125,7 +125,6 @@ function CardView({ num, o }: { num: number; o: CardOpts }) {
             {extras > 1 && <button type="button" class={cx("s-chipbtn", armed === extras && "warn")} disabled={busy === "scrap"} onClick={() => scrap(extras)}>{armed === extras ? "Tap again" : `Scrap all ${extras} · +${each * extras}`}</button>}
           </div>
         )}
-        {owned && !o.from && mine.length > 1 && free < 2 && t.tier !== "mythic" && <small class="s-dim">Your extra copies are in a pack you're opening or a trade offer.</small>}
         {!o.from && view !== "copies" && <WhoHas num={num} />}
       </div>
     </div>
@@ -147,7 +146,7 @@ function WhoHas({ num }: { num: number }) {
   if (!list.length) return <small class="s-dim">Nobody else has this one yet.</small>;
   return (
     <div class="cw-owners">
-      <small class="s-dim">{list.length === 1 ? "1 player has it" : `${list.length} players have it`}. Tap one to ask for it.</small>
+      <small class="s-dim">{list.length === 1 ? "1 player has it" : `${list.length} players have it`}</small>
       {list.slice(0, 12).map((x) => (
         <button type="button" class="cw-owner" onClick={() => closeAll(() => tradeFor(x.name, num))}>
           <Avatar name={x.name} team={x.avatar} /><b>{x.name}</b><span class={cx("s-dim", x.copies > 1 && "cw-spare")}>{x.copies > 1 ? `×${x.copies} · has spares` : "1 copy"}</span>

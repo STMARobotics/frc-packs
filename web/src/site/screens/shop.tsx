@@ -9,7 +9,7 @@ import { applyCollection, applyState, fail, inv, st, toast } from "../state";
 import { Card, cx, Spinner } from "../ui";
 import { sfx } from "../sfx";
 import { openCard } from "./cardview";
-import { openDivision } from "./open";
+import { openDivision, PackArt } from "./open";
 import { useNow } from "./status";
 
 /** The shop as last loaded (the Packs tab uses its pack prices too). */
@@ -36,7 +36,7 @@ function useConfirm(): [string, (key: string, run: () => void) => void] {
 }
 
 /** Buys a Standard or Boosted pack for parts: here, and next to Open on the Packs tab. */
-export function BuyPack({ kind, cls }: { kind: "std" | "boosted"; cls?: string }) {
+export function BuyPack({ kind, cls, short }: { kind: "std" | "boosted"; cls?: string; short?: boolean }) {
   const s = useStore(st)!;
   const sh = useStore(shopData);
   const [armed, confirm] = useConfirm();
@@ -50,7 +50,7 @@ export function BuyPack({ kind, cls }: { kind: "std" | "boosted"; cls?: string }
     try {
       applyState(await api.shopPack(kind));
       sfx.promote();
-      toast(kind === "boosted" ? "Boosted pack bought. It's in its gold stack." : "Standard pack bought.");
+      toast(kind === "boosted" ? "Boosted pack bought" : "Standard pack bought");
       loadShop();
     } catch (e) { fail(e); }
     setBusy(false);
@@ -58,7 +58,7 @@ export function BuyPack({ kind, cls }: { kind: "std" | "boosted"; cls?: string }
   return (
     <button type="button" class={cx("s-btn ghost", armed === kind && "warn", cls)} disabled={busy || full || s.parts < price} onClick={buy}
       title={full ? "That's today's limit for buying packs" : s.parts < price ? `${price - s.parts} more parts` : undefined}>
-      {armed === kind ? `Tap again · ${price}` : full ? "Limit today" : <>⚙ Buy · {price.toLocaleString()}</>}
+      {armed === kind ? (short ? "Tap again" : `Tap again · ${price}`) : full ? "Limit today" : short ? <>⚙ {price.toLocaleString()}</> : <>⚙ Buy · {price.toLocaleString()}</>}
     </button>
   );
 }
@@ -107,59 +107,57 @@ export function ShopTab({ active }: { active: boolean }) {
     setBusy("");
   };
 
+  // Six slots, three to a row: the three cards, then the Standard, Boosted and division packs.
+  const slot = (it: ShopItem) => {
+    const t = it.num != null ? BY_NUM.get(it.num) : undefined;
+    const have = it.num != null ? cards[it.num]?.length ?? 0 : 0;
+    const wish = it.num != null && (s.wishlist ?? []).includes(it.num);
+    const short = it.price - s.parts;
+    return (
+      <article class={cx("sh-item", it.sold && "sold", it.frozen && "frozen", it.tier && `t-${it.tier}`)} key={it.slot}>
+        <div class="sh-what">
+          {it.kind === "card" && t ? (
+            <button type="button" class="sh-card" onClick={() => openCard(it.num!, undefined, { from: "In your shop." })} aria-label={`See ${t.name}`}>
+              <Card num={it.num!} w="100cqw" />
+            </button>
+          ) : <div class="sh-pack"><PackArt k="std" label={it.division} /></div>}
+          {wish && <span class="sh-wish" title="On your wishlist">♥</span>}
+          {it.frozen && <span class="sh-ice" aria-hidden="true" />}
+        </div>
+        <div class="sh-info">
+          <small style={it.tier ? { color: TIERS[it.tier].color } : undefined}>{it.tier ? TIERS[it.tier].label : "Division"}{it.kind === "card" ? (have ? ` · ×${have}` : " · New") : ""}</small>
+          <button type="button" class={cx("sh-freeze", it.frozen && "on")} disabled={it.sold || busy === `f-${it.slot}`} aria-pressed={it.frozen}
+            aria-label={it.frozen ? "Unfreeze" : "Freeze"} title={it.frozen ? "Frozen: it stays when the shop changes. Tap to unfreeze." : "Freeze: keep it when the shop changes"} onClick={() => freeze(it)}>❄</button>
+        </div>
+        <button type="button" class={cx("s-btn small wide", armed === it.slot && "warn")} disabled={it.sold || short > 0 || busy === it.slot} onClick={() => buy(it)}
+          title={short > 0 ? `${short.toLocaleString()} more parts` : undefined}>
+          {it.sold ? "Bought" : armed === it.slot ? "Tap again" : `⚙ ${it.price.toLocaleString()}`}
+        </button>
+      </article>
+    );
+  };
+  const packSlot = (k: "std" | "boosted") => (
+    <article class="sh-item" key={k}>
+      <div class="sh-what"><div class="sh-pack"><PackArt k={k === "boosted" ? "gold" : "std"} /></div></div>
+      <div class="sh-info"><small>{k === "boosted" ? "Boosted" : "Standard"}</small></div>
+      <BuyPack kind={k} cls="small wide" short />
+    </article>
+  );
+  const items = (slots: string[]) => sh.items.filter((i) => slots.includes(i.slot));
+
   return (
     <div class="s-screen sh-shop">
       <header class="sh-head">
-        <div><h1>Shop</h1><p class="s-dim">You have ⚙ {s.parts.toLocaleString()} parts</p></div>
+        <h1>Shop</h1>
+        <span class="s-dim">New in {left(sh.endsAt - now)}</span>
       </header>
-
-      <section class="sh-sec">
-        <h2 class="s-h2">Packs</h2>
-        {([["std", "Standard pack", "5 cards"], ["boosted", "Boosted pack", "Better odds: Legendary or better in about half"]] as const).map(([k, title, note]) => (
-          <div class="sh-pack">
-            <span class={cx("gd-art", k === "boosted" && "gold")} />
-            <span class="gd-t"><b>{title}</b><small>{note}</small></span>
-            <BuyPack kind={k} />
-          </div>
-        ))}
-        <small class="s-dim">{sh.packsToday} of {sh.packsPerDay} packs bought today.</small>
-      </section>
-
-      <section class="sh-sec">
-        <h2 class="s-h2">New stock in {left(sh.endsAt - now)}</h2>
-        <div class="sh-grid">
-          {sh.items.map((it) => {
-            const t = it.num != null ? BY_NUM.get(it.num) : undefined;
-            const have = it.num != null ? cards[it.num]?.length ?? 0 : 0;
-            const wish = it.num != null && (s.wishlist ?? []).includes(it.num);
-            const short = it.price - s.parts;
-            return (
-              <article class={cx("sh-item", it.sold && "sold", it.frozen && "frozen", it.tier && `t-${it.tier}`)} key={it.slot}>
-                <div class="sh-what">
-                  {it.kind === "card" && t ? (
-                    <button type="button" class="sh-card" onClick={() => openCard(it.num!, undefined, { from: "In your shop." })} aria-label={`See ${t.name}`}>
-                      <Card num={it.num!} w="100cqw" />
-                    </button>
-                  ) : (
-                    <div class="sh-div"><span class="gd-art" /><b>{it.division}</b><small>Division pack · 5 cards from {it.division}</small></div>
-                  )}
-                  {wish && <span class="sh-wish" title="On your wishlist">♥</span>}
-                </div>
-                <div class="sh-info">
-                  {it.tier && <b style={{ color: TIERS[it.tier].color }}>{TIERS[it.tier].label}</b>}
-                  {it.kind === "card" && <small class="s-dim">{have ? `You have ×${have}` : "New"}</small>}
-                  <button type="button" class={cx("sh-freeze", it.frozen && "on")} disabled={it.sold || busy === `f-${it.slot}`} aria-pressed={it.frozen}
-                    title={it.frozen ? "Frozen: it stays through refreshes. Tap to unfreeze." : "Freeze it until you've saved up"} onClick={() => freeze(it)}>❄ {it.frozen ? "Frozen" : "Freeze"}</button>
-                </div>
-                <button type="button" class={cx("s-btn small wide", armed === it.slot && "warn")} disabled={it.sold || short > 0 || busy === it.slot} onClick={() => buy(it)}>
-                  {it.sold ? "Bought" : short > 0 ? `${short.toLocaleString()} more parts` : armed === it.slot ? `Tap again · ${it.price.toLocaleString()}` : `Buy · ${it.price.toLocaleString()}`}
-                </button>
-              </article>
-            );
-          })}
-        </div>
-        <small class="s-dim">One card is always Rare or better, and once in a long while it's a Mythic. Freeze one slot (❄) to keep it while you save up.</small>
-      </section>
+      <div class="sh-grid">
+        {items(["c1", "c2", "c3"]).map(slot)}
+        {packSlot("std")}
+        {packSlot("boosted")}
+        {items(["div"]).map(slot)}
+      </div>
+      <small class="s-dim sh-foot">{sh.packsToday}/{sh.packsPerDay} packs bought today</small>
     </div>
   );
 }

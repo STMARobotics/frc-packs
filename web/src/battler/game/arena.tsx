@@ -163,7 +163,7 @@ export function Arena({ g, log, onNext }: { g: GameView; log: RoundLog | null; o
         <Clock g={g} />
       </div>
 
-      {pit && theirBots.every((i) => i !== 0) && <p class="b-lineup-note">Opponent’s robots · station order revealed when both players go to queue</p>}
+      {pit && theirBots.every((i) => i !== 0) && <p class="b-lineup-note">Their stations show once you're both in queue</p>}
       {/* the board */}
       <div class="b-board" ref={board} onClick={(e) => { if (e.target === e.currentTarget) setSel(null); }}>
         {[0, 1, 2].map((k) => <div key={`lane${k}`} class="b-lane" data-lane={live ? k : undefined} style={{ gridColumn: k + 1 }} onClick={() => setSel(null)} />)}

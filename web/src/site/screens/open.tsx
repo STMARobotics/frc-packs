@@ -106,7 +106,7 @@ function Sky({ k }: { k: Kind }) {
   );
 }
 
-export function PackArt({ k, odds }: { k: Kind; odds?: boolean }) {
+export function PackArt({ k, odds, label }: { k: Kind; odds?: boolean; label?: string }) {
   return (
     <div class={cx("op-pack", `k-${k}`)}>
       {odds && [-3, -2, -1, 0, 1, 2, 3].map((z) => <i class="op-pedge" style={{ "--z": z }} />)}
@@ -116,7 +116,7 @@ export function PackArt({ k, odds }: { k: Kind; odds?: boolean }) {
           <span class="op-pyr">{RECIPE?.season ?? 2026}</span>
           <Sky k={k} />
           <b class="op-pname">{(RECIPE?.name ?? "Championship").replace(/^\d{4}\s*/, "")}</b>
-          <span class="op-pkind">{k === "std" ? "5 cards" : NAME[k]}</span>
+          <span class="op-pkind">{label ?? (k === "std" ? "5 cards" : NAME[k])}</span>
           <i class="op-psheen" />
         </div>
       </div>
@@ -175,7 +175,7 @@ export function OpenHome() {
   return (
     <section class="op-home op-home2">
       <header class="op-head"><h1>Packs</h1><p class="s-dim">{RECIPE?.name ?? "2026 Championship"} · 5 teams per pack</p></header>
-      <div class="op-top">
+      <div class="op-homerow">
         <button ref={btn} type="button" data-pad-first class={cx("op-hero", !n && !left && "op-empty")} onClick={go} onPointerDown={loadGL} onPointerMove={tilt} onPointerLeave={untilt}
           aria-label={left ? "Finish opening your last pack" : `${NAME[cur]} pack, ${cur === "test" ? "unlimited" : n} to open`}>
           <span class="op-hero-in"><PackArt k={left ? "std" : cur} /></span>
@@ -188,10 +188,9 @@ export function OpenHome() {
           ))}
         </div>
       </div>
-      <div class="op-acts">
-        <button type="button" class="s-btn op-openbtn" onClick={go}>{left ? "Finish opening" : cur === "test" ? "Open a test pack" : n ? `Open ${NAME[cur]}` : "No packs left"}</button>
-        {cur !== "test" && <BuyPack kind={cur === "gold" ? "boosted" : "std"} cls="op-buybtn" />}
-      </div>
+      {/* Tap the pack to open it; Buy gets another of the kind picked. */}
+      {left && <p class="op-cap">Finish opening</p>}
+      {cur !== "test" && <BuyPack kind={cur === "gold" ? "boosted" : "std"} cls="op-buybtn" />}
     </section>
   );
 }

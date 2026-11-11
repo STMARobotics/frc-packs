@@ -260,7 +260,7 @@ function EditProfile() {
         <textarea autoComplete="off" data-1p-ignore data-lpignore="true" data-form-type="other" class="s-input" rows={3} maxLength={200} value={bio} placeholder="Your team, your favorite robot, what you're collecting…" onInput={(e) => setBio(e.currentTarget.value)} />
       </label>
       <button type="button" class="s-btn wide" disabled={busy || bad} onClick={save}>{busy ? <Spinner small /> : "Save"}</button>
-      <p class="s-dim ed-note">Your picture and banner come from cards you own. Keep it friendly: everyone can see your profile.</p>
+      
     </div>
   );
 }
