@@ -52,7 +52,7 @@
   --display: "Figtree", "Arial Rounded MT Bold", system-ui, sans-serif;
   --body: "Mona Sans Variable", "Segoe UI", system-ui, sans-serif;
   --card-stats: "Figtree Black", var(--body);
-  --tier-uncommon: #8bbcf0;
+  --tier-uncommon: #65adff;
   /* The card in the stack is as big as the screen allows after the header, status bar, hint and buttons (about 380px), so short phones don't have to scroll. */
   --cw: clamp(170px, min(74vw, 290px, calc((100svh - 380px) / 1.4)), 290px);
 }
@@ -354,7 +354,7 @@ button:focus-visible, [role="button"]:focus-visible { outline: 2px solid var(--t
 .inner.full .ft { color: #fff; padding: 0 calc(var(--cw) * .045) calc(var(--cw) * .035); opacity: 1; text-shadow: 0 1px 3px rgba(0,0,0,.8); }
 
 .card[data-tier="common"] { --frame: linear-gradient(150deg, #d9e1e6, #9aa9b4); --paper: linear-gradient(180deg, #f2f5f7, #e1e8ec); --glow: rgba(0,0,0,0); --ink-card: #172a33; --art: linear-gradient(180deg, #bfd3e0, #8fa9ba); --art-edge: #8b99a4; --gem: #8fa2ae; --foilop: 0; --sparkop: 0; --tc: rgba(170,184,196,.55); --hp: #b3261e; }
-.card[data-tier="uncommon"] { --frame: linear-gradient(150deg, #eff5ff, #9bb6d2 50%, #e1edfa); --paper: linear-gradient(180deg, #eff5fd, #dbe9f9); --glow: rgba(174,209,249,.4); --ink-card: #17324d; --art: linear-gradient(180deg, #c7def6, #8fb3d8); --art-edge: #87a7c7; --gem: var(--tier-uncommon); --foilop: .1; --sparkop: 0; --tc: rgba(220,240,245,.75); --hp: #b3261e; }
+.card[data-tier="uncommon"] { --frame: linear-gradient(150deg, #b7dcff, #5b9ee5 50%, #a7d2ff); --paper: linear-gradient(180deg, #eff5fd, #dbe9f9); --glow: rgba(119,181,255,.45); --ink-card: #17324d; --art: linear-gradient(180deg, #c7def6, #8fb3d8); --art-edge: #87a7c7; --gem: var(--tier-uncommon); --foilop: .1; --sparkop: 0; --tc: rgba(220,240,245,.75); --hp: #b3261e; }
 .card[data-tier="rare"] { --frame: linear-gradient(150deg, #ffe59a, #c38a1d 45%, #ffe08a 70%, #b97a12); --paper: linear-gradient(180deg, #fff8e3, #f7e6b5); --glow: rgba(255,200,80,.65); --ink-card: #3a2600; --art: linear-gradient(180deg, #ffe7a3, #e9a63c); --art-edge: #c9a33a; --gem: #e7a51d; --foilop: .28; --sparkop: .3; --tc: rgba(255,200,80,.95); --hp: #b3261e; }
 .card[data-tier="legendary"] { --frame: linear-gradient(150deg, #ffb3dc, #7b4dff 45%, #4de1ff 75%, #ff9bd2); --glow: rgba(170,110,255,.85); --gem: #c79bff; --foilop: .5; --sparkop: .55; --tc: rgba(180,120,255,1); --hp: #ffd36a; --art: radial-gradient(120% 80% at 50% 30%, #6b3fd8, #1c0f4a 70%); }
 .card[data-tier="mythic"] { --frame: conic-gradient(from var(--spin,0deg), #ff3d9a, #ffe14a, #38ffd2, #4d7bff, #c04dff, #ff3d9a); --glow: rgba(60,255,220,.9); --gem: #ffe14a; --foilop: .7; --sparkop: .7; --tc: rgba(60,255,220,1); --hp: #5cffe9; --art: radial-gradient(120% 80% at 50% 30%, #0f8a8a, #04202b 70%); }
@@ -1372,7 +1372,7 @@ body.has-notice .app > .top { top: calc(36px + env(safe-area-inset-top)); }
 :root { --dam: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600'%3E%3Cdefs%3E%3Cfilter id='d' x='-30%25' y='-30%25' width='160%25' height='160%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.005 0.02' numOctaves='3' seed='11' result='n'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='n' scale='170' xChannelSelector='R' yChannelSelector='G'/%3E%3C/filter%3E%3Cpattern id='p' width='600' height='26' patternUnits='userSpaceOnUse'%3E%3Crect width='600' height='26' fill='%2316313a'/%3E%3Crect y='0' width='600' height='5' fill='%23dcecf0'/%3E%3Crect y='7' width='600' height='4' fill='%236fa3b2'/%3E%3Crect y='13' width='600' height='5' fill='%230c2027'/%3E%3Crect y='19' width='600' height='2' fill='%233cffdc' opacity='.6'/%3E%3Crect y='22' width='600' height='3' fill='%23a9c9d3'/%3E%3C/pattern%3E%3C/defs%3E%3Crect x='-200' y='-200' width='1000' height='1000' fill='url(%23p)' filter='url(%23d)'/%3E%3C/svg%3E"); }
 .card .front { padding: calc(var(--cw) * .088) calc(var(--cw) * .0215); }
 .card[data-tier="common"] { --ring: #dbe5ea; --pill: rgba(12,26,34,.9); --acc: #e8f1f5; --acc2: #ffffff; --pane: linear-gradient(180deg, #1d3039, #0e1c23); }
-.card[data-tier="uncommon"] { --ring: #b7d5f7; --pill: rgba(12,30,51,.9); --acc: var(--tier-uncommon); --acc2: #e0eeff; --pane: linear-gradient(180deg, #1a314b, #102135); }
+.card[data-tier="uncommon"] { --ring: #78baff; --pill: rgba(12,30,51,.9); --acc: var(--tier-uncommon); --acc2: #e0eeff; --pane: linear-gradient(180deg, #1b4275, #102b4d); }
 .card[data-tier="rare"] { --ring: #ffd884; --pill: rgba(40,26,4,.9); --acc: #ffd884; --acc2: #fff0c4; --pane: linear-gradient(180deg, #3a2a0a, #1d1404); }
 .card[data-tier="legendary"] { --ring: #d7b8ff; --pill: rgba(28,12,64,.9); --acc: #d7b8ff; --acc2: #ffffff; --pane: linear-gradient(180deg, #2c1760, #150a38); }
 .card[data-tier="mythic"] { --ring: #9fe9de; --pill: rgba(5,26,36,.9); --acc: #3cffdc; --acc2: #ffd884; --pane: linear-gradient(180deg, #0a2a35, #05161d); }

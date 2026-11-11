@@ -5,7 +5,7 @@ export const PACK = "cmp26";
 export const ORDER: Tier[] = ["mythic", "legendary", "rare", "uncommon", "common"];
 export const TIERS: Record<Tier, { label: string; color: string }> = {
   common: { label: "Common", color: "#aab8c4" },
-  uncommon: { label: "Uncommon", color: "#8bbcf0" },
+  uncommon: { label: "Uncommon", color: "#65adff" },
   rare: { label: "Rare", color: "#ffc850" },
   legendary: { label: "Legendary", color: "#b478ff" },
   mythic: { label: "Mythic", color: "#3cffdc" },
