@@ -86,7 +86,15 @@ function Activity() {
           ) : e.kind === "set" ? (
             <span class="fe-t">🏆 <Name n={e.who} /> finished the <b>{e.division}</b> set<time>{ago(e.at)}</time></span>
           ) : (
-            <span class="fe-t">⇄ <Name n={e.who} /> traded {names(e.gave)} to <Name n={e.other ?? ""} /> for {names(e.got)}<time>{ago(e.at)}</time></span>
+            <details class="fe-trade">
+              <summary class="fe-t">⇄ <Name n={e.who} /> traded {names(e.gave)} to <Name n={e.other ?? ""} /> for {names(e.got)}<time>{ago(e.at)}</time></summary>
+              {/* The cards themselves (#93), each side under who gave it. */}
+              {([[e.who, e.gave], [e.other ?? "", e.got]] as const).map(([who, cs]) => (cs ?? []).some((c) => BY_NUM.has(c.num)) && (
+                <div class="fe-side"><small>{who} gave</small><div class="fe-cards">{(cs ?? []).filter((c) => BY_NUM.has(c.num)).map((c) => (
+                  <button type="button" class="fe-c" aria-label={`See ${BY_NUM.get(c.num)!.name}`} onClick={() => openCard(c.num, undefined, { from: `In ${e.who}'s trade with ${e.other}.` })}><Card num={c.num} w="56px" /></button>
+                ))}</div></div>
+              ))}
+            </details>
           )}
         </div>
       ))}

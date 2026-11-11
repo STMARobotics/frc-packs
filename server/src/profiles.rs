@@ -97,6 +97,8 @@ struct ProfileOut {
     /// Their three rarest cards (best tier, then lowest serial).
     rarest: Vec<Card>,
     wishlist: Vec<i32>,
+    /// Teams they keep (♥): never scrapped or traded.
+    kept: Vec<i32>,
 }
 
 async fn profile(
@@ -185,6 +187,7 @@ async fn profile(
         showcase,
         rarest: owned,
         wishlist: wishlist(db, id, pack.id()).await?,
+        kept: favorites(db, id, pack.id()).await?,
     }))
 }
 

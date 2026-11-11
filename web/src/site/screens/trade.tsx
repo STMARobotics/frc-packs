@@ -8,7 +8,7 @@ import { api, type CardRef, type Collection, type Special, type Trade, type Trad
 import { store, useStore } from "../../lib/store";
 import { BY_NUM, byRarity, ORDER, PACK, TEAMS as TEAM_LIST, TIERS, type T } from "../data";
 import { ago, applyCollection, applyState, fail, inv, loadSocial, packOf, setPrefs, social, specials as mySpecials, st, toast, trades } from "../state";
-import { Avatar, back, cx, push, Spinner, Tabs } from "../ui";
+import { Avatar, back, Card, cx, push, Spinner, Tabs } from "../ui";
 import { sfx } from "../sfx";
 import { openCard } from "./cardview";
 import { openProfile } from "./profile";
@@ -25,6 +25,8 @@ interface Draft {
   /** Their cards: team number to serials. null while loading. */
   theirs: Record<number, number[]> | null;
   theirWish: number[];
+  /** Teams they keep (♥): never traded. */
+  theirKept: number[];
   theirGoods: Goods | null;
   theirSpecials: Special[];
   give: Pick[]; get: Pick[];
@@ -34,7 +36,7 @@ interface Draft {
   counter: number;
 }
 const none = (): Goods => ({ packs: 0, boosted: 0, parts: 0 });
-const empty = (name = ""): Draft => ({ name, theirs: null, theirWish: [], theirGoods: null, theirSpecials: [], give: [], get: [], giveGoods: none(), getGoods: none(), giveSpecials: [], getSpecials: [], counter: 0 });
+const empty = (name = ""): Draft => ({ name, theirs: null, theirWish: [], theirKept: [], theirGoods: null, theirSpecials: [], give: [], get: [], giveGoods: none(), getGoods: none(), giveSpecials: [], getSpecials: [], counter: 0 });
 
 const draft = store<Draft>(empty());
 const pane = store<"new" | "in" | "out" | "past">("new");
@@ -51,6 +53,7 @@ async function choose(name: string, wants: Pick[] = [], gives: Pick[] = []) {
       d.theirs = {};
       for (const c of col.cards) if (BY_NUM.has(c.num)) d.theirs[c.num] = c.serials;
       d.theirWish = prof.wishlist;
+      d.theirKept = prof.kept ?? [];
       d.theirGoods = { packs: prof.packs, boosted: prof.boosted, parts: prof.parts };
       for (const w of wants) if (d.theirs[w.num] && d.get.length < MAX && !d.get.some((p) => p.num === w.num)) d.get.push(w);
       for (const g of gives) if (inv.get()[g.num]?.length && d.give.length < MAX && !d.give.some((p) => p.num === g.num)) d.give.push(g);
@@ -265,7 +268,7 @@ function PickPlayer() {
         <div class="s-list td-teams">
           {teams.map((t) => (
             <button type="button" class="td-person" onClick={() => openCard(t.num)}>
-              <Mini num={t.num} /><span class="td-mwho"><b>{t.name}</b><small>{t.num} · {inv.get()[t.num]?.length ? `you have ×${inv.get()[t.num].length}` : "you don't have it"} · see who has it</small></span>
+              <Mini num={t.num} tile /><span class="td-mwho"><b>{t.name}</b><small>{t.num} · {inv.get()[t.num]?.length ? `you have ×${inv.get()[t.num].length}` : "you don't have it"} · see who has it</small></span>
             </button>
           ))}
         </div>
@@ -339,9 +342,17 @@ function Chips({ goods, specials, onClick }: { goods: Goods; specials: Special[]
 }
 
 /** A small card: the photo, number and name, framed in its rarity. */
-export function Mini({ num, foot }: { num: number; foot?: string }) {
+/** A card in a trade: the real card, sized to its cell, with a line under it (its serial, or how many). Small team
+    rows (td-teams) keep the plain photo tile, which reads better at 44px. */
+export function Mini({ num, foot, tile }: { num: number; foot?: string; tile?: boolean }) {
   const t = BY_NUM.get(num);
   if (!t) return null;
+  if (!tile) return (
+    <span class={cx("s-mini real", `t-${t.tier}`)}>
+      <span class="mi-card"><Card num={num} w="100cqw" /></span>
+      {foot && <span class="mi-foot">{foot}</span>}
+    </span>
+  );
   return (
     <span class={cx("s-mini", `t-${t.tier}`)}>
       {t.photo ? <img alt="" src={`/photos/${num}.webp`} decoding="async" loading="lazy" draggable={false} /> : <span class="mi-noph">{num}</span>}
@@ -396,10 +407,12 @@ function Picker({ side, start, focus }: { side: "give" | "get"; start: "cards" |
   const held = mine ? heldWhy(s) : new Map<string, string>();
   const free = (n: number) => cards[n].filter((sn) => !held.has(`${n}:${sn}`)).length;
   const otherSide: Record<number, number[]> = mine ? d.theirs ?? {} : myCards;
-  const isSpare = (n: number) => cards[n].length > 1 && (!mine || free(n) > 0);
+  const isSpare = (n: number) => cards[n].length > 1 && (!mine || free(n) > 0) && !isKept(n);
   // Cards the other side has none of. Until their collection has loaded, nothing counts as needed.
   const isNeeded = (n: number) => mine ? !!d.theirs && !d.theirs[n]?.length : !myCards[n]?.length;
   const isWishlisted = (n: number) => mine ? d.theirWish.includes(n) : (s.wishlist ?? []).includes(n);
+  // Teams the card's owner keeps (♥) are never traded, from either side.
+  const isKept = (n: number) => (mine ? s.favorites ?? [] : d.theirKept ?? []).includes(n);
   const matchesFilters = (n: number) =>
     ((!onlyNeeds && !onlyWishlist) || (onlyNeeds && isNeeded(n)) || (onlyWishlist && isWishlisted(n)))
       && (!onlySpares || isSpare(n));
@@ -413,6 +426,7 @@ function Picker({ side, start, focus }: { side: "give" | "get"; start: "cards" |
   const onTable = (n: number) => picks.filter((p) => p.num === n).length;
 
   const tap = (n: number) => {
+    if (isKept(n) && !onTable(n)) return toast(mine ? "You keep this one (♥). Take the heart off on the card to trade it." : `${d.name} keeps this one, so it isn't for trade.`, true, 3500);
     if (mine && !onTable(n) && !free(n)) {
       const why = [...new Set(cards[n].map((sn) => held.get(`${n}:${sn}`)).filter(Boolean))];
       return toast(`Can't offer it right now: ${cards[n].length > 1 ? "every copy is " : "it's "}${why.join(", or ")}.`, true, 3500);
@@ -484,13 +498,13 @@ function Picker({ side, start, focus }: { side: "give" | "get"; start: "cards" |
           {!list.length ? <div class="s-empty">{needle || tier !== "all" || hasFilters ? "No cards match." : mine ? "Open some packs first." : `${d.name} has no cards yet.`}</div> : (
             <div class="td-grid">
               {list.slice(0, 120).map((t) => {
-                const n = t.num, on = onTable(n), total = cards[n].length, stuck = mine && !on && !free(n), other = otherSide[n]?.length ?? 0;
+                const n = t.num, on = onTable(n), total = cards[n].length, kept = isKept(n) && !on, stuck = (mine && !on && !free(n)) || kept, other = otherSide[n]?.length ?? 0;
                 return (
                   <div class="td-cell" key={n} data-num={n}>
                     <button type="button" class={cx("td-pick", on > 0 && "on", stuck && "held")} aria-pressed={on > 0} onClick={() => tap(n)}>
                       <Mini num={n} foot={total > 1 ? `×${total}` : mine ? "Only copy" : TIERS[t.tier].label} />
                       {on > 0 && <span class="td-on">{total > 1 ? `${on} of ${total}` : "On table"}</span>}
-                      {stuck && <span class="td-on td-held" title={[...new Set(cards[n].map((sn) => held.get(`${n}:${sn}`)).filter(Boolean))].join(", ")}>In a trade</span>}
+                      {kept ? <span class="td-on td-held">Kept</span> : stuck && <span class="td-on td-held" title={[...new Set(cards[n].map((sn) => held.get(`${n}:${sn}`)).filter(Boolean))].join(", ")}>In a trade</span>}
                     </button>
                     <div class="td-picker-cues" aria-label="Trade hints">
                       {other > 0 && <span class="td-picker-cue owned">{mine ? "They have" : "You have"} ×{other}</span>}
@@ -620,12 +634,17 @@ const dayLabel = (ms: number) => {
 function History() {
   const tr = useStore(trades);
   const [f, setF] = useState("all");
+  const [q, setQ] = useState("");
   const all = tr.recent, done = all.filter((t) => t.status === "accepted");
   const sum = (k: "youGetPacks" | "youGivePacks" | "youGetParts" | "youGiveParts") => done.reduce((a, t) => a + (t[k] || 0), 0);
   const sign = (n: number) => (n > 0 ? `+${n}` : String(n));
   const counts: Record<string, number> = { all: all.length };
   for (const t of all) counts[t.status] = (counts[t.status] ?? 0) + 1;
-  const shown = all.filter((t) => f === "all" || t.status === f);
+  // Search by who it was with, or a team in it (number or name).
+  const needle = q.trim().toLowerCase();
+  const hit = (t: Trade) => !needle || t.with.toLowerCase().includes(needle)
+    || [...t.youGet, ...t.youGive].some((c) => String(c.num).startsWith(needle) || (BY_NUM.get(c.num)?.name.toLowerCase().includes(needle) ?? false));
+  const shown = all.filter((t) => (f === "all" || t.status === f) && hit(t));
   let last = "";
   return (
     <>
@@ -638,7 +657,8 @@ function History() {
       <div class="s-chips">{["all", "accepted", "declined", "cancelled", "failed"].filter((k) => k === "all" || counts[k]).map((k) => (
         <button type="button" class={cx("s-chip", f === k && "on")} aria-pressed={f === k} onClick={() => setF(k)}>{k === "all" ? "All" : STATUS[k][0]} <em>{counts[k] ?? 0}</em></button>
       ))}</div>
-      {!shown.length ? <div class="s-empty">No trades yet.</div> : (
+      {all.length > 0 && <input autoComplete="off" data-1p-ignore data-lpignore="true" data-form-type="other" class="s-input" type="search" placeholder="Search a player or team" value={q} onInput={(e) => setQ(e.currentTarget.value)} aria-label="Search trades" />}
+      {!shown.length ? <div class="s-empty">{all.length ? "No trades match." : "No trades yet."}</div> : (
         <div class="s-list">
           {shown.map((t) => {
             const when = t.decidedAt || t.createdAt, day = dayLabel(when), head = day !== last;

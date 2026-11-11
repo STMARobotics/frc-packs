@@ -188,6 +188,8 @@ export interface Profile {
   showcase: CardRef[];
   rarest: CardRef[];
   wishlist: number[];
+  /** Teams they keep (♥): never traded. */
+  kept?: number[];
 }
 
 export interface Mission {
@@ -566,6 +568,8 @@ export function explain(e: unknown): string {
     extras_held: "Those copies are in a pack you're still opening or in a trade offer. Finish the pack or cancel the offer first.",
     unknown_player: "There's no player with that username.",
     not_owned: "One of those cards isn't available to trade any more.",
+    card_kept: "You keep (♥) one of those cards. Take the heart off on the card to trade it.",
+    they_keep: "They keep (♥) one of those cards, so it isn't for trade.",
     card_held: "One of your cards is in a pack you're still opening or in another offer you sent. Finish the pack or cancel that offer first.",
     bad_bio: "Keep your bio to 160 characters and 3 lines.",
     trade_stale: "One of the cards in that trade isn't there any more, so the trade was called off.",
