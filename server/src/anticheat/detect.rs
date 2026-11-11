@@ -139,8 +139,6 @@ struct Player {
     div_opened: i64,
     /// What they bought in the shop: (slot, window, team or 0 for a division pack, tier then, price).
     shop: Vec<(String, i64, i32, Option<Tier>, i64)>,
-    /// Days they bought packs on (the server's daily counter exists for them).
-    shop_days: HashSet<i64>,
     sets: Vec<i64>,
     feedback_rewards: i64,
     sessions: HashSet<String>,
@@ -184,10 +182,6 @@ pub fn run(all: &[Item], pack: &Pack, rules: &Rules, dev_tools: bool, now: i64) 
                 if let Ok(r) = from_item::<PackRow>(it.clone()) {
                     pl.opened += i64::from(r.opened);
                     pl.div_opened += i64::from(r.div_opened);
-                }
-            } else if let Some(day) = sk.strip_prefix("SHOPBUY#") {
-                if let Ok(d) = day.parse() {
-                    pl.shop_days.insert(d);
                 }
             } else if sk.starts_with("SHOP#") {
                 pl.shop.push((
@@ -263,17 +257,11 @@ pub fn run(all: &[Item], pack: &Pack, rules: &Rules, dev_tools: bool, now: i64) 
     let tier_of = |team: Option<i32>| team.and_then(|t| pack.team_tier.get(&t).copied());
     let boost_cost = i64::from(rules.boost_cost);
     let min_cost = history.iter().map(|(_, r)| i64::from(r.boost_cost)).chain([boost_cost]).min().unwrap_or(1).max(1);
-    // The shop's cheapest price for something, and its highest daily pack limit, over every version of the settings.
+    // The shop's cheapest price for something, over every version of the settings.
     let min_price = |f: &dyn Fn(&crate::shop::ShopRules) -> i32| {
         history.iter().map(|(_, r)| i64::from(f(&r.shop))).chain([i64::from(f(&rules.shop))]).min().unwrap_or(1).max(1)
     };
     let min_std = min_price(&|s| s.std);
-    let max_per_day = history
-        .iter()
-        .map(|(_, r)| i64::from(r.shop.packs_per_day))
-        .chain([i64::from(rules.shop.packs_per_day)])
-        .max()
-        .unwrap_or(10);
 
     // ---------- supply: each source against the most its rule can pay ----------
     let history_from = history.first().map(|(at, _)| *at);
@@ -377,22 +365,11 @@ pub fn run(all: &[Item], pack: &Pack, rules: &Rules, dev_tools: bool, now: i64) 
             ev.push(format!("{missions} parts from missions in {days} days (at most {max_mission_day} a day)"));
         }
         // ----- the shop -----
-        // Packs: never more in a day than the limit allowed, and never below the cheapest price there's been.
+        // Packs: never below the cheapest price there's been.
         let bought = sum(&|r| r == "shop pack", &["packs"], true);
         let paid = -sum(&|r| r == "shop pack", &["parts"], false);
         if bought * min_std > paid {
             ev.push(format!("{bought} packs bought for {paid} parts (each costs at least {min_std})"));
-        }
-        let mut per_day: HashMap<i64, i64> = HashMap::new();
-        for l in pl.lines.iter().filter(|l| l.delta > 0) {
-            if (l.reason == "shop pack" && l.item == "packs") || (l.reason == "craft" && l.item == "boosted") {
-                *per_day.entry(crate::model::day_at(l.at)).or_default() += l.delta;
-            }
-        }
-        for (day, k) in &per_day {
-            if pl.shop_days.contains(day) && *k > max_per_day {
-                ev.push(format!("{k} packs bought in one day (the limit has never been over {max_per_day})"));
-            }
         }
         // Cards and division packs: each one was really for sale to this player, in that slot and window, and paid
         // for at no less than the cheapest price there's been.

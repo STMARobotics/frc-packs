@@ -174,7 +174,7 @@ export function OpenHome() {
   const shown: Kind[] = s.account.admin ? ["std", "gold", "test"] : ["std", "gold"];
   return (
     <section class="op-home op-home2">
-      <header class="op-head"><h1>Packs</h1><p class="s-dim">{RECIPE?.name ?? "2026 Championship"} · 5 teams per pack</p></header>
+      <header class="op-head"><h1>Packs</h1></header>
       <div class="op-homerow">
         <button ref={btn} type="button" data-pad-first class={cx("op-hero", !n && !left && "op-empty")} onClick={go} onPointerDown={loadGL} onPointerMove={tilt} onPointerLeave={untilt}
           aria-label={left ? "Finish opening your last pack" : `${NAME[cur]} pack, ${cur === "test" ? "unlimited" : n} to open`}>
@@ -294,7 +294,6 @@ function Flow({ resume }: { resume?: Opening }) {
   useEffect(() => {
     fx.current = particles(cv.current!);
     if (ph.current === "hold") pickUp();
-    if (resume) toast("Picking up your last pack", false, 2000);
     loadGL()?.then((m) => {
       if (!alive.current) return;
       glRef.current = m.createPackGL(glCv.current!, flowEl.current!);

@@ -127,7 +127,8 @@ export function offerFromBinder(num: number, serial = 0) {
 }
 
 /** The Trade tab's sections: your offers, the players (the old Social tab's list), and the activity feed. */
-export const section = store<"offers" | "ppl" | "act">(location.hash === "#social" ? "ppl" : "offers");
+/** The Trade tab's sections: trading (offers, and everyone to trade with) and the activity feed. */
+export const section = store<"offers" | "act">("offers");
 
 export function TradeTab({ active }: { active: boolean }) {
   const tr = useStore(trades);
@@ -148,7 +149,7 @@ export function TradeTab({ active }: { active: boolean }) {
   }, [active]);
   return (
     <div class="s-screen s-trade">
-      <Tabs value={sec} onChange={(v) => section.set(v)} options={[["offers", <>Offers{tr.incoming.length ? <em class="s-dot in">{tr.incoming.length}</em> : null}</>], ["ppl", "Players"], ["act", "Activity"]]} />
+      <Tabs value={sec} onChange={(v) => section.set(v)} options={[["offers", <>Trade{tr.incoming.length ? <em class="s-dot in">{tr.incoming.length}</em> : null}</>], ["act", "Activity"]]} />
       {sec === "offers" ? <>
         <div class="s-chips td-panes">{([["new", "New"], ["in", <>For you{tr.incoming.length ? <em class="s-dot in">{tr.incoming.length}</em> : null}</>], ["out", "Sent"], ["past", "History"]] as const).map(([k, l]) => (
           <button type="button" class={cx("s-chip", p === k && "on")} aria-pressed={p === k} onClick={() => pane.set(k)}>{l}</button>
@@ -157,7 +158,7 @@ export function TradeTab({ active }: { active: boolean }) {
         {p === "in" && <Offers list={tr.incoming} kind="in" />}
         {p === "out" && <Offers list={tr.outgoing} kind="out" />}
         {p === "past" && <History />}
-      </> : <SocialTab active={active} pg={sec} />}
+      </> : <SocialTab active={active} pg="act" />}
     </div>
   );
 }
@@ -208,7 +209,7 @@ function FairRow() {
   return (
     <div class="td-fairrow">
       <Fairness giveCards={d.give} giveGoods={d.giveGoods} giveSpecials={d.giveSpecials.length} getCards={d.get} getGoods={d.getGoods} getSpecials={d.getSpecials.length} />
-      {Math.abs(lean) >= 0.2 && <button type="button" class="s-chipbtn" onClick={() => { toast(makeFair(s)); sfx.tick(); }}>Make it fair</button>}
+      {Math.abs(lean) >= 0.2 && <button type="button" class="s-chipbtn" onClick={() => { makeFair(s); sfx.tick(); }}>Make it fair</button>}
     </div>
   );
 }
@@ -253,7 +254,7 @@ function NewTrade() {
       });
       trades.set(d.counter ? await api.declineTrade(d.counter).catch(() => t) : t);
       sfx.whoosh();
-      toast(d.counter ? `Counter-offer sent to ${d.name}.` : `Offer sent to ${d.name}. It's under Sent until they answer.`);
+      toast(d.counter ? "Counter-offer sent" : "Offer sent");
       const name = d.name;
       draft.set(empty());
       choose(name);
@@ -294,7 +295,9 @@ function PickPlayer() {
   }, [q]);
   const [matches, setMatches] = useState<TradeMatch[] | null>(null);
   useEffect(() => { api.tradeMatches(PACK).then(setMatches, () => setMatches([])); }, []);
-  const players = (so?.players ?? []).filter((p) => p.name.toLowerCase() !== me && (!q.trim() || p.name.toLowerCase().includes(q.trim().toLowerCase()) || (p.firstName ?? "").toLowerCase().includes(q.trim().toLowerCase())));
+  const [by, setBy] = useState<"teams" | "mythics" | "legendaries" | "trades">("teams");
+  const players = (so?.players ?? []).filter((p) => p.name.toLowerCase() !== me && (!q.trim() || p.name.toLowerCase().includes(q.trim().toLowerCase()) || (p.firstName ?? "").toLowerCase().includes(q.trim().toLowerCase())))
+    .sort((a, b) => b[by] - a[by] || b.teams - a.teams);
   const known = new Set(players.map((p) => p.name.toLowerCase()));
   // Looking for a team rather than a player: its card shows who has it (and who has spares) to trade with.
   const needle = q.trim().toLowerCase();
@@ -315,7 +318,6 @@ function PickPlayer() {
               </button>
             ))}
           </div>
-          <h2 class="s-h2">Everyone</h2>
         </section>
       )}
       {teams.length > 0 && (
@@ -331,8 +333,15 @@ function PickPlayer() {
         {sugg.filter((n) => !known.has(n.toLowerCase())).map((n) => (
           <button type="button" class="td-person" onClick={() => choose(n)}><Avatar name={n} /><span class="so-name">{n}</span></button>
         ))}
+        {!q.trim() && <div class="s-chips td-sort">{(["teams", "mythics", "legendaries", "trades"] as const).map((b) => (
+          <button type="button" class={cx("s-chip", by === b && "on")} aria-pressed={by === b} onClick={() => setBy(b)}>{b[0].toUpperCase() + b.slice(1)}</button>
+        ))}</div>}
         {players.map((p) => (
-          <button key={p.name} type="button" class="td-person" onClick={() => choose(p.name)}><Avatar name={p.name} team={p.avatar} /><Who p={p} /><small>{p.teams} teams</small></button>
+          <div key={p.name} class="td-person td-prow">
+            <button type="button" class="td-pwho" onClick={() => openProfile(p.name)} aria-label={`${p.name}'s profile`}><Avatar name={p.name} team={p.avatar} /><Who p={p} /></button>
+            <small>{p[by]} {by}</small>
+            <button type="button" class="s-chipbtn" onClick={() => choose(p.name)}>Trade</button>
+          </div>
         ))}
         {!so && <div class="s-center small"><Spinner /></div>}
       </div>
@@ -652,7 +661,7 @@ function Offer({ t, kind, recipientCards }: { t: Trade; kind: "in" | "out"; reci
     applyState(r.state); applyCollection(r.collection); trades.set(r.trades);
     setPrefs((p) => { for (const c of t.youGet) p.unseen[c.num] = 1; });
     sfx.promote();
-    toast(`Trade done with ${t.with}!${t.youGet.length ? ` ${t.youGet.length} ${t.youGet.length === 1 ? "card is" : "cards are"} in your binder.` : ""}${r.sets.length ? ` ${r.sets.join(", ")} set complete!` : ""}`, false, 3800);
+    toast(`Trade done${r.sets.length ? ` · ${r.sets.join(", ")} set done` : ""}`);
   });
   const mine = useStore(inv);
   return (

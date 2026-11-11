@@ -22,7 +22,7 @@ use uuid::Uuid;
 use crate::Shared;
 use crate::api::{self, IdemKey, err, idem_begin, idem_end, idem_lost, idem_mark};
 use crate::auth::User;
-use crate::db::{Cond, Db, DbError, Tx, get_n, get_s, n, s as sv};
+use crate::db::{Cond, Db, DbError, Tx, get_s, n, s as sv};
 use crate::error::{ApiError, ApiResult};
 use crate::model::{self, CardRow, now_ms, upk};
 use crate::packs::{Pack, Tier};
@@ -52,8 +52,6 @@ pub struct ShopRules {
     pub rare: i32,
     pub legendary: i32,
     pub mythic: i32,
-    /// Standard and Boosted packs bought (or crafted) per player per day.
-    pub packs_per_day: i32,
 }
 
 impl Default for ShopRules {
@@ -67,7 +65,6 @@ impl Default for ShopRules {
             rare: 600,
             legendary: 2_500,
             mythic: 25_000,
-            packs_per_day: 10,
         }
     }
 }
@@ -77,7 +74,6 @@ impl ShopRules {
         let p = 1..=100_000;
         [self.std, self.division, self.common, self.uncommon, self.rare, self.legendary].iter().all(|x| p.contains(x))
             && (1..=1_000_000).contains(&self.mythic)
-            && (1..=50).contains(&self.packs_per_day)
     }
 
     pub fn card(&self, t: Tier) -> i32 {
@@ -222,10 +218,6 @@ fn sold_sk(window: i64, slot: &str) -> String {
     format!("SHOP#{window}#{slot}")
 }
 
-fn bought_sk(day: i64) -> String {
-    format!("SHOPBUY#{day}")
-}
-
 // ---------- what the app sees ----------
 
 #[derive(Serialize)]
@@ -250,9 +242,6 @@ struct ShopOut {
     items: Vec<ItemOut>,
     std_price: i32,
     boosted_price: i32,
-    /// Packs bought (or crafted) today, and how many a day.
-    packs_today: i64,
-    packs_per_day: i32,
 }
 
 async fn shop_out(s: &Shared, user: Uuid) -> ApiResult<ShopOut> {
@@ -265,16 +254,10 @@ async fn shop_out(s: &Shared, user: Uuid) -> ApiResult<ShopOut> {
     let w = model::shop_window(now);
     let fz = freeze_of(db, user).await?;
     let st = stock(&pack, &seed, user, w, fz.as_ref());
-    let mut keys: Vec<crate::db::Item> =
+    let keys: Vec<crate::db::Item> =
         st.iter().map(|(slot, win, _)| crate::db::key(upk(user), sold_sk(*win, slot))).collect();
-    keys.push(crate::db::key(upk(user), bought_sk(model::day_number())));
     let found = db.batch_get(keys).await?;
     let sks: HashSet<String> = found.iter().filter_map(|it| get_s(it, "sk")).collect();
-    let packs_today = found
-        .iter()
-        .find(|it| get_s(it, "sk").as_deref() == Some(bought_sk(model::day_number()).as_str()))
-        .and_then(|it| get_n(it, "n"))
-        .unwrap_or(0);
     Ok(ShopOut {
         on: rules.shop.on,
         window: w,
@@ -292,8 +275,6 @@ async fn shop_out(s: &Shared, user: Uuid) -> ApiResult<ShopOut> {
             .collect(),
         std_price: rules.shop.std,
         boosted_price: rules.boost_cost,
-        packs_today,
-        packs_per_day: rules.shop.packs_per_day,
     })
 }
 
@@ -537,16 +518,6 @@ pub async fn buy_pack(s: &Shared, user: Uuid, key: &IdemKey, boosted: bool) -> A
         }
         let mut tx = Tx::new();
         idem_mark(&mut tx, user, key, kind);
-        tx.update(
-            "limit",
-            &upk(user),
-            &bought_sk(model::day_number()),
-            Cond::new("ADD n :one SET expires_at = :e")
-                .val(":one", n(1))
-                .val(":e", n(chrono::Utc::now().timestamp() + 40 * 86_400))
-                .val(":max", n(rules.shop.packs_per_day)),
-            Some("attribute_not_exists(n) OR n < :max"),
-        );
         model::save_pack(&mut tx, &mut p, &before, &after, kind);
         model::save_day(&mut tx, user, &mut day);
         let parts = p.parts;
@@ -554,7 +525,6 @@ pub async fn buy_pack(s: &Shared, user: Uuid, key: &IdemKey, boosted: bool) -> A
         model::save_user(&mut tx, &mut p, parts, kind);
         match tx.commit(db).await {
             Ok(()) => Ok(true),
-            Err(DbError::Conflict("limit")) => Err(err(StatusCode::CONFLICT, "pack_limit")),
             Err(DbError::Conflict("req")) => Ok(false),
             Err(e) => Err(e.into()),
         }

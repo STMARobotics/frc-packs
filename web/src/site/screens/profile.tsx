@@ -235,7 +235,6 @@ function EditProfile() {
       const now = st.get()!;
       st.set({ ...now, showcase: sc, account: { ...now.account, bio: r.bio, avatar: r.avatar, banner: r.banner } });
       edits.set(edits.get() + 1);
-      toast("Profile saved.");
       back();
     } catch (e) { fail(e); }
     setBusy(false);

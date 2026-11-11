@@ -54,7 +54,7 @@ function CardView({ num, o }: { num: number; o: CardOpts }) {
   const toggle = async (what: "fav" | "wish" | "pin") => {
     setBusy(what);
     try {
-      if (what === "fav") { const l = await api.setFavorite(PACK, num, !fav); st.set({ ...st.get()!, favorites: l }); toast(!fav ? "Kept. It will never be scrapped." : "No longer kept.", false, 1800); }
+      if (what === "fav") { const l = await api.setFavorite(PACK, num, !fav); st.set({ ...st.get()!, favorites: l }); }
       if (what === "wish") { const l = await api.setWish(PACK, num, !wish); st.set({ ...st.get()!, wishlist: l }); }
       if (what === "pin") {
         const list = (s.showcase ?? []).filter((n) => n !== num);

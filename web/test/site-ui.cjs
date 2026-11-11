@@ -235,19 +235,19 @@ async function main() {
   await B.call('POST', '/api/wishlist', { pack: 'cmp26', team: mySpareOnlyNum, on: true });
   await A.call('POST', '/api/wishlist', { pack: 'cmp26', team: getNum, on: true });
   await A.call('POST', '/api/wishlist', { pack: 'cmp26', team: partnerSpareOnlyNum, on: true });
-  // Players and Activity are part of the Trade tab since 0.14.
+  // Activity is part of the Trade tab, and everyone to trade with is under New (0.14).
   await p.click('.s-tabbar >> text=Trade');
   await p.click('.s-trade > .s-tabs >> text=Activity');
   await p.waitForSelector('.s-social');
   await shot('social-activity');
-  await p.click('.s-trade > .s-tabs >> text=Players');
-  await shot('social-players');
-  await p.click('.s-trade > .s-tabs >> text=Offers');
+  await p.click('.s-trade > .s-tabs >> text=Trade');
+  await p.click('.td-panes >> text=New');
+  await shot('trade-everyone');
   await p.waitForSelector('.s-trade');
   await p.reload();
   await p.waitForSelector('.s-trade');
   await p.fill('.s-trade input[type=search]', 'sib' + tag);
-  await p.click(`.td-person >> text=sib${tag}`);
+  await p.click(`.td-prow:has-text("sib${tag}") button.s-chipbtn`);
   await p.waitForSelector('.td-table');
   await p.click('.td-side.give .td-slot');
   await p.waitForSelector('.td-picker .td-pick');

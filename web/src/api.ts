@@ -69,8 +69,6 @@ export interface Shop {
   items: ShopItem[];
   stdPrice: number;
   boostedPrice: number;
-  packsToday: number;
-  packsPerDay: number;
 }
 
 export interface ShopBought {
@@ -614,7 +612,6 @@ export function explain(e: unknown): string {
     shop_changed: "The shop just changed. Here's the new stock.",
     price_changed: "That price just changed. Check it and try again.",
     sold_out: "You've already bought that one.",
-    pack_limit: "That's today's limit for buying packs. More tomorrow.",
     shop_off: "The shop is closed right now.",
     card_kept: "You keep (♥) one of those cards. Take the heart off on the card to trade it.",
     they_keep: "They keep (♥) one of those cards, so it isn't for trade.",

@@ -112,9 +112,9 @@ async function main() {
 
   // B's profile from the People list: a page with its own address, back leaves it.
   await p.click('.s-tabbar >> text=Trade');
-  await p.click('.s-trade > .s-tabs >> text=Players');
-  await p.fill('.s-social input[type=search]', bn);
-  await p.click(`.so-row:has-text("${bn}")`);
+  await p.click('.td-panes >> text=New');
+  await p.fill('.s-trade input[type=search]', bn);
+  await p.click(`.td-pwho:has-text("${bn}")`);
   await p.waitForSelector('.pp-match');
   assert(p.url().endsWith('#u/' + bn), "B's profile has its own address");
   await shot('their-profile');
@@ -124,7 +124,7 @@ async function main() {
   assert((await p.$$('.pr-grid .s-cell')).length === bSpare.length, '"You need" shows exactly their spares you lack');
   await shot('their-cards-you-need');
   await p.goBack();
-  await p.waitForSelector('.s-social');
+  await p.waitForSelector('.s-trade');
   assert(!p.url().includes('#u/'), 'back leaves the profile');
   await p.goForward();
   await p.waitForSelector('.pp-match');
@@ -171,7 +171,7 @@ async function main() {
   await p2.goto(`${BASE}/#u/${bn}`);
   await p2.waitForSelector('.pp-id h1');
   await p2.click('.pp-back');
-  await p2.waitForSelector('.s-social');
+  await p2.waitForSelector('.s-trade');
   assert(p2.url().endsWith('#social'), 'back from a linked profile goes to Social');
   await p2.goto(`${BASE}/#u/${bn}`);
   await p2.waitForSelector('.pp-acts');
@@ -186,9 +186,12 @@ async function main() {
 
   // A's picture shows in the People list for B.
   await q.goto(BASE + '/#social');
-  await q.click('.s-trade > .s-tabs >> text=Players');
-  await q.fill('.s-social input[type=search]', an);
-  await q.waitForSelector(`.so-row:has-text("${an}") .s-av.ph img`);
+  // Offers waiting switch the tab to "For you" once they've loaded: go back to New until it stays.
+  for (let i = 0; i < 10 && !(await q.$('.s-trade input[type=search]')); i++) { await q.click('.td-panes >> text=New'); await q.waitForTimeout(500); }
+  // After an offer, New stays on that player for another one: Change goes back to everyone.
+  if (!(await q.$('.s-trade input[type=search]')) && (await q.$('.td-who'))) await q.click('.td-who >> text=Change');
+  await q.fill('.s-trade input[type=search]', an);
+  await q.waitForSelector(`.td-prow:has-text("${an}") .s-av.ph img`);
   assert(true, "A's card picture shows in B's People list");
   await shot('people', q);
 

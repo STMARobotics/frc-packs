@@ -16,7 +16,6 @@ export const NOTES: Release[] = [
       "One shop card is always Rare or better, and once in a long while it's a Mythic",
       "Freeze a shop slot to keep its card until you've saved up for it",
       "A division pack opens right away, with all 5 cards from that division",
-      "You can buy up to 10 packs a day, Standard and Boosted together",
       "Buy packs right from the Packs tab, which has a new look",
       "Trade and Social are one tab now: Offers, Players and Activity",
       "Battles pay 50 parts, or 75 for a win, for up to 5 full battles a day (2 against the same player)",

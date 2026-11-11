@@ -155,3 +155,9 @@
 .td-fairrow .td-fair { flex: 1; }
 .td-pickfair { position: sticky; top: 0; z-index: 5; padding: 6px 0; background: var(--bg); }
 .td-pickfair:empty, .td-pickfair .td-fairrow:empty { display: none; }
+
+/* Everyone to trade with (the old Players list): tap a player for their profile, Trade to start one. */
+.td-prow { cursor: default; }
+.td-pwho { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.td-prow > small { flex: none; white-space: nowrap; }
+.td-sort { margin: 2px 0; }

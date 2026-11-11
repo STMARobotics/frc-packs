@@ -3237,27 +3237,27 @@ async fn a_division_pack_opens_from_its_division() {
     assert_eq!(again.body["error"], "no_packs");
 }
 
-/// Packs for parts: Standard and Boosted (crafting) count toward one daily limit.
+/// Packs for parts, Standard and Boosted (crafting), as many as you can pay for: no daily limit, and buying lots at
+/// once never sets off the intake alarm (bought packs are checked against their parts instead).
 #[tokio::test]
-async fn bought_packs_have_a_daily_limit() {
+async fn bought_packs_have_no_daily_limit() {
     let (app, db) = need_db!(setup(true));
     let (c, st) = player(&app, &db).await;
     let id = user_id(&db, &c).await;
     kit::set_parts(&db, id, 100_000).await;
-    for k in 0..10 {
+    for k in 0..40 {
         let kind = if k % 2 == 0 { "std" } else { "boosted" };
         let key = Uuid::new_v4().to_string();
         let r = call_key(&app, "POST", "/api/shop/pack", Some(&c), Some(json!({ "kind": kind })), Some(&key)).await;
         assert_eq!(r.status, StatusCode::OK, "pack {k}: {}", r.body);
     }
-    let key = Uuid::new_v4().to_string();
-    let r = call_key(&app, "POST", "/api/shop/pack", Some(&c), Some(json!({ "kind": "std" })), Some(&key)).await;
-    assert_eq!(r.body["error"], "pack_limit");
     let r = call(&app, "POST", "/api/craft", Some(&c), Some(json!({}))).await;
-    assert_eq!(r.body["error"], "pack_limit", "crafting counts too");
+    assert_eq!(r.status, StatusCode::OK, "crafting has no limit either");
     let now = call(&app, "GET", "/api/state", Some(&c), None).await.body;
-    assert_eq!(packs_of(&now), (packs_of(&st).0 + 10, packs_of(&st).1 + 5));
-    assert_eq!(now["parts"], 100_000 - 5 * 120 - 5 * st["boostCost"].as_i64().unwrap());
+    assert_eq!(packs_of(&now), (packs_of(&st).0 + 41, packs_of(&st).1 + 21));
+    assert_eq!(now["parts"], 100_000 - 20 * 120 - 21 * st["boostCost"].as_i64().unwrap());
+    let p = frc_packs_server::model::profile(&db, id).await.unwrap().unwrap();
+    assert!(p.flagged.is_none(), "buying packs isn't a dupe: {:?}", p.flagged);
 }
 
 /// Any one copy can be scrapped when the player picks it: their only copy, or a Mythic. Scrapping all extras still

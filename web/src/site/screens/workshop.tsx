@@ -27,7 +27,7 @@ export function scrapped(r: Scrapped) {
   applyCollection(r.collection);
   setPrefs((p) => { for (const k of Object.keys(p.unseen)) if (!r.collection.cards.some((c) => c.num === +k)) delete p.unseen[+k]; });
   sfx.whoosh();
-  if (r.scrapped) toast(`Scrapped ${r.scrapped} ${r.scrapped === 1 ? "copy" : "copies"} · +${r.gained} parts${r.held ? ` · ${r.held} held back` : ""}`);
+  if (r.scrapped) toast(`+${r.gained} parts`);
 }
 
 export function Workshop() {

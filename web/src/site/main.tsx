@@ -37,7 +37,7 @@ const LABEL: Record<Tab, string> = { open: "Packs", binder: "Binder", shop: "Sho
 const tabOf = (): Tab => {
   if (profileRoute()) return "trade";
   const h = location.hash.slice(1);
-  if (h === "social") { section.set("ppl"); return "trade"; }
+  if (h === "social") { section.set("offers"); return "trade"; }
   return TABS.includes(h as Tab) ? (h as Tab) : "open";
 };
 
