@@ -1,6 +1,6 @@
 # 0.14: the shop, one Trade tab, and a new home screen (feedback #78)
 
-Draft plan, second version. It replaces the first draft (five shared cards a day in the Binder) and "targeted crafting"
+Built in 0.14 (server/src/shop.rs, web/src/site/screens/shop.tsx). Second version of the plan. It replaces the first draft (five shared cards a day in the Binder) and "targeted crafting"
 in the roadmap.
 
 ## The tab bar
@@ -58,8 +58,8 @@ until you buy it or unfreeze it.
 - **One slot at a time.** Freezing another slot unfreezes the first.
 - **No time limit and no token.** The cost is built in: a frozen slot stops rolling. Holding a Mythic in card 3 for a
   month means a month without new Rares or Legendaries there. That keeps "save up for HighTide" a real choice.
-- **Unfreezing doesn't reroll.** The slot gets something new at the next refresh, not right away. Otherwise freezing
-  and unfreezing would reroll the shop for free.
+- **Unfreezing doesn't reroll.** The slot shows what it holds for the current window, which was fixed when the window
+  started, so freezing and unfreezing can't roll anything new. The frozen item is gone once you unfreeze it.
 - **Price:** a frozen item costs whatever its price is when you buy it.
 - **Rejected alternatives:**
   - Freeze tokens from missions are more to build and explain.

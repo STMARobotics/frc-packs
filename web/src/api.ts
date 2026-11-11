@@ -49,6 +49,38 @@ export interface Card {
   inGame?: number;
 }
 
+export interface ShopItem {
+  slot: "c1" | "c2" | "c3" | "div";
+  window: number;
+  kind: "card" | "division";
+  num?: number;
+  tier?: Tier;
+  division?: string;
+  price: number;
+  sold: boolean;
+  frozen: boolean;
+}
+
+export interface Shop {
+  on: boolean;
+  window: number;
+  /** When the stock changes next (ms). */
+  endsAt: number;
+  items: ShopItem[];
+  stdPrice: number;
+  boostedPrice: number;
+  packsToday: number;
+  packsPerDay: number;
+}
+
+export interface ShopBought {
+  state: State;
+  shop: Shop;
+  card: { num: number; tier: Tier; serial: number; isNew: boolean; copy: number } | null;
+  division: string | null;
+  sets: string[];
+}
+
 export interface Opening {
   id: number;
   pack: string;
@@ -421,7 +453,15 @@ export const api = {
   /** `boosted` picks the kind: true for a boosted pack, false for a standard one; left out, boosted goes first. */
   /** Picks up a pack: it's minted now, and its cards (best last, with their serial numbers) come back, so the opening
       can be ready before the tear. */
-  open: (pack: string, boosted?: boolean) => act<{ opening: Opening; state: State; streakReward: boolean }>("/api/open", { pack, boosted }),
+  open: (pack: string, boosted?: boolean, division?: string) => act<{ opening: Opening; state: State; streakReward: boolean }>("/api/open", { pack, boosted, division }),
+  /** The shop: your stock for this 4-hour window, and the packs for parts. */
+  shop: () => call<Shop>("GET", "/api/shop"),
+  /** Buys a card or division pack: the window and price you saw (the server refuses if either changed). */
+  shopBuy: (item: ShopItem) => act<ShopBought>("/api/shop/buy", { slot: item.slot, window: item.window, price: item.price }),
+  /** Freezes a slot (only what's in the shop now), or unfreezes with null. */
+  shopFreeze: (slot: string | null, window: number) => call<Shop>("POST", "/api/shop/freeze", { slot, window }),
+  /** Buys a Standard or Boosted pack for parts (one daily limit for both). */
+  shopPack: (kind: "std" | "boosted") => act<State>("/api/shop/pack", { kind }),
   progress: (id: number, revealed: number) => call<void>("POST", `/api/openings/${id}/progress`, { revealed }),
   collection: (pack: string) => call<Collection>("GET", `/api/collection/${encodeURIComponent(pack)}`),
   /** Scrap extra copies of one team (the first copy is always kept). */
@@ -571,6 +611,11 @@ export function explain(e: unknown): string {
     extras_held: "Those copies are in a pack you're still opening or in a trade offer. Finish the pack or cancel the offer first.",
     unknown_player: "There's no player with that username.",
     not_owned: "One of those cards isn't available to trade any more.",
+    shop_changed: "The shop just changed. Here's the new stock.",
+    price_changed: "That price just changed. Check it and try again.",
+    sold_out: "You've already bought that one.",
+    pack_limit: "That's today's limit for buying packs. More tomorrow.",
+    shop_off: "The shop is closed right now.",
     card_kept: "You keep (♥) one of those cards. Take the heart off on the card to trade it.",
     they_keep: "They keep (♥) one of those cards, so it isn't for trade.",
     card_held: "One of your cards is in a pack you're still opening or in another offer you sent. Finish the pack or cancel that offer first.",

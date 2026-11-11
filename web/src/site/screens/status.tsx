@@ -53,16 +53,19 @@ export function StatusBar() {
   const n = banked(now);
   const left = s.nextClaimAt + (n ? n * s.claimMs : 0) - now;
   const pity = packOf(s).pity.m, hard = RECIPE.odds.hard, soft = RECIPE.odds.soft;
+  const [why, setWhy] = useState(false);
   return (
     <section class="s-status">
       <div class="st-timer">
         <small>Next pack</small><b>{n ? "Ready" : <Clock text={fmt(left)} />}</b>
       </div>
-      <div class={cx("st-meter", pity >= soft && "hot")} title={`Packs since your last Mythic. Odds climb after ${soft}; one is guaranteed by pack ${hard}.`}>
-        <small>Mythic meter</small>
+      <button type="button" class={cx("st-meter", pity >= soft && "hot")} aria-expanded={why} onClick={() => setWhy(!why)}>
+        <small>Mythic meter <i class="st-info" aria-hidden="true">i</i></small>
         <span class="s-bar"><i style={{ transform: `scaleX(${Math.min(pity, hard) / hard})` }} /></span>
         <em>{pity}/{hard}</em>
-      </div>
+      </button>
+      {/* What the meter is (#115): packs since your last Mythic, not your collection. */}
+      {why && <p class="st-why">The meter counts packs you've opened since your last Mythic. Every pack has the same small chance of one. After {soft} packs without one the chance climbs, and by pack {hard} you're sure to get one. It goes back to 0 when you pull a Mythic.</p>}
       <Daily />
     </section>
   );

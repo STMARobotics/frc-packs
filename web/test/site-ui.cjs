@@ -124,7 +124,7 @@ async function main() {
   const before = await p.evaluate(() => window.__imgs);
   // Tab away and back, and the app regaining focus, must not rebuild the grid.
   await p.evaluate(() => (window.__imgs = 0));
-  await p.click('.s-tabbar >> text=Social');
+  await p.click('.s-tabbar >> text=Trade');
   await p.click('.s-tabbar >> text=Binder');
   await p.waitForTimeout(400);
   const tabImgs = await p.evaluate(() => window.__imgs);
@@ -156,7 +156,7 @@ async function main() {
   await p.goBack(); await p.goBack();
   await p.waitForSelector('.s-layer', { state: 'detached' });
   // Social tab: someone else's profile.
-  await p.click('.s-tabbar >> text=Open');
+  await p.click('.s-tabbar >> text=Packs');
   await p.waitForSelector('.s-status');
   // Missions and the streak show without a tap; folding them away sticks.
   assert(await p.$('.st-daily-b .st-mission'), 'daily missions show on Open');
@@ -176,7 +176,7 @@ async function main() {
   await A.call('POST', '/api/dev/pack', { pack: 'cmp26' });
   await A.call('POST', '/api/dev/pack', { pack: 'cmp26' });
   await p.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
-  await p.waitForFunction(() => document.querySelector('.op-count')?.textContent === '×2');
+  await p.waitForFunction(() => document.querySelector('.op-kind.k-std b')?.textContent === '×2');
   await p.click('.op-hero');
   await p.waitForSelector('.op-grip');
   await p.waitForTimeout(600);
@@ -203,7 +203,7 @@ async function main() {
   await tapThrough(2);
   await p.reload();
   await p.waitForSelector('.op-hero');
-  assert((await p.textContent('.op-cap')) === 'Finish opening', 'a half-opened pack is offered again');
+  assert((await p.textContent('.op-openbtn')) === 'Finish opening', 'a half-opened pack is offered again');
   await p.click('.op-hero');
   await p.waitForSelector('.op-stack');
   await tapThrough(12);
@@ -235,12 +235,14 @@ async function main() {
   await B.call('POST', '/api/wishlist', { pack: 'cmp26', team: mySpareOnlyNum, on: true });
   await A.call('POST', '/api/wishlist', { pack: 'cmp26', team: getNum, on: true });
   await A.call('POST', '/api/wishlist', { pack: 'cmp26', team: partnerSpareOnlyNum, on: true });
-  await p.click('.s-tabbar >> text=Social');
+  // Players and Activity are part of the Trade tab since 0.14.
+  await p.click('.s-tabbar >> text=Trade');
+  await p.click('.s-trade > .s-tabs >> text=Activity');
   await p.waitForSelector('.s-social');
   await shot('social-activity');
-  await p.click('.s-social .s-tabs >> text=Players');
+  await p.click('.s-trade > .s-tabs >> text=Players');
   await shot('social-players');
-  await p.click('.s-tabbar >> text=Trade');
+  await p.click('.s-trade > .s-tabs >> text=Offers');
   await p.waitForSelector('.s-trade');
   await p.reload();
   await p.waitForSelector('.s-trade');

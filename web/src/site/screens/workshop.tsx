@@ -1,5 +1,5 @@
-// The workshop: scrap extra copies for parts (your first copy of every team, and anything you keep, is never scrapped),
-// and spend parts on boosted packs.
+// The workshop: scrap extra copies for parts (your first copy of every team, and anything you keep, is never scrapped).
+// Parts are spent in the Shop tab (packs, and cards that change every 4 hours).
 import { useState } from "preact/hooks";
 import { api, type Tier, type Scrapped } from "../../api";
 import { useStore } from "../../lib/store";
@@ -57,7 +57,6 @@ export function Workshop() {
   const n = tiers.reduce((a, t) => a + ex[t], 0);
   const gain = tiers.reduce((a, t) => a + ex[t] * (s.scrapParts[t] ?? 0), 0);
   const skipped = SCRAPPABLE.filter((t) => !pick[t] && ex[t]);
-  const cost = s.boostCost;
 
   const toggle = (t: Tier) => {
     const p = { ...pick, [t]: !pick[t] };
@@ -70,24 +69,13 @@ export function Workshop() {
     try { scrapped(await api.scrapExtras(PACK, tiers, keep)); } catch (e) { fail(e); }
     setBusy("");
   };
-  const craft = async () => {
-    setBusy("craft");
-    try {
-      applyState(await api.craft());
-      sfx.promote();
-      toast("Boosted pack crafted. It's in its own gold stack on the Open tab.");
-    } catch (e) { fail(e); }
-    setBusy("");
-  };
 
   return (
     <div class="s-workshop">
       <section class="s-panel">
         <div class="s-parts"><span>Parts</span><b>{s.parts.toLocaleString()}</b></div>
-        <div class="s-bar gold"><i style={{ transform: `scaleX(${Math.min(1, s.parts / cost)})` }} /></div>
-        <small class="s-dim">{s.parts >= cost ? `${Math.floor(s.parts / cost)} boosted pack${s.parts >= cost * 2 ? "s" : ""} ready` : `${cost - s.parts} more for a boosted pack`}</small>
-        <button type="button" class="s-btn wide" disabled={s.parts < cost || !!busy} onClick={craft}>Craft boosted pack · {cost}</button>
-        <small class="s-dim">Boosted packs have better odds: Legendary or better in about half, Mythic 4× as likely.</small>
+        <small class="s-dim">Spend them in the Shop: packs, and cards that change every 4 hours.</small>
+        <a class="s-btn wide ghost" href="#shop">Go to the Shop</a>
       </section>
       <section class="s-panel">
         <h2 class="s-h2">Scrap extra copies</h2>

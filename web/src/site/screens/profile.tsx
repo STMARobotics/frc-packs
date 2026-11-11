@@ -31,7 +31,7 @@ export function profileRoute(): string | null {
   if (!location.hash.startsWith("#u/")) return null;
   try { return decodeURIComponent(location.hash.slice(3)) || null; } catch { return null; }
 }
-/** Back to where the profile was opened from; to Social when it was opened from a link. */
+/** Back to where the profile was opened from; to Trade's Players when it was opened from a link. */
 function leave() {
   if (history.state?.pf) return history.back();
   history.replaceState(null, "", "#social");

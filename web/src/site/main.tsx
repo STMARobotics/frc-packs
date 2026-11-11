@@ -1,6 +1,6 @@
 // FRC Packs, rebuilt on Preact (the same setup as the Battler): each screen describes what it shows and only what
 // changed gets touched, so cards keep their elements and photos while you use the app. Tabs are hash routes (#open,
-// #binder, #trade, #social); screens over them (a card, a profile, settings) are a stack the phone's back button steps
+// #binder, #shop, #trade; the old #social opens Trade's Players); screens over them (a card, a profile, settings) are a stack the phone's back button steps
 // through.
 import "../style.css";
 import "./site.css";
@@ -23,16 +23,23 @@ import { openProfile, ProfilePage, profileRoute } from "./screens/profile";
 import { setupPwa } from "./pwa";
 import { setupPad } from "./pad";
 import { openFeedback } from "./screens/settings";
-import { TradeTab } from "./screens/trade";
-import { SocialTab } from "./screens/social";
+import { section, TradeTab } from "./screens/trade";
+import { ShopTab } from "./screens/shop";
 import { OpenHome } from "./screens/open";
 import { betaWelcome, gameNotice, OwnerNotice, SignIn, whatsNew } from "./screens/gate";
 import { BugButton, bugIntro, BugIntro } from "./screens/bug";
 
-type Tab = "open" | "binder" | "trade" | "social";
-const TABS: Tab[] = ["open", "binder", "trade", "social"];
-// A profile (#u/<name>) is a page of its own, under the Social tab.
-const tabOf = (): Tab => { if (profileRoute()) return "social"; const h = location.hash.slice(1) as Tab; return TABS.includes(h) ? h : "open"; };
+type Tab = "open" | "binder" | "shop" | "trade";
+const TABS: Tab[] = ["open", "binder", "shop", "trade"];
+const LABEL: Record<Tab, string> = { open: "Packs", binder: "Binder", shop: "Shop", trade: "Trade" };
+// A profile (#u/<name>) is a page of its own, under the Trade tab (which took in Social in 0.14: #social opens its
+// Players).
+const tabOf = (): Tab => {
+  if (profileRoute()) return "trade";
+  const h = location.hash.slice(1);
+  if (h === "social") { section.set("ppl"); return "trade"; }
+  return TABS.includes(h as Tab) ? (h as Tab) : "open";
+};
 
 function useTab(): [Tab, (t: Tab) => void, string | null] {
   const [t, setT] = useState(tabOf);
@@ -110,14 +117,14 @@ function App() {
         {who && <ProfilePage key={who} name={who} />}
         {seen.has("open") && <div hidden={!!who || tab !== "open"}><ClaimButton /><OpenHome /><StatusBar /><FeedbackBar /></div>}
         {seen.has("binder") && <div hidden={!!who || tab !== "binder"}><Binder active={tab === "binder"} /></div>}
-        {seen.has("trade") && <div hidden={!!who || tab !== "trade"}><TradeTab active={tab === "trade"} /></div>}
-        {seen.has("social") && <div hidden={!!who || tab !== "social"}><SocialTab active={!who && tab === "social"} /></div>}
+        {seen.has("shop") && <div hidden={!!who || tab !== "shop"}><ShopTab active={!who && tab === "shop"} /></div>}
+        {seen.has("trade") && <div hidden={!!who || tab !== "trade"}><TradeTab active={!who && tab === "trade"} /></div>}
       </main>
       <nav class="s-tabbar" aria-label="Sections">
-        {(["open", "binder", "trade", "social"] as Tab[]).map((t) => (
+        {TABS.map((t) => (
           <button type="button" class={cx(tab === t && "on")} aria-current={tab === t ? "page" : undefined} onClick={() => go(t)}>
             <i class={`ic-${t}`} aria-hidden="true" />
-            <span>{t === "open" ? "Open" : t === "binder" ? "Binder" : t === "trade" ? "Trade" : "Social"}</span>
+            <span>{LABEL[t]}</span>
             {t === "binder" && unseen > 0 && <em class="s-dot">{unseen > 99 ? "99+" : unseen}</em>}
             {t === "trade" && offers > 0 && <em class="s-dot">{offers}</em>}
           </button>

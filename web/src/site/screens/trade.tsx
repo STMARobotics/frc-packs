@@ -14,6 +14,7 @@ import { openCard } from "./cardview";
 import { openProfile } from "./profile";
 import { Who } from "./social";
 import { SpecialCard } from "./special";
+import { SocialTab } from "./social";
 
 const MAX = 5;
 const PACK_WORTH = 50, SPECIAL_WORTH = 800; // for weighing a trade: a sealed pack counts as 50 parts
@@ -117,13 +118,18 @@ function counterOffer(t: Trade) {
 /** Starts a trade offering this card (`serial`: that copy in particular, else any). */
 export function offerFromBinder(num: number, serial = 0) {
   pane.set("new");
+  section.set("offers");
   edit((d) => { if (d.give.length < MAX && !d.give.some((p) => p.num === num && (!serial || p.serial === serial))) d.give.push({ num, serial }); });
   location.hash = "#trade";
 }
 
+/** The Trade tab's sections: your offers, the players (the old Social tab's list), and the activity feed. */
+export const section = store<"offers" | "ppl" | "act">(location.hash === "#social" ? "ppl" : "offers");
+
 export function TradeTab({ active }: { active: boolean }) {
   const tr = useStore(trades);
   const p = useStore(pane);
+  const sec = useStore(section);
   useEffect(() => {
     if (!active) return;
     // Open on the offers waiting for you, if there are any.
@@ -139,11 +145,16 @@ export function TradeTab({ active }: { active: boolean }) {
   }, [active]);
   return (
     <div class="s-screen s-trade">
-      <Tabs value={p} onChange={(v) => pane.set(v)} options={[["new", "New"], ["in", <>For you{tr.incoming.length ? <em class="s-dot in">{tr.incoming.length}</em> : null}</>], ["out", "Sent"], ["past", "History"]]} />
-      {p === "new" && <NewTrade />}
-      {p === "in" && <Offers list={tr.incoming} kind="in" />}
-      {p === "out" && <Offers list={tr.outgoing} kind="out" />}
-      {p === "past" && <History />}
+      <Tabs value={sec} onChange={(v) => section.set(v)} options={[["offers", <>Offers{tr.incoming.length ? <em class="s-dot in">{tr.incoming.length}</em> : null}</>], ["ppl", "Players"], ["act", "Activity"]]} />
+      {sec === "offers" ? <>
+        <div class="s-chips td-panes">{([["new", "New"], ["in", <>For you{tr.incoming.length ? <em class="s-dot in">{tr.incoming.length}</em> : null}</>], ["out", "Sent"], ["past", "History"]] as const).map(([k, l]) => (
+          <button type="button" class={cx("s-chip", p === k && "on")} aria-pressed={p === k} onClick={() => pane.set(k)}>{l}</button>
+        ))}</div>
+        {p === "new" && <NewTrade />}
+        {p === "in" && <Offers list={tr.incoming} kind="in" />}
+        {p === "out" && <Offers list={tr.outgoing} kind="out" />}
+        {p === "past" && <History />}
+      </> : <SocialTab active={active} pg={sec} />}
     </div>
   );
 }

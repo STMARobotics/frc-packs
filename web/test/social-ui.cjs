@@ -111,8 +111,8 @@ async function main() {
   assert(st.account.avatar === +firstTile.split(' ')[0] && st.account.bio.includes('7028'), 'the server kept the picture and bio');
 
   // B's profile from the People list: a page with its own address, back leaves it.
-  await p.click('.s-tabbar >> text=Social');
-  await p.click('.s-social .s-tabs >> text=Players');
+  await p.click('.s-tabbar >> text=Trade');
+  await p.click('.s-trade > .s-tabs >> text=Players');
   await p.fill('.s-social input[type=search]', bn);
   await p.click(`.so-row:has-text("${bn}")`);
   await p.waitForSelector('.pp-match');
@@ -186,7 +186,7 @@ async function main() {
 
   // A's picture shows in the People list for B.
   await q.goto(BASE + '/#social');
-  await q.click('.s-social .s-tabs >> text=Players');
+  await q.click('.s-trade > .s-tabs >> text=Players');
   await q.fill('.s-social input[type=search]', an);
   await q.waitForSelector(`.so-row:has-text("${an}") .s-av.ph img`);
   assert(true, "A's card picture shows in B's People list");

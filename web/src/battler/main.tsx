@@ -85,10 +85,10 @@ function App() {
       {/* The site's tab bar, so the Battler is one of its tabs. Not in a game: leaving one counts as a forfeit. */}
       {name !== "game" && (
         <nav class="s-tabbar" aria-label="Sections">
-          <a href="/#open"><i class="ic-open" aria-hidden="true" /><span>Open</span></a>
+          <a href="/#open"><i class="ic-open" aria-hidden="true" /><span>Packs</span></a>
           <a href="/#binder"><i class="ic-binder" aria-hidden="true" /><span>Binder</span></a>
+          <a href="/#shop"><i class="ic-shop" aria-hidden="true" /><span>Shop</span></a>
           <a href="/#trade"><i class="ic-trade" aria-hidden="true" /><span>Trade</span></a>
-          <a href="/#social"><i class="ic-social" aria-hidden="true" /><span>Social</span></a>
           <a class="on" href="#home" aria-current="page"><i class="ic-battle" aria-hidden="true" /><span>Battle</span></a>
         </nav>
       )}

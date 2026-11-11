@@ -2,11 +2,40 @@
 // players should hear about: everyone who's played before sees the newest one once (screens/notes.tsx), and Settings
 // shows the version and every release. 0.x while in beta: the middle number for a weekly release, the last for the
 // feedback updates and fixes in between. How to bump and how the notes should read: CONTRIBUTING.md.
-export const VERSION = "0.13.1";
+export const VERSION = "0.14.0";
 
 export interface Release { v: string; date: string; title: string; items: string[] }
 
 export const NOTES: Release[] = [
+  {
+    v: "0.14.0",
+    date: "2026-11-12",
+    title: "The shop",
+    items: [
+      "Added a Shop tab: Standard and Boosted packs, plus three cards and a division pack that change every 4 hours",
+      "One shop card is always Rare or better, and once in a long while it's a Mythic",
+      "Freeze a shop slot to keep its card until you've saved up for it",
+      "A division pack opens right away, with all 5 cards from that division",
+      "You can buy up to 10 packs a day, Standard and Boosted together",
+      "Buy packs right from the Packs tab, which has a new look",
+      "Trade and Social are one tab now: Offers, Players and Activity",
+      "Battles pay 50 parts, or 75 for a win, for up to 5 full battles a day (2 against the same player)",
+      "The match schedule shows each player's deck rating",
+      "Notification settings: pick which ones you get. New: your trade was declined, and an opponent was found",
+      "Cards you keep (♥) can't be put in a trade, by you or anyone asking for them",
+      "Trades show the real cards, and you can search your trade history",
+      "Tap a trade in Activity to see its cards",
+      "Scrap any copy you pick, even your last one or a Mythic. Scrap extras still keeps one of each",
+      "Team names sit next to their avatar, with the division on the right",
+      "Cards show just the effect, without the Unique effect label or its name",
+      "Tap the Mythic meter to see what it means",
+      "The Battler has the FRC Packs logo, a Battle button and a Binder",
+      "Fixed RP2 chances higher than RP1 on some cards",
+      "Fixed the 7-day streak saying 0 to go on the day you earned a boosted pack",
+      "Fixed the NEW and COPY tags missing while opening on slower connections",
+      "Fixed battles skipping the match animations on some computers",
+    ],
+  },
   {
     v: "0.13.1",
     date: "2026-11-08",

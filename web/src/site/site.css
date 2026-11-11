@@ -345,3 +345,36 @@ body.s-page.pad :focus { outline: 3px solid var(--ac); outline-offset: 3px; }
 /* A notification kind, under the Notifications switch (Settings). */
 .sg-line.sg-sub { padding-left: 18px; }
 .sg-line.sg-sub b { font-weight: 600; font-size: 14px; }
+
+/* The Shop tab (screens/shop.tsx). */
+.sh-shop { display: grid; gap: 18px; }
+.sh-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.sh-head h1 { margin: 0; font: 400 32px var(--display); }
+.sh-head p { margin: 2px 0 0; }
+.sh-sec { display: grid; gap: 10px; }
+.sh-pack { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px; background: var(--s1); }
+.sh-pack .s-btn { min-height: 42px; padding: 0 14px; white-space: nowrap; }
+.sh-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.sh-item { display: grid; gap: 8px; padding: 10px; border-radius: 16px; background: var(--s1); align-content: start; }
+.sh-item.t-legendary { box-shadow: inset 0 0 0 1.5px #b478ff; }
+.sh-item.t-mythic { box-shadow: inset 0 0 0 2px #3cffdc, 0 0 24px rgba(60, 255, 220, .25); }
+.sh-item.frozen { box-shadow: inset 0 0 0 2px #9fdcff; background: linear-gradient(180deg, rgba(159, 220, 255, .12), var(--s1)); }
+.sh-item.sold .sh-what { opacity: .45; }
+.sh-what { position: relative; }
+.sh-card { display: block; width: 100%; padding: 0; border: 0; background: none; cursor: pointer; container-type: inline-size; }
+.sh-card .s-card { width: 100%; }
+.sh-div { display: grid; justify-items: center; align-content: center; gap: 6px; aspect-ratio: 5 / 7; padding: 10px; border-radius: 10px; background: var(--s2); text-align: center; }
+.sh-div .gd-art { width: 46px; height: 64px; }
+.sh-div b { font: 400 22px var(--display); }
+.sh-div small { color: var(--dim); font-size: 11.5px; }
+.sh-wish { position: absolute; left: 6px; top: 6px; color: #ff6b8a; font-size: 18px; text-shadow: 0 1px 4px rgba(0, 0, 0, .6); }
+.sh-freeze { margin-left: auto; min-height: 30px; padding: 0 10px; border: 0; border-radius: 99px; background: var(--s3); color: var(--dim); font: 700 12px var(--body); cursor: pointer; }
+.sh-freeze.on { background: #9fdcff; color: #04131b; }
+.sh-freeze:disabled { opacity: .4; cursor: default; }
+.sh-info { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; min-height: 20px; }
+.sh-info b { font: 400 16px var(--display); }
+.sh-frozen { color: #9fdcff; font-weight: 700; }
+/* The Mythic meter is a button: tap it for what it means (#115). */
+button.st-meter { border: 0; color: inherit; text-align: left; font: inherit; cursor: pointer; }
+.st-info { display: inline-grid; place-items: center; width: 14px; height: 14px; margin-left: 4px; border-radius: 50%; background: var(--s3); font: 700 9px/1 var(--body); font-style: normal; letter-spacing: 0; color: var(--tx); vertical-align: 1px; }
+.st-why { grid-column: 1 / -1; margin: 0; padding: 10px 14px; border-radius: 14px; background: var(--s1); color: var(--dim); font-size: 13.5px; line-height: 1.45; }
