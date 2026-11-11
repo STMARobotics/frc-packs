@@ -2,11 +2,27 @@
 // players should hear about: everyone who's played before sees the newest one once (screens/notes.tsx), and Settings
 // shows the version and every release. 0.x while in beta: the middle number for a weekly release, the last for the
 // feedback updates and fixes in between. How to bump and how the notes should read: CONTRIBUTING.md.
-export const VERSION = "0.14.1";
+export const VERSION = "0.14.2";
 
 export interface Release { v: string; date: string; title: string; items: string[] }
 
 export const NOTES: Release[] = [
+  {
+    v: "0.14.2",
+    date: "2026-11-12",
+    title: "",
+    items: [
+      "New font for titles and team names (Figtree), the same as Puncher, Stats and FMEA",
+      "Card stats use Figtree Black",
+      "Uncommon is blue instead of teal, so it doesn't look like Mythic",
+      "Team names wrap to two lines instead of shrinking",
+      "The copy count sits on the card's photo",
+      "The division moved to the strip under the photo",
+      "The season year sits between the stars and the serial",
+      "Cards without an effect say No effect",
+      "Smaller corners and softer glows on cards, and new pack art to match",
+    ],
+  },
   {
     v: "0.14.1",
     date: "2026-11-12",
