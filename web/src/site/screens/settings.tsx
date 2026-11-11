@@ -19,7 +19,7 @@ function Line({ title, note, children, sub }: { title: string; note?: ComponentC
   return <div class={cx("sg-line", sub && "sg-sub")}><span><b>{title}</b>{note && <small>{note}</small>}</span>{children}</div>;
 }
 /** The kinds of notification, as the server names them. */
-const KINDS: [string, string][] = [
+const NOTIFY: [string, string][] = [
   ["pack", "Free pack ready"],
   ["offer", "Trade offers and counter-offers"],
   ["accepted", "Your trade was accepted"],
@@ -121,7 +121,7 @@ function Settings() {
           <Toggle on={ps === "on"} disabled={!(ps === "on" || ps === "off") || busy === "push"} onClick={() => run("push", togglePush)} />
         </Line>
         {/* Which kinds (#119): saved on your account, so they apply on every device. */}
-        {ps === "on" && KINDS.map(([k, title]) => {
+        {ps === "on" && NOTIFY.map(([k, title]) => {
           const off = s.notifyOff ?? [];
           const on = !off.includes(k);
           const flip = () => run(`n-${k}`, async () => {
