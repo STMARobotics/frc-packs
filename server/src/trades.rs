@@ -339,6 +339,17 @@ async fn offer(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Jso
         if open_trades_of(db, user.id).await?.iter().filter(|t| t.from_user == user.id).count() >= MAX_OPEN {
             return Err(err(StatusCode::CONFLICT, "too_many_offers"));
         }
+        // Teams a player keeps (♥) are never traded, from either side.
+        let (my_kept, their_kept) = tokio::try_join!(
+            crate::profiles::favorites(db, user.id, pack.id()),
+            crate::profiles::favorites(db, to.id, pack.id())
+        )?;
+        if req.give.iter().any(|n| my_kept.contains(n)) {
+            return Err(err(StatusCode::CONFLICT, "card_kept"));
+        }
+        if req.want.iter().any(|n| their_kept.contains(n)) {
+            return Err(err(StatusCode::CONFLICT, "they_keep"));
+        }
         let give = pick_copies(db, &p, &pack, &req.give, &req.give_serials, true).await?;
         let want = pick_copies(db, &to, &pack, &req.want, &req.want_serials, false).await?;
         if crate::specials::owned_count(db, &req.give_specials, user.id).await? != req.give_specials.len()
@@ -441,6 +452,7 @@ async fn offer(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Jso
             ),
             url: "/#trade".into(),
             tag: format!("trade-{me}"),
+            kind: "offer",
         },
     )
     .await;
@@ -663,6 +675,11 @@ async fn accept(State(s): State<Shared>, user: User, Path(id): Path<i64>) -> Api
         if (!t.want.is_empty() || !t.want_specials.is_empty()) && too_new(&to_p) {
             return Err(err(StatusCode::CONFLICT, "too_new"));
         }
+        // A card asked of you that you've since marked to keep: unmark it to accept.
+        let kept = crate::profiles::favorites(db, t.to_user, &t.pack).await?;
+        if t.want.iter().any(|c| kept.contains(&c.team)) {
+            return Err(err(StatusCode::CONFLICT, "card_kept"));
+        }
         if from_p.disabled {
             close(db, id, "failed").await?;
             return Ok(None);
@@ -846,6 +863,7 @@ async fn accept(State(s): State<Shared>, user: User, Path(id): Path<i64>) -> Api
             },
             url: "/#binder".into(),
             tag: format!("trade-done-{id}"),
+            kind: "accepted",
         },
     )
     .await;
@@ -909,6 +927,21 @@ async fn decide(s: &Shared, user: User, id: i64, by_maker: bool) -> ApiResult<Js
     }
     if !close(&s.db, id, if by_maker { "cancelled" } else { "declined" }).await? {
         return Err(err(StatusCode::NOT_FOUND, "trade_gone"));
+    }
+    if !by_maker {
+        let who = api::me(&s.db, user.id).await?.username.unwrap_or_else(|| "Someone".into());
+        push::notify(
+            &s.db,
+            t.from_user,
+            push::Note {
+                title: format!("{who} declined your trade"),
+                body: "Your cards, packs and parts are free to offer again.".into(),
+                url: "/#trade".into(),
+                tag: format!("declined-{id}"),
+                kind: "declined",
+            },
+        )
+        .await;
     }
     Ok(Json(list_in(&s.db, user.id).await?))
 }
@@ -1043,7 +1076,8 @@ struct MatchOut {
 
 /// Everyone's copies per team and wishlist, read at most every 30 seconds (one read per player), and again as soon as
 /// someone new joins.
-type Holdings = std::collections::HashMap<Uuid, (std::collections::HashMap<i32, u32>, Vec<i32>)>;
+/// Per player: copies of each team, their wishlist, and the teams they keep (never traded).
+type Holdings = std::collections::HashMap<Uuid, (std::collections::HashMap<i32, u32>, Vec<i32>, Vec<i32>)>;
 static HOLDINGS: std::sync::Mutex<Option<(std::time::Instant, String, std::sync::Arc<Holdings>)>> =
     std::sync::Mutex::new(None);
 
@@ -1074,12 +1108,14 @@ async fn holdings(db: &Db, pack: &str, people: &[Profile]) -> ApiResult<std::syn
                     }
                 }
                 let wish = crate::profiles::wishlist(&db, id, &pack).await?;
-                ApiResult::Ok((id, counts, wish))
+                let kept = crate::profiles::favorites(&db, id, &pack).await?;
+                ApiResult::Ok((id, counts, wish, kept))
             });
         }
         while let Some(r) = set.join_next().await {
-            let (id, counts, wish) = r.map_err(|e| ApiError::from(crate::db::DbError::Other(e.to_string())))??;
-            out.insert(id, (counts, wish));
+            let (id, counts, wish, kept) =
+                r.map_err(|e| ApiError::from(crate::db::DbError::Other(e.to_string())))??;
+            out.insert(id, (counts, wish, kept));
         }
     }
     let h = std::sync::Arc::new(out);
@@ -1087,15 +1123,20 @@ async fn holdings(db: &Db, pack: &str, people: &[Profile]) -> ApiResult<std::syn
     Ok(h)
 }
 
-/// The spares one side has that the other lacks, wanted ones first, then the rarest.
+/// The spares one side has that the other lacks, wanted ones first, then the rarest. Teams the side keeps aren't
+/// spares.
 fn spares(
     pack: &Pack,
     has: &std::collections::HashMap<i32, u32>,
+    kept: &[i32],
     lacks: &std::collections::HashMap<i32, u32>,
     wants: &[i32],
 ) -> Vec<i32> {
-    let mut out: Vec<i32> =
-        has.iter().filter(|(t, n)| **n >= 2 && lacks.get(t).copied().unwrap_or(0) == 0).map(|(t, _)| *t).collect();
+    let mut out: Vec<i32> = has
+        .iter()
+        .filter(|(t, n)| **n >= 2 && !kept.contains(t) && lacks.get(t).copied().unwrap_or(0) == 0)
+        .map(|(t, _)| *t)
+        .collect();
     let rank = |t: &i32| pack.team_tier.get(t).map_or(9, |x| x.rank());
     out.sort_by_key(|t| (!wants.contains(t), rank(t), *t));
     out
@@ -1113,13 +1154,14 @@ async fn matches(State(s): State<Shared>, user: User, Path(pack): Path<String>) 
         *mine.entry(c.team).or_insert(0) += 1;
     }
     let my_wish = crate::profiles::wishlist(db, user.id, pack.id()).await?;
+    let my_kept = crate::profiles::favorites(db, user.id, pack.id()).await?;
     let mut out: Vec<(usize, usize, MatchOut)> = people
         .iter()
         .filter(|p| p.id != user.id)
         .filter_map(|p| {
-            let (theirs, their_wish) = h.get(&p.id)?;
-            let they_have = spares(&pack, theirs, &mine, &my_wish);
-            let you_have = spares(&pack, &mine, theirs, their_wish);
+            let (theirs, their_wish, their_kept) = h.get(&p.id)?;
+            let they_have = spares(&pack, theirs, their_kept, &mine, &my_wish);
+            let you_have = spares(&pack, &mine, &my_kept, theirs, their_wish);
             if they_have.is_empty() || you_have.is_empty() {
                 return None;
             }

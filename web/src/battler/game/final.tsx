@@ -24,7 +24,9 @@ export function Final({ g }: { g: GameView }) {
   const d = o.elo_after[side] - o.elo_before[side];
   useEffect(() => { (res === "win" ? sfx.win : res === "loss" ? sfx.lose : () => sfx.tick(3))(); }, []);
   const why = o.reason === "forfeit" ? (res === "win" ? `${them.name} forfeited.` : "You forfeited.")
-    : o.reason === "timeout" ? (res === "win" ? `${them.name} ran out the timer.` : "You ran out the timer.") : "";
+    : o.reason === "timeout" ? (res === "win" ? `${them.name} ran out the timer.` : "You ran out the timer.")
+    // Decided early (#131): the side behind couldn't catch up in the matches left.
+    : g.rounds.length < g.rounds_total ? `Decided after ${g.rounds.length} of ${g.rounds_total} matches: ${res === "win" ? `${them.name} couldn't catch up` : "there weren't enough matches left to catch up"}.` : "";
   return (
     <div class={cx("b-final", res)}>
       <h1>{res === "win" ? "Victory" : res === "loss" ? "Defeat" : "Draw"}</h1>
@@ -36,6 +38,7 @@ export function Final({ g }: { g: GameView }) {
       </div>
       <p class="b-dim b-small">Points {o.points[side]}–{o.points[op]}{o.rp[0] === o.rp[1] ? " (RP tied, so points decide)" : ""}</p>
       <div class={cx("b-elochange", d >= 0 ? "up" : "down")}>{o.elo_before[side]} → <b>{o.elo_after[side]}</b> Elo <span>{d >= 0 ? "+" : ""}{d}</span></div>
+      {g.parts_won != null && <p class="b-dim b-parts-won">{g.parts_won > 0 ? <>+{g.parts_won} parts for playing{o.winner === side ? ", with the win bonus" : ""}</> : "No parts for this one: you've had today's 5 paid battles, or 2 against this player."}</p>}
       {g.rounds.length > 0 && (
         <table class="b-rounds">
           <thead><tr><th>Round</th><th>You</th><th>{them.name}</th><th>RP</th></tr></thead>

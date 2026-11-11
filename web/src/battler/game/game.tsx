@@ -40,7 +40,7 @@ export function GameScreen({ id, code }: { id: string; code?: string }) {
     loop();
     const vis = () => { if (document.visibilityState === "visible") { clearTimeout(timer); loop(); } };
     document.addEventListener("visibilitychange", vis);
-    return () => { alive = false; clearTimeout(timer); document.removeEventListener("visibilitychange", vis); document.title = "Battler · FRC Packs"; resetGame(); setInvite(); };
+    return () => { alive = false; clearTimeout(timer); document.removeEventListener("visibilitychange", vis); document.title = "Battle · FRC Packs"; resetGame(); setInvite(); };
   }, [id]);
 
   // On first load, don't replay old rounds; do play the current round's reveal.
@@ -48,16 +48,22 @@ export function GameScreen({ id, code }: { id: string; code?: string }) {
     if (g && seen === null) setSeen(g.status === "RESULTS" ? g.round - 1 : g.rounds.length);
   }, [g, seen]);
 
+  // The tab's title says where things stand (#137): Queueing while you wait for an opponent, Match Found! the moment
+  // one joins (until you come back to the tab), and Your move when the game is waiting on you.
+  const queued = useRef(false), found = useRef(false);
   useEffect(() => {
     if (!g) return;
-    document.title = myMove(g) ? "● Your move · Battler" : "Battler · FRC Packs";
+    if (g.status === "OPEN") queued.current = true;
+    else if (queued.current) { queued.current = false; found.current = true; }
+    if (found.current && document.visibilityState === "visible") window.setTimeout(() => { found.current = false; }, 4000);
+    document.title = g.status === "OPEN" ? "Queueing… · FRC Packs" : found.current ? "Match Found! · FRC Packs" : myMove(g) ? "● Your move · Battle" : "Battle · FRC Packs";
     if (g.status === "FINAL") loadHome().catch(() => {});
   }, [g?.rev, g?.status]);
 
   const inArena = !!g?.me && ["DRAFT", "PIT", "RESULTS"].includes(g.status);
   useEffect(() => { document.body.classList.toggle("b-in-game", inArena); return () => document.body.classList.remove("b-in-game"); }, [inArena]);
 
-  if (err) return <Empty>{err} <a href="#play">Back to Play</a></Empty>;
+  if (err) return <Empty>{err} <a href="#play">Back to Battle</a></Empty>;
   if (!g || seen === null) return <div class="b-center"><Spinner /></div>;
   if (!g.me) return <JoinLink g={g} />;
 
@@ -79,7 +85,7 @@ export function GameScreen({ id, code }: { id: string; code?: string }) {
         : <><Final g={g} /><WagerResult g={g} /></>;
       break;
     case "CANCELLED":
-      body = <><div class="b-panel center"><h2>Game called off</h2><p class="b-dim">Nobody's Elo changed.</p><a class="b-btn" href="#play">Back to Play</a></div><WagerResult g={g} /></>;
+      body = <><div class="b-panel center"><h2>Game called off</h2><p class="b-dim">Nobody's Elo changed.</p><a class="b-btn" href="#play">Back to Battle</a></div><WagerResult g={g} /></>;
       break;
   }
   return <>{body}<Emotes g={g} /></>;

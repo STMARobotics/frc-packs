@@ -1481,12 +1481,8 @@ body.has-notice .app > .top { top: calc(36px + env(safe-area-inset-top)); }
 .ftb .rar i { font-style: normal; opacity: .22; }
 .ftb .rar i.on { opacity: 1; }
 .inner.b2 .avatar.none { display: grid; place-items: center; font: 400 calc(var(--cw) * .034) / 1 var(--display); text-transform: uppercase; color: var(--acc2); }
-/* A named effect: its name, and the first line of its rules (all of it is in the card's Details). */
-.inner.bt .effect p.fx-named { display: grid; gap: calc(var(--cw) * .006); }
-.inner.bt .effect p.fx-named b { font: 400 calc(var(--cw) * .052) / 1 var(--display); text-transform: uppercase; letter-spacing: .02em; }
-.inner.bt .effect p.fx-named span, .inner.bt .effect p.fx-long { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; }
-.inner.bt .effect p.fx-named span { -webkit-line-clamp: 1; font-size: calc(var(--cw) * .03); font-weight: 500; color: rgba(255,255,255,.75); }
-.inner.bt .effect p.fx-long { -webkit-line-clamp: 2; font-size: calc(var(--cw) * .032); }
+/* The card shows up to three lines of the effect. Details shows the full rules. */
+.inner.bt .effect p.fx-long { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; font-size: calc(var(--cw) * .032); }
 .inner.bt .effect p.tbd { color: rgba(255,255,255,.55); font-style: italic; font-weight: 500; }
 .inner.bt b.na { opacity: .4; }
 

@@ -44,7 +44,7 @@ export function Face({ t, tier, serial, copies = 1 }: { t: T; tier: Tier; serial
         </div>
         <div class="statrow"><div class="stat"><small>AUTO</small>{stat(bt?.auto)}</div><div class="stat"><small>TELE</small>{stat(bt?.tele)}</div><div class="stat"><small>END</small>{stat(bt?.end)}</div></div>
         <div class="rprow">{[0, 1, 2].map((i) => <div class="rp"><i>RP{i + 1}</i>{bt ? <b>{bt.rp[i]}%</b> : <b class="na">–</b>}</div>)}</div>
-        <div class="effect">{bt?.effect ? (bt.effectName ? <p class="fx-named"><b>{bt.effectName}</b><span>{bt.effect}</span></p> : <p class="fx-long">{bt.effect}</p>) : <p class="tbd">No effect</p>}</div>
+        <div class="effect">{bt?.effect ? <p class="fx-long">{bt.effect}</p> : <p class="tbd">No effect</p>}</div>
       </div>
       <div class="ftb">
         <span class="rar" aria-label={`${STARS[tier]} of 5 stars`}>{[0, 1, 2, 3, 4].map((i) => <i class={i < STARS[tier] ? "on" : undefined}>★</i>)}</span>
@@ -228,22 +228,10 @@ export function Tabs<V extends string>({ value, options, onChange }: { value: V;
   );
 }
 
+export { Logo, Wordmark } from "../brand";
+
 /** A player's picture: the robot on the card they picked (`team`; left out, it's looked up for you and for anyone in
     the Social list), else their initials on a color of their own. */
-/** The FRC Packs mark (Seam): a pack with its top torn open along one teal seam. The pack takes the text colour. The
-    same drawing makes the favicon and app icons (tools/brand_icons.cjs). */
-export const Logo = ({ cls }: { cls?: string }) => (
-  <svg class={cx("s-logo", cls)} viewBox="0 0 64 64" aria-hidden="true">
-    <path d="M19 15.6 L45 6.9 Q47 6.3 47 8.4 L47 12.3 L17 22.3 L17 17.5 Q17 16.1 19 15.6 Z" fill="currentColor" />
-    <path d="M17 24.6 L47 14.6 L47 19.8 L17 26 Z" fill="#3cffdc" />
-    <path d="M17 28.6 L47 22.4 L47 47.6 L17 47.6 Z" fill="currentColor" />
-    <path d="M17 50.2 H47 V52 Q47 56 43 56 H21 Q17 56 17 52 Z" fill="currentColor" />
-  </svg>
-);
-
-/** The wordmark: FRC / Packs, the slash a teal seam. Read aloud as "FRC Packs". */
-export const Wordmark = () => <span class="s-word" aria-label="FRC Packs">FRC<i class="s-slash" aria-hidden="true" />Packs</span>;
-
 export function Avatar({ name, big, team }: { name: string; big?: "big" | "huge" | boolean; team?: number | null }) {
   const me = useStore(st), so = useStore(social);
   const lower = (name || "").toLowerCase();

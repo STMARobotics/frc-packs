@@ -111,20 +111,20 @@ async function main() {
     } else console.log('(no duplicate card to check Copies with)');
   }
   // Filters and search.
-  await p.selectOption('.s-filters select >> nth=0', 'common');
+  await p.click('.bn-tiers b >> text="Common"');
   await shot('binder-common');
-  await p.selectOption('.s-filters select >> nth=0', 'all');
-  await p.click('.s-filters >> text=Missing');
+  await p.click('.bn-tiers >> text="All"');
+  await p.click('.bn-row >> text=Missing');
   await p.waitForTimeout(300);
   await shot('binder-missing');
-  await p.click('.s-filters >> text=Missing');
+  await p.click('.bn-row >> text=Missing');
   await p.fill('input[type=search]', '1');
   await p.waitForTimeout(300);
   await p.fill('input[type=search]', '');
   const before = await p.evaluate(() => window.__imgs);
   // Tab away and back, and the app regaining focus, must not rebuild the grid.
   await p.evaluate(() => (window.__imgs = 0));
-  await p.click('.s-tabbar >> text=Social');
+  await p.click('.s-tabbar >> text=Trade');
   await p.click('.s-tabbar >> text=Binder');
   await p.waitForTimeout(400);
   const tabImgs = await p.evaluate(() => window.__imgs);
@@ -138,14 +138,14 @@ async function main() {
   await shot('workshop');
   await p.click('.s-tabs >> text=Cards');
   // A card you don't have: wishlist it.
-  await p.click('.s-filters >> text=Missing');
+  await p.click('.bn-row >> text=Missing');
   await p.click('.s-ghost >> nth=0');
   await p.waitForSelector('.s-cardview');
   await p.click('.cw-top >> text=Wishlist');
   await p.waitForTimeout(400);
   await shot('ghost-card-wished');
   await p.click('.cw-top [aria-label=Close]');
-  await p.click('.s-filters >> text=Missing');
+  await p.click('.bn-row >> text=Missing');
   // Profile and settings.
   await p.click('.s-avbtn');
   await p.waitForSelector('.s-profile .pr-stats');
@@ -156,7 +156,7 @@ async function main() {
   await p.goBack(); await p.goBack();
   await p.waitForSelector('.s-layer', { state: 'detached' });
   // Social tab: someone else's profile.
-  await p.click('.s-tabbar >> text=Open');
+  await p.click('.s-tabbar >> text=Packs');
   await p.waitForSelector('.s-status');
   // Missions and the streak show without a tap; folding them away sticks.
   assert(await p.$('.st-daily-b .st-mission'), 'daily missions show on Open');
@@ -176,7 +176,7 @@ async function main() {
   await A.call('POST', '/api/dev/pack', { pack: 'cmp26' });
   await A.call('POST', '/api/dev/pack', { pack: 'cmp26' });
   await p.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
-  await p.waitForFunction(() => document.querySelector('.op-count')?.textContent === '×2');
+  await p.waitForFunction(() => document.querySelector('.op-kind.k-std b')?.textContent === '×2');
   await p.click('.op-hero');
   await p.waitForSelector('.op-grip');
   await p.waitForTimeout(600);
@@ -235,17 +235,19 @@ async function main() {
   await B.call('POST', '/api/wishlist', { pack: 'cmp26', team: mySpareOnlyNum, on: true });
   await A.call('POST', '/api/wishlist', { pack: 'cmp26', team: getNum, on: true });
   await A.call('POST', '/api/wishlist', { pack: 'cmp26', team: partnerSpareOnlyNum, on: true });
-  await p.click('.s-tabbar >> text=Social');
+  // Activity is part of the Trade tab, and everyone to trade with is under New (0.14).
+  await p.click('.s-tabbar >> text=Trade');
+  await p.click('.s-trade > .s-tabs >> text=Activity');
   await p.waitForSelector('.s-social');
   await shot('social-activity');
-  await p.click('.s-social .s-tabs >> text=Players');
-  await shot('social-players');
-  await p.click('.s-tabbar >> text=Trade');
+  await p.click('.s-trade > .s-tabs >> text=Trade');
+  await p.click('.td-panes >> text=New');
+  await shot('trade-everyone');
   await p.waitForSelector('.s-trade');
   await p.reload();
   await p.waitForSelector('.s-trade');
   await p.fill('.s-trade input[type=search]', 'sib' + tag);
-  await p.click(`.td-person >> text=sib${tag}`);
+  await p.click(`.td-prow:has-text("sib${tag}") button.s-chipbtn`);
   await p.waitForSelector('.td-table');
   await p.click('.td-side.give .td-slot');
   await p.waitForSelector('.td-picker .td-pick');
@@ -395,7 +397,7 @@ async function main() {
   await shot('trade-table');
   await p.click('.s-trade .s-btn.wide');
   await p.waitForSelector('.s-toast.show');
-  await p.click('.s-trade .s-tabs >> text=Sent');
+  await p.click('.td-panes >> text=Sent');
   await p.waitForSelector('.td-offer');
   await shot('trade-sent');
   const ctxB = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
@@ -411,11 +413,11 @@ async function main() {
   await b.click('.td-offer >> text=Counter');
   await b.waitForSelector('.td-table');
   assert(await b.$('.s-trade .td-fairbar'), 'counter-offer draft retains the fairness meter');
-  await b.click('.s-trade .s-tabs >> text=For you');
+  await b.click('.td-panes >> text=For you');
   await b.screenshot({ path: path.join(OUT, `${String(++n).padStart(2, '0')}-trade-incoming-b.png`) });
   await b.click('.td-offer >> text=Accept');
   await b.waitForSelector('.s-toast.show');
-  await b.click('.s-trade .s-tabs >> text=History');
+  await b.click('.td-panes >> text=History');
   await b.waitForSelector('.hi-item.accepted');
   await b.screenshot({ path: path.join(OUT, `${String(++n).padStart(2, '0')}-trade-history-b.png`) });
 

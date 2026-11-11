@@ -17,6 +17,15 @@
 .fe-t time { display: block; font-size: 11.5px; color: var(--dim); }
 .fe-t .s-bdg { margin-left: 6px; }
 .fe-c { flex: none; padding: 0; border: 0; background: none; cursor: pointer; }
+/* A trade in the feed opens to show its cards. */
+.fe-trade { flex: 1; min-width: 0; }
+.fe-trade > summary { list-style: none; cursor: pointer; }
+.fe-trade > summary::-webkit-details-marker { display: none; }
+.fe-trade > summary::after { content: "Show cards ›"; display: block; font-size: 11.5px; font-weight: 700; color: var(--ac); }
+.fe-trade[open] > summary::after { content: "Hide cards"; }
+.fe-side { margin-top: 8px; }
+.fe-side small { color: var(--dim); font-weight: 700; }
+.fe-cards { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
 
 /* small cards */
 .s-mini { --t: #aab8c4; position: relative; display: grid; grid-template-rows: 1fr auto auto; width: 100%; aspect-ratio: 5 / 7; overflow: hidden; border-radius: 4px; background: #0d1626; box-shadow: inset 0 0 0 2px var(--t); text-align: center; }
@@ -25,6 +34,13 @@
 .mi-num { font: 400 13px/1.1 var(--display); text-transform: uppercase; color: var(--t); padding-top: 2px; }
 .mi-name { padding: 0 4px; font-size: 9.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mi-foot { padding: 1px 0 3px; font-size: 9px; font-weight: 700; color: var(--dim); }
+/* The real card (#111): sized by its cell, the line under it outside the card. */
+.s-mini.real { aspect-ratio: auto; grid-template-rows: auto auto; overflow: visible; background: none; box-shadow: none; gap: 3px; }
+.s-mini.real .mi-card { display: block; container-type: inline-size; border-radius: 6px; }
+.s-mini.real .mi-card .s-card { width: 100%; }
+.s-mini.real .mi-foot { padding: 0; font-size: 10px; }
+.td-pick.on .s-mini.real { box-shadow: none; }
+.td-pick.on .s-mini.real .mi-card { box-shadow: 0 0 0 3px var(--ac); }
 
 /* trading */
 .s-trade .s-tabs button { position: relative; }
@@ -134,3 +150,14 @@
 .td-mcards i { width: 9px; height: 13px; border-radius: 1px; background: var(--tc); opacity: .9; }
 .td-acts3 { grid-template-columns: 1.2fr 1fr 1fr !important; }
 .td-acts3 .s-btn { padding-inline: 6px; }
+/* The fairness bar and Make it fair (#129, #130): on the table, and pinned at the top of the card picker. */
+.td-fairrow { display: flex; align-items: center; gap: 10px; }
+.td-fairrow .td-fair { flex: 1; }
+.td-pickfair { position: sticky; top: 0; z-index: 5; padding: 6px 0; background: var(--bg); }
+.td-pickfair:empty, .td-pickfair .td-fairrow:empty { display: none; }
+
+/* Everyone to trade with (the old Players list): tap a player for their profile, Trade to start one. */
+.td-prow { cursor: default; }
+.td-pwho { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.td-prow > small { flex: none; white-space: nowrap; }
+.td-sort { margin: 2px 0; }

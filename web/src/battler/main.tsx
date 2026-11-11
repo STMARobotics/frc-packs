@@ -7,6 +7,7 @@
 import "../style.css";
 import "./battler.css";
 import "../nav.css";
+import { Logo, Wordmark } from "../brand";
 import { render } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { ApiError, explain } from "./api";
@@ -60,7 +61,7 @@ function App() {
   if (state === "loading") return <div class="b-center"><Spinner /></div>;
   if (state === "signin") return (
     <div class="b-center b-gate">
-      <h1>Battler</h1>
+      <h1>Battle</h1>
       <p class="b-dim">Sign in with your FRC Packs account to play with the robots you own.</p>
       <a class="b-btn" href="/">Sign in</a>
     </div>
@@ -76,7 +77,7 @@ function App() {
     <>
       {name !== "game" && (
         <header class="b-top">
-          <a class="b-brand" href="#home">Battler</a>
+          <a class="b-brand s-brand" href="#home" aria-label="FRC Packs Battle, home"><Logo /><Wordmark /></a>
           <span class="b-top-r">{h && <span class="b-elo"><b>{h.profile.elo}</b> Elo</span>}<a class="b-chip" href="/">FRC Packs</a></span>
         </header>
       )}
@@ -84,10 +85,10 @@ function App() {
       {/* The site's tab bar, so the Battler is one of its tabs. Not in a game: leaving one counts as a forfeit. */}
       {name !== "game" && (
         <nav class="s-tabbar" aria-label="Sections">
-          <a href="/#open"><i class="ic-open" aria-hidden="true" /><span>Open</span></a>
+          <a href="/#open"><i class="ic-open" aria-hidden="true" /><span>Packs</span></a>
           <a href="/#binder"><i class="ic-binder" aria-hidden="true" /><span>Binder</span></a>
+          <a href="/#shop"><i class="ic-shop" aria-hidden="true" /><span>Shop</span></a>
           <a href="/#trade"><i class="ic-trade" aria-hidden="true" /><span>Trade</span></a>
-          <a href="/#social"><i class="ic-social" aria-hidden="true" /><span>Social</span></a>
           <a class="on" href="#home" aria-current="page"><i class="ic-battle" aria-hidden="true" /><span>Battle</span></a>
         </nav>
       )}

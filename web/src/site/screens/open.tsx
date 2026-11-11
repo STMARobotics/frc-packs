@@ -16,6 +16,7 @@ import { openCard } from "./cardview";
 import { usePad } from "../pad";
 import { createRip, type Rip } from "../rip";
 import type { PackGL } from "../gl/pack";
+import { BuyPack } from "./shop";
 
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 /** The WebGL pack's code (and Three.js with it), fetched the first time a pack is tapped. */
@@ -31,6 +32,13 @@ function counts(): Record<Kind, number> {
 }
 /** The stack being opened, kept between visits. */
 let kind: Kind = "std";
+/** A division pack bought in the shop, opened next (at once, with the usual opening). */
+let divNext: string | null = null;
+export function openDivision(d: string) {
+  divNext = d;
+  kind = "std";
+  openFlow();
+}
 
 interface Deal { num: number; tier: Tier; serial: number; isNew: boolean; copy: number; inGame?: number; test?: boolean }
 interface Result { opening: Opening & { cards: Deal[] }; state: State | null; streakReward: boolean }
@@ -98,7 +106,7 @@ function Sky({ k }: { k: Kind }) {
   );
 }
 
-export function PackArt({ k, odds }: { k: Kind; odds?: boolean }) {
+export function PackArt({ k, odds, label }: { k: Kind; odds?: boolean; label?: string }) {
   return (
     <div class={cx("op-pack", `k-${k}`)}>
       {odds && [-3, -2, -1, 0, 1, 2, 3].map((z) => <i class="op-pedge" style={{ "--z": z }} />)}
@@ -108,7 +116,7 @@ export function PackArt({ k, odds }: { k: Kind; odds?: boolean }) {
           <span class="op-pyr">{RECIPE?.season ?? 2026}</span>
           <Sky k={k} />
           <b class="op-pname">{(RECIPE?.name ?? "Championship").replace(/^\d{4}\s*/, "")}</b>
-          <span class="op-pkind">{k === "std" ? "5 cards" : NAME[k]}</span>
+          <span class="op-pkind">{label ?? (k === "std" ? "5 cards" : NAME[k])}</span>
           <i class="op-psheen" />
         </div>
       </div>
@@ -162,23 +170,27 @@ export function OpenHome() {
     b.style.setProperty("--gy", (((e.clientY - r.top) / r.height - 0.5) * 2).toFixed(3));
   };
   const untilt = () => { btn.current?.style.removeProperty("--gx"); btn.current?.style.removeProperty("--gy"); };
+  // The Packs screen (0.14): the pack on the left, your stacks beside it, Open and Buy under them.
+  const shown: Kind[] = s.account.admin ? ["std", "gold", "test"] : ["std", "gold"];
   return (
-    <section class="op-home">
-      <button ref={btn} type="button" data-pad-first class={cx("op-hero", !n && !left && "op-empty")} onClick={go} onPointerDown={loadGL} onPointerMove={tilt} onPointerLeave={untilt}
-        aria-label={left ? "Finish opening your last pack" : `${NAME[cur]} pack, ${cur === "test" ? "unlimited" : n} to open`}>
-        <span class="op-hero-in"><PackArt k={left ? "std" : cur} /></span>
-        {!left && cur !== "test" && <em class={cx("op-count", cur !== "std" && "op-gold")}>×{n}</em>}
-      </button>
-      <p class="op-cap">{left ? "Finish opening" : cur === "test" ? "Test pack · nothing is saved" : n ? `${NAME[cur]} pack` : "No packs left"}</p>
-      {!left && kinds.length > 1 && (
-        <div class="op-kinds">
-          {kinds.map((x) => (
-            <button type="button" class={cx("op-kind", `k-${x}`, x === cur && "op-on", x !== "test" && !c[x] && "op-none")} aria-pressed={x === cur} onClick={() => { kind = x; setK(x); sfx.tick(); }}>
-              <i /><b>{x === "test" ? "∞" : c[x]}</b><span>{NAME[x]}</span>
+    <section class="op-home op-home2">
+      <header class="op-head"><h1>Packs</h1></header>
+      <div class="op-homerow">
+        <button ref={btn} type="button" data-pad-first class={cx("op-hero", !n && !left && "op-empty")} onClick={go} onPointerDown={loadGL} onPointerMove={tilt} onPointerLeave={untilt}
+          aria-label={left ? "Finish opening your last pack" : `${NAME[cur]} pack, ${cur === "test" ? "unlimited" : n} to open`}>
+          <span class="op-hero-in"><PackArt k={left ? "std" : cur} /></span>
+        </button>
+        <div class="op-kinds op-kinds2" role="group" aria-label="Your packs">
+          {shown.map((x) => (
+            <button type="button" class={cx("op-kind", `k-${x}`, x === cur && !left && "op-on", x !== "test" && !c[x] && "op-none")} aria-pressed={x === cur} onClick={() => { kind = x; setK(x); sfx.tick(); }}>
+              <i /><b>{x === "test" ? "∞" : `×${c[x]}`}</b><span>{NAME[x]}</span>
             </button>
           ))}
         </div>
-      )}
+      </div>
+      {/* Tap the pack to open it; Buy gets another of the kind picked. */}
+      {left && <p class="op-cap">Finish opening</p>}
+      {cur !== "test" && <BuyPack kind={cur === "gold" ? "boosted" : "std"} cls="op-buybtn" />}
     </section>
   );
 }
@@ -238,6 +250,9 @@ function Flow({ resume }: { resume?: Opening }) {
     return kind;
   });
   const kr = useRef<Kind>(k0);
+  // A division pack from the shop: the first pack this opening picks up is that one.
+  const divRef = useRef<string | null>(null);
+  useState(() => { divRef.current = divNext; divNext = null; return 0; });
   const k = kr.current;
   const [round, setRound] = useState(0); // a new pack in hand starts fresh
   const [best, setBest] = useState<Tier | null>(null);
@@ -279,7 +294,6 @@ function Flow({ resume }: { resume?: Opening }) {
   useEffect(() => {
     fx.current = particles(cv.current!);
     if (ph.current === "hold") pickUp();
-    if (resume) toast("Picking up your last pack", false, 2000);
     loadGL()?.then((m) => {
       if (!alive.current) return;
       glRef.current = m.createPackGL(glCv.current!, flowEl.current!);
@@ -374,7 +388,10 @@ function Flow({ resume }: { resume?: Opening }) {
         openReq.current = cs?.length === 5
           ? Promise.resolve({ opening: { id: 0, pack: PACK, revealed: 0, sets: [], cards: cs.map((c) => ({ ...c, serial: 0, isNew: false, copy: 0, test: true })) }, state: null, streakReward: false })
           : Promise.reject(new Error("The test pack isn't ready yet. Try again."));
-      } else openReq.current = api.open(PACK, kk === "gold") as Promise<Result>;
+      } else {
+        openReq.current = api.open(PACK, kk === "gold", divRef.current ?? undefined) as Promise<Result>;
+        divRef.current = null;
+      }
       openReq.current.catch(() => {});
       openReq.current.then((r) => photosReady(r.opening.cards.map((c) => c.num), 0), () => {});
     }

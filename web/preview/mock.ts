@@ -4,7 +4,7 @@
 import raw from "../../data/packs/cmp26.json";
 import focus from "../../data/photos/focus.json";
 import extraSeedTeams from "./extra-seed-teams.json";
-import type { Card, Opening, Recipe, State, Tier } from "../src/api";
+import type { Card, Opening, Recipe, Shop, State, Tier } from "../src/api";
 
 /** How many teams of each rarity are in play: the first ones with a photo, in the recipe's order. The build tool picks
     the same teams' photos. */
@@ -69,6 +69,10 @@ function answer(method: string, path: string, body: Record<string, unknown>): Re
   if (path === "/notice.json") return json(null, 404);
   if (path === "/api/session" || path === "/api/state") return json(state());
   if (path.startsWith("/api/collection/")) return json({ pack: recipe.id, cards: [...owned].map(([num, serials]) => ({ num, serials })), sets: [] });
+  if (path === "/api/shop") {
+    const shop: Shop = { on: false, window: 0, endsAt: Date.now() + 14_400_000, items: [], stdPrice: 0, boostedPrice: 0 };
+    return json(shop);
+  }
   if (path === "/api/trades") return json({ incoming: [], outgoing: [], recent: [] });
   if (path === "/api/specials" || path === "/api/feedback/mine") return json([]);
   // One named effect (7028's, on whichever Mythic is in play) and one unnamed, to see both on cards.
@@ -113,7 +117,7 @@ function bar() {
     b.type = "button"; b.id = `pv-${v}`; b.textContent = label;
     b.setAttribute("aria-pressed", String(v === best));
     b.onclick = () => {
-      best = v; held = null;
+      best = v;
       try { localStorage.setItem(KEY, v); } catch { /* fine */ }
       for (const x of group.children) x.setAttribute("aria-pressed", String(x === b));
     };

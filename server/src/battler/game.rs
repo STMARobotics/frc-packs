@@ -786,8 +786,17 @@ impl Game {
         Ok(())
     }
 
+    /// Whether the game is decided before its last match (#131): the side behind couldn't catch up even winning every
+    /// match left with every bonus RP (3 for the win, 1 per robot) while the leader scores nothing. A lead of exactly
+    /// that much isn't decided (tied RP goes to points).
+    pub fn decided(&self) -> bool {
+        let left = i32::from(ROUNDS.saturating_sub(self.round));
+        let most = 3 + 3; // the match win, and one bonus RP for each of the three robots
+        (self.seat(0).rp - self.seat(1).rp).abs() > left * most
+    }
+
     fn advance(&mut self, now: i64) {
-        if self.round >= ROUNDS {
+        if self.round >= ROUNDS || self.decided() {
             self.finish(None, "complete");
         } else {
             self.deal(now);
@@ -1272,6 +1281,9 @@ mod tests {
         let (mut g, _, _) = in_pit();
         assert_eq!(g.status, Status::Pit);
         for round in 1..=ROUNDS {
+            if g.status == Status::Final {
+                break; // decided early: the other side couldn't catch up
+            }
             assert_eq!(g.round, round);
             assert_eq!(
                 g.alliances,
@@ -1295,7 +1307,25 @@ mod tests {
         assert_eq!(g.status, Status::Final);
         let o = g.outcome.as_ref().unwrap();
         assert_eq!(o.rp, [g.seat(0).rp, g.seat(1).rp]);
-        assert!(g.seat(0).rp >= 0 && g.rounds.len() == 5);
+        assert!(g.seat(0).rp >= 0 && (g.rounds.len() == 5 || g.decided()));
+    }
+
+    #[test]
+    fn a_game_ends_once_the_other_side_cannot_catch_up() {
+        let (mut g, _, _) = in_pit();
+        g.lock(0, 10).unwrap();
+        g.lock(1, 11).unwrap();
+        // After match 1, four are left: at most 24 RP to gain.
+        g.seat_mut(0).rp = 30;
+        g.seat_mut(1).rp = 6;
+        assert!(!g.decided(), "a lead of exactly 24 can still be tied");
+        g.seat_mut(1).rp = 5;
+        assert!(g.decided());
+        g.ack(0, 12).unwrap();
+        g.ack(1, 13).unwrap();
+        assert_eq!(g.status, Status::Final);
+        assert_eq!(g.outcome.as_ref().unwrap().winner, Some(0));
+        assert_eq!(g.outcome.as_ref().unwrap().reason, "complete", "a full game: it pays parts like one");
     }
 
     #[test]

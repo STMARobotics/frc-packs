@@ -4,7 +4,7 @@
 import { useEffect, useState } from "preact/hooks";
 import { api, type Copy, type Owner } from "../../api";
 import { useStore } from "../../lib/store";
-import { BY_NUM, PACK, RECIPE, RP_NAMES, TIERS } from "../data";
+import { BY_NUM, PACK, TIERS } from "../data";
 import { ago, fail, heldCopies, inv, st, toast } from "../state";
 import { Avatar, back, closeAll, cx, push, Spinner, Tabs, TiltCard } from "../ui";
 import { sfx } from "../sfx";
@@ -49,12 +49,11 @@ function CardView({ num, o }: { num: number; o: CardOpts }) {
   const owned = mine.length > 0;
   const serial = o.serial ?? (o.from ? undefined : pick != null && mine.includes(pick) ? pick : mine[0]);
   const fav = (s.favorites ?? []).includes(num), wish = (s.wishlist ?? []).includes(num), pin = (s.showcase ?? []).includes(num);
-  const names = RP_NAMES[RECIPE.season] ?? ["RP1", "RP2", "RP3"];
 
   const toggle = async (what: "fav" | "wish" | "pin") => {
     setBusy(what);
     try {
-      if (what === "fav") { const l = await api.setFavorite(PACK, num, !fav); st.set({ ...st.get()!, favorites: l }); toast(!fav ? "Kept. It will never be scrapped." : "No longer kept.", false, 1800); }
+      if (what === "fav") { const l = await api.setFavorite(PACK, num, !fav); st.set({ ...st.get()!, favorites: l }); }
       if (what === "wish") { const l = await api.setWish(PACK, num, !wish); st.set({ ...st.get()!, wishlist: l }); }
       if (what === "pin") {
         const list = (s.showcase ?? []).filter((n) => n !== num);
@@ -107,8 +106,7 @@ function CardView({ num, o }: { num: number; o: CardOpts }) {
             {o.serials && o.serials.length > 1 ? <><dt>Serials</dt><dd>{o.serials.map((x) => `No. ${x}`).join(" · ")}</dd></>
               : o.serial ? <><dt>Serial</dt><dd>No. {o.serial}</dd></> : null}
             <dt>Battler</dt><dd>{t.bt ? `AUTO ${t.bt.auto} · TELE ${t.bt.tele} · END ${t.bt.end}` : "Stats coming soon"}</dd>
-            {t.bt?.effect && <><dt>Effect</dt><dd>{t.bt.effectName ? <><b>{t.bt.effectName}.</b> </> : null}{t.bt.effect}</dd></>}
-            <dt>RP slots</dt><dd>{names.map((n, i) => `RP${i + 1} ${n}`).join(" · ")}</dd>
+            {t.bt?.effect && <><dt>Effect</dt><dd>{t.bt.effect}</dd></>}
           </dl>
         ) : <TiltCard num={num} serial={serial} w="min(310px, 80vw, calc((100svh - 250px) / 1.4))" />}
       </div>
@@ -125,7 +123,6 @@ function CardView({ num, o }: { num: number; o: CardOpts }) {
             {extras > 1 && <button type="button" class={cx("s-chipbtn", armed === extras && "warn")} disabled={busy === "scrap"} onClick={() => scrap(extras)}>{armed === extras ? "Tap again" : `Scrap all ${extras} · +${each * extras}`}</button>}
           </div>
         )}
-        {owned && !o.from && mine.length > 1 && free < 2 && t.tier !== "mythic" && <small class="s-dim">Your extra copies are in a pack you're opening or a trade offer.</small>}
         {!o.from && view !== "copies" && <WhoHas num={num} />}
       </div>
     </div>
@@ -147,7 +144,7 @@ function WhoHas({ num }: { num: number }) {
   if (!list.length) return <small class="s-dim">Nobody else has this one yet.</small>;
   return (
     <div class="cw-owners">
-      <small class="s-dim">{list.length === 1 ? "1 player has it" : `${list.length} players have it`}. Tap one to ask for it.</small>
+      <small class="s-dim">{list.length === 1 ? "1 player has it" : `${list.length} players have it`}</small>
       {list.slice(0, 12).map((x) => (
         <button type="button" class="cw-owner" onClick={() => closeAll(() => tradeFor(x.name, num))}>
           <Avatar name={x.name} team={x.avatar} /><b>{x.name}</b><span class={cx("s-dim", x.copies > 1 && "cw-spare")}>{x.copies > 1 ? `×${x.copies} · has spares` : "1 copy"}</span>
@@ -188,18 +185,20 @@ function Copies({ num, pick, onPick }: { num: number; pick: number | null; onPic
       </div>
       {sorted.map((c) => {
         const bd = badges(num, [c.serial]).filter(([k]) => k !== "p");
-        const why = c.first ? "Your first copy: always kept" : kept ? "Kept: never scrapped" : t.tier === "mythic" ? "Mythics are never scrapped" : c.held ? "In a trade offer or a pack being opened" : "";
+        // Any copy can be scrapped from here, even your only one or a Mythic: you picked it. Cards you keep (♥) and ones
+        // in a trade offer or a pack being opened can't.
+        const why = kept ? "Kept: never scrapped" : c.held ? "In a trade offer or a pack being opened" : "";
         return (
           <div class={cx("cw-copy", pick === c.serial && "on", c.held && "held")}>
             <button type="button" class="cw-copy-main" onClick={() => onPick(c.serial)} aria-label={`No. ${c.serial}, show it on the card`}>
               <b>No. {c.serial}</b>
               <span>{FROM[c.obtained] ?? "Yours"} · {ago(c.at)}</span>
               {(bd.length > 0 || c.first) && <span class="cw-copy-bdg">{c.first && <i class="s-bdg">First copy</i>}{bd.map(([k, l]) => <i class={`s-bdg ${k}`}>{l}</i>)}</span>}
-              {why && !c.first && <small class="s-dim">{why}</small>}
+              {why && <small class="s-dim">{why}</small>}
             </button>
             <div class="cw-copy-act">
               <button type="button" class="s-chipbtn" disabled={c.held} onClick={() => closeAll(() => offerFromBinder(num, c.serial))}>Trade</button>
-              {!why && <button type="button" class={cx("s-chipbtn", armed === c.serial && "warn")} disabled={busy === c.serial} onClick={() => scrap(c)}>{armed === c.serial ? "Tap again" : `Scrap +${each}`}</button>}
+              {!why && <button type="button" class={cx("s-chipbtn", armed === c.serial && "warn")} disabled={busy === c.serial} onClick={() => scrap(c)}>{armed === c.serial ? (list.length === 1 ? "Tap again: your only copy" : "Tap again") : `Scrap +${each}`}</button>}
             </div>
           </div>
         );

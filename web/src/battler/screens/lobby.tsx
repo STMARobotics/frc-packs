@@ -31,7 +31,7 @@ export function Lobby() {
 
   return (
     <div class="b-screen">
-      <Head title="Play" />
+      <Head title="Battle" />
       {!ready ? <Empty>You need a ready deck. <a href="#decks">Build one</a></Empty> : (
         <>
           <button type="button" class="b-btn wide big b-quick" onClick={quick} disabled={!!busy}>

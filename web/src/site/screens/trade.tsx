@@ -4,16 +4,17 @@
 // your newest copy, so you keep your earliest serial longest. An offer for you can be accepted, declined or answered
 // with a counter-offer. Offers for you, sent offers and history each have a tab.
 import { useEffect, useState } from "preact/hooks";
-import { api, type CardRef, type Collection, type Special, type Trade, type TradeMatch } from "../../api";
+import { api, type CardRef, type Collection, type Special, type State, type Trade, type TradeMatch } from "../../api";
 import { store, useStore } from "../../lib/store";
 import { BY_NUM, byRarity, ORDER, PACK, TEAMS as TEAM_LIST, TIERS, type T } from "../data";
 import { ago, applyCollection, applyState, fail, inv, loadSocial, packOf, setPrefs, social, specials as mySpecials, st, toast, trades } from "../state";
-import { Avatar, back, cx, push, Spinner, Tabs } from "../ui";
+import { Avatar, back, Card, cx, push, Spinner, Tabs } from "../ui";
 import { sfx } from "../sfx";
 import { openCard } from "./cardview";
 import { openProfile } from "./profile";
 import { Who } from "./social";
 import { SpecialCard } from "./special";
+import { SocialTab } from "./social";
 
 const MAX = 5;
 const PACK_WORTH = 50, SPECIAL_WORTH = 800; // for weighing a trade: a sealed pack counts as 50 parts
@@ -25,6 +26,8 @@ interface Draft {
   /** Their cards: team number to serials. null while loading. */
   theirs: Record<number, number[]> | null;
   theirWish: number[];
+  /** Teams they keep (♥): never traded. */
+  theirKept: number[];
   theirGoods: Goods | null;
   theirSpecials: Special[];
   give: Pick[]; get: Pick[];
@@ -34,7 +37,7 @@ interface Draft {
   counter: number;
 }
 const none = (): Goods => ({ packs: 0, boosted: 0, parts: 0 });
-const empty = (name = ""): Draft => ({ name, theirs: null, theirWish: [], theirGoods: null, theirSpecials: [], give: [], get: [], giveGoods: none(), getGoods: none(), giveSpecials: [], getSpecials: [], counter: 0 });
+const empty = (name = ""): Draft => ({ name, theirs: null, theirWish: [], theirKept: [], theirGoods: null, theirSpecials: [], give: [], get: [], giveGoods: none(), getGoods: none(), giveSpecials: [], getSpecials: [], counter: 0 });
 
 const draft = store<Draft>(empty());
 const pane = store<"new" | "in" | "out" | "past">("new");
@@ -51,6 +54,7 @@ async function choose(name: string, wants: Pick[] = [], gives: Pick[] = []) {
       d.theirs = {};
       for (const c of col.cards) if (BY_NUM.has(c.num)) d.theirs[c.num] = c.serials;
       d.theirWish = prof.wishlist;
+      d.theirKept = prof.kept ?? [];
       d.theirGoods = { packs: prof.packs, boosted: prof.boosted, parts: prof.parts };
       for (const w of wants) if (d.theirs[w.num] && d.get.length < MAX && !d.get.some((p) => p.num === w.num)) d.get.push(w);
       for (const g of gives) if (inv.get()[g.num]?.length && d.give.length < MAX && !d.give.some((p) => p.num === g.num)) d.give.push(g);
@@ -66,6 +70,7 @@ async function choose(name: string, wants: Pick[] = [], gives: Pick[] = []) {
 /** From anywhere: the trading post with this player, and a card of theirs you want (or one of yours) on the table. */
 export function tradeFor(name: string, want?: number, give?: number) {
   pane.set("new");
+  section.set("offers");
   location.hash = "#trade";
   choose(name, want ? [{ num: want, serial: 0 }] : [], give ? [{ num: give, serial: 0 }] : []);
 }
@@ -90,6 +95,7 @@ export function suggest(theyHave: number[], youHave: number[]): { get: number[];
 export function tradeSuggested(name: string, theyHave: number[], youHave: number[]) {
   const { get, give } = suggest(theyHave, youHave);
   pane.set("new");
+  section.set("offers");
   location.hash = "#trade";
   draft.set(empty());
   choose(name, get.map((num) => ({ num, serial: 0 })), give.map((num) => ({ num, serial: 0 })));
@@ -108,19 +114,26 @@ function counterOffer(t: Trade) {
     counter: t.id,
   });
   pane.set("new");
+  section.set("offers");
   choose(t.with, t.youGet.map((c) => ({ num: c.num, serial: c.serial })));
 }
 /** From your binder: that card on your side; then pick who to trade with. */
 /** Starts a trade offering this card (`serial`: that copy in particular, else any). */
 export function offerFromBinder(num: number, serial = 0) {
   pane.set("new");
+  section.set("offers");
   edit((d) => { if (d.give.length < MAX && !d.give.some((p) => p.num === num && (!serial || p.serial === serial))) d.give.push({ num, serial }); });
   location.hash = "#trade";
 }
 
+/** The Trade tab's sections: your offers, the players (the old Social tab's list), and the activity feed. */
+/** The Trade tab's sections: trading (offers, and everyone to trade with) and the activity feed. */
+export const section = store<"offers" | "act">("offers");
+
 export function TradeTab({ active }: { active: boolean }) {
   const tr = useStore(trades);
   const p = useStore(pane);
+  const sec = useStore(section);
   useEffect(() => {
     if (!active) return;
     // Open on the offers waiting for you, if there are any.
@@ -136,11 +149,16 @@ export function TradeTab({ active }: { active: boolean }) {
   }, [active]);
   return (
     <div class="s-screen s-trade">
-      <Tabs value={p} onChange={(v) => pane.set(v)} options={[["new", "New"], ["in", <>For you{tr.incoming.length ? <em class="s-dot in">{tr.incoming.length}</em> : null}</>], ["out", "Sent"], ["past", "History"]]} />
-      {p === "new" && <NewTrade />}
-      {p === "in" && <Offers list={tr.incoming} kind="in" />}
-      {p === "out" && <Offers list={tr.outgoing} kind="out" />}
-      {p === "past" && <History />}
+      <Tabs value={sec} onChange={(v) => section.set(v)} options={[["offers", <>Trade{tr.incoming.length ? <em class="s-dot in">{tr.incoming.length}</em> : null}</>], ["act", "Activity"]]} />
+      {sec === "offers" ? <>
+        <div class="s-chips td-panes">{([["new", "New"], ["in", <>For you{tr.incoming.length ? <em class="s-dot in">{tr.incoming.length}</em> : null}</>], ["out", "Sent"], ["past", "History"]] as const).map(([k, l]) => (
+          <button type="button" class={cx("s-chip", p === k && "on")} aria-pressed={p === k} onClick={() => pane.set(k)}>{l}</button>
+        ))}</div>
+        {p === "new" && <NewTrade />}
+        {p === "in" && <Offers list={tr.incoming} kind="in" />}
+        {p === "out" && <Offers list={tr.outgoing} kind="out" />}
+        {p === "past" && <History />}
+      </> : <SocialTab active={active} pg="act" />}
     </div>
   );
 }
@@ -153,16 +171,56 @@ const collectionCards = (collection: Collection) => {
   return cards;
 };
 
+/** What one side of a trade is worth in parts, the way the fairness bar counts it. */
+function sideWorth(s: State, cards: { num: number }[], goods: Goods, specials: number) {
+  return cards.reduce((sum, card) => sum + (BY_NUM.get(card.num) ? s.scrapParts[BY_NUM.get(card.num)!.tier] ?? 0 : 0), 0)
+    + specials * SPECIAL_WORTH + goods.packs * PACK_WORTH + goods.boosted * s.boostCost + goods.parts;
+}
+
+/** The most parts a trade can move in a day (the server's limit). */
+const PARTS_A_DAY = 2000;
+
+/** Make it fair (#129): evens the table out with parts on whichever side is short, as far as that player has them
+    and the day's limit allows. Returns what it added, for the toast. */
+function makeFair(s: State): string {
+  const d = draft.get();
+  const give = sideWorth(s, d.give, d.giveGoods, d.giveSpecials.length) - d.giveGoods.parts;
+  const get = sideWorth(s, d.get, d.getGoods, d.getSpecials.length) - d.getGoods.parts;
+  const diff = Math.round((get - give) / 10) * 10;
+  if (diff > 0) {
+    const n = Math.min(diff, s.parts, PARTS_A_DAY);
+    edit((x) => { x.giveGoods.parts = n; x.getGoods.parts = 0; });
+    return n < diff ? `Added ${n} of your parts (all you can give)` : `Added ${n} of your parts`;
+  }
+  const n = Math.min(-diff, d.theirGoods?.parts ?? 0, PARTS_A_DAY);
+  edit((x) => { x.getGoods.parts = n; x.giveGoods.parts = 0; });
+  return n < -diff ? `Asked for ${n} of their parts (all they can give)` : `Asked for ${n} of their parts`;
+}
+
+/** The fairness bar with its Make it fair button: on the trade table and in the card picker, so it moves as you pick
+    (#130). */
+function FairRow() {
+  const d = useStore(draft);
+  const s = useStore(st)!;
+  const lean = (() => {
+    const g = sideWorth(s, d.give, d.giveGoods, d.giveSpecials.length), w = sideWorth(s, d.get, d.getGoods, d.getSpecials.length);
+    return g + w ? (w - g) / (w + g) : 0;
+  })();
+  return (
+    <div class="td-fairrow">
+      <Fairness giveCards={d.give} giveGoods={d.giveGoods} giveSpecials={d.giveSpecials.length} getCards={d.get} getGoods={d.getGoods} getSpecials={d.getSpecials.length} />
+      {Math.abs(lean) >= 0.2 && <button type="button" class="s-chipbtn" onClick={() => { makeFair(s); sfx.tick(); }}>Make it fair</button>}
+    </div>
+  );
+}
+
 function Fairness({ giveCards, giveGoods, giveSpecials, getCards, getGoods, getSpecials }: {
   giveCards: { num: number }[]; giveGoods: Goods; giveSpecials: number;
   getCards: { num: number }[]; getGoods: Goods; getSpecials: number;
 }) {
   const s = useStore(st)!;
-  const sideWorth = (cards: { num: number }[], goods: Goods, specials: number) =>
-    cards.reduce((sum, card) => sum + (BY_NUM.get(card.num) ? s.scrapParts[BY_NUM.get(card.num)!.tier] ?? 0 : 0), 0)
-    + specials * SPECIAL_WORTH + goods.packs * PACK_WORTH + goods.boosted * s.boostCost + goods.parts;
-  const give = sideWorth(giveCards, giveGoods, giveSpecials);
-  const get = sideWorth(getCards, getGoods, getSpecials);
+  const give = sideWorth(s, giveCards, giveGoods, giveSpecials);
+  const get = sideWorth(s, getCards, getGoods, getSpecials);
   if (!give && !get) return null;
   const lean = (get - give) / (get + give);
   const summary = Math.abs(lean) < 0.2 ? "Looks even" : lean > 0 ? (lean > 0.6 ? "A big ask" : "You get more") : lean < -0.6 ? "Very generous" : "You give more";
@@ -196,7 +254,7 @@ function NewTrade() {
       });
       trades.set(d.counter ? await api.declineTrade(d.counter).catch(() => t) : t);
       sfx.whoosh();
-      toast(d.counter ? `Counter-offer sent to ${d.name}.` : `Offer sent to ${d.name}. It's under Sent until they answer.`);
+      toast(d.counter ? "Counter-offer sent" : "Offer sent");
       const name = d.name;
       draft.set(empty());
       choose(name);
@@ -216,7 +274,7 @@ function NewTrade() {
         <Side label="You give" picks={d.give} goods={d.giveGoods} specials={mySpecials.get().filter((x) => d.giveSpecials.includes(x.id))} side="give" recipient={d.name} recipientCards={d.theirs ?? undefined} ownerCards={mine} />
         <Side label="You get" picks={d.get} goods={d.getGoods} specials={d.theirSpecials.filter((x) => d.getSpecials.includes(x.id))} side="get" recipient="you" recipientCards={mine} ownerCards={d.theirs ?? undefined} />
       </div>
-      <Fairness giveCards={d.give} giveGoods={d.giveGoods} giveSpecials={d.giveSpecials.length} getCards={d.get} getGoods={d.getGoods} getSpecials={d.getSpecials.length} />
+      <FairRow />
       <button type="button" class="s-btn wide" disabled={!giving || !getting || busy} onClick={send}>
         {busy ? <Spinner small /> : !giving && !getting ? "Put something on the table" : !giving ? "Add something you give" : !getting ? "Add something you want" : d.counter ? `Send counter-offer to ${d.name}` : `Send offer to ${d.name}`}
       </button>
@@ -237,7 +295,9 @@ function PickPlayer() {
   }, [q]);
   const [matches, setMatches] = useState<TradeMatch[] | null>(null);
   useEffect(() => { api.tradeMatches(PACK).then(setMatches, () => setMatches([])); }, []);
-  const players = (so?.players ?? []).filter((p) => p.name.toLowerCase() !== me && (!q.trim() || p.name.toLowerCase().includes(q.trim().toLowerCase()) || (p.firstName ?? "").toLowerCase().includes(q.trim().toLowerCase())));
+  const [by, setBy] = useState<"teams" | "mythics" | "legendaries" | "trades">("teams");
+  const players = (so?.players ?? []).filter((p) => p.name.toLowerCase() !== me && (!q.trim() || p.name.toLowerCase().includes(q.trim().toLowerCase()) || (p.firstName ?? "").toLowerCase().includes(q.trim().toLowerCase())))
+    .sort((a, b) => b[by] - a[by] || b.teams - a.teams);
   const known = new Set(players.map((p) => p.name.toLowerCase()));
   // Looking for a team rather than a player: its card shows who has it (and who has spares) to trade with.
   const needle = q.trim().toLowerCase();
@@ -258,14 +318,13 @@ function PickPlayer() {
               </button>
             ))}
           </div>
-          <h2 class="s-h2">Everyone</h2>
         </section>
       )}
       {teams.length > 0 && (
         <div class="s-list td-teams">
           {teams.map((t) => (
             <button type="button" class="td-person" onClick={() => openCard(t.num)}>
-              <Mini num={t.num} /><span class="td-mwho"><b>{t.name}</b><small>{t.num} · {inv.get()[t.num]?.length ? `you have ×${inv.get()[t.num].length}` : "you don't have it"} · see who has it</small></span>
+              <Mini num={t.num} tile /><span class="td-mwho"><b>{t.name}</b><small>{t.num} · {inv.get()[t.num]?.length ? `you have ×${inv.get()[t.num].length}` : "you don't have it"} · see who has it</small></span>
             </button>
           ))}
         </div>
@@ -274,8 +333,15 @@ function PickPlayer() {
         {sugg.filter((n) => !known.has(n.toLowerCase())).map((n) => (
           <button type="button" class="td-person" onClick={() => choose(n)}><Avatar name={n} /><span class="so-name">{n}</span></button>
         ))}
+        {!q.trim() && <div class="s-chips td-sort">{(["teams", "mythics", "legendaries", "trades"] as const).map((b) => (
+          <button type="button" class={cx("s-chip", by === b && "on")} aria-pressed={by === b} onClick={() => setBy(b)}>{b[0].toUpperCase() + b.slice(1)}</button>
+        ))}</div>}
         {players.map((p) => (
-          <button key={p.name} type="button" class="td-person" onClick={() => choose(p.name)}><Avatar name={p.name} team={p.avatar} /><Who p={p} /><small>{p.teams} teams</small></button>
+          <div key={p.name} class="td-person td-prow">
+            <button type="button" class="td-pwho" onClick={() => openProfile(p.name)} aria-label={`${p.name}'s profile`}><Avatar name={p.name} team={p.avatar} /><Who p={p} /></button>
+            <small>{p[by]} {by}</small>
+            <button type="button" class="s-chipbtn" onClick={() => choose(p.name)}>Trade</button>
+          </div>
         ))}
         {!so && <div class="s-center small"><Spinner /></div>}
       </div>
@@ -339,12 +405,20 @@ function Chips({ goods, specials, onClick }: { goods: Goods; specials: Special[]
 }
 
 /** A small card: the photo, number and name, framed in its rarity. */
-export function Mini({ num, foot }: { num: number; foot?: string }) {
+/** A card in a trade: the real card, sized to its cell, with a line under it (its serial, or how many). Small team
+    rows (td-teams) keep the plain photo tile, which reads better at 44px. */
+export function Mini({ num, foot, tile }: { num: number; foot?: string; tile?: boolean }) {
   const t = BY_NUM.get(num);
   if (!t) return null;
+  if (!tile) return (
+    <span class={cx("s-mini real", `t-${t.tier}`)} data-num={num}>
+      <span class="mi-card"><Card num={num} w="100cqw" /></span>
+      {foot && <span class="mi-foot">{foot}</span>}
+    </span>
+  );
   return (
     <span class={cx("s-mini", `t-${t.tier}`)}>
-      {t.photo ? <img alt="" src={`/photos/${num}.webp`} decoding="async" loading="lazy" draggable={false} /> : <span class="mi-noph">{num}</span>}
+      {t.photo ? <img alt="" src={`/photos/${num}.webp`} decoding="async" draggable={false} /> : <span class="mi-noph">{num}</span>}
       <span class="mi-num">{num}</span>
       <span class="mi-name">{t.name}</span>
       {foot && <span class="mi-foot">{foot}</span>}
@@ -396,10 +470,12 @@ function Picker({ side, start, focus }: { side: "give" | "get"; start: "cards" |
   const held = mine ? heldWhy(s) : new Map<string, string>();
   const free = (n: number) => cards[n].filter((sn) => !held.has(`${n}:${sn}`)).length;
   const otherSide: Record<number, number[]> = mine ? d.theirs ?? {} : myCards;
-  const isSpare = (n: number) => cards[n].length > 1 && (!mine || free(n) > 0);
+  const isSpare = (n: number) => cards[n].length > 1 && (!mine || free(n) > 0) && !isKept(n);
   // Cards the other side has none of. Until their collection has loaded, nothing counts as needed.
   const isNeeded = (n: number) => mine ? !!d.theirs && !d.theirs[n]?.length : !myCards[n]?.length;
   const isWishlisted = (n: number) => mine ? d.theirWish.includes(n) : (s.wishlist ?? []).includes(n);
+  // Teams the card's owner keeps (♥) are never traded, from either side.
+  const isKept = (n: number) => (mine ? s.favorites ?? [] : d.theirKept ?? []).includes(n);
   const matchesFilters = (n: number) =>
     ((!onlyNeeds && !onlyWishlist) || (onlyNeeds && isNeeded(n)) || (onlyWishlist && isWishlisted(n)))
       && (!onlySpares || isSpare(n));
@@ -413,6 +489,7 @@ function Picker({ side, start, focus }: { side: "give" | "get"; start: "cards" |
   const onTable = (n: number) => picks.filter((p) => p.num === n).length;
 
   const tap = (n: number) => {
+    if (isKept(n) && !onTable(n)) return toast(mine ? "You keep this one (♥). Take the heart off on the card to trade it." : `${d.name} keeps this one, so it isn't for trade.`, true, 3500);
     if (mine && !onTable(n) && !free(n)) {
       const why = [...new Set(cards[n].map((sn) => held.get(`${n}:${sn}`)).filter(Boolean))];
       return toast(`Can't offer it right now: ${cards[n].length > 1 ? "every copy is " : "it's "}${why.join(", or ")}.`, true, 3500);
@@ -444,6 +521,7 @@ function Picker({ side, start, focus }: { side: "give" | "get"; start: "cards" |
   return (
     <div class="s-page-in td-picker">
       <header class="s-head"><h1>{mine ? "You give" : `From ${d.name}`}</h1><span class="cw-gap" /><button type="button" class="s-btn small" onClick={back}>Done</button></header>
+      <div class="td-pickfair"><FairRow /></div>
       <Tabs value={kind} onChange={setKind} options={[["cards", `Cards ${picks.length}/${MAX}`], ["goods", "Packs and parts"]]} />
       {kind === "goods" ? (
         !max ? <Spinner /> : (
@@ -484,13 +562,13 @@ function Picker({ side, start, focus }: { side: "give" | "get"; start: "cards" |
           {!list.length ? <div class="s-empty">{needle || tier !== "all" || hasFilters ? "No cards match." : mine ? "Open some packs first." : `${d.name} has no cards yet.`}</div> : (
             <div class="td-grid">
               {list.slice(0, 120).map((t) => {
-                const n = t.num, on = onTable(n), total = cards[n].length, stuck = mine && !on && !free(n), other = otherSide[n]?.length ?? 0;
+                const n = t.num, on = onTable(n), total = cards[n].length, kept = isKept(n) && !on, stuck = (mine && !on && !free(n)) || kept, other = otherSide[n]?.length ?? 0;
                 return (
                   <div class="td-cell" key={n} data-num={n}>
                     <button type="button" class={cx("td-pick", on > 0 && "on", stuck && "held")} aria-pressed={on > 0} onClick={() => tap(n)}>
                       <Mini num={n} foot={total > 1 ? `×${total}` : mine ? "Only copy" : TIERS[t.tier].label} />
                       {on > 0 && <span class="td-on">{total > 1 ? `${on} of ${total}` : "On table"}</span>}
-                      {stuck && <span class="td-on td-held" title={[...new Set(cards[n].map((sn) => held.get(`${n}:${sn}`)).filter(Boolean))].join(", ")}>In a trade</span>}
+                      {kept ? <span class="td-on td-held">Kept</span> : stuck && <span class="td-on td-held" title={[...new Set(cards[n].map((sn) => held.get(`${n}:${sn}`)).filter(Boolean))].join(", ")}>In a trade</span>}
                     </button>
                     <div class="td-picker-cues" aria-label="Trade hints">
                       {other > 0 && <span class="td-picker-cue owned">{mine ? "They have" : "You have"} ×{other}</span>}
@@ -583,7 +661,7 @@ function Offer({ t, kind, recipientCards }: { t: Trade; kind: "in" | "out"; reci
     applyState(r.state); applyCollection(r.collection); trades.set(r.trades);
     setPrefs((p) => { for (const c of t.youGet) p.unseen[c.num] = 1; });
     sfx.promote();
-    toast(`Trade done with ${t.with}!${t.youGet.length ? ` ${t.youGet.length} ${t.youGet.length === 1 ? "card is" : "cards are"} in your binder.` : ""}${r.sets.length ? ` ${r.sets.join(", ")} set complete!` : ""}`, false, 3800);
+    toast(`Trade done${r.sets.length ? ` · ${r.sets.join(", ")} set done` : ""}`);
   });
   const mine = useStore(inv);
   return (
@@ -620,12 +698,17 @@ const dayLabel = (ms: number) => {
 function History() {
   const tr = useStore(trades);
   const [f, setF] = useState("all");
+  const [q, setQ] = useState("");
   const all = tr.recent, done = all.filter((t) => t.status === "accepted");
   const sum = (k: "youGetPacks" | "youGivePacks" | "youGetParts" | "youGiveParts") => done.reduce((a, t) => a + (t[k] || 0), 0);
   const sign = (n: number) => (n > 0 ? `+${n}` : String(n));
   const counts: Record<string, number> = { all: all.length };
   for (const t of all) counts[t.status] = (counts[t.status] ?? 0) + 1;
-  const shown = all.filter((t) => f === "all" || t.status === f);
+  // Search by who it was with, or a team in it (number or name).
+  const needle = q.trim().toLowerCase();
+  const hit = (t: Trade) => !needle || t.with.toLowerCase().includes(needle)
+    || [...t.youGet, ...t.youGive].some((c) => String(c.num).startsWith(needle) || (BY_NUM.get(c.num)?.name.toLowerCase().includes(needle) ?? false));
+  const shown = all.filter((t) => (f === "all" || t.status === f) && hit(t));
   let last = "";
   return (
     <>
@@ -638,7 +721,8 @@ function History() {
       <div class="s-chips">{["all", "accepted", "declined", "cancelled", "failed"].filter((k) => k === "all" || counts[k]).map((k) => (
         <button type="button" class={cx("s-chip", f === k && "on")} aria-pressed={f === k} onClick={() => setF(k)}>{k === "all" ? "All" : STATUS[k][0]} <em>{counts[k] ?? 0}</em></button>
       ))}</div>
-      {!shown.length ? <div class="s-empty">No trades yet.</div> : (
+      {all.length > 0 && <input autoComplete="off" data-1p-ignore data-lpignore="true" data-form-type="other" class="s-input" type="search" placeholder="Search a player or team" value={q} onInput={(e) => setQ(e.currentTarget.value)} aria-label="Search trades" />}
+      {!shown.length ? <div class="s-empty">{all.length ? "No trades match." : "No trades yet."}</div> : (
         <div class="s-list">
           {shown.map((t) => {
             const when = t.decidedAt || t.createdAt, day = dayLabel(when), head = day !== last;
@@ -656,7 +740,7 @@ function History() {
                   </header>
                   <Row label={verb[0]} cards={t.youGet} goods={{ packs: t.youGetPacks, boosted: t.youGetBoosted, parts: t.youGetParts }} specials={t.youGetSpecials} whose={t.with} />
                   <Row label={verb[1]} cards={t.youGive} goods={{ packs: t.youGivePacks, boosted: t.youGiveBoosted, parts: t.youGiveParts }} specials={t.youGiveSpecials} whose="you" />
-                  {t.status === "failed" && <p class="s-dim">Someone no longer had something in it, so it was called off.</p>}
+                  {t.status === "failed" && <p class="s-dim">Called off: something in it was gone.</p>}
                 </article>
               </>
             );

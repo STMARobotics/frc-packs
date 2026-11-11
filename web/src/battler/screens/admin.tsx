@@ -146,7 +146,7 @@ function Editor({ r }: { r: Robot }) {
             <div class="b-fxgrid">
               <label>Does<Sel k="op" value={e.op} options={OPS} /></label>
               {e.op === "ADD_RP_PP"
-                ? <label>RP<Sel k="rp" value={e.rp} options={[["RP1", `RP1 ${CAT.rp_names[0]}`], ["RP2", `RP2 ${CAT.rp_names[1]}`], ["RP3", `RP3 ${CAT.rp_names[2]}`], ["STATION", "Its station's"]]} /></label>
+                ? <label>RP<Sel k="rp" value={e.rp} options={[["RP1", "RP1"], ["RP2", "RP2"], ["RP3", "RP3"], ["STATION", "Its station's"]]} /></label>
                 : <label>Phase<Sel k="phase" value={e.phase} options={["AUTO", "TELE", "END", "ALL"]} /></label>}
               {e.op === "PER_PART_TAG" && <label>Tag<Sel k="tag" value={e.tag} options={allTags()} /></label>}
               {e.op === "DISABLE_PHASE" ? null : e.op === "ADD_PHASE_MULTIPLIER"

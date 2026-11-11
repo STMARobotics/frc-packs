@@ -5,16 +5,16 @@ import type { SocialPlayer } from "../../api";
 import { useStore } from "../../lib/store";
 import { BY_NUM, TIERS } from "../data";
 import { ago, loadSocial, social, st } from "../state";
-import { Avatar, Card, cx, Spinner, Tabs } from "../ui";
+import { Avatar, Card, cx, Spinner } from "../ui";
 import { openCard } from "./cardview";
 import { openProfile } from "./profile";
 
 type By = "teams" | "mythics" | "legendaries" | "trades";
 
-export function SocialTab({ active }: { active: boolean }) {
+/** Players and Activity, two of the Trade tab's sections since 0.14 (`pg` says which; it has no tabs of its own). */
+export function SocialTab({ active, pg }: { active: boolean; pg: "act" | "ppl" }) {
   const d = useStore(social);
   const me = useStore(st)!.account.username.toLowerCase();
-  const [pg, setPg] = useState<"act" | "ppl">("act");
   const [by, setBy] = useState<By>("teams");
   const [q, setQ] = useState("");
   useEffect(() => {
@@ -29,7 +29,6 @@ export function SocialTab({ active }: { active: boolean }) {
   const rows = ranked.map((p, i) => [p, i] as const).filter(([p]) => !v || p.name.toLowerCase().includes(v) || (p.firstName ?? "").toLowerCase().includes(v));
   return (
     <div class="s-screen s-social">
-      <Tabs value={pg} onChange={setPg} options={[["act", "Activity"], ["ppl", "Players"]]} />
       {pg === "act" ? <Activity /> : (
         <>
           <input autoComplete="off" data-1p-ignore data-lpignore="true" data-form-type="other" class="s-input" type="search" placeholder="Find a player" value={q} onInput={(e) => setQ(e.currentTarget.value)} autoCapitalize="none" spellcheck={false} aria-label="Find a player" />
@@ -86,7 +85,15 @@ function Activity() {
           ) : e.kind === "set" ? (
             <span class="fe-t">🏆 <Name n={e.who} /> finished the <b>{e.division}</b> set<time>{ago(e.at)}</time></span>
           ) : (
-            <span class="fe-t">⇄ <Name n={e.who} /> traded {names(e.gave)} to <Name n={e.other ?? ""} /> for {names(e.got)}<time>{ago(e.at)}</time></span>
+            <details class="fe-trade">
+              <summary class="fe-t">⇄ <Name n={e.who} /> traded {names(e.gave)} to <Name n={e.other ?? ""} /> for {names(e.got)}<time>{ago(e.at)}</time></summary>
+              {/* The cards themselves (#93), each side under who gave it. */}
+              {([[e.who, e.gave], [e.other ?? "", e.got]] as const).map(([who, cs]) => (cs ?? []).some((c) => BY_NUM.has(c.num)) && (
+                <div class="fe-side"><small>{who} gave</small><div class="fe-cards">{(cs ?? []).filter((c) => BY_NUM.has(c.num)).map((c) => (
+                  <button type="button" class="fe-c" aria-label={`See ${BY_NUM.get(c.num)!.name}`} onClick={() => openCard(c.num, undefined, { from: `In ${e.who}'s trade with ${e.other}.` })}><Card num={c.num} w="56px" /></button>
+                ))}</div></div>
+              ))}
+            </details>
           )}
         </div>
       ))}

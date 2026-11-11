@@ -19,6 +19,7 @@ pub mod push;
 pub mod reports;
 pub mod retier;
 pub mod roll;
+pub mod shop;
 pub mod specials;
 pub mod testkit;
 pub mod tiers;
@@ -103,7 +104,8 @@ pub fn app(db: Db, cfg: Config) -> anyhow::Result<Router> {
                 .merge(reports::routes())
                 .merge(feedback::routes())
                 .merge(specials::routes())
-                .merge(battler::api::routes()),
+                .merge(battler::api::routes())
+                .merge(shop::routes()),
         )
         .nest_service("/photos", ServeDir::new(cfg.data_dir.join("photos")))
         .nest_service("/packs", ServeDir::new(cfg.data_dir.join("packs")));

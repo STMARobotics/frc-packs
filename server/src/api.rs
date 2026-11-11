@@ -44,11 +44,22 @@ pub struct Rules {
     /// A donation page (https), shown in the game as "Support FRC Packs". None hides it.
     #[serde(default)]
     pub donate_url: Option<String>,
+    /// The shop's prices and limits.
+    #[serde(default)]
+    pub shop: crate::shop::ShopRules,
 }
 
 impl Default for Rules {
     fn default() -> Rules {
-        Rules { claim_minutes: 120, claim_packs: 1, bank: 2, start_packs: 2, boost_cost: 250, donate_url: None }
+        Rules {
+            claim_minutes: 120,
+            claim_packs: 1,
+            bank: 2,
+            start_packs: 2,
+            boost_cost: 250,
+            donate_url: None,
+            shop: crate::shop::ShopRules::default(),
+        }
     }
 }
 
@@ -64,6 +75,7 @@ impl Rules {
             && (1..=10).contains(&self.bank)
             && (0..=50).contains(&self.start_packs)
             && (1..=100_000).contains(&self.boost_cost)
+            && self.shop.valid()
             && self
                 .donate_url
                 .as_deref()
@@ -87,6 +99,7 @@ pub async fn rules(db: &Db) -> ApiResult<Rules> {
         start_packs: num("start_packs", d.start_packs),
         boost_cost: num("boost_cost", d.boost_cost),
         donate_url: get_s(&it, "donate_url").filter(|u| !u.is_empty()),
+        shop: get_s(&it, "shop").and_then(|j| serde_json::from_str(&j).ok()).unwrap_or_default(),
     })
 }
 
@@ -242,6 +255,8 @@ pub struct StateOut {
     showcase: Vec<i32>,
     /// Teams that are never scrapped.
     favorites: Vec<i32>,
+    /// Kinds of notification turned off.
+    notify_off: Vec<String>,
     /// A note to show once (then the site calls /notice/seen).
     notice: Option<String>,
     /// Teams whose rarity differs from the pack recipe file the site loaded (the admin changed them), by team number.
@@ -282,7 +297,7 @@ struct PityOut {
 
 #[derive(Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
-struct CardOut {
+pub(crate) struct CardOut {
     num: i32,
     tier: Tier,
     serial: i32,
@@ -305,11 +320,14 @@ struct OpeningOut {
 }
 
 #[derive(Deserialize)]
-struct PackReq {
+pub(crate) struct PackReq {
     pack: String,
     /// Which kind to open: true for a boosted pack, false for a standard one. Left out, boosted packs go first.
     #[serde(default)]
     boosted: Option<bool>,
+    /// A division pack bought in the shop, by division.
+    #[serde(default)]
+    division: Option<String>,
 }
 
 /// The kind of pack to open (true = boosted), if the player has one of that kind.
@@ -441,6 +459,7 @@ pub async fn load_state(s: &Shared, user: Uuid) -> ApiResult<StateOut> {
         level,
         wishlist,
         favorites,
+        notify_off: p.notify_off.clone(),
         showcase: p.showcase.clone(),
         notice: p.notice.clone(),
         tiers: overrides.iter().map(|(k, v)| (k.to_string(), *v)).collect(),
@@ -899,7 +918,13 @@ struct OpenOut {
 /// again) if there is one (taken by deleting its item, so two packs can't both take it), else the team's next new
 /// number (the counter moves only if nobody else moved it first). `live`: the cards enter the game now (an opening);
 /// otherwise they're minted for a pack in hand and enter the game's count when it's opened.
-async fn take_serials(db: &Db, tx: &mut Tx, pack: &str, nums: &[i32], live: bool) -> ApiResult<HashMap<usize, i32>> {
+pub(crate) async fn take_serials(
+    db: &Db,
+    tx: &mut Tx,
+    pack: &str,
+    nums: &[i32],
+    live: bool,
+) -> ApiResult<HashMap<usize, i32>> {
     let mut out = HashMap::new();
     let mut teams: Vec<i32> = nums.to_vec();
     teams.sort_unstable();
@@ -957,7 +982,17 @@ async fn open(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Json
         let db = &s.db;
         let mut p = me(db, user.id).await?;
         let before = model::pack_row(db, user.id, pack.id()).await?;
-        let kind = match pack_kind(&before, req.boosted) {
+        // A division pack from the shop opens at standard odds, from its division's teams.
+        if let Some(d) = &req.division
+            && !before.division.contains(d)
+        {
+            if idem_begin(db, user.id, &key, "open").await?.is_some() {
+                return Ok(Err(()));
+            }
+            return Err(err(StatusCode::CONFLICT, "no_packs"));
+        }
+        let kind = if req.division.is_some() { Ok(false) } else { pack_kind(&before, req.boosted) };
+        let kind = match kind {
             Ok(kind) => kind,
             Err(error) => {
                 // A concurrent copy of this request can consume the last pack
@@ -983,7 +1018,10 @@ async fn open(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Json
             match &*f {
                 Some((o, c)) if *o == opts => c.clone(),
                 _ => {
-                    let c = roll_now(&pack, &opts);
+                    let c = match &req.division {
+                        Some(d) => roll_now(&pack.only_division(d), &opts),
+                        None => roll_now(&pack, &opts),
+                    };
                     *f = Some((opts, c.clone()));
                     c
                 }
@@ -1101,8 +1139,16 @@ async fn open(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Json
         }
         st.sets += sets.len() as i64;
         let mut after = before.clone();
-        after.sealed += sets.len() as i32 - 1;
-        after.boosted -= i32::from(kind);
+        if let Some(d) = &req.division {
+            // Not one of the sealed packs: it was bought to open now.
+            after.sealed += sets.len() as i32;
+            let i = after.division.iter().position(|x| x == d).expect("checked above");
+            after.division.remove(i);
+            after.div_opened += 1;
+        } else {
+            after.sealed += sets.len() as i32 - 1;
+            after.boosted -= i32::from(kind);
+        }
         after.opened += 1;
         after.pity_m = pity.m as i32;
         after.pity_l = pity.l as i32;
@@ -1137,6 +1183,7 @@ async fn open(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Json
             pity_m: Some(before.pity_m),
             pity_l: Some(before.pity_l),
             mythics: Some(cards.iter().filter(|c| c.tier == Tier::Mythic).count() as i32),
+            division: req.division.clone(),
         };
         tx.put(item(upk(user.id), model::open_sk(opening_id), &o));
         p.pending_open = Some(opening_id);
@@ -1260,7 +1307,7 @@ struct ScrapReq {
     num: i32,
     /// How many extra copies to scrap. The first copy you got is never scrapped.
     count: i32,
-    /// Scrap this copy in particular (one that isn't the team's first).
+    /// Scrap this copy in particular: any copy, even your only one or a Mythic (the player picked it).
     #[serde(default)]
     serial: Option<i32>,
 }
@@ -1314,8 +1361,8 @@ pub(crate) async fn held_cards(db: &Db, p: &Profile) -> ApiResult<HashSet<i64>> 
 const SCRAP_BATCH: usize = 25;
 
 /// Scraps extra copies: deletes them (their serial numbers are not reused) and adds their parts. Keeps each team's
-/// first copy, and never touches a card from a pack that is still being revealed or one in an open trade offer, or a
-/// favorite team. `teams` limits it to some teams (None = every team in `tiers`); `limit` caps copies per team.
+/// first `keep` copies and Mythics, unless `only` names one copy the player picked (then any copy can go). Never
+/// touches a card from a pack that is still being revealed, one in an open trade offer, or a favorite team. `teams` limits it to some teams (None = every team in `tiers`); `limit` caps copies per team.
 /// Returns (parts gained, copies scrapped, copies held back).
 #[allow(clippy::too_many_arguments)]
 async fn scrap_copies(
@@ -1331,11 +1378,10 @@ async fn scrap_copies(
     kind: &str,
 ) -> ApiResult<Option<(i64, i64, i64)>> {
     let keep = keep.max(1);
-    // Teams by their tier in the recipe. Extra Legendary copies can be scrapped (you always keep one); Mythic copies
-    // never are.
+    // Teams by their tier in the recipe. Mythic copies only go one at a time, picked by serial.
     let wanted: HashSet<i32> = tiers
         .iter()
-        .filter(|t| !matches!(t, Tier::Mythic))
+        .filter(|t| only.is_some() || !matches!(t, Tier::Mythic))
         .flat_map(|t| pack.pools.get(t).into_iter().flatten().copied())
         .filter(|n| teams.is_none_or(|only| only.contains(n)))
         .collect();
@@ -1361,7 +1407,7 @@ async fn scrap_copies(
                 // The first `keep` copies that are free to scrap are kept; then the newest ones go, up to `limit`.
                 let free: Vec<&&CardRow> = copies.iter().filter(|c| !held.contains(&c.id)).collect();
                 if let Some(serial) = only {
-                    pick.extend(free.iter().skip(1).filter(|c| c.serial == serial).take(1).map(|c| **c));
+                    pick.extend(free.iter().filter(|c| c.serial == serial).take(1).map(|c| **c));
                     continue;
                 }
                 let take = free.len().saturating_sub(keep).min(limit);
@@ -1512,50 +1558,9 @@ async fn scrap_extras(
     scrapped(&s, user.id, &pack, r, &key, "scrap_extras").await
 }
 
-/// Spends parts on a boosted pack of the free pack.
-async fn spend_parts(s: &Shared, user: Uuid, key: &IdemKey, kind: &str, cost: i64) -> ApiResult<Response> {
-    if let Some(done) = idem_begin(&s.db, user, key, kind).await? {
-        return Ok(done);
-    }
-    let free_id = s.catalog().await.claimable().id().to_string();
-    let free = free_id.as_str();
-    let r = retry!(async {
-        let db = &s.db;
-        let mut p = me(db, user).await?;
-        if p.parts < cost {
-            return Err(err(StatusCode::CONFLICT, "not_enough_parts"));
-        }
-        let before = model::pack_row(db, user, free).await?;
-        let mut after = before.clone();
-        after.sealed += 1;
-        after.boosted += 1;
-        let mut day = model::today(db, user).await?;
-        crate::missions::count(&mut day, crate::missions::Kind::Crafted, 1);
-        let mut tx = Tx::new();
-        idem_mark(&mut tx, user, key, kind);
-        model::save_pack(&mut tx, &mut p, &before, &after, kind);
-        model::save_day(&mut tx, user, &mut day);
-        let parts = p.parts;
-        p.parts -= cost;
-        model::save_user(&mut tx, &mut p, parts, kind);
-        match tx.commit(db).await {
-            Ok(()) => Ok(true),
-            Err(DbError::Conflict("req")) => Ok(false),
-            Err(e) => Err(e.into()),
-        }
-    })?;
-    if !r {
-        return idem_lost(&s.db, user, key, kind).await;
-    }
-    let out = load_state(s, user).await?;
-    idem_end(&s.db, user, key, kind, &out).await?;
-    Ok(Json(out).into_response())
-}
-
-/// Spends parts on a boosted pack of the free pack. Boosted packs open before plain ones.
+/// Spends parts on a boosted pack of the free pack (the shop's Boosted pack: same price, same daily limit).
 async fn craft(State(s): State<Shared>, user: User, key: IdemKey) -> ApiResult<Response> {
-    let cost = i64::from(rules(&s.db).await?.boost_cost);
-    spend_parts(&s, user.id, &key, "craft", cost).await
+    crate::shop::buy_pack(&s, user.id, &key, true).await
 }
 
 // ---------- testing helpers (DEV_TOOLS=1 only) ----------
@@ -1725,8 +1730,7 @@ mod tests {
 
     #[test]
     fn timers_bank_up_and_each_gives_its_packs() {
-        let r =
-            Rules { claim_minutes: 120, claim_packs: 3, bank: 2, start_packs: 0, boost_cost: 250, donate_url: None };
+        let r = Rules { claim_packs: 3, start_packs: 0, ..Rules::default() };
         let next = now_ms();
         let min = 60_000;
         assert_eq!(r.timers_ready(next - min, next), 0, "not yet");

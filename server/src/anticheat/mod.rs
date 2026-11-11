@@ -44,7 +44,9 @@ const HOUR_MS: i64 = 3_600_000;
 
 /// Ledger reasons that aren't players taking packs in: a new account's starting packs, and test or dev-tools changes.
 fn counts(reason: &str) -> bool {
-    !matches!(reason, "new account" | "dev tools" | "test")
+    // Packs bought with parts (in the shop, or crafting) don't count: their parts are checked instead, and there's no
+    // limit on buying.
+    !matches!(reason, "new account" | "dev tools" | "test" | "shop pack" | "craft")
 }
 
 /// The intake alarm: records `gained` packs taken in now, forgets ones older than an hour, and flags the player if

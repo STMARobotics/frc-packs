@@ -235,3 +235,18 @@
   .op-lift.op-in, .op-stack.op-rise, .op-card.op-flipped .op-cscale, .op-card.op-top.op-tease .op-glow, .op-card.op-charging, .op-card.op-charging .op-cscale, .op-leak i, .op-flow.op-m-rays .op-rays, .op-hold.op-rainbow .op-tell, .op-ribbon { animation: none !important; }
   .op-card, .op-flip, .op-rot, .op-ptop, .op-pbody { transition-duration: .01s !important; }
 }
+
+/* The Packs screen (0.14): the pack on the left, your stacks beside it, then Open and Buy. */
+.op-home2 { justify-items: stretch; gap: 14px; padding-top: 10px; }
+.op-head h1 { margin: 0; font: 400 32px var(--display); }
+.op-head p { margin: 2px 0 0; }
+.op-homerow { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: center; gap: 14px; }
+.op-home2 .op-hero { width: 100%; min-width: 0; max-width: 240px; justify-self: center; }
+.op-kinds2 { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 10px; }
+.op-kinds2 .op-kind { min-height: 64px; padding: 10px 14px; border-radius: 14px; grid-template-columns: auto 1fr; }
+.op-kinds2 .op-kind b { font-size: 26px; }
+.op-kinds2 .op-kind span { font-size: 14px; }
+.op-acts { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
+.op-openbtn { min-height: 52px; font-size: 18px; }
+.op-buybtn { min-height: 50px; padding: 0 18px; white-space: nowrap; }
+.op-home2 .op-cap { text-align: center; }

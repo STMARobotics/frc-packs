@@ -1,6 +1,8 @@
 //! Push notifications (Web Push): no outside account or keys. The server signs its messages with its own key (VAPID),
 //! made on first start and kept in the database, and sends them to each subscribed browser's push service (Google,
-//! Mozilla or Apple). Notifications: a free pack is ready, a trade offer for you, and your offer was accepted.
+//! Mozilla or Apple). Each kind can be turned off in Settings (KINDS): a free pack is ready, a trade offer (or counter-
+//! offer) for you, your offer was accepted or declined, an opponent joined your game, and news (accepted feedback,
+//! rarity changes).
 
 use std::time::Duration;
 
@@ -28,6 +30,38 @@ pub fn routes() -> Router<Shared> {
         .route("/push/key", get(key))
         .route("/push/subscribe", post(subscribe))
         .route("/push/unsubscribe", post(unsubscribe))
+        .route("/push/prefs", post(prefs))
+}
+
+/// Every kind of notification, as Settings names them.
+pub const KINDS: [&str; 6] = ["pack", "offer", "accepted", "declined", "match", "news"];
+
+#[derive(Deserialize)]
+struct PrefsReq {
+    /// The kinds to turn off; everything else is on.
+    off: Vec<String>,
+}
+
+/// Saves which kinds of notification this player wants. Returns the kinds now off.
+async fn prefs(State(s): State<Shared>, user: User, Json(req): Json<PrefsReq>) -> ApiResult<Json<Vec<String>>> {
+    if req.off.iter().any(|k| !KINDS.contains(&k.as_str())) {
+        return Err(ApiError::new(StatusCode::BAD_REQUEST, "bad_request"));
+    }
+    let mut off: Vec<String> =
+        KINDS.iter().filter(|k| req.off.iter().any(|o| o == *k)).map(|k| k.to_string()).collect();
+    off.dedup();
+    let db = &s.db;
+    retry!(async {
+        let Some(mut p) = model::profile(db, user.id).await? else {
+            return Err(ApiError::new(StatusCode::NOT_FOUND, "not_found"));
+        };
+        p.notify_off = off.clone();
+        let parts = p.parts;
+        let mut tx = Tx::new();
+        model::save_user(&mut tx, &mut p, parts, "settings");
+        tx.commit(db).await.map_err(ApiError::from)
+    })?;
+    Ok(Json(off))
 }
 
 struct Pusher {
@@ -188,6 +222,9 @@ pub struct Note {
     pub url: String,
     /// Notifications with the same tag replace each other instead of piling up.
     pub tag: String,
+    /// Which setting turns it off (one of KINDS).
+    #[serde(skip)]
+    pub kind: &'static str,
 }
 
 /// Sends a notification to every device the account turned them on for. Subscriptions the push service says are gone
@@ -212,6 +249,9 @@ pub async fn notify(db: &Db, user: Uuid, note: Note) {
 async fn send(db: &Db, user: Uuid, note: &Note) -> anyhow::Result<()> {
     let subs: Vec<(String, String, String)> = subs_of(db, user).await?.into_iter().map(|x| (x.0, x.1, x.2)).collect();
     if subs.is_empty() {
+        return Ok(());
+    }
+    if model::profile(db, user).await?.is_some_and(|p| p.notify_off.iter().any(|k| k == note.kind)) {
         return Ok(());
     }
     let Some(p) = pusher(db).await else { return Ok(()) };
@@ -288,7 +328,7 @@ pub async fn ready_check(db: &Db) -> anyhow::Result<()> {
         let due = p.next_claim_at <= now
             && p.next_claim_at > now - 86_400_000
             && p.pack_ping_at.is_none_or(|t| t < p.next_claim_at);
-        if !due || p.disabled || subs_of(db, p.id).await?.is_empty() {
+        if !due || p.disabled || p.notify_off.iter().any(|k| k == "pack") || subs_of(db, p.id).await?.is_empty() {
             continue;
         }
         // Mark it pinged (on the player's version, so a claim at the same moment isn't overwritten).
@@ -312,6 +352,7 @@ pub async fn ready_check(db: &Db) -> anyhow::Result<()> {
                     body: "Your free FRC Packs pack is waiting. Come claim it!".into(),
                     url: "/#open".into(),
                     tag: "pack-ready".into(),
+                    kind: "pack",
                 },
             )
             .await;

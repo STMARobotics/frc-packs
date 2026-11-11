@@ -135,6 +135,10 @@ struct Player {
     lines: Vec<LedgerLine>,
     openings: Vec<Opening>,
     opened: i64,
+    /// How many of `opened` were the shop's division packs (they use up no sealed pack).
+    div_opened: i64,
+    /// What they bought in the shop: (slot, window, team or 0 for a division pack, tier then, price).
+    shop: Vec<(String, i64, i32, Option<Tier>, i64)>,
     sets: Vec<i64>,
     feedback_rewards: i64,
     sessions: HashSet<String>,
@@ -158,6 +162,7 @@ pub fn run(all: &[Item], pack: &Pack, rules: &Rules, dev_tools: bool, now: i64) 
     // What each transfer moved, by its ledger reason ("trade <id>", "wager <game>"): cards, parts, packs (standard and
     // boosted). What its players received can't be more than this, whoever's account is still around.
     let mut moved: HashMap<String, (i64, i64, i64)> = HashMap::new();
+    let mut shop_seed: Option<String> = None;
     for it in all {
         let pk = get_s(it, "pk").unwrap_or_default();
         let sk = get_s(it, "sk").unwrap_or_default();
@@ -176,7 +181,16 @@ pub fn run(all: &[Item], pack: &Pack, rules: &Rules, dev_tools: bool, now: i64) 
             } else if sk.starts_with("PACK#") {
                 if let Ok(r) = from_item::<PackRow>(it.clone()) {
                     pl.opened += i64::from(r.opened);
+                    pl.div_opened += i64::from(r.div_opened);
                 }
+            } else if sk.starts_with("SHOP#") {
+                pl.shop.push((
+                    get_s(it, "slot").unwrap_or_default(),
+                    get_n(it, "window").unwrap_or(0),
+                    get_n(it, "num").unwrap_or(0) as i32,
+                    get_s(it, "tier").and_then(|t| Tier::parse(&t)),
+                    get_n(it, "price").unwrap_or(0),
+                ));
             } else if sk.starts_with("SET#") {
                 pl.sets.push(get_n(it, "completed_at").unwrap_or(0));
             }
@@ -190,6 +204,8 @@ pub fn run(all: &[Item], pack: &Pack, rules: &Rules, dev_tools: bool, now: i64) 
             if let Some(u) = get_s(it, "user_id").and_then(|v| Uuid::parse_str(&v).ok()) {
                 players.entry(u).or_default().canaries.push(get_s(it, "path").unwrap_or_default());
             }
+        } else if pk == "SETTINGS" && sk == "SETTINGS" {
+            shop_seed = get_s(it, "shop_seed");
         } else if pk == "SETTINGS" && sk.starts_with("HIST#") {
             if let (Some(at), Some(r)) =
                 (get_n(it, "at"), get_s(it, "rules").and_then(|v| serde_json::from_str::<Rules>(&v).ok()))
@@ -241,6 +257,11 @@ pub fn run(all: &[Item], pack: &Pack, rules: &Rules, dev_tools: bool, now: i64) 
     let tier_of = |team: Option<i32>| team.and_then(|t| pack.team_tier.get(&t).copied());
     let boost_cost = i64::from(rules.boost_cost);
     let min_cost = history.iter().map(|(_, r)| i64::from(r.boost_cost)).chain([boost_cost]).min().unwrap_or(1).max(1);
+    // The shop's cheapest price for something, over every version of the settings.
+    let min_price = |f: &dyn Fn(&crate::shop::ShopRules) -> i32| {
+        history.iter().map(|(_, r)| i64::from(f(&r.shop))).chain([i64::from(f(&rules.shop))]).min().unwrap_or(1).max(1)
+    };
+    let min_std = min_price(&|s| s.std);
 
     // ---------- supply: each source against the most its rule can pay ----------
     let history_from = history.first().map(|(at, _)| *at);
@@ -274,10 +295,19 @@ pub fn run(all: &[Item], pack: &Pack, rules: &Rules, dev_tools: bool, now: i64) 
                 || match l.item.as_str() {
                     "packs" | "boosted" => matches!(
                         r,
-                        "claim" | "new account" | "craft" | "open" | "open, streak" | "feedback reward" | "admin gift"
+                        "claim"
+                            | "new account"
+                            | "craft"
+                            | "open"
+                            | "open, streak"
+                            | "feedback reward"
+                            | "admin gift"
+                            | "shop pack"
+                            | "shop, set"
                     ),
-                    "parts" => matches!(r, "scrap" | "level" | "mission" | "rarity change"),
-                    "card" => matches!(r, "open" | "open, streak"),
+                    "division" => r == "shop division",
+                    "parts" => matches!(r, "scrap" | "level" | "mission" | "rarity change" | "battle"),
+                    "card" => matches!(r, "open" | "open, streak" | "shop"),
                     _ => true,
                 };
             if !known {
@@ -311,7 +341,8 @@ pub fn run(all: &[Item], pack: &Pack, rules: &Rules, dev_tools: bool, now: i64) 
             ev.push(format!("{crafted} boosted packs crafted for {spent} parts (each costs at least {min_cost})"));
         }
         let open_net = sum(&|r| r == "open" || r == "open, streak", &["packs", "boosted"], false);
-        let bonus = open_net + pl.opened;
+        // Division packs from the shop use up no sealed pack when opened; set bonuses from shop cards count here too.
+        let bonus = open_net + pl.opened - pl.div_opened + sum(&|r| r == "shop, set", &["packs", "boosted"], true);
         let allowed = pl.sets.len() as i64 + days / i64::from(crate::missions::STREAK_REWARD_EVERY) + 1;
         if bonus > allowed {
             ev.push(format!("{bonus} bonus packs from opening (division sets and streaks allow {allowed})"));
@@ -333,9 +364,71 @@ pub fn run(all: &[Item], pack: &Pack, rules: &Rules, dev_tools: bool, now: i64) 
         if missions > days * max_mission_day {
             ev.push(format!("{missions} parts from missions in {days} days (at most {max_mission_day} a day)"));
         }
+        // ----- the shop -----
+        // Packs: never below the cheapest price there's been.
+        let bought = sum(&|r| r == "shop pack", &["packs"], true);
+        let paid = -sum(&|r| r == "shop pack", &["parts"], false);
+        if bought * min_std > paid {
+            ev.push(format!("{bought} packs bought for {paid} parts (each costs at least {min_std})"));
+        }
+        // Cards and division packs: each one was really for sale to this player, in that slot and window, and paid
+        // for at no less than the cheapest price there's been.
+        let cards_in = sum(&|r| r == "shop", &["card"], true);
+        let card_buys = pl.shop.iter().filter(|b| b.2 != 0).count() as i64;
+        if cards_in > card_buys {
+            ev.push(format!("{cards_in} cards from the shop, but {card_buys} bought"));
+        }
+        let divs_in = sum(&|r| r == "shop division", &["division"], true);
+        let div_buys = pl.shop.iter().filter(|b| b.2 == 0).count() as i64;
+        if divs_in > div_buys {
+            ev.push(format!("{divs_in} division packs from the shop, but {div_buys} bought"));
+        }
+        let shop_paid = -sum(&|r| r == "shop", &["parts"], false);
+        let shop_min: i64 = pl
+            .shop
+            .iter()
+            .map(|(_, _, num, tier, _)| match (num, tier) {
+                (0, _) => min_price(&|s| s.division),
+                (_, Some(t)) => min_price(&|s| s.card(*t)),
+                _ => 0,
+            })
+            .sum();
+        if shop_paid < shop_min {
+            ev.push(format!("{shop_paid} parts paid in the shop, for things that cost at least {shop_min}"));
+        }
+        if let Some(seed) = &shop_seed {
+            for (slot, window, num, tier, _) in pl.shop.iter().filter(|b| b.2 != 0) {
+                // A team whose rarity changed since can't be checked against today's lists.
+                if tier.is_some()
+                    && pack.team_tier.get(num) == tier.as_ref()
+                    && !crate::shop::could_hold(pack, seed, p.id, *window, slot, *num)
+                {
+                    ev.push(format!(
+                        "bought {num} from the shop, but it was never in their shop ({slot}, window {window})"
+                    ));
+                }
+            }
+        }
+        let battle = sum(&|r| r == "battle", &["parts"], true);
+        let battle_max = days
+            * crate::battler::api::BATTLES_PAID_PER_DAY
+            * (crate::battler::api::BATTLE_PARTS + crate::battler::api::BATTLE_WIN_PARTS);
+        if battle > battle_max {
+            ev.push(format!("{battle} parts from battles in {days} days (at most {battle_max})"));
+        }
         let scrapped = -sum(&|r| r == "scrap", &["card"], false);
         let scrap_parts = sum(&|r| r == "scrap", &["parts"], true);
-        let scrap_max = scrapped * i64::from(Tier::Legendary.scrap_parts());
+        // Each card at most a Legendary's parts, or a Mythic's for a team that's Mythic now (one copy at a time, by
+        // hand). Rarity changes since can only make this more generous.
+        let scrap_max: i64 = pl
+            .lines
+            .iter()
+            .filter(|l| l.reason == "scrap" && l.item == "card" && l.delta < 0)
+            .map(|l| {
+                let mythic = team_of(&l.detail).and_then(|n| pack.team_tier.get(&n)) == Some(&Tier::Mythic);
+                -l.delta * i64::from(if mythic { Tier::Mythic } else { Tier::Legendary }.scrap_parts())
+            })
+            .sum();
         if scrap_parts > scrap_max {
             ev.push(format!("{scrap_parts} parts from scrapping {scrapped} cards (at most {scrap_max})"));
         }

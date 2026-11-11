@@ -19,8 +19,6 @@ pub const KINDS: [&str; 3] = ["bug", "idea", "other"];
 pub const STATUSES: [&str; 4] = ["open", "planned", "done", "wontfix"];
 /// Packs a sender gets when their bug report or idea is accepted.
 pub const REWARD_PACKS: i32 = 1;
-/// Ten a day per player is plenty and stops anyone flooding the admin.
-pub const PER_DAY: usize = 10;
 const TITLE_MAX: usize = 80;
 const DETAILS_MAX: usize = 1500;
 const CONTEXT_MAX: usize = 300;
@@ -69,15 +67,6 @@ async fn send(State(st): State<Shared>, user: User, Json(req): Json<SendReq>) ->
     }
     let db = &st.db;
     let now = now_ms();
-    let today = db
-        .index("gsi2", &format!("FBU#{}", user.id), None, false)
-        .await?
-        .iter()
-        .filter(|it| get_n(it, "created_at").is_some_and(|t| t > now - 86_400_000))
-        .count();
-    if today >= PER_DAY {
-        return Err(err(StatusCode::TOO_MANY_REQUESTS, "too_much_feedback"));
-    }
     let id = db.ids("feedback", 1).await?;
     let who = crate::model::profile(db, user.id).await?.and_then(|p| p.username).unwrap_or_default();
     let mut it = key(format!("FB#{id}"), "FB");
@@ -234,6 +223,7 @@ async fn set_status(
                             body: "Thanks! A free pack is waiting for you.".into(),
                             url: "/#open".into(),
                             tag: format!("feedback-{id}"),
+                            kind: "news",
                         },
                     )
                     .await;

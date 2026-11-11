@@ -53,16 +53,19 @@ export function StatusBar() {
   const n = banked(now);
   const left = s.nextClaimAt + (n ? n * s.claimMs : 0) - now;
   const pity = packOf(s).pity.m, hard = RECIPE.odds.hard, soft = RECIPE.odds.soft;
+  const [why, setWhy] = useState(false);
   return (
     <section class="s-status">
       <div class="st-timer">
         <small>Next pack</small><b>{n ? "Ready" : <Clock text={fmt(left)} />}</b>
       </div>
-      <div class={cx("st-meter", pity >= soft && "hot")} title={`Packs since your last Mythic. Odds climb after ${soft}; one is guaranteed by pack ${hard}.`}>
-        <small>Mythic meter</small>
+      <button type="button" class={cx("st-meter", pity >= soft && "hot")} aria-expanded={why} onClick={() => setWhy(!why)}>
+        <small>Mythic meter <i class="st-info" aria-hidden="true">i</i></small>
         <span class="s-bar"><i style={{ transform: `scaleX(${Math.min(pity, hard) / hard})` }} /></span>
         <em>{pity}/{hard}</em>
-      </div>
+      </button>
+      {/* What the meter is (#115): packs since your last Mythic, not your collection. */}
+      {why && <p class="st-why">Packs since your last Mythic. After {soft} the odds climb; by {hard} one is guaranteed.</p>}
       <Daily />
     </section>
   );
@@ -75,8 +78,10 @@ function Daily() {
   const [busy, setBusy] = useState("");
   const ms = s.missions ?? [], k = s.streak ?? { days: 0, today: false, alive: false, every: 7 };
   const done = ms.filter((m) => m.claimed).length, ready = ms.filter((m) => !m.claimed && m.progress >= m.goal).length;
-  const into = k.days % k.every || (k.days ? k.every : 0);
-  const toGift = k.every - (k.days % k.every || (k.today ? k.every : 0));
+  // Days into this week's streak. The day a boosted pack is earned starts a new week, so it shows 0 and the full
+  // week to go (it showed 7 filled and "0 to go").
+  const into = k.days % k.every;
+  const toGift = k.every - into;
   const toggle = () => { setOpen(!open); try { localStorage.setItem("frcpacks.daily", open ? "0" : "1"); } catch { /* fine */ } };
   const collect = async (m: Mission) => {
     setBusy(m.id);
@@ -107,7 +112,7 @@ function Daily() {
           })}
           <p class="s-dim st-note">
             <span class="st-week">{Array.from({ length: k.every }, (_, i) => <i class={i + 1 <= into ? "on" : i + 1 === k.every ? "gift" : ""} />)}</span>
-            {k.today ? "Opened today. " : k.days ? "Open a pack today to keep it. " : ""}A boosted pack every {k.every} days in a row{k.days ? ` · ${toGift} to go` : ""}.
+            {k.days ? `${toGift} to a boosted pack` : `Open ${k.every} days in a row for a boosted pack`}
           </p>
         </div>
       )}

@@ -168,6 +168,26 @@ impl Pack {
     pub fn id(&self) -> &str {
         &self.recipe.id
     }
+
+    /// The same pack with only one division's teams in it, for a division pack from the shop: the same odds, each
+    /// card from that division. Every division has teams of every rarity, and a pack holds at most one Mythic (it's
+    /// only ever the last card), so a division's one or two Mythics are enough.
+    pub fn only_division(&self, division: &str) -> Pack {
+        let pools = self
+            .pools
+            .iter()
+            .map(|(t, teams)| {
+                (*t, teams.iter().copied().filter(|n| self.team_div.get(n).is_some_and(|d| d == division)).collect())
+            })
+            .collect();
+        Pack {
+            recipe: self.recipe.clone(),
+            pools,
+            divisions: self.divisions.clone(),
+            team_div: self.team_div.clone(),
+            team_tier: self.team_tier.clone(),
+        }
+    }
 }
 
 #[derive(Debug)]

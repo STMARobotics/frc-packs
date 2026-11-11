@@ -78,10 +78,21 @@ def cut(raw):
     return im.resize(SIZE, Image.LANCZOS)
 
 
+def urls(m):
+    """Where a media item's picture can be downloaded from, best first. Instagram photos often come with no direct
+    link (feedback #120, and team 5913 in #100): TBA's saved thumbnail, then Instagram's own link to the picture."""
+    out = [m.get("direct_url")]
+    if m.get("type") == "instagram-image":
+        out.append((m.get("details") or {}).get("thumbnail_url"))
+        if m.get("foreign_key"):
+            out.append(f"https://www.instagram.com/p/{m['foreign_key']}/media/?size=l")
+    return [u for u in out if u]
+
+
 def media(team, key):
     items = json.loads(get(f"{API}/team/frc{team}/media/{YEAR}", key))
     avatar = next((m for m in items if m.get("type") == "avatar" and (m.get("details") or {}).get("base64Image")), None)
-    pics = [m for m in items if m.get("type") in IMAGE_TYPES and m.get("direct_url")]
+    pics = [m for m in items if m.get("type") in IMAGE_TYPES and urls(m)]
     pics.sort(key=lambda m: (not m.get("preferred"), IMAGE_TYPES.index(m["type"])))
     return pics, avatar
 
@@ -103,13 +114,13 @@ def one(team, key, redo, have):
         av_path.write_bytes(base64.b64decode(avatar["details"]["base64Image"]))
     url = have[team][1] if not need_photo else None
     if need_photo:
-        for m in pics:
+        for u in (u for m in pics for u in urls(m)):
             try:
-                cut(get(m["direct_url"])).save(photo_path, "WEBP", quality=82, method=6)
-                url = m["direct_url"]
+                cut(get(u)).save(photo_path, "WEBP", quality=82, method=6)
+                url = u
                 break
             except Exception as e:
-                print(f"{team}: skipped {m['direct_url']} ({e})", file=sys.stderr)
+                print(f"{team}: skipped {u} ({e})", file=sys.stderr)
         if url is None and photo_path.exists():
             photo_path.unlink()  # an earlier season's robot: the drawing is truer than the wrong robot
     return team, url, not need_photo, av_path.exists()

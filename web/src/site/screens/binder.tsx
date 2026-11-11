@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
 import { api } from "../../api";
 import { useStore } from "../../lib/store";
-import { byRarity, DIV_TEAMS, DIVS, ORDER, POOL, RECIPE, TEAMS, TIERS, type T } from "../data";
+import { byRarity, DIV_TEAMS, DIVS, ORDER, RECIPE, TEAMS, TIERS, type T } from "../data";
 import { applyState, fail, inv, prefs, setPrefs, sets, specials, st, toast, type BinderSort } from "../state";
 import { Card, cx, Ghost, Tabs } from "../ui";
 import { openCard } from "./cardview";
@@ -84,30 +84,33 @@ export function Binder({ active }: { active: boolean }) {
       {pg === "workshop" ? <Workshop /> : (
         <>
           <SpecialRow list={mine} />
-          <input autoComplete="off" data-1p-ignore data-lpignore="true" data-form-type="other" class="s-input" type="search" placeholder="Search number, name or place" value={q} onInput={(e) => setQ(e.currentTarget.value)} aria-label="Search the binder" />
-          <div class="s-filters">
-            <select class="s-select" value={isDiv ? "all" : f} onChange={(e) => setF(e.currentTarget.value)} aria-label="Rarity">
-              <option value="all">All rarities</option>
-              {ORDER.map((t) => <option value={t}>{TIERS[t].label} {counts[t]}/{POOL[t].length}</option>)}
-            </select>
-            <select class="s-select" value={isDiv ? f : "all"} onChange={(e) => setF(e.currentTarget.value)} aria-label="Set">
-              <option value="all">All sets</option>
+          <input autoComplete="off" data-1p-ignore data-lpignore="true" data-form-type="other" class="s-input" type="search" placeholder="Search" value={q} onInput={(e) => setQ(e.currentTarget.value)} aria-label="Search the binder" />
+          {/* Rarity in one tap, with how many of each you have; then set, order, Missing and the compact grid on one row. */}
+          <div class="s-chips bn-tiers">
+            <button type="button" class={cx("s-chip", !isDiv && f === "all" && "on")} aria-pressed={!isDiv && f === "all"} onClick={() => setF("all")}>All</button>
+            {ORDER.map((t) => (
+              <button type="button" class={cx("s-chip", f === t && "on")} aria-pressed={f === t} style={{ "--tc": TIERS[t].color }} onClick={() => setF(f === t ? "all" : t)}>
+                <b>{TIERS[t].label}</b> <em>{counts[t]}</em>
+              </button>
+            ))}
+          </div>
+          <div class="bn-row">
+            <select class="s-select" value={isDiv ? f : "all"} onChange={(e) => setF(e.currentTarget.value)} aria-label="Division">
+              <option value="all">All divisions</option>
               {DIVS.map((d) => { const have = DIV_TEAMS.get(d)!.filter((t) => cards[t.num]?.length).length; return <option value={`div:${d}`}>{d} {have}/{DIV_TEAMS.get(d)!.length}{done.has(d) ? " ✓" : ""}</option>; })}
             </select>
-            <button type="button" class={cx("s-chip", miss && "on")} aria-pressed={miss} onClick={() => setMiss(!miss)}>Missing</button>
-          </div>
-          <div class="s-filters">
             <select class="s-select" value={p.sort} onChange={(e) => { const v = e.currentTarget.value as BinderSort; setPrefs((x) => { x.sort = v; }); }} aria-label="Sort">
-              <option value="rarity">Sort: Rarity</option>
-              <option value="copies">Sort: Most copies</option>
-              <option value="serial">Sort: Lowest serial</option>
-              <option value="number">Sort: Team number</option>
-              <option value="name">Sort: Team name</option>
+              <option value="rarity">Rarity</option>
+              <option value="copies">Copies</option>
+              <option value="serial">Serial</option>
+              <option value="number">Number</option>
+              <option value="name">Name</option>
             </select>
-            <button type="button" class={cx("s-chip", p.compact && "on")} aria-pressed={p.compact} onClick={() => setPrefs((x) => { x.compact = !x.compact; })}>Compact</button>
+            <button type="button" class={cx("s-chip", miss && "on")} aria-pressed={miss} onClick={() => setMiss(!miss)}>Missing</button>
+            <button type="button" class={cx("s-chip bn-compact", p.compact && "on")} aria-pressed={p.compact} aria-label="Compact grid" title="Compact grid" onClick={() => setPrefs((x) => { x.compact = !x.compact; })}>▦</button>
           </div>
           {!list.length ? (
-            <div class="s-empty">{needle ? "No team matches." : owned.length ? "None of these yet." : "Your binder is empty. Open a pack and every robot you pull lands here."}</div>
+            <div class="s-empty">{needle ? "No team matches." : owned.length ? "None of these yet." : "Your binder is empty."}</div>
           ) : (
             <div class={cx("s-grid", p.compact && "s-compact")}>
               {list.slice(0, shown).map((t) => {

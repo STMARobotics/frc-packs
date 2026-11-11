@@ -19,9 +19,9 @@ export function HomeScreen() {
         </div>
       </section>
       <nav class="b-menu">
-        <a class="b-big play" href="#play"><b>Play</b><span>{ready ? "1v1, five rounds" : "Build a deck first"}</span></a>
+        <a class="b-big play" href="#play"><b>Battle</b><span>{ready ? "1v1, five rounds" : "Build a deck first"}</span></a>
         <a class="b-big" href="#decks"><b>Decks</b><span>{plural(h.decks.length, "deck")} · {ready} ready</span></a>
-        <a class="b-big" href="#library"><b>Library</b><span>{plural(h.owned_teams.length, "robot")} · {CAT.support.length} support</span></a>
+        <a class="b-big" href="#library"><b>Binder</b><span>{plural(h.owned_teams.length, "robot")} · {CAT.support.length} support</span></a>
         <a class="b-big" href="#history"><b>History</b><span>{plural(p.games, "game")}</span></a>
         {h.is_admin && <a class="b-big admin" href="#admin"><b>Card admin</b><span>Robot effects</span></a>}
       </nav>
@@ -59,7 +59,7 @@ function Leaderboard() {
           </tr>)}</tbody>
         </table>
         </div>
-      ) : players && !failed && <p class="b-dim b-small">No ranked players yet. Finish a game to claim the first spot.</p>}
+      ) : players && !failed && <p class="b-dim b-small">No ranked players yet.</p>}
     </section>
   );
 }
@@ -72,10 +72,10 @@ function Rules() {
       <ol>
         <li><b>Deck:</b> 1 Captain, {r.deck_robots} robots, {r.support_cards} Part and Lore cards.</li>
         <li><b>Schedule:</b> your {r.deck_robots} robots are shuffled into {r.rounds} pairs. Your captain joins each pair. Review both alliances and their estimated win chances, then ready up.</li>
-        <li><b>Matches ({r.rounds}):</b> play with your scheduled partners. Choose stations, play Parts on robots and up to one Lore, then lock in.</li>
+        <li><b>Matches ({r.rounds}):</b> play with your scheduled partners. Choose stations, play Parts on robots and up to one Lore, then go to queue.</li>
         <li><b>Score:</b> Auto, Tele and End add up. Winning a round is 3 RP. Each robot rolls for +1 RP.</li>
       </ol>
-      <p class="b-dim b-small">Cards are only used up for the game. Nothing leaves your collection.</p>
+      
     </div>
   );
 }

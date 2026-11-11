@@ -31,7 +31,7 @@ export function profileRoute(): string | null {
   if (!location.hash.startsWith("#u/")) return null;
   try { return decodeURIComponent(location.hash.slice(3)) || null; } catch { return null; }
 }
-/** Back to where the profile was opened from; to Social when it was opened from a link. */
+/** Back to where the profile was opened from; to Trade's Players when it was opened from a link. */
 function leave() {
   if (history.state?.pf) return history.back();
   history.replaceState(null, "", "#social");
@@ -235,7 +235,6 @@ function EditProfile() {
       const now = st.get()!;
       st.set({ ...now, showcase: sc, account: { ...now.account, bio: r.bio, avatar: r.avatar, banner: r.banner } });
       edits.set(edits.get() + 1);
-      toast("Profile saved.");
       back();
     } catch (e) { fail(e); }
     setBusy(false);
@@ -260,7 +259,7 @@ function EditProfile() {
         <textarea autoComplete="off" data-1p-ignore data-lpignore="true" data-form-type="other" class="s-input" rows={3} maxLength={200} value={bio} placeholder="Your team, your favorite robot, what you're collecting…" onInput={(e) => setBio(e.currentTarget.value)} />
       </label>
       <button type="button" class="s-btn wide" disabled={busy || bad} onClick={save}>{busy ? <Spinner small /> : "Save"}</button>
-      <p class="s-dim ed-note">Your picture and banner come from cards you own. Keep it friendly: everyone can see your profile.</p>
+      
     </div>
   );
 }
@@ -293,7 +292,7 @@ function PickCard({ slot, chosen, onDone }: { slot: Slot; chosen: number[]; onDo
           const t = BY_NUM.get(n)!, i = sel.indexOf(n);
           return (
             <button type="button" class={cx("ed-tile", i >= 0 && "on")} style={{ "--tc": TIERS[t.tier].color }} onClick={() => tap(n)} aria-pressed={i >= 0} aria-label={`${n} ${t.name}`}>
-              {t.photo ? <img alt="" loading="lazy" decoding="async" src={`/photos/${n}.webp`} /> : <span>#{n}</span>}
+              {t.photo ? <img alt="" decoding="async" src={`/photos/${n}.webp`} /> : <span>#{n}</span>}
               <b>{n}</b>
               {many && i >= 0 && <em>{i + 1}</em>}
             </button>

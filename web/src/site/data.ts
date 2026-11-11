@@ -11,8 +11,6 @@ export const TIERS: Record<Tier, { label: string; color: string }> = {
   mythic: { label: "Mythic", color: "#3cffdc" },
 };
 export const STARS: Record<Tier, number> = { common: 1, uncommon: 2, rare: 3, legendary: 4, mythic: 5 };
-/** The three bonus RP each season's cards use (same for every card in a season). */
-export const RP_NAMES: Record<number, [string, string, string]> = { 2025: ["Auto", "Coral", "Barge"], 2026: ["Energized", "Supercharged", "Traversal"] };
 
 /** A team as the cards show it. `bt` (Battler stats) arrives once the stats import runs. */
 export type T = Team & { region?: string; bt?: { auto: number; tele: number; end: number; rp: [number, number, number]; effect?: string; effectName?: string } };

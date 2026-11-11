@@ -13,12 +13,10 @@ use super::engine::Stats;
 pub const SEASON: i32 = 2026;
 pub const PACK: &str = "cmp26";
 
-/// The season's bonus RPs, in slot order (spec §4.3).
-pub fn rp_names(season: i32) -> [&'static str; 3] {
-    match season {
-        2025 => ["Auto", "Coral", "Barge"],
-        _ => ["Energized", "Supercharged", "Traversal"],
-    }
+/// The bonus RPs, in slot order. Always RP1, RP2 and RP3 (#134): each season's own names (2026's Energized,
+/// Supercharged and Traversal) don't fit cards from other seasons.
+pub fn rp_names(_season: i32) -> [&'static str; 3] {
+    ["RP1", "RP2", "RP3"]
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

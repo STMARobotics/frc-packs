@@ -133,6 +133,7 @@ pub async fn ensure(st: &Shared, user: Uuid) -> ApiResult<bool> {
                 body: "A card you owned changed rarity. Parts are waiting for you as an apology.".into(),
                 url: "/#binder".into(),
                 tag: "mythic-change".into(),
+                kind: "news",
             },
         )
         .await;

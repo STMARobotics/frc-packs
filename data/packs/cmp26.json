@@ -52,9 +52,9 @@
     "tele": 66,
     "end": 29,
     "rp": [
-     81,
-     100,
-     0
+     85,
+     85,
+     85
     ]
    },
    "rank": 1,
@@ -72,13 +72,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 25,
-    "tele": 57,
-    "end": 22,
+    "auto": 26,
+    "tele": 59,
+    "end": 23,
     "rp": [
-     82,
-     100,
-     0
+     86,
+     86,
+     69
     ]
    },
    "rank": 2,
@@ -96,13 +96,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 26,
-    "tele": 57,
-    "end": 27,
+    "auto": 27,
+    "tele": 58,
+    "end": 28,
     "rp": [
-     71,
-     85,
-     0
+     77,
+     77,
+     81
     ]
    },
    "rank": 3,
@@ -120,13 +120,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 22,
-    "tele": 59,
-    "end": 23,
+    "auto": 23,
+    "tele": 61,
+    "end": 24,
     "rp": [
-     80,
-     78,
-     0
+     85,
+     83,
+     71
     ]
    },
    "rank": 4,
@@ -144,13 +144,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 24,
-    "tele": 55,
-    "end": 22,
+    "auto": 25,
+    "tele": 57,
+    "end": 23,
     "rp": [
-     63,
-     32,
-     0
+     71,
+     43,
+     69
     ]
    },
    "rank": 5,
@@ -168,13 +168,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 28,
-    "tele": 56,
-    "end": 16,
+    "auto": 29,
+    "tele": 59,
+    "end": 17,
     "rp": [
-     80,
-     93,
-     0
+     85,
+     85,
+     54
     ]
    },
    "rank": 6,
@@ -192,13 +192,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 16,
-    "tele": 51,
-    "end": 27,
+    "auto": 17,
+    "tele": 54,
+    "end": 29,
     "rp": [
-     62,
-     57,
-     0
+     70,
+     66,
+     81
     ]
    },
    "rank": 7,
@@ -216,13 +216,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 25,
-    "tele": 52,
-    "end": 22,
+    "auto": 26,
+    "tele": 55,
+    "end": 23,
     "rp": [
-     79,
-     93,
-     0
+     84,
+     84,
+     69
     ]
    },
    "rank": 8,
@@ -240,13 +240,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 21,
-    "tele": 52,
-    "end": 23,
+    "auto": 22,
+    "tele": 55,
+    "end": 24,
     "rp": [
-     65,
-     86,
-     0
+     72,
+     72,
+     71
     ]
    },
    "rank": 9,
@@ -264,13 +264,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 24,
-    "tele": 47,
-    "end": 25,
+    "auto": 25,
+    "tele": 50,
+    "end": 26,
     "rp": [
-     68,
-     65,
-     0
+     75,
+     72,
+     76
     ]
    },
    "rank": 10,
@@ -288,13 +288,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 20,
-    "tele": 49,
-    "end": 23,
+    "auto": 21,
+    "tele": 52,
+    "end": 25,
     "rp": [
-     65,
-     79,
-     0
+     72,
+     72,
+     71
     ]
    },
    "rank": 11,
@@ -312,13 +312,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 18,
-    "tele": 54,
-    "end": 22,
+    "auto": 19,
+    "tele": 57,
+    "end": 23,
     "rp": [
-     74,
-     72,
-     0
+     80,
+     78,
+     69
     ]
    },
    "rank": 12,
@@ -336,13 +336,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 20,
-    "tele": 49,
-    "end": 24,
+    "auto": 21,
+    "tele": 52,
+    "end": 26,
     "rp": [
-     83,
-     72,
-     0
+     87,
+     78,
+     74
     ]
    },
    "rank": 13,
@@ -360,13 +360,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 19,
-    "tele": 45,
-    "end": 22,
+    "auto": 21,
+    "tele": 49,
+    "end": 24,
     "rp": [
+     82,
      77,
-     70,
-     0
+     69
     ]
    },
    "rank": 14,
@@ -384,13 +384,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 18,
-    "tele": 53,
-    "end": 22,
+    "auto": 19,
+    "tele": 56,
+    "end": 23,
     "rp": [
-     76,
-     56,
-     0
+     81,
+     65,
+     69
     ]
    },
    "rank": 15,
@@ -408,13 +408,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 20,
-    "tele": 50,
-    "end": 21,
+    "auto": 21,
+    "tele": 54,
+    "end": 23,
     "rp": [
-     88,
-     64,
-     0
+     91,
+     72,
+     67
     ]
    },
    "rank": 16,
@@ -432,13 +432,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 18,
-    "tele": 48,
-    "end": 22,
+    "auto": 19,
+    "tele": 52,
+    "end": 24,
     "rp": [
-     79,
-     70,
-     0
+     84,
+     77,
+     69
     ]
    },
    "rank": 17,
@@ -456,13 +456,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 16,
-    "tele": 50,
-    "end": 22,
+    "auto": 17,
+    "tele": 54,
+    "end": 24,
     "rp": [
-     73,
      79,
-     0
+     79,
+     69
     ]
    },
    "rank": 18,
@@ -480,13 +480,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 19,
-    "tele": 47,
-    "end": 20,
+    "auto": 21,
+    "tele": 51,
+    "end": 22,
     "rp": [
-     55,
-     82,
-     0
+     64,
+     64,
+     64
     ]
    },
    "rank": 19,
@@ -504,13 +504,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 19,
-    "tele": 47,
-    "end": 22,
+    "auto": 21,
+    "tele": 51,
+    "end": 24,
     "rp": [
-     73,
-     75,
-     0
+     79,
+     79,
+     69
     ]
    },
    "rank": 20,
@@ -528,13 +528,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 18,
-    "tele": 51,
-    "end": 18,
+    "auto": 20,
+    "tele": 55,
+    "end": 20,
     "rp": [
-     74,
-     62,
-     0
+     80,
+     70,
+     59
     ]
    },
    "rank": 21,
@@ -552,13 +552,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 19,
-    "tele": 50,
-    "end": 18,
+    "auto": 21,
+    "tele": 54,
+    "end": 20,
     "rp": [
-     75,
-     64,
-     0
+     81,
+     72,
+     59
     ]
    },
    "rank": 22,
@@ -576,13 +576,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 14,
-    "tele": 47,
-    "end": 25,
+    "auto": 15,
+    "tele": 51,
+    "end": 27,
     "rp": [
-     86,
-     61,
-     0
+     89,
+     69,
+     76
     ]
    },
    "rank": 23,
@@ -600,13 +600,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 16,
-    "tele": 53,
-    "end": 16,
+    "auto": 17,
+    "tele": 58,
+    "end": 17,
     "rp": [
-     70,
-     66,
-     0
+     77,
+     73,
+     54
     ]
    },
    "rank": 24,
@@ -624,13 +624,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 19,
-    "tele": 44,
-    "end": 22,
+    "auto": 21,
+    "tele": 48,
+    "end": 24,
     "rp": [
-     65,
-     58,
-     0
+     72,
+     66,
+     69
     ]
    },
    "rank": 25,
@@ -648,13 +648,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 16,
-    "tele": 50,
-    "end": 19,
+    "auto": 17,
+    "tele": 55,
+    "end": 21,
     "rp": [
-     73,
-     26,
-     0
+     79,
+     36,
+     62
     ]
    },
    "rank": 26,
@@ -672,13 +672,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 20,
-    "tele": 45,
-    "end": 18,
+    "auto": 22,
+    "tele": 49,
+    "end": 20,
     "rp": [
-     93,
-     51,
-     0
+     95,
+     60,
+     59
     ]
    },
    "rank": 27,
@@ -696,13 +696,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 22,
-    "tele": 46,
-    "end": 16,
+    "auto": 24,
+    "tele": 50,
+    "end": 17,
     "rp": [
-     64,
-     48,
-     0
+     72,
+     58,
+     54
     ]
    },
    "rank": 28,
@@ -720,13 +720,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 19,
-    "tele": 42,
-    "end": 22,
+    "auto": 21,
+    "tele": 46,
+    "end": 24,
     "rp": [
-     69,
-     54,
-     0
+     76,
+     63,
+     69
     ]
    },
    "rank": 29,
@@ -744,13 +744,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 15,
-    "tele": 44,
-    "end": 21,
+    "auto": 17,
+    "tele": 49,
+    "end": 23,
     "rp": [
-     67,
-     64,
-     0
+     74,
+     72,
+     67
     ]
    },
    "rank": 30,
@@ -768,13 +768,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 21,
-    "tele": 46,
-    "end": 13,
+    "auto": 23,
+    "tele": 51,
+    "end": 14,
     "rp": [
-     58,
-     42,
-     0
+     66,
+     52,
+     47
     ]
    },
    "rank": 31,
@@ -792,13 +792,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 21,
-    "tele": 39,
-    "end": 19,
+    "auto": 23,
+    "tele": 43,
+    "end": 21,
     "rp": [
-     65,
-     39,
-     0
+     72,
+     49,
+     62
     ]
    },
    "rank": 32,
@@ -816,13 +816,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 15,
-    "tele": 42,
-    "end": 20,
+    "auto": 17,
+    "tele": 47,
+    "end": 22,
     "rp": [
-     66,
-     48,
-     0
+     73,
+     58,
+     64
     ]
    },
    "rank": 33,
@@ -840,13 +840,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 13,
-    "tele": 46,
-    "end": 19,
+    "auto": 14,
+    "tele": 51,
+    "end": 21,
     "rp": [
-     74,
-     33,
-     0
+     80,
+     44,
+     62
     ]
    },
    "rank": 34,
@@ -864,13 +864,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 19,
-    "tele": 41,
-    "end": 16,
+    "auto": 21,
+    "tele": 46,
+    "end": 18,
     "rp": [
-     74,
-     62,
-     0
+     80,
+     70,
+     54
     ]
    },
    "rank": 35,
@@ -888,13 +888,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 17,
-    "tele": 39,
-    "end": 19,
+    "auto": 19,
+    "tele": 44,
+    "end": 21,
     "rp": [
-     73,
-     19,
-     0
+     79,
+     29,
+     62
     ]
    },
    "rank": 36,
@@ -912,13 +912,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 12,
-    "tele": 45,
-    "end": 18,
+    "auto": 13,
+    "tele": 51,
+    "end": 20,
     "rp": [
-     63,
-     42,
-     0
+     71,
+     52,
+     59
     ]
    },
    "rank": 37,
@@ -936,13 +936,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 14,
-    "tele": 44,
-    "end": 18,
+    "auto": 16,
+    "tele": 49,
+    "end": 20,
     "rp": [
-     62,
-     33,
-     0
+     70,
+     44,
+     59
     ]
    },
    "rank": 38,
@@ -960,13 +960,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 13,
-    "tele": 43,
-    "end": 19,
+    "auto": 15,
+    "tele": 48,
+    "end": 21,
     "rp": [
-     59,
-     47,
-     0
+     67,
+     57,
+     62
     ]
    },
    "rank": 39,
@@ -984,13 +984,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 14,
-    "tele": 40,
-    "end": 21,
+    "auto": 16,
+    "tele": 45,
+    "end": 24,
     "rp": [
-     61,
-     47,
-     0
+     69,
+     57,
+     67
     ]
    },
    "rank": 40,
@@ -1008,13 +1008,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 18,
-    "tele": 37,
-    "end": 19,
+    "auto": 20,
+    "tele": 42,
+    "end": 21,
     "rp": [
-     77,
-     25,
-     0
+     82,
+     35,
+     62
     ]
    },
    "rank": 41,
@@ -1032,13 +1032,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 15,
-    "tele": 38,
-    "end": 20,
+    "auto": 17,
+    "tele": 43,
+    "end": 23,
     "rp": [
-     53,
-     48,
-     0
+     62,
+     58,
+     64
     ]
    },
    "rank": 42,
@@ -1056,13 +1056,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 40,
-    "end": 22,
+    "auto": 12,
+    "tele": 45,
+    "end": 25,
     "rp": [
-     57,
-     54,
-     0
+     66,
+     63,
+     69
     ]
    },
    "rank": 43,
@@ -1080,13 +1080,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 14,
-    "tele": 40,
-    "end": 18,
+    "auto": 16,
+    "tele": 45,
+    "end": 20,
     "rp": [
-     65,
-     43,
-     0
+     72,
+     53,
+     59
     ]
    },
    "rank": 44,
@@ -1104,13 +1104,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 20,
-    "tele": 37,
-    "end": 16,
+    "auto": 23,
+    "tele": 42,
+    "end": 18,
     "rp": [
-     58,
-     33,
-     0
+     66,
+     44,
+     54
     ]
    },
    "rank": 45,
@@ -1128,13 +1128,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 41,
-    "end": 21,
+    "auto": 12,
+    "tele": 46,
+    "end": 24,
     "rp": [
-     49,
-     40,
-     0
+     59,
+     50,
+     67
     ]
    },
    "rank": 46,
@@ -1152,13 +1152,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 40,
-    "end": 20,
+    "auto": 13,
+    "tele": 46,
+    "end": 23,
     "rp": [
-     52,
-     49,
-     0
+     61,
+     59,
+     64
     ]
    },
    "rank": 47,
@@ -1176,13 +1176,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 19,
-    "tele": 36,
-    "end": 15,
+    "auto": 22,
+    "tele": 41,
+    "end": 17,
     "rp": [
-     45,
-     41,
-     0
+     55,
+     51,
+     52
     ]
    },
    "rank": 48,
@@ -1200,13 +1200,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 13,
-    "tele": 43,
-    "end": 14,
+    "auto": 15,
+    "tele": 49,
+    "end": 16,
     "rp": [
-     60,
-     12,
-     0
+     68,
+     20,
+     49
     ]
    },
    "rank": 49,
@@ -1224,13 +1224,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 15,
-    "tele": 37,
-    "end": 19,
+    "auto": 17,
+    "tele": 42,
+    "end": 22,
     "rp": [
-     73,
-     16,
-     0
+     79,
+     25,
+     62
     ]
    },
    "rank": 50,
@@ -1248,13 +1248,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 12,
-    "tele": 42,
-    "end": 17,
+    "auto": 14,
+    "tele": 48,
+    "end": 19,
     "rp": [
-     54,
-     45,
-     0
+     63,
+     55,
+     57
     ]
    },
    "rank": 51,
@@ -1272,13 +1272,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 17,
-    "tele": 40,
-    "end": 13,
+    "auto": 19,
+    "tele": 46,
+    "end": 15,
     "rp": [
-     57,
-     46,
-     0
+     66,
+     56,
+     47
     ]
    },
    "rank": 52,
@@ -1293,16 +1293,16 @@
    "srank": 56,
    "loc": "TX, USA",
    "region": "Texas",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 14,
-    "tele": 37,
-    "end": 19,
+    "auto": 16,
+    "tele": 42,
+    "end": 22,
     "rp": [
-     85,
-     19,
-     0
+     89,
+     29,
+     62
     ]
    },
    "rank": 53,
@@ -1320,13 +1320,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 18,
-    "tele": 37,
-    "end": 14,
+    "auto": 21,
+    "tele": 42,
+    "end": 16,
     "rp": [
-     53,
-     58,
-     0
+     62,
+     62,
+     49
     ]
    },
    "rank": 54,
@@ -1344,13 +1344,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 16,
-    "tele": 37,
-    "end": 17,
+    "auto": 18,
+    "tele": 42,
+    "end": 19,
     "rp": [
-     60,
-     40,
-     0
+     68,
+     50,
+     57
     ]
    },
    "rank": 55,
@@ -1368,13 +1368,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 18,
-    "tele": 32,
-    "end": 19,
+    "auto": 21,
+    "tele": 37,
+    "end": 22,
     "rp": [
-     81,
-     29,
-     0
+     85,
+     40,
+     62
     ]
    },
    "rank": 56,
@@ -1392,13 +1392,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 15,
-    "tele": 38,
-    "end": 17,
+    "auto": 17,
+    "tele": 43,
+    "end": 19,
     "rp": [
-     65,
-     32,
-     0
+     72,
+     43,
+     57
     ]
    },
    "rank": 57,
@@ -1416,13 +1416,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 16,
-    "tele": 36,
-    "end": 17,
+    "auto": 18,
+    "tele": 41,
+    "end": 20,
     "rp": [
-     71,
-     41,
-     0
+     77,
+     51,
+     57
     ]
    },
    "rank": 58,
@@ -1440,13 +1440,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 18,
-    "tele": 37,
-    "end": 14,
+    "auto": 21,
+    "tele": 42,
+    "end": 16,
     "rp": [
-     56,
-     37,
-     0
+     65,
+     47,
+     49
     ]
    },
    "rank": 59,
@@ -1464,13 +1464,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 16,
-    "tele": 35,
-    "end": 18,
+    "auto": 18,
+    "tele": 40,
+    "end": 21,
     "rp": [
-     69,
-     38,
-     0
+     76,
+     48,
+     59
     ]
    },
    "rank": 60,
@@ -1488,13 +1488,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 17,
-    "tele": 37,
-    "end": 14,
+    "auto": 20,
+    "tele": 43,
+    "end": 16,
     "rp": [
-     60,
-     40,
-     0
+     68,
+     50,
+     49
     ]
    },
    "rank": 61,
@@ -1512,13 +1512,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 38,
-    "end": 19,
+    "auto": 13,
+    "tele": 44,
+    "end": 22,
     "rp": [
-     76,
-     16,
-     0
+     81,
+     25,
+     62
     ]
    },
    "rank": 62,
@@ -1536,13 +1536,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 15,
-    "tele": 31,
-    "end": 21,
+    "auto": 17,
+    "tele": 36,
+    "end": 24,
     "rp": [
+     60,
      51,
-     41,
-     0
+     67
     ]
    },
    "rank": 63,
@@ -1560,13 +1560,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 14,
-    "tele": 31,
-    "end": 21,
+    "auto": 16,
+    "tele": 36,
+    "end": 24,
     "rp": [
-     68,
-     40,
-     0
+     75,
+     50,
+     67
     ]
    },
    "rank": 64,
@@ -1584,13 +1584,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 13,
-    "tele": 36,
-    "end": 17,
+    "auto": 15,
+    "tele": 42,
+    "end": 20,
     "rp": [
-     67,
-     46,
-     0
+     74,
+     56,
+     57
     ]
    },
    "rank": 65,
@@ -1605,16 +1605,16 @@
    "srank": 67,
    "loc": "Türkiye",
    "region": "Türkiye",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 41,
-    "end": 15,
+    "auto": 13,
+    "tele": 47,
+    "end": 17,
     "rp": [
-     72,
-     12,
-     0
+     78,
+     20,
+     52
     ]
    },
    "rank": 66,
@@ -1632,13 +1632,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 14,
-    "tele": 39,
-    "end": 14,
+    "auto": 16,
+    "tele": 45,
+    "end": 16,
     "rp": [
-     46,
-     51,
-     0
+     56,
+     56,
+     49
     ]
    },
    "rank": 67,
@@ -1656,13 +1656,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 12,
-    "tele": 38,
-    "end": 17,
+    "auto": 14,
+    "tele": 44,
+    "end": 20,
     "rp": [
-     64,
-     19,
-     0
+     72,
+     29,
+     57
     ]
    },
    "rank": 68,
@@ -1680,13 +1680,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 40,
-    "end": 16,
+    "auto": 13,
+    "tele": 46,
+    "end": 19,
     "rp": [
-     68,
-     28,
-     0
+     75,
+     38,
+     54
     ]
    },
    "rank": 69,
@@ -1704,13 +1704,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 12,
-    "tele": 34,
-    "end": 20,
+    "auto": 14,
+    "tele": 39,
+    "end": 23,
     "rp": [
-     58,
-     33,
-     0
+     66,
+     44,
+     64
     ]
    },
    "rank": 70,
@@ -1728,13 +1728,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 17,
-    "tele": 35,
-    "end": 15,
+    "auto": 20,
+    "tele": 40,
+    "end": 17,
     "rp": [
-     46,
+     56,
      0,
-     0
+     52
     ]
    },
    "rank": 71,
@@ -1752,13 +1752,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 13,
-    "tele": 36,
-    "end": 17,
+    "auto": 15,
+    "tele": 42,
+    "end": 20,
     "rp": [
-     50,
-     31,
-     0
+     59,
+     42,
+     57
     ]
    },
    "rank": 72,
@@ -1776,13 +1776,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 14,
-    "tele": 35,
-    "end": 17,
+    "auto": 16,
+    "tele": 41,
+    "end": 20,
     "rp": [
-     47,
-     42,
-     0
+     57,
+     52,
+     57
     ]
    },
    "rank": 73,
@@ -1800,13 +1800,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 19,
-    "tele": 35,
-    "end": 12,
+    "auto": 22,
+    "tele": 41,
+    "end": 14,
     "rp": [
-     56,
-     40,
-     0
+     65,
+     50,
+     44
     ]
    },
    "rank": 74,
@@ -1824,13 +1824,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 14,
-    "tele": 36,
-    "end": 15,
+    "auto": 16,
+    "tele": 42,
+    "end": 17,
     "rp": [
-     50,
-     35,
-     0
+     59,
+     46,
+     52
     ]
    },
    "rank": 75,
@@ -1848,13 +1848,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 16,
-    "tele": 34,
-    "end": 16,
+    "auto": 19,
+    "tele": 39,
+    "end": 19,
     "rp": [
-     60,
-     25,
-     0
+     68,
+     35,
+     54
     ]
    },
    "rank": 76,
@@ -1872,13 +1872,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 13,
-    "tele": 34,
-    "end": 18,
+    "auto": 15,
+    "tele": 40,
+    "end": 21,
     "rp": [
-     61,
-     17,
-     0
+     69,
+     26,
+     59
     ]
    },
    "rank": 77,
@@ -1896,13 +1896,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 14,
-    "tele": 33,
-    "end": 18,
+    "auto": 16,
+    "tele": 38,
+    "end": 21,
     "rp": [
-     35,
-     26,
-     0
+     46,
+     36,
+     59
     ]
    },
    "rank": 78,
@@ -1920,13 +1920,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 13,
-    "tele": 37,
-    "end": 15,
+    "auto": 15,
+    "tele": 43,
+    "end": 17,
     "rp": [
-     52,
-     36,
-     0
+     61,
+     46,
+     52
     ]
    },
    "rank": 79,
@@ -1944,13 +1944,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 37,
-    "end": 17,
+    "auto": 12,
+    "tele": 43,
+    "end": 20,
     "rp": [
-     59,
-     31,
-     0
+     67,
+     42,
+     57
     ]
    },
    "rank": 80,
@@ -1968,13 +1968,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 17,
-    "tele": 35,
-    "end": 12,
+    "auto": 20,
+    "tele": 41,
+    "end": 14,
     "rp": [
-     57,
-     29,
-     0
+     66,
+     40,
+     44
     ]
    },
    "rank": 81,
@@ -1992,13 +1992,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 14,
-    "tele": 38,
-    "end": 12,
+    "auto": 16,
+    "tele": 44,
+    "end": 14,
     "rp": [
-     68,
-     35,
-     0
+     75,
+     46,
+     44
     ]
    },
    "rank": 82,
@@ -2016,13 +2016,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 13,
-    "tele": 36,
-    "end": 15,
+    "auto": 15,
+    "tele": 42,
+    "end": 18,
     "rp": [
-     56,
-     7,
-     0
+     65,
+     14,
+     52
     ]
    },
    "rank": 83,
@@ -2040,13 +2040,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 14,
-    "tele": 35,
-    "end": 15,
+    "auto": 16,
+    "tele": 41,
+    "end": 18,
     "rp": [
-     38,
-     38,
-     0
+     48,
+     48,
+     52
     ]
    },
    "rank": 84,
@@ -2064,13 +2064,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 15,
-    "tele": 32,
-    "end": 16,
+    "auto": 18,
+    "tele": 38,
+    "end": 19,
     "rp": [
-     46,
-     39,
-     0
+     56,
+     49,
+     54
     ]
    },
    "rank": 85,
@@ -2088,13 +2088,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 13,
-    "tele": 33,
-    "end": 18,
+    "auto": 15,
+    "tele": 39,
+    "end": 21,
     "rp": [
-     60,
+     68,
      0,
-     0
+     59
     ]
    },
    "rank": 86,
@@ -2112,13 +2112,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 14,
-    "tele": 34,
-    "end": 15,
+    "auto": 16,
+    "tele": 40,
+    "end": 18,
     "rp": [
-     48,
-     37,
-     0
+     58,
+     47,
+     52
     ]
    },
    "rank": 87,
@@ -2136,13 +2136,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 13,
-    "tele": 36,
-    "end": 15,
+    "auto": 15,
+    "tele": 42,
+    "end": 18,
     "rp": [
-     68,
-     34,
-     0
+     75,
+     45,
+     52
     ]
    },
    "rank": 88,
@@ -2160,13 +2160,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 39,
-    "end": 14,
+    "auto": 13,
+    "tele": 46,
+    "end": 16,
     "rp": [
-     55,
-     29,
-     0
+     64,
+     40,
+     49
     ]
    },
    "rank": 89,
@@ -2184,13 +2184,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 17,
-    "tele": 34,
-    "end": 13,
+    "auto": 20,
+    "tele": 40,
+    "end": 15,
     "rp": [
-     63,
-     14,
-     0
+     71,
+     23,
+     47
     ]
    },
    "rank": 90,
@@ -2208,13 +2208,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 12,
-    "tele": 38,
-    "end": 13,
+    "auto": 14,
+    "tele": 45,
+    "end": 15,
     "rp": [
-     69,
-     29,
-     0
+     76,
+     40,
+     47
     ]
    },
    "rank": 91,
@@ -2232,13 +2232,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 12,
-    "tele": 33,
-    "end": 18,
+    "auto": 14,
+    "tele": 39,
+    "end": 21,
     "rp": [
-     57,
-     19,
-     0
+     66,
+     29,
+     59
     ]
    },
    "rank": 92,
@@ -2256,13 +2256,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 37,
-    "end": 17,
+    "auto": 12,
+    "tele": 43,
+    "end": 20,
     "rp": [
-     51,
-     27,
-     0
+     60,
+     37,
+     57
     ]
    },
    "rank": 93,
@@ -2280,13 +2280,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 16,
-    "tele": 32,
-    "end": 15,
+    "auto": 19,
+    "tele": 38,
+    "end": 18,
     "rp": [
-     54,
-     17,
-     0
+     63,
+     26,
+     52
     ]
    },
    "rank": 94,
@@ -2304,13 +2304,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 13,
-    "tele": 33,
-    "end": 17,
+    "auto": 15,
+    "tele": 39,
+    "end": 20,
     "rp": [
-     57,
-     32,
-     0
+     66,
+     43,
+     57
     ]
    },
    "rank": 95,
@@ -2328,13 +2328,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 16,
-    "tele": 34,
-    "end": 13,
+    "auto": 19,
+    "tele": 40,
+    "end": 15,
     "rp": [
-     45,
-     54,
-     0
+     55,
+     55,
+     47
     ]
    },
    "rank": 96,
@@ -2352,13 +2352,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 37,
-    "end": 16,
+    "auto": 11,
+    "tele": 44,
+    "end": 19,
     "rp": [
-     54,
-     18,
-     0
+     63,
+     28,
+     54
     ]
    },
    "rank": 97,
@@ -2373,16 +2373,16 @@
    "srank": 103,
    "loc": "TX, USA",
    "region": "Texas",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 12,
-    "tele": 33,
-    "end": 18,
+    "auto": 14,
+    "tele": 39,
+    "end": 21,
     "rp": [
-     59,
-     20,
-     0
+     67,
+     30,
+     59
     ]
    },
    "rank": 98,
@@ -2400,13 +2400,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 13,
-    "tele": 35,
-    "end": 15,
+    "auto": 15,
+    "tele": 41,
+    "end": 18,
     "rp": [
-     44,
-     37,
-     0
+     54,
+     47,
+     52
     ]
    },
    "rank": 99,
@@ -2424,13 +2424,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 13,
-    "tele": 36,
-    "end": 13,
+    "auto": 15,
+    "tele": 42,
+    "end": 15,
     "rp": [
-     57,
-     53,
-     0
+     66,
+     62,
+     47
     ]
    },
    "rank": 100,
@@ -2448,13 +2448,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 14,
-    "tele": 34,
-    "end": 14,
+    "auto": 17,
+    "tele": 40,
+    "end": 17,
     "rp": [
-     65,
-     50,
-     0
+     72,
+     59,
+     49
     ]
    },
    "rank": 101,
@@ -2469,16 +2469,16 @@
    "srank": 107,
    "loc": "TX, USA",
    "region": "Texas",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 14,
-    "tele": 32,
-    "end": 16,
+    "auto": 17,
+    "tele": 38,
+    "end": 19,
     "rp": [
-     38,
-     29,
-     0
+     48,
+     40,
+     54
     ]
    },
    "rank": 102,
@@ -2496,13 +2496,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 12,
-    "tele": 33,
-    "end": 16,
+    "auto": 14,
+    "tele": 39,
+    "end": 19,
     "rp": [
-     42,
-     15,
-     0
+     52,
+     24,
+     54
     ]
    },
    "rank": 103,
@@ -2520,13 +2520,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 18,
-    "tele": 33,
-    "end": 11,
+    "auto": 21,
+    "tele": 39,
+    "end": 13,
     "rp": [
-     49,
-     18,
-     0
+     59,
+     28,
+     41
     ]
    },
    "rank": 104,
@@ -2544,13 +2544,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 16,
-    "tele": 34,
-    "end": 11,
+    "auto": 19,
+    "tele": 40,
+    "end": 13,
     "rp": [
-     43,
-     14,
-     0
+     53,
+     23,
+     41
     ]
    },
    "rank": 105,
@@ -2568,13 +2568,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 14,
-    "tele": 34,
-    "end": 13,
+    "auto": 17,
+    "tele": 40,
+    "end": 15,
     "rp": [
-     43,
-     49,
-     0
+     53,
+     53,
+     47
     ]
    },
    "rank": 106,
@@ -2592,13 +2592,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 34,
-    "end": 17,
+    "auto": 11,
+    "tele": 40,
+    "end": 20,
     "rp": [
-     45,
-     39,
-     0
+     55,
+     49,
+     57
     ]
    },
    "rank": 107,
@@ -2616,13 +2616,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 12,
-    "tele": 33,
-    "end": 15,
+    "auto": 14,
+    "tele": 39,
+    "end": 18,
     "rp": [
-     70,
-     34,
-     0
+     77,
+     45,
+     52
     ]
    },
    "rank": 108,
@@ -2640,13 +2640,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 37,
-    "end": 14,
+    "auto": 12,
+    "tele": 44,
+    "end": 17,
     "rp": [
-     54,
-     22,
-     0
+     63,
+     32,
+     49
     ]
    },
    "rank": 109,
@@ -2664,13 +2664,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 33,
-    "end": 17,
+    "auto": 12,
+    "tele": 39,
+    "end": 20,
     "rp": [
-     53,
-     23,
-     0
+     62,
+     33,
+     57
     ]
    },
    "rank": 110,
@@ -2688,13 +2688,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 32,
-    "end": 17,
+    "auto": 13,
+    "tele": 38,
+    "end": 20,
     "rp": [
-     64,
+     72,
      0,
-     0
+     57
     ]
    },
    "rank": 111,
@@ -2712,13 +2712,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 35,
-    "end": 15,
+    "auto": 13,
+    "tele": 41,
+    "end": 18,
     "rp": [
-     63,
-     41,
-     0
+     71,
+     51,
+     52
     ]
    },
    "rank": 112,
@@ -2736,13 +2736,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 14,
-    "tele": 31,
-    "end": 14,
+    "auto": 17,
+    "tele": 37,
+    "end": 17,
     "rp": [
-     51,
-     11,
-     0
+     60,
+     19,
+     49
     ]
    },
    "rank": 113,
@@ -2760,13 +2760,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 16,
-    "tele": 32,
-    "end": 12,
+    "auto": 19,
+    "tele": 38,
+    "end": 14,
     "rp": [
-     60,
-     47,
-     0
+     68,
+     57,
+     44
     ]
    },
    "rank": 114,
@@ -2784,13 +2784,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 33,
-    "end": 16,
+    "auto": 12,
+    "tele": 39,
+    "end": 19,
     "rp": [
-     51,
-     18,
-     0
+     60,
+     28,
+     54
     ]
    },
    "rank": 115,
@@ -2808,13 +2808,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 14,
-    "tele": 34,
-    "end": 12,
+    "auto": 17,
+    "tele": 40,
+    "end": 14,
     "rp": [
-     41,
-     31,
-     0
+     51,
+     42,
+     44
     ]
    },
    "rank": 116,
@@ -2832,13 +2832,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 36,
-    "end": 15,
+    "auto": 11,
+    "tele": 43,
+    "end": 18,
     "rp": [
-     57,
-     31,
-     0
+     66,
+     42,
+     52
     ]
    },
    "rank": 117,
@@ -2856,13 +2856,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 31,
-    "end": 19,
+    "auto": 11,
+    "tele": 37,
+    "end": 23,
     "rp": [
-     54,
-     24,
-     0
+     63,
+     34,
+     62
     ]
    },
    "rank": 118,
@@ -2880,13 +2880,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 12,
-    "tele": 35,
-    "end": 13,
+    "auto": 14,
+    "tele": 42,
+    "end": 15,
     "rp": [
-     58,
-     2,
-     0
+     66,
+     5,
+     47
     ]
    },
    "rank": 119,
@@ -2904,13 +2904,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 16,
-    "tele": 34,
-    "end": 10,
+    "auto": 19,
+    "tele": 40,
+    "end": 12,
     "rp": [
-     69,
-     19,
-     0
+     76,
+     29,
+     38
     ]
    },
    "rank": 120,
@@ -2928,13 +2928,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 13,
-    "tele": 34,
-    "end": 13,
+    "auto": 15,
+    "tele": 40,
+    "end": 15,
     "rp": [
-     58,
-     25,
-     0
+     66,
+     35,
+     47
     ]
    },
    "rank": 121,
@@ -2952,13 +2952,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 13,
-    "tele": 31,
-    "end": 15,
+    "auto": 16,
+    "tele": 37,
+    "end": 18,
     "rp": [
-     60,
-     23,
-     0
+     68,
+     33,
+     52
     ]
    },
    "rank": 122,
@@ -2976,13 +2976,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 12,
-    "tele": 30,
-    "end": 17,
+    "auto": 14,
+    "tele": 36,
+    "end": 20,
     "rp": [
-     72,
-     6,
-     0
+     78,
+     12,
+     57
     ]
    },
    "rank": 123,
@@ -3000,13 +3000,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 14,
-    "tele": 29,
-    "end": 16,
+    "auto": 17,
+    "tele": 35,
+    "end": 19,
     "rp": [
-     63,
-     28,
-     0
+     71,
+     38,
+     54
     ]
    },
    "rank": 124,
@@ -3024,13 +3024,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 35,
-    "end": 14,
+    "auto": 12,
+    "tele": 42,
+    "end": 17,
     "rp": [
-     59,
-     27,
-     0
+     67,
+     37,
+     49
     ]
    },
    "rank": 125,
@@ -3048,13 +3048,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 32,
-    "end": 17,
+    "auto": 12,
+    "tele": 38,
+    "end": 20,
     "rp": [
-     55,
-     14,
-     0
+     64,
+     23,
+     57
     ]
    },
    "rank": 126,
@@ -3072,13 +3072,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 13,
-    "tele": 32,
-    "end": 13,
+    "auto": 16,
+    "tele": 38,
+    "end": 16,
     "rp": [
-     58,
-     35,
-     0
+     66,
+     46,
+     47
     ]
    },
    "rank": 127,
@@ -3096,13 +3096,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 34,
-    "end": 15,
+    "auto": 12,
+    "tele": 41,
+    "end": 18,
     "rp": [
-     44,
-     8,
-     0
+     54,
+     15,
+     52
     ]
    },
    "rank": 128,
@@ -3120,13 +3120,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 31,
-    "end": 16,
+    "auto": 13,
+    "tele": 37,
+    "end": 19,
     "rp": [
-     58,
+     66,
      0,
-     0
+     54
     ]
    },
    "rank": 129,
@@ -3144,13 +3144,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 33,
-    "end": 18,
+    "auto": 10,
+    "tele": 39,
+    "end": 21,
     "rp": [
-     56,
-     21,
-     0
+     65,
+     31,
+     59
     ]
    },
    "rank": 130,
@@ -3168,13 +3168,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 32,
-    "end": 17,
+    "auto": 11,
+    "tele": 38,
+    "end": 20,
     "rp": [
-     67,
-     25,
-     33
+     74,
+     35,
+     57
     ]
    },
    "rank": 131,
@@ -3192,13 +3192,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 33,
-    "end": 16,
+    "auto": 12,
+    "tele": 39,
+    "end": 19,
     "rp": [
-     55,
-     31,
-     0
+     64,
+     42,
+     54
     ]
    },
    "rank": 132,
@@ -3216,13 +3216,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 12,
-    "tele": 32,
-    "end": 15,
+    "auto": 14,
+    "tele": 38,
+    "end": 18,
     "rp": [
-     47,
-     9,
-     0
+     57,
+     16,
+     52
     ]
    },
    "rank": 133,
@@ -3240,13 +3240,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 30,
-    "end": 17,
+    "auto": 12,
+    "tele": 36,
+    "end": 20,
     "rp": [
-     58,
-     25,
-     0
+     66,
+     35,
+     57
     ]
    },
    "rank": 134,
@@ -3264,13 +3264,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 13,
-    "tele": 29,
-    "end": 16,
+    "auto": 16,
+    "tele": 35,
+    "end": 19,
     "rp": [
-     42,
-     17,
-     0
+     52,
+     26,
+     54
     ]
    },
    "rank": 135,
@@ -3288,13 +3288,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 12,
-    "tele": 33,
-    "end": 13,
+    "auto": 14,
+    "tele": 40,
+    "end": 16,
     "rp": [
-     36,
-     17,
-     0
+     46,
+     26,
+     47
     ]
    },
    "rank": 136,
@@ -3312,13 +3312,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 14,
-    "tele": 31,
-    "end": 12,
+    "auto": 17,
+    "tele": 37,
+    "end": 14,
     "rp": [
-     55,
-     16,
-     0
+     64,
+     25,
+     44
     ]
    },
    "rank": 137,
@@ -3336,13 +3336,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 34,
-    "end": 15,
+    "auto": 10,
+    "tele": 41,
+    "end": 18,
     "rp": [
-     39,
-     20,
-     0
+     49,
+     30,
+     52
     ]
    },
    "rank": 138,
@@ -3357,16 +3357,16 @@
    "srank": 147,
    "loc": "MN, USA",
    "region": "Minnesota",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 12,
-    "tele": 35,
-    "end": 11,
+    "auto": 14,
+    "tele": 42,
+    "end": 13,
     "rp": [
-     47,
-     4,
-     0
+     57,
+     9,
+     41
     ]
    },
    "rank": 139,
@@ -3384,13 +3384,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 13,
-    "tele": 32,
-    "end": 11,
+    "auto": 16,
+    "tele": 39,
+    "end": 13,
     "rp": [
+     55,
      45,
-     34,
-     0
+     41
     ]
    },
    "rank": 140,
@@ -3408,13 +3408,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 32,
-    "end": 14,
+    "auto": 12,
+    "tele": 39,
+    "end": 17,
     "rp": [
-     58,
-     20,
-     0
+     66,
+     30,
+     49
     ]
    },
    "rank": 141,
@@ -3432,13 +3432,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 14,
-    "tele": 29,
-    "end": 13,
+    "auto": 17,
+    "tele": 35,
+    "end": 16,
     "rp": [
-     55,
-     3,
-     0
+     64,
+     7,
+     47
     ]
    },
    "rank": 142,
@@ -3456,13 +3456,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 29,
-    "end": 22,
+    "auto": 6,
+    "tele": 35,
+    "end": 27,
     "rp": [
-     54,
-     21,
-     0
+     63,
+     31,
+     69
     ]
    },
    "rank": 143,
@@ -3480,13 +3480,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 16,
-    "tele": 30,
-    "end": 11,
+    "auto": 19,
+    "tele": 36,
+    "end": 13,
     "rp": [
-     43,
-     37,
-     0
+     53,
+     47,
+     41
     ]
    },
    "rank": 144,
@@ -3504,13 +3504,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 34,
-    "end": 13,
+    "auto": 11,
+    "tele": 41,
+    "end": 16,
     "rp": [
-     50,
-     18,
-     0
+     59,
+     28,
+     47
     ]
    },
    "rank": 145,
@@ -3528,13 +3528,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 28,
-    "end": 18,
+    "auto": 12,
+    "tele": 34,
+    "end": 22,
     "rp": [
-     48,
-     4,
-     0
+     58,
+     9,
+     59
     ]
    },
    "rank": 146,
@@ -3552,13 +3552,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 30,
-    "end": 16,
+    "auto": 13,
+    "tele": 36,
+    "end": 19,
     "rp": [
-     51,
-     27,
-     0
+     60,
+     37,
+     54
     ]
    },
    "rank": 147,
@@ -3576,13 +3576,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 12,
-    "tele": 25,
-    "end": 17,
+    "auto": 15,
+    "tele": 31,
+    "end": 21,
     "rp": [
-     58,
-     35,
-     0
+     66,
+     46,
+     57
     ]
    },
    "rank": 148,
@@ -3600,13 +3600,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 12,
-    "tele": 30,
-    "end": 13,
+    "auto": 15,
+    "tele": 36,
+    "end": 16,
     "rp": [
-     32,
-     13,
-     0
+     43,
+     22,
+     47
     ]
    },
    "rank": 149,
@@ -3624,13 +3624,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 32,
-    "end": 14,
+    "auto": 11,
+    "tele": 39,
+    "end": 17,
     "rp": [
-     43,
-     19,
-     0
+     53,
+     29,
+     49
     ]
    },
    "rank": 150,
@@ -3648,13 +3648,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 13,
-    "tele": 31,
-    "end": 11,
+    "auto": 16,
+    "tele": 38,
+    "end": 13,
     "rp": [
-     58,
-     7,
-     0
+     66,
+     14,
+     41
     ]
    },
    "rank": 151,
@@ -3672,13 +3672,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 32,
-    "end": 15,
+    "auto": 10,
+    "tele": 39,
+    "end": 18,
     "rp": [
-     51,
-     18,
-     0
+     60,
+     28,
+     52
     ]
    },
    "rank": 152,
@@ -3696,13 +3696,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 12,
-    "tele": 31,
-    "end": 12,
+    "auto": 15,
+    "tele": 38,
+    "end": 15,
     "rp": [
-     62,
+     70,
      0,
-     0
+     44
     ]
    },
    "rank": 153,
@@ -3720,13 +3720,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 32,
-    "end": 14,
+    "auto": 11,
+    "tele": 39,
+    "end": 17,
     "rp": [
-     40,
+     50,
      0,
-     0
+     49
     ]
    },
    "rank": 154,
@@ -3744,13 +3744,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 13,
-    "tele": 31,
-    "end": 11,
+    "auto": 16,
+    "tele": 38,
+    "end": 13,
     "rp": [
-     51,
-     10,
-     0
+     60,
+     18,
+     41
     ]
    },
    "rank": 155,
@@ -3768,13 +3768,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 29,
-    "end": 15,
+    "auto": 12,
+    "tele": 35,
+    "end": 18,
     "rp": [
-     36,
-     35,
-     0
+     46,
+     46,
+     52
     ]
    },
    "rank": 156,
@@ -3792,13 +3792,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 30,
-    "end": 13,
+    "auto": 13,
+    "tele": 37,
+    "end": 16,
     "rp": [
-     48,
-     2,
-     0
+     58,
+     5,
+     47
     ]
    },
    "rank": 157,
@@ -3816,13 +3816,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 15,
-    "tele": 25,
-    "end": 15,
+    "auto": 18,
+    "tele": 30,
+    "end": 18,
     "rp": [
-     66,
-     31,
-     0
+     73,
+     42,
+     52
     ]
    },
    "rank": 158,
@@ -3837,16 +3837,16 @@
    "srank": 167,
    "loc": "TN, USA",
    "region": "Tennessee",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 13,
-    "tele": 29,
-    "end": 13,
+    "auto": 16,
+    "tele": 35,
+    "end": 16,
     "rp": [
-     45,
+     55,
      0,
-     0
+     47
     ]
    },
    "rank": 159,
@@ -3864,13 +3864,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 30,
-    "end": 13,
+    "auto": 13,
+    "tele": 37,
+    "end": 16,
     "rp": [
-     51,
-     15,
-     0
+     60,
+     24,
+     47
     ]
    },
    "rank": 160,
@@ -3888,13 +3888,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 14,
-    "tele": 30,
-    "end": 10,
+    "auto": 17,
+    "tele": 37,
+    "end": 12,
     "rp": [
-     63,
+     71,
      0,
-     0
+     38
     ]
    },
    "rank": 161,
@@ -3912,13 +3912,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 30,
-    "end": 15,
+    "auto": 11,
+    "tele": 37,
+    "end": 18,
     "rp": [
-     48,
-     24,
-     0
+     58,
+     34,
+     52
     ]
    },
    "rank": 162,
@@ -3936,13 +3936,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 13,
-    "tele": 31,
-    "end": 10,
+    "auto": 16,
+    "tele": 38,
+    "end": 12,
     "rp": [
-     53,
-     17,
-     0
+     62,
+     26,
+     38
     ]
    },
    "rank": 163,
@@ -3960,13 +3960,13 @@
    "photo": true,
    "avatar": false,
    "bt": {
-    "auto": 7,
-    "tele": 32,
-    "end": 14,
+    "auto": 9,
+    "tele": 39,
+    "end": 17,
     "rp": [
-     46,
-     31,
-     0
+     56,
+     42,
+     49
     ]
    },
    "rank": 164,
@@ -3984,13 +3984,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 29,
-    "end": 13,
+    "auto": 13,
+    "tele": 36,
+    "end": 16,
     "rp": [
-     55,
-     31,
-     0
+     64,
+     42,
+     47
     ]
    },
    "rank": 165,
@@ -4008,13 +4008,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 30,
-    "end": 15,
+    "auto": 11,
+    "tele": 37,
+    "end": 18,
     "rp": [
-     26,
-     2,
-     0
+     36,
+     5,
+     52
     ]
    },
    "rank": 166,
@@ -4032,13 +4032,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 28,
-    "end": 18,
+    "auto": 9,
+    "tele": 34,
+    "end": 22,
     "rp": [
-     41,
-     18,
-     0
+     51,
+     28,
+     59
     ]
    },
    "rank": 167,
@@ -4056,13 +4056,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 16,
-    "tele": 28,
-    "end": 10,
+    "auto": 20,
+    "tele": 34,
+    "end": 12,
     "rp": [
-     29,
-     3,
-     0
+     40,
+     7,
+     38
     ]
    },
    "rank": 168,
@@ -4080,13 +4080,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 31,
-    "end": 14,
+    "auto": 11,
+    "tele": 38,
+    "end": 17,
     "rp": [
-     32,
+     43,
      0,
-     0
+     49
     ]
    },
    "rank": 169,
@@ -4104,13 +4104,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 12,
-    "tele": 29,
-    "end": 13,
+    "auto": 15,
+    "tele": 35,
+    "end": 16,
     "rp": [
-     29,
-     22,
-     0
+     40,
+     32,
+     47
     ]
    },
    "rank": 170,
@@ -4128,13 +4128,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 30,
-    "end": 12,
+    "auto": 13,
+    "tele": 37,
+    "end": 15,
     "rp": [
-     50,
-     18,
-     0
+     59,
+     28,
+     44
     ]
    },
    "rank": 171,
@@ -4152,13 +4152,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 12,
-    "tele": 29,
-    "end": 12,
+    "auto": 15,
+    "tele": 36,
+    "end": 15,
     "rp": [
-     42,
-     32,
-     0
+     52,
+     43,
+     44
     ]
    },
    "rank": 172,
@@ -4176,13 +4176,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 32,
-    "end": 11,
+    "auto": 12,
+    "tele": 39,
+    "end": 13,
     "rp": [
-     46,
-     16,
-     0
+     56,
+     25,
+     41
     ]
    },
    "rank": 173,
@@ -4200,13 +4200,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 13,
-    "tele": 28,
-    "end": 12,
+    "auto": 16,
+    "tele": 34,
+    "end": 15,
     "rp": [
-     48,
-     17,
-     0
+     58,
+     26,
+     44
     ]
    },
    "rank": 174,
@@ -4224,13 +4224,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 15,
-    "tele": 30,
-    "end": 8,
+    "auto": 18,
+    "tele": 37,
+    "end": 10,
     "rp": [
-     34,
+     45,
      0,
-     0
+     32
     ]
    },
    "rank": 175,
@@ -4248,13 +4248,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 32,
-    "end": 10,
+    "auto": 12,
+    "tele": 39,
+    "end": 12,
     "rp": [
-     39,
-     9,
-     0
+     49,
+     16,
+     38
     ]
    },
    "rank": 176,
@@ -4272,13 +4272,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 13,
-    "tele": 28,
-    "end": 10,
+    "auto": 16,
+    "tele": 35,
+    "end": 12,
     "rp": [
-     47,
-     14,
-     0
+     57,
+     23,
+     38
     ]
    },
    "rank": 177,
@@ -4296,13 +4296,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 28,
-    "end": 13,
+    "auto": 14,
+    "tele": 35,
+    "end": 16,
     "rp": [
-     54,
-     27,
-     0
+     63,
+     37,
+     47
     ]
    },
    "rank": 178,
@@ -4320,13 +4320,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 13,
-    "tele": 26,
-    "end": 12,
+    "auto": 16,
+    "tele": 32,
+    "end": 15,
     "rp": [
-     38,
-     14,
-     0
+     48,
+     23,
+     44
     ]
    },
    "rank": 179,
@@ -4344,13 +4344,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 29,
-    "end": 13,
+    "auto": 11,
+    "tele": 36,
+    "end": 16,
     "rp": [
-     42,
-     14,
-     0
+     52,
+     23,
+     47
     ]
    },
    "rank": 180,
@@ -4368,13 +4368,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 27,
-    "end": 14,
+    "auto": 14,
+    "tele": 33,
+    "end": 17,
     "rp": [
-     39,
-     28,
-     0
+     49,
+     38,
+     49
     ]
    },
    "rank": 181,
@@ -4392,13 +4392,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 28,
-    "end": 15,
+    "auto": 12,
+    "tele": 34,
+    "end": 18,
     "rp": [
-     58,
-     7,
-     0
+     66,
+     14,
+     52
     ]
    },
    "rank": 182,
@@ -4416,13 +4416,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 29,
-    "end": 15,
+    "auto": 10,
+    "tele": 36,
+    "end": 18,
     "rp": [
-     53,
-     24,
-     0
+     62,
+     34,
+     52
     ]
    },
    "rank": 183,
@@ -4440,13 +4440,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 30,
-    "end": 11,
+    "auto": 14,
+    "tele": 37,
+    "end": 14,
     "rp": [
-     56,
-     3,
-     0
+     65,
+     7,
+     41
     ]
    },
    "rank": 184,
@@ -4464,13 +4464,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 27,
-    "end": 14,
+    "auto": 12,
+    "tele": 33,
+    "end": 17,
     "rp": [
-     33,
-     17,
-     0
+     44,
+     26,
+     49
     ]
    },
    "rank": 185,
@@ -4488,13 +4488,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 29,
-    "end": 12,
+    "auto": 11,
+    "tele": 36,
+    "end": 15,
     "rp": [
-     32,
-     27,
-     0
+     43,
+     37,
+     44
     ]
    },
    "rank": 186,
@@ -4512,13 +4512,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 12,
-    "tele": 29,
-    "end": 10,
+    "auto": 15,
+    "tele": 36,
+    "end": 12,
     "rp": [
-     48,
-     7,
-     0
+     58,
+     14,
+     38
     ]
    },
    "rank": 187,
@@ -4536,13 +4536,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 27,
-    "end": 14,
+    "auto": 12,
+    "tele": 33,
+    "end": 17,
     "rp": [
-     22,
-     19,
-     0
+     32,
+     29,
+     49
     ]
    },
    "rank": 188,
@@ -4560,13 +4560,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 32,
-    "end": 10,
+    "auto": 12,
+    "tele": 39,
+    "end": 12,
     "rp": [
-     35,
-     27,
-     0
+     46,
+     37,
+     38
     ]
    },
    "rank": 189,
@@ -4584,13 +4584,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 27,
-    "end": 14,
+    "auto": 12,
+    "tele": 33,
+    "end": 17,
     "rp": [
-     37,
-     23,
-     0
+     47,
+     33,
+     49
     ]
    },
    "rank": 190,
@@ -4608,13 +4608,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 28,
-    "end": 12,
+    "auto": 14,
+    "tele": 35,
+    "end": 15,
     "rp": [
-     37,
+     47,
      0,
-     0
+     44
     ]
    },
    "rank": 191,
@@ -4632,13 +4632,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 27,
-    "end": 14,
+    "auto": 12,
+    "tele": 33,
+    "end": 17,
     "rp": [
-     32,
-     12,
-     0
+     43,
+     20,
+     49
     ]
    },
    "rank": 192,
@@ -4656,13 +4656,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 33,
-    "end": 12,
+    "auto": 7,
+    "tele": 41,
+    "end": 15,
     "rp": [
-     23,
-     12,
-     0
+     33,
+     20,
+     44
     ]
    },
    "rank": 193,
@@ -4680,13 +4680,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 32,
-    "end": 13,
+    "auto": 9,
+    "tele": 39,
+    "end": 16,
     "rp": [
-     47,
+     57,
      0,
-     0
+     47
     ]
    },
    "rank": 194,
@@ -4704,13 +4704,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 29,
-    "end": 13,
+    "auto": 11,
+    "tele": 36,
+    "end": 16,
     "rp": [
-     36,
+     46,
      0,
-     0
+     47
     ]
    },
    "rank": 195,
@@ -4728,13 +4728,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 30,
-    "end": 13,
+    "auto": 11,
+    "tele": 37,
+    "end": 16,
     "rp": [
-     38,
-     21,
-     0
+     48,
+     31,
+     47
     ]
    },
    "rank": 196,
@@ -4752,13 +4752,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 29,
-    "end": 11,
+    "auto": 14,
+    "tele": 36,
+    "end": 14,
     "rp": [
-     39,
+     49,
      0,
-     0
+     41
     ]
    },
    "rank": 197,
@@ -4776,13 +4776,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 13,
-    "tele": 25,
-    "end": 13,
+    "auto": 16,
+    "tele": 31,
+    "end": 16,
     "rp": [
-     50,
-     6,
-     0
+     59,
+     12,
+     47
     ]
    },
    "rank": 198,
@@ -4800,13 +4800,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 27,
-    "end": 13,
+    "auto": 12,
+    "tele": 34,
+    "end": 16,
     "rp": [
-     39,
-     12,
-     0
+     49,
+     20,
+     47
     ]
    },
    "rank": 199,
@@ -4824,13 +4824,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 25,
-    "end": 16,
+    "auto": 12,
+    "tele": 31,
+    "end": 20,
     "rp": [
-     53,
-     3,
-     0
+     62,
+     7,
+     54
     ]
    },
    "rank": 200,
@@ -4848,13 +4848,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 27,
-    "end": 13,
+    "auto": 14,
+    "tele": 33,
+    "end": 16,
     "rp": [
-     57,
-     6,
-     0
+     66,
+     12,
+     47
     ]
    },
    "rank": 201,
@@ -4872,13 +4872,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 32,
-    "end": 12,
+    "auto": 9,
+    "tele": 40,
+    "end": 15,
     "rp": [
-     35,
+     46,
      0,
-     0
+     44
     ]
    },
    "rank": 202,
@@ -4896,13 +4896,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 28,
-    "end": 16,
+    "auto": 9,
+    "tele": 35,
+    "end": 20,
     "rp": [
-     47,
-     35,
-     0
+     57,
+     46,
+     54
     ]
    },
    "rank": 203,
@@ -4920,13 +4920,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 30,
-    "end": 12,
+    "auto": 11,
+    "tele": 37,
+    "end": 15,
     "rp": [
-     30,
-     32,
-     0
+     41,
+     41,
+     44
     ]
    },
    "rank": 204,
@@ -4944,13 +4944,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 30,
-    "end": 11,
+    "auto": 11,
+    "tele": 37,
+    "end": 14,
     "rp": [
-     53,
-     18,
-     0
+     62,
+     28,
+     41
     ]
    },
    "rank": 205,
@@ -4968,13 +4968,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 13,
-    "tele": 26,
-    "end": 12,
+    "auto": 16,
+    "tele": 32,
+    "end": 15,
     "rp": [
-     39,
-     19,
-     0
+     49,
+     29,
+     44
     ]
    },
    "rank": 206,
@@ -4992,13 +4992,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 12,
-    "tele": 25,
-    "end": 13,
+    "auto": 15,
+    "tele": 31,
+    "end": 16,
     "rp": [
-     41,
-     22,
-     0
+     51,
+     32,
+     47
     ]
    },
    "rank": 207,
@@ -5016,13 +5016,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 28,
-    "end": 16,
+    "auto": 9,
+    "tele": 35,
+    "end": 20,
     "rp": [
+     55,
      45,
-     34,
-     0
+     54
     ]
    },
    "rank": 208,
@@ -5040,13 +5040,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 12,
-    "tele": 26,
-    "end": 12,
+    "auto": 15,
+    "tele": 32,
+    "end": 15,
     "rp": [
-     25,
-     14,
-     0
+     35,
+     23,
+     44
     ]
    },
    "rank": 209,
@@ -5064,13 +5064,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 26,
-    "end": 14,
+    "auto": 12,
+    "tele": 32,
+    "end": 17,
     "rp": [
-     53,
-     17,
-     0
+     62,
+     26,
+     49
     ]
    },
    "rank": 210,
@@ -5088,13 +5088,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 30,
-    "end": 12,
+    "auto": 10,
+    "tele": 37,
+    "end": 15,
     "rp": [
-     36,
+     46,
      0,
-     0
+     44
     ]
    },
    "rank": 211,
@@ -5112,13 +5112,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 28,
-    "end": 11,
+    "auto": 13,
+    "tele": 35,
+    "end": 14,
     "rp": [
-     32,
-     24,
-     0
+     43,
+     34,
+     41
     ]
    },
    "rank": 212,
@@ -5136,13 +5136,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 25,
-    "end": 17,
+    "auto": 10,
+    "tele": 31,
+    "end": 21,
     "rp": [
-     39,
+     49,
      0,
-     0
+     57
     ]
    },
    "rank": 213,
@@ -5160,13 +5160,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 29,
-    "end": 11,
+    "auto": 11,
+    "tele": 36,
+    "end": 14,
     "rp": [
-     34,
-     7,
-     0
+     45,
+     14,
+     41
     ]
    },
    "rank": 214,
@@ -5184,13 +5184,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 12,
-    "tele": 28,
-    "end": 10,
+    "auto": 15,
+    "tele": 35,
+    "end": 12,
     "rp": [
-     59,
+     67,
      0,
-     0
+     38
     ]
    },
    "rank": 215,
@@ -5208,13 +5208,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 26,
-    "end": 15,
+    "auto": 11,
+    "tele": 32,
+    "end": 19,
     "rp": [
-     43,
-     14,
-     0
+     53,
+     23,
+     52
     ]
    },
    "rank": 216,
@@ -5232,13 +5232,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 30,
-    "end": 13,
+    "auto": 8,
+    "tele": 38,
+    "end": 16,
     "rp": [
-     36,
-     33,
-     0
+     46,
+     44,
+     47
     ]
    },
    "rank": 217,
@@ -5256,13 +5256,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 27,
-    "end": 16,
+    "auto": 8,
+    "tele": 34,
+    "end": 20,
     "rp": [
-     36,
-     23,
-     0
+     46,
+     33,
+     54
     ]
    },
    "rank": 218,
@@ -5280,13 +5280,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 28,
-    "end": 11,
+    "auto": 14,
+    "tele": 35,
+    "end": 14,
     "rp": [
-     38,
+     48,
      0,
-     0
+     41
     ]
    },
    "rank": 219,
@@ -5304,13 +5304,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 26,
-    "end": 15,
+    "auto": 10,
+    "tele": 33,
+    "end": 19,
     "rp": [
-     38,
-     14,
-     0
+     48,
+     23,
+     52
     ]
    },
    "rank": 220,
@@ -5328,13 +5328,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 14,
-    "tele": 27,
-    "end": 9,
+    "auto": 17,
+    "tele": 34,
+    "end": 11,
     "rp": [
-     41,
-     9,
-     0
+     51,
+     16,
+     35
     ]
    },
    "rank": 221,
@@ -5352,13 +5352,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 28,
-    "end": 13,
+    "auto": 10,
+    "tele": 35,
+    "end": 16,
     "rp": [
-     51,
+     60,
      0,
-     0
+     47
     ]
    },
    "rank": 222,
@@ -5376,13 +5376,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 27,
-    "end": 11,
+    "auto": 14,
+    "tele": 34,
+    "end": 14,
     "rp": [
-     46,
-     17,
-     0
+     56,
+     26,
+     41
     ]
    },
    "rank": 223,
@@ -5400,13 +5400,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 25,
-    "end": 14,
+    "auto": 13,
+    "tele": 31,
+    "end": 18,
     "rp": [
-     41,
+     51,
      0,
-     0
+     49
     ]
    },
    "rank": 224,
@@ -5424,13 +5424,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 28,
-    "end": 11,
+    "auto": 13,
+    "tele": 35,
+    "end": 14,
     "rp": [
-     48,
-     14,
-     0
+     58,
+     23,
+     41
     ]
    },
    "rank": 225,
@@ -5448,13 +5448,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 23,
-    "end": 13,
+    "auto": 10,
+    "tele": 30,
+    "end": 17,
     "rp": [
-     52,
+     61,
      0,
-     0
+     47
     ]
    },
    "rank": 226,
@@ -5472,13 +5472,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 27,
-    "end": 15,
+    "auto": 9,
+    "tele": 34,
+    "end": 19,
     "rp": [
-     41,
-     19,
-     0
+     51,
+     29,
+     52
     ]
    },
    "rank": 227,
@@ -5496,13 +5496,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 32,
-    "end": 10,
+    "auto": 8,
+    "tele": 40,
+    "end": 13,
     "rp": [
-     34,
-     6,
-     0
+     45,
+     12,
+     38
     ]
    },
    "rank": 228,
@@ -5520,13 +5520,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 28,
-    "end": 11,
+    "auto": 11,
+    "tele": 35,
+    "end": 14,
     "rp": [
-     48,
+     58,
      0,
-     0
+     41
     ]
    },
    "rank": 229,
@@ -5544,13 +5544,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 25,
-    "end": 15,
+    "auto": 10,
+    "tele": 31,
+    "end": 19,
     "rp": [
-     51,
-     6,
-     0
+     60,
+     12,
+     52
     ]
    },
    "rank": 230,
@@ -5568,13 +5568,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 27,
-    "end": 13,
+    "auto": 11,
+    "tele": 34,
+    "end": 16,
     "rp": [
-     38,
-     13,
-     0
+     48,
+     22,
+     47
     ]
    },
    "rank": 231,
@@ -5592,13 +5592,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 26,
-    "end": 13,
+    "auto": 13,
+    "tele": 33,
+    "end": 16,
     "rp": [
-     32,
+     43,
      0,
-     0
+     47
     ]
    },
    "rank": 232,
@@ -5616,13 +5616,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 27,
-    "end": 10,
+    "auto": 14,
+    "tele": 34,
+    "end": 13,
     "rp": [
-     66,
-     1,
-     0
+     73,
+     3,
+     38
     ]
    },
    "rank": 233,
@@ -5640,13 +5640,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 27,
-    "end": 12,
+    "auto": 13,
+    "tele": 34,
+    "end": 15,
     "rp": [
-     36,
-     1,
-     0
+     46,
+     3,
+     44
     ]
    },
    "rank": 234,
@@ -5664,13 +5664,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 12,
-    "tele": 25,
-    "end": 11,
+    "auto": 15,
+    "tele": 31,
+    "end": 14,
     "rp": [
-     35,
+     46,
      0,
-     0
+     41
     ]
    },
    "rank": 235,
@@ -5688,13 +5688,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 12,
-    "tele": 28,
-    "end": 8,
+    "auto": 15,
+    "tele": 35,
+    "end": 10,
     "rp": [
-     38,
-     25,
-     0
+     48,
+     35,
+     32
     ]
    },
    "rank": 236,
@@ -5712,13 +5712,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 28,
-    "end": 12,
+    "auto": 10,
+    "tele": 35,
+    "end": 15,
     "rp": [
-     42,
-     17,
-     0
+     52,
+     26,
+     44
     ]
    },
    "rank": 237,
@@ -5736,13 +5736,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 12,
-    "tele": 24,
-    "end": 12,
+    "auto": 15,
+    "tele": 30,
+    "end": 15,
     "rp": [
-     50,
-     5,
-     0
+     59,
+     11,
+     44
     ]
    },
    "rank": 238,
@@ -5760,13 +5760,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 23,
-    "end": 16,
+    "auto": 11,
+    "tele": 29,
+    "end": 20,
     "rp": [
-     31,
-     2,
-     0
+     42,
+     5,
+     54
     ]
    },
    "rank": 239,
@@ -5784,13 +5784,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 29,
-    "end": 10,
+    "auto": 11,
+    "tele": 36,
+    "end": 13,
     "rp": [
-     50,
+     59,
      0,
-     0
+     38
     ]
    },
    "rank": 240,
@@ -5808,13 +5808,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 26,
-    "end": 12,
+    "auto": 13,
+    "tele": 33,
+    "end": 15,
     "rp": [
-     38,
+     48,
      0,
-     0
+     44
     ]
    },
    "rank": 241,
@@ -5832,13 +5832,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 26,
-    "end": 16,
+    "auto": 8,
+    "tele": 33,
+    "end": 20,
     "rp": [
-     44,
+     54,
      0,
-     0
+     54
     ]
    },
    "rank": 242,
@@ -5856,13 +5856,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 12,
-    "tele": 27,
-    "end": 9,
+    "auto": 15,
+    "tele": 34,
+    "end": 11,
     "rp": [
-     48,
-     7,
-     0
+     58,
+     14,
+     35
     ]
    },
    "rank": 243,
@@ -5880,13 +5880,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 27,
-    "end": 15,
+    "auto": 6,
+    "tele": 34,
+    "end": 19,
     "rp": [
-     36,
+     46,
      0,
-     0
+     52
     ]
    },
    "rank": 244,
@@ -5904,13 +5904,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 25,
-    "end": 13,
+    "auto": 11,
+    "tele": 32,
+    "end": 16,
     "rp": [
-     46,
+     56,
      0,
-     0
+     47
     ]
    },
    "rank": 245,
@@ -5928,13 +5928,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 29,
-    "end": 10,
+    "auto": 11,
+    "tele": 36,
+    "end": 13,
     "rp": [
-     49,
-     6,
-     0
+     59,
+     12,
+     38
     ]
    },
    "rank": 246,
@@ -5952,13 +5952,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 24,
-    "end": 14,
+    "auto": 11,
+    "tele": 30,
+    "end": 18,
     "rp": [
-     33,
+     44,
      0,
-     0
+     49
     ]
    },
    "rank": 247,
@@ -5976,13 +5976,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 29,
-    "end": 9,
+    "auto": 13,
+    "tele": 36,
+    "end": 11,
     "rp": [
-     32,
+     43,
      0,
-     0
+     35
     ]
    },
    "rank": 248,
@@ -6000,13 +6000,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 26,
-    "end": 11,
+    "auto": 13,
+    "tele": 33,
+    "end": 14,
     "rp": [
-     44,
+     54,
      0,
-     0
+     41
     ]
    },
    "rank": 249,
@@ -6024,13 +6024,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 28,
-    "end": 9,
+    "auto": 13,
+    "tele": 35,
+    "end": 11,
     "rp": [
-     48,
+     58,
      0,
-     0
+     35
     ]
    },
    "rank": 250,
@@ -6048,13 +6048,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 24,
-    "end": 13,
+    "auto": 11,
+    "tele": 31,
+    "end": 17,
     "rp": [
-     41,
-     13,
-     0
+     51,
+     22,
+     47
     ]
    },
    "rank": 251,
@@ -6072,13 +6072,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 27,
-    "end": 11,
+    "auto": 13,
+    "tele": 34,
+    "end": 14,
     "rp": [
-     34,
+     45,
      0,
-     0
+     41
     ]
    },
    "rank": 252,
@@ -6096,13 +6096,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 25,
-    "end": 10,
+    "auto": 14,
+    "tele": 32,
+    "end": 13,
     "rp": [
-     40,
-     20,
-     0
+     50,
+     30,
+     38
     ]
    },
    "rank": 253,
@@ -6120,13 +6120,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 22,
-    "end": 17,
+    "auto": 9,
+    "tele": 28,
+    "end": 22,
     "rp": [
-     19,
+     29,
      0,
-     0
+     57
     ]
    },
    "rank": 254,
@@ -6144,13 +6144,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 23,
-    "end": 14,
+    "auto": 11,
+    "tele": 29,
+    "end": 18,
     "rp": [
-     42,
-     11,
-     0
+     52,
+     19,
+     49
     ]
    },
    "rank": 255,
@@ -6168,13 +6168,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 25,
-    "end": 14,
+    "auto": 10,
+    "tele": 32,
+    "end": 18,
     "rp": [
-     37,
-     7,
-     0
+     47,
+     14,
+     49
     ]
    },
    "rank": 256,
@@ -6192,13 +6192,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 26,
-    "end": 14,
+    "auto": 9,
+    "tele": 33,
+    "end": 18,
     "rp": [
-     39,
-     2,
-     0
+     49,
+     5,
+     49
     ]
    },
    "rank": 257,
@@ -6216,13 +6216,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 22,
-    "end": 14,
+    "auto": 14,
+    "tele": 28,
+    "end": 18,
     "rp": [
-     53,
-     2,
-     0
+     62,
+     5,
+     49
     ]
    },
    "rank": 258,
@@ -6240,13 +6240,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 25,
-    "end": 13,
+    "auto": 11,
+    "tele": 32,
+    "end": 16,
     "rp": [
-     13,
+     22,
      0,
-     0
+     47
     ]
    },
    "rank": 259,
@@ -6264,13 +6264,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 25,
-    "end": 12,
+    "auto": 11,
+    "tele": 32,
+    "end": 15,
     "rp": [
-     51,
-     8,
-     0
+     60,
+     15,
+     44
     ]
    },
    "rank": 260,
@@ -6288,13 +6288,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 28,
-    "end": 11,
+    "auto": 9,
+    "tele": 36,
+    "end": 14,
     "rp": [
-     61,
+     69,
      0,
-     0
+     41
     ]
    },
    "rank": 261,
@@ -6312,13 +6312,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 26,
-    "end": 13,
+    "auto": 9,
+    "tele": 33,
+    "end": 17,
     "rp": [
-     48,
+     58,
      0,
-     0
+     47
     ]
    },
    "rank": 262,
@@ -6336,13 +6336,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 23,
-    "end": 13,
+    "auto": 13,
+    "tele": 29,
+    "end": 17,
     "rp": [
-     28,
+     38,
      0,
-     0
+     47
     ]
    },
    "rank": 263,
@@ -6360,13 +6360,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 22,
-    "end": 16,
+    "auto": 10,
+    "tele": 28,
+    "end": 20,
     "rp": [
-     37,
-     22,
-     0
+     47,
+     32,
+     54
     ]
    },
    "rank": 264,
@@ -6384,13 +6384,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 24,
-    "end": 16,
+    "auto": 8,
+    "tele": 31,
+    "end": 20,
     "rp": [
-     34,
-     8,
-     0
+     45,
+     15,
+     54
     ]
    },
    "rank": 265,
@@ -6408,13 +6408,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 23,
-    "end": 11,
+    "auto": 14,
+    "tele": 29,
+    "end": 14,
     "rp": [
-     37,
-     9,
-     0
+     47,
+     16,
+     41
     ]
    },
    "rank": 266,
@@ -6432,13 +6432,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 27,
-    "end": 10,
+    "auto": 11,
+    "tele": 34,
+    "end": 13,
     "rp": [
-     50,
+     59,
      0,
-     0
+     38
     ]
    },
    "rank": 267,
@@ -6456,13 +6456,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 24,
-    "end": 11,
+    "auto": 13,
+    "tele": 31,
+    "end": 14,
     "rp": [
-     35,
-     17,
-     0
+     46,
+     26,
+     41
     ]
    },
    "rank": 268,
@@ -6480,13 +6480,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 25,
-    "end": 11,
+    "auto": 13,
+    "tele": 32,
+    "end": 14,
     "rp": [
-     21,
-     12,
-     0
+     31,
+     20,
+     41
     ]
    },
    "rank": 269,
@@ -6504,13 +6504,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 20,
-    "end": 16,
+    "auto": 12,
+    "tele": 26,
+    "end": 20,
     "rp": [
-     54,
-     15,
-     0
+     63,
+     24,
+     54
     ]
    },
    "rank": 270,
@@ -6528,13 +6528,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 24,
-    "end": 14,
+    "auto": 8,
+    "tele": 31,
+    "end": 18,
     "rp": [
-     40,
-     2,
-     0
+     50,
+     5,
+     49
     ]
    },
    "rank": 271,
@@ -6552,13 +6552,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 26,
-    "end": 10,
+    "auto": 12,
+    "tele": 33,
+    "end": 13,
     "rp": [
-     26,
-     5,
-     0
+     36,
+     11,
+     38
     ]
    },
    "rank": 272,
@@ -6576,13 +6576,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 23,
-    "end": 14,
+    "auto": 9,
+    "tele": 30,
+    "end": 18,
     "rp": [
-     57,
-     18,
-     0
+     66,
+     28,
+     49
     ]
    },
    "rank": 273,
@@ -6600,13 +6600,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 24,
-    "end": 11,
+    "auto": 13,
+    "tele": 31,
+    "end": 14,
     "rp": [
-     33,
-     6,
-     0
+     44,
+     12,
+     41
     ]
    },
    "rank": 274,
@@ -6624,13 +6624,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 12,
-    "tele": 22,
-    "end": 11,
+    "auto": 15,
+    "tele": 28,
+    "end": 14,
     "rp": [
-     26,
-     4,
-     0
+     36,
+     9,
+     41
     ]
    },
    "rank": 275,
@@ -6648,13 +6648,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 12,
-    "tele": 22,
-    "end": 11,
+    "auto": 15,
+    "tele": 28,
+    "end": 14,
     "rp": [
-     37,
-     3,
-     0
+     47,
+     7,
+     41
     ]
    },
    "rank": 276,
@@ -6672,13 +6672,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 23,
-    "end": 13,
+    "auto": 12,
+    "tele": 29,
+    "end": 17,
     "rp": [
-     41,
-     9,
-     0
+     51,
+     16,
+     47
     ]
    },
    "rank": 277,
@@ -6696,13 +6696,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 23,
-    "end": 13,
+    "auto": 12,
+    "tele": 29,
+    "end": 17,
     "rp": [
-     42,
+     52,
      0,
-     0
+     47
     ]
    },
    "rank": 278,
@@ -6720,13 +6720,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 24,
-    "end": 14,
+    "auto": 9,
+    "tele": 31,
+    "end": 18,
     "rp": [
-     26,
-     27,
-     0
+     36,
+     36,
+     49
     ]
    },
    "rank": 279,
@@ -6744,13 +6744,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 26,
-    "end": 14,
+    "auto": 6,
+    "tele": 33,
+    "end": 18,
     "rp": [
-     24,
+     34,
      0,
-     0
+     49
     ]
    },
    "rank": 280,
@@ -6768,13 +6768,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 23,
-    "end": 15,
+    "auto": 8,
+    "tele": 30,
+    "end": 19,
     "rp": [
-     20,
-     7,
-     0
+     30,
+     14,
+     52
     ]
    },
    "rank": 281,
@@ -6792,13 +6792,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 24,
-    "end": 12,
+    "auto": 10,
+    "tele": 31,
+    "end": 15,
     "rp": [
-     57,
+     66,
      0,
-     0
+     44
     ]
    },
    "rank": 282,
@@ -6816,13 +6816,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 23,
-    "end": 13,
+    "auto": 10,
+    "tele": 30,
+    "end": 17,
     "rp": [
-     43,
+     53,
      0,
-     0
+     47
     ]
    },
    "rank": 283,
@@ -6840,13 +6840,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 22,
-    "end": 11,
+    "auto": 14,
+    "tele": 28,
+    "end": 14,
     "rp": [
-     54,
-     10,
-     0
+     63,
+     18,
+     41
     ]
    },
    "rank": 284,
@@ -6864,13 +6864,13 @@
    "photo": false,
    "avatar": false,
    "bt": {
-    "auto": 9,
-    "tele": 23,
-    "end": 12,
+    "auto": 12,
+    "tele": 30,
+    "end": 15,
     "rp": [
-     46,
+     56,
      0,
-     0
+     44
     ]
    },
    "rank": 285,
@@ -6888,13 +6888,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 22,
-    "end": 14,
+    "auto": 10,
+    "tele": 28,
+    "end": 18,
     "rp": [
-     26,
-     13,
-     0
+     36,
+     22,
+     49
     ]
    },
    "rank": 286,
@@ -6912,13 +6912,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 25,
-    "end": 14,
+    "auto": 6,
+    "tele": 32,
+    "end": 18,
     "rp": [
-     45,
+     55,
      0,
-     0
+     49
     ]
    },
    "rank": 287,
@@ -6936,13 +6936,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 22,
-    "end": 13,
+    "auto": 12,
+    "tele": 28,
+    "end": 17,
     "rp": [
-     42,
+     52,
      0,
-     0
+     47
     ]
    },
    "rank": 288,
@@ -6960,13 +6960,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 24,
-    "end": 10,
+    "auto": 14,
+    "tele": 31,
+    "end": 13,
     "rp": [
-     22,
+     32,
      0,
-     0
+     38
     ]
    },
    "rank": 289,
@@ -6984,13 +6984,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 25,
-    "end": 11,
+    "auto": 10,
+    "tele": 32,
+    "end": 14,
     "rp": [
-     36,
+     46,
      0,
-     0
+     41
     ]
    },
    "rank": 290,
@@ -7008,13 +7008,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 25,
-    "end": 9,
+    "auto": 14,
+    "tele": 32,
+    "end": 12,
     "rp": [
-     27,
+     37,
      0,
-     0
+     35
     ]
    },
    "rank": 291,
@@ -7032,13 +7032,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 24,
-    "end": 9,
+    "auto": 14,
+    "tele": 31,
+    "end": 12,
     "rp": [
-     32,
+     43,
      0,
-     0
+     35
     ]
    },
    "rank": 292,
@@ -7056,13 +7056,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 21,
-    "end": 11,
+    "auto": 7,
+    "tele": 28,
+    "end": 15,
     "rp": [
-     37,
+     47,
      0,
-     0
+     41
     ]
    },
    "rank": 293,
@@ -7080,13 +7080,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 26,
-    "end": 13,
+    "auto": 6,
+    "tele": 33,
+    "end": 17,
     "rp": [
-     30,
-     7,
-     0
+     41,
+     14,
+     47
     ]
    },
    "rank": 294,
@@ -7104,13 +7104,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 12,
-    "tele": 23,
-    "end": 9,
+    "auto": 15,
+    "tele": 30,
+    "end": 12,
     "rp": [
-     42,
-     1,
-     0
+     52,
+     3,
+     35
     ]
    },
    "rank": 295,
@@ -7125,16 +7125,16 @@
    "srank": 332,
    "loc": "Israel",
    "region": "Israel",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 25,
-    "end": 9,
+    "auto": 13,
+    "tele": 32,
+    "end": 12,
     "rp": [
-     22,
+     32,
      0,
-     0
+     35
     ]
    },
    "rank": 296,
@@ -7152,13 +7152,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 23,
-    "end": 15,
+    "auto": 9,
+    "tele": 29,
+    "end": 19,
     "rp": [
-     39,
-     19,
-     0
+     49,
+     29,
+     52
     ]
    },
    "rank": 297,
@@ -7176,13 +7176,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 14,
-    "tele": 16,
-    "end": 14,
+    "auto": 18,
+    "tele": 21,
+    "end": 18,
     "rp": [
-     13,
+     22,
      0,
-     0
+     49
     ]
    },
    "rank": 298,
@@ -7200,13 +7200,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 22,
-    "end": 11,
+    "auto": 14,
+    "tele": 28,
+    "end": 14,
     "rp": [
-     21,
+     31,
      0,
-     0
+     41
     ]
    },
    "rank": 299,
@@ -7224,13 +7224,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 24,
-    "end": 12,
+    "auto": 10,
+    "tele": 31,
+    "end": 15,
     "rp": [
-     16,
-     10,
-     0
+     25,
+     18,
+     44
     ]
    },
    "rank": 300,
@@ -7248,13 +7248,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 22,
-    "end": 13,
+    "auto": 10,
+    "tele": 28,
+    "end": 17,
     "rp": [
-     12,
-     1,
-     0
+     20,
+     3,
+     47
     ]
    },
    "rank": 301,
@@ -7272,13 +7272,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 24,
-    "end": 13,
+    "auto": 9,
+    "tele": 31,
+    "end": 17,
     "rp": [
-     44,
+     54,
      0,
-     0
+     47
     ]
    },
    "rank": 302,
@@ -7296,13 +7296,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 25,
-    "end": 10,
+    "auto": 12,
+    "tele": 32,
+    "end": 13,
     "rp": [
-     29,
-     22,
-     0
+     40,
+     32,
+     38
     ]
    },
    "rank": 303,
@@ -7320,13 +7320,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 26,
-    "end": 6,
+    "auto": 14,
+    "tele": 34,
+    "end": 8,
     "rp": [
-     35,
-     7,
-     0
+     46,
+     14,
+     26
     ]
    },
    "rank": 304,
@@ -7344,13 +7344,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 27,
-    "end": 9,
+    "auto": 9,
+    "tele": 35,
+    "end": 12,
     "rp": [
-     24,
+     34,
      0,
-     0
+     35
     ]
    },
    "rank": 305,
@@ -7368,13 +7368,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 23,
-    "end": 13,
+    "auto": 10,
+    "tele": 30,
+    "end": 17,
     "rp": [
-     24,
+     34,
      0,
-     0
+     47
     ]
    },
    "rank": 306,
@@ -7392,13 +7392,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 25,
-    "end": 12,
+    "auto": 8,
+    "tele": 32,
+    "end": 16,
     "rp": [
-     43,
+     53,
      0,
-     0
+     44
     ]
    },
    "rank": 307,
@@ -7416,13 +7416,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 25,
-    "end": 9,
+    "auto": 13,
+    "tele": 32,
+    "end": 12,
     "rp": [
-     28,
-     1,
-     0
+     38,
+     3,
+     35
     ]
    },
    "rank": 308,
@@ -7440,13 +7440,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 22,
-    "end": 12,
+    "auto": 13,
+    "tele": 28,
+    "end": 15,
     "rp": [
-     30,
-     4,
-     0
+     41,
+     9,
+     44
     ]
    },
    "rank": 309,
@@ -7464,13 +7464,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 23,
-    "end": 13,
+    "auto": 9,
+    "tele": 30,
+    "end": 17,
     "rp": [
-     21,
+     31,
      0,
-     0
+     47
     ]
    },
    "rank": 310,
@@ -7488,13 +7488,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 26,
-    "end": 10,
+    "auto": 9,
+    "tele": 34,
+    "end": 13,
     "rp": [
-     47,
+     57,
      0,
-     0
+     38
     ]
    },
    "rank": 311,
@@ -7512,13 +7512,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 22,
-    "end": 13,
+    "auto": 10,
+    "tele": 28,
+    "end": 17,
     "rp": [
-     46,
+     56,
      0,
-     0
+     47
     ]
    },
    "rank": 312,
@@ -7536,13 +7536,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 25,
-    "end": 13,
+    "auto": 6,
+    "tele": 32,
+    "end": 17,
     "rp": [
-     18,
-     2,
-     0
+     28,
+     5,
+     47
     ]
    },
    "rank": 313,
@@ -7560,13 +7560,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 23,
-    "end": 14,
+    "auto": 8,
+    "tele": 30,
+    "end": 18,
     "rp": [
-     42,
-     5,
-     0
+     52,
+     11,
+     49
     ]
    },
    "rank": 314,
@@ -7584,13 +7584,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 26,
-    "end": 10,
+    "auto": 9,
+    "tele": 34,
+    "end": 13,
     "rp": [
-     18,
+     28,
      0,
-     0
+     38
     ]
    },
    "rank": 315,
@@ -7608,13 +7608,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 12,
-    "tele": 22,
-    "end": 9,
+    "auto": 16,
+    "tele": 28,
+    "end": 12,
     "rp": [
-     47,
-     8,
-     0
+     57,
+     15,
+     35
     ]
    },
    "rank": 316,
@@ -7629,16 +7629,16 @@
    "srank": 361,
    "loc": "NY, USA",
    "region": "New York",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 22,
-    "end": 12,
+    "auto": 12,
+    "tele": 28,
+    "end": 16,
     "rp": [
-     39,
+     49,
      0,
-     0
+     44
     ]
    },
    "rank": 317,
@@ -7656,13 +7656,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 25,
-    "end": 11,
+    "auto": 9,
+    "tele": 32,
+    "end": 14,
     "rp": [
-     43,
+     53,
      0,
-     0
+     41
     ]
    },
    "rank": 318,
@@ -7680,13 +7680,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 23,
-    "end": 12,
+    "auto": 10,
+    "tele": 30,
+    "end": 16,
     "rp": [
-     41,
+     51,
      0,
-     0
+     44
     ]
    },
    "rank": 319,
@@ -7704,13 +7704,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 24,
-    "end": 10,
+    "auto": 12,
+    "tele": 31,
+    "end": 13,
     "rp": [
-     22,
-     4,
-     0
+     32,
+     9,
+     38
     ]
    },
    "rank": 320,
@@ -7728,13 +7728,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 21,
-    "end": 13,
+    "auto": 10,
+    "tele": 27,
+    "end": 17,
     "rp": [
-     37,
+     47,
      0,
-     0
+     47
     ]
    },
    "rank": 321,
@@ -7752,13 +7752,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 23,
-    "end": 10,
+    "auto": 13,
+    "tele": 30,
+    "end": 13,
     "rp": [
-     47,
+     57,
      0,
-     0
+     38
     ]
    },
    "rank": 322,
@@ -7776,13 +7776,13 @@
    "photo": true,
    "avatar": false,
    "bt": {
-    "auto": 7,
-    "tele": 24,
-    "end": 12,
+    "auto": 9,
+    "tele": 31,
+    "end": 16,
     "rp": [
-     39,
+     49,
      0,
-     0
+     44
     ]
    },
    "rank": 323,
@@ -7800,13 +7800,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 24,
-    "end": 10,
+    "auto": 12,
+    "tele": 31,
+    "end": 13,
     "rp": [
-     41,
-     8,
-     0
+     51,
+     15,
+     38
     ]
    },
    "rank": 324,
@@ -7824,13 +7824,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 25,
-    "end": 7,
+    "auto": 13,
+    "tele": 33,
+    "end": 9,
     "rp": [
-     23,
+     33,
      0,
-     0
+     29
     ]
    },
    "rank": 325,
@@ -7848,13 +7848,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 21,
-    "end": 12,
+    "auto": 12,
+    "tele": 27,
+    "end": 16,
     "rp": [
-     37,
+     47,
      0,
-     0
+     44
     ]
    },
    "rank": 326,
@@ -7872,13 +7872,13 @@
    "photo": true,
    "avatar": false,
    "bt": {
-    "auto": 9,
-    "tele": 24,
-    "end": 9,
+    "auto": 12,
+    "tele": 31,
+    "end": 12,
     "rp": [
-     18,
+     28,
      0,
-     0
+     35
     ]
    },
    "rank": 327,
@@ -7896,13 +7896,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 22,
-    "end": 11,
+    "auto": 12,
+    "tele": 29,
+    "end": 14,
     "rp": [
-     27,
+     37,
      0,
-     0
+     41
     ]
    },
    "rank": 328,
@@ -7920,13 +7920,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 25,
-    "end": 8,
+    "auto": 13,
+    "tele": 32,
+    "end": 10,
     "rp": [
-     40,
+     50,
      0,
-     0
+     32
     ]
    },
    "rank": 329,
@@ -7944,13 +7944,13 @@
    "photo": false,
    "avatar": false,
    "bt": {
-    "auto": 6,
-    "tele": 22,
-    "end": 14,
+    "auto": 8,
+    "tele": 29,
+    "end": 18,
     "rp": [
-     29,
+     40,
      0,
-     0
+     49
     ]
    },
    "rank": 330,
@@ -7968,13 +7968,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 22,
-    "end": 12,
+    "auto": 12,
+    "tele": 28,
+    "end": 16,
     "rp": [
-     11,
-     12,
-     0
+     19,
+     19,
+     44
     ]
    },
    "rank": 331,
@@ -7989,16 +7989,16 @@
    "srank": 385,
    "loc": "TX, USA",
    "region": "Texas",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 26,
-    "end": 10,
+    "auto": 8,
+    "tele": 34,
+    "end": 13,
     "rp": [
-     40,
+     50,
      0,
-     0
+     38
     ]
    },
    "rank": 332,
@@ -8013,16 +8013,16 @@
    "srank": 386,
    "loc": "India",
    "region": "India",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 23,
-    "end": 13,
+    "auto": 8,
+    "tele": 30,
+    "end": 17,
     "rp": [
-     38,
+     48,
      0,
-     0
+     47
     ]
    },
    "rank": 333,
@@ -8040,13 +8040,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 22,
-    "end": 14,
+    "auto": 8,
+    "tele": 29,
+    "end": 18,
     "rp": [
-     34,
+     45,
      0,
-     0
+     49
     ]
    },
    "rank": 334,
@@ -8064,13 +8064,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 24,
-    "end": 12,
+    "auto": 8,
+    "tele": 31,
+    "end": 16,
     "rp": [
-     18,
-     3,
-     0
+     28,
+     7,
+     44
     ]
    },
    "rank": 335,
@@ -8088,13 +8088,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 23,
-    "end": 10,
+    "auto": 12,
+    "tele": 30,
+    "end": 13,
     "rp": [
-     31,
+     42,
      0,
-     0
+     38
     ]
    },
    "rank": 336,
@@ -8112,13 +8112,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 24,
-    "end": 12,
+    "auto": 8,
+    "tele": 31,
+    "end": 16,
     "rp": [
-     33,
+     44,
      0,
-     0
+     44
     ]
    },
    "rank": 337,
@@ -8136,13 +8136,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 23,
-    "end": 9,
+    "auto": 13,
+    "tele": 30,
+    "end": 12,
     "rp": [
-     34,
-     2,
-     0
+     45,
+     5,
+     35
     ]
    },
    "rank": 338,
@@ -8160,13 +8160,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 25,
-    "end": 10,
+    "auto": 9,
+    "tele": 33,
+    "end": 13,
     "rp": [
-     41,
+     51,
      0,
-     0
+     38
     ]
    },
    "rank": 339,
@@ -8184,13 +8184,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 23,
-    "end": 10,
+    "auto": 12,
+    "tele": 30,
+    "end": 13,
     "rp": [
-     54,
+     63,
      0,
-     0
+     38
     ]
    },
    "rank": 340,
@@ -8208,13 +8208,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 19,
-    "end": 13,
+    "auto": 12,
+    "tele": 25,
+    "end": 17,
     "rp": [
-     43,
+     53,
      0,
-     0
+     47
     ]
    },
    "rank": 341,
@@ -8232,13 +8232,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 22,
-    "end": 9,
+    "auto": 13,
+    "tele": 29,
+    "end": 12,
     "rp": [
-     22,
+     32,
      0,
-     0
+     35
     ]
    },
    "rank": 342,
@@ -8256,13 +8256,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 23,
-    "end": 11,
+    "auto": 10,
+    "tele": 30,
+    "end": 14,
     "rp": [
-     42,
+     52,
      0,
-     0
+     41
     ]
    },
    "rank": 343,
@@ -8280,13 +8280,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 22,
-    "end": 11,
+    "auto": 10,
+    "tele": 29,
+    "end": 14,
     "rp": [
-     25,
+     35,
      0,
-     0
+     41
     ]
    },
    "rank": 344,
@@ -8304,13 +8304,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 18,
-    "end": 13,
+    "auto": 13,
+    "tele": 24,
+    "end": 17,
     "rp": [
-     33,
+     44,
      0,
-     0
+     47
     ]
    },
    "rank": 345,
@@ -8328,13 +8328,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 23,
-    "end": 7,
+    "auto": 14,
+    "tele": 30,
+    "end": 9,
     "rp": [
-     26,
+     36,
      0,
-     0
+     29
     ]
    },
    "rank": 346,
@@ -8352,13 +8352,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 23,
-    "end": 7,
+    "auto": 14,
+    "tele": 30,
+    "end": 9,
     "rp": [
-     40,
-     1,
-     0
+     50,
+     3,
+     29
     ]
    },
    "rank": 347,
@@ -8376,13 +8376,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 20,
-    "end": 11,
+    "auto": 13,
+    "tele": 26,
+    "end": 14,
     "rp": [
-     17,
-     9,
-     0
+     26,
+     16,
+     41
     ]
    },
    "rank": 348,
@@ -8400,13 +8400,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 24,
-    "end": 6,
+    "auto": 14,
+    "tele": 31,
+    "end": 8,
     "rp": [
-     31,
+     42,
      0,
-     0
+     26
     ]
    },
    "rank": 349,
@@ -8424,13 +8424,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 25,
-    "end": 9,
+    "auto": 9,
+    "tele": 33,
+    "end": 12,
     "rp": [
-     28,
-     15,
-     0
+     38,
+     24,
+     35
     ]
    },
    "rank": 350,
@@ -8448,13 +8448,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 23,
-    "end": 11,
+    "auto": 9,
+    "tele": 30,
+    "end": 14,
     "rp": [
-     45,
+     55,
      0,
-     0
+     41
     ]
    },
    "rank": 351,
@@ -8472,13 +8472,13 @@
    "photo": true,
    "avatar": false,
    "bt": {
-    "auto": 10,
-    "tele": 20,
-    "end": 11,
+    "auto": 13,
+    "tele": 26,
+    "end": 14,
     "rp": [
-     21,
+     31,
      0,
-     0
+     41
     ]
    },
    "rank": 352,
@@ -8496,13 +8496,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 24,
-    "end": 9,
+    "auto": 10,
+    "tele": 31,
+    "end": 12,
     "rp": [
-     18,
+     28,
      0,
-     0
+     35
     ]
    },
    "rank": 353,
@@ -8520,13 +8520,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 24,
-    "end": 9,
+    "auto": 10,
+    "tele": 31,
+    "end": 12,
     "rp": [
-     39,
+     49,
      0,
-     0
+     35
     ]
    },
    "rank": 354,
@@ -8544,13 +8544,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 20,
-    "end": 12,
+    "auto": 11,
+    "tele": 26,
+    "end": 16,
     "rp": [
-     30,
-     21,
-     0
+     41,
+     31,
+     44
     ]
    },
    "rank": 355,
@@ -8568,13 +8568,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 23,
-    "end": 10,
+    "auto": 9,
+    "tele": 30,
+    "end": 13,
     "rp": [
-     58,
+     66,
      0,
-     0
+     38
     ]
    },
    "rank": 356,
@@ -8592,13 +8592,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 24,
-    "end": 11,
+    "auto": 8,
+    "tele": 31,
+    "end": 14,
     "rp": [
-     25,
+     35,
      0,
-     0
+     41
     ]
    },
    "rank": 357,
@@ -8616,13 +8616,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 21,
-    "end": 11,
+    "auto": 11,
+    "tele": 28,
+    "end": 14,
     "rp": [
-     43,
+     53,
      0,
-     0
+     41
     ]
    },
    "rank": 358,
@@ -8640,13 +8640,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 22,
-    "end": 14,
+    "auto": 7,
+    "tele": 29,
+    "end": 18,
     "rp": [
-     27,
-     1,
-     0
+     37,
+     3,
+     49
     ]
    },
    "rank": 359,
@@ -8664,13 +8664,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 12,
-    "tele": 20,
-    "end": 9,
+    "auto": 16,
+    "tele": 26,
+    "end": 12,
     "rp": [
-     20,
+     30,
      0,
-     0
+     35
     ]
    },
    "rank": 360,
@@ -8688,13 +8688,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 21,
-    "end": 12,
+    "auto": 10,
+    "tele": 27,
+    "end": 16,
     "rp": [
-     33,
+     44,
      0,
-     0
+     44
     ]
    },
    "rank": 361,
@@ -8712,13 +8712,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 4,
-    "tele": 23,
-    "end": 13,
+    "auto": 5,
+    "tele": 30,
+    "end": 17,
     "rp": [
-     14,
-     6,
-     0
+     23,
+     12,
+     47
     ]
    },
    "rank": 362,
@@ -8736,13 +8736,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 19,
-    "end": 14,
+    "auto": 10,
+    "tele": 25,
+    "end": 18,
     "rp": [
-     44,
+     54,
      0,
-     0
+     49
     ]
    },
    "rank": 363,
@@ -8760,13 +8760,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 19,
-    "end": 15,
+    "auto": 8,
+    "tele": 25,
+    "end": 20,
     "rp": [
-     40,
-     2,
-     0
+     50,
+     5,
+     52
     ]
    },
    "rank": 364,
@@ -8784,13 +8784,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 22,
-    "end": 11,
+    "auto": 9,
+    "tele": 29,
+    "end": 14,
     "rp": [
-     48,
+     58,
      0,
-     0
+     41
     ]
    },
    "rank": 365,
@@ -8808,13 +8808,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 21,
-    "end": 11,
+    "auto": 11,
+    "tele": 28,
+    "end": 14,
     "rp": [
-     2,
+     5,
      0,
-     6
+     41
     ]
    },
    "rank": 366,
@@ -8832,13 +8832,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 21,
-    "end": 10,
+    "auto": 12,
+    "tele": 28,
+    "end": 13,
     "rp": [
-     40,
+     50,
      0,
-     0
+     38
     ]
    },
    "rank": 367,
@@ -8856,13 +8856,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 12,
-    "tele": 22,
-    "end": 6,
+    "auto": 16,
+    "tele": 29,
+    "end": 8,
     "rp": [
-     20,
+     30,
      0,
-     0
+     26
     ]
    },
    "rank": 368,
@@ -8880,13 +8880,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 21,
-    "end": 11,
+    "auto": 11,
+    "tele": 28,
+    "end": 14,
     "rp": [
-     42,
+     52,
      0,
-     0
+     41
     ]
    },
    "rank": 369,
@@ -8904,13 +8904,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 21,
-    "end": 11,
+    "auto": 9,
+    "tele": 28,
+    "end": 15,
     "rp": [
-     40,
+     50,
      0,
-     0
+     41
     ]
    },
    "rank": 370,
@@ -8928,13 +8928,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 23,
-    "end": 10,
+    "auto": 9,
+    "tele": 30,
+    "end": 13,
     "rp": [
-     36,
+     46,
      0,
-     0
+     38
     ]
    },
    "rank": 371,
@@ -8952,13 +8952,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 14,
-    "tele": 21,
-    "end": 4,
+    "auto": 19,
+    "tele": 28,
+    "end": 5,
     "rp": [
-     22,
+     32,
      0,
-     0
+     19
     ]
    },
    "rank": 372,
@@ -8976,13 +8976,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 22,
-    "end": 9,
+    "auto": 12,
+    "tele": 29,
+    "end": 12,
     "rp": [
-     11,
-     2,
-     0
+     19,
+     5,
+     35
     ]
    },
    "rank": 373,
@@ -8997,16 +8997,16 @@
    "srank": 447,
    "loc": "HI, USA",
    "region": "Hawaii",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 25,
-    "end": 9,
+    "auto": 8,
+    "tele": 33,
+    "end": 12,
     "rp": [
-     37,
+     47,
      0,
-     0
+     35
     ]
    },
    "rank": 374,
@@ -9024,13 +9024,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 22,
-    "end": 8,
+    "auto": 12,
+    "tele": 29,
+    "end": 11,
     "rp": [
-     23,
+     33,
      0,
-     0
+     32
     ]
    },
    "rank": 375,
@@ -9048,13 +9048,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 23,
-    "end": 9,
+    "auto": 9,
+    "tele": 30,
+    "end": 12,
     "rp": [
-     12,
+     20,
      0,
-     0
+     35
     ]
    },
    "rank": 376,
@@ -9072,13 +9072,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 21,
-    "end": 8,
+    "auto": 13,
+    "tele": 28,
+    "end": 11,
     "rp": [
-     26,
+     36,
      0,
-     0
+     32
     ]
    },
    "rank": 377,
@@ -9096,13 +9096,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 21,
-    "end": 9,
+    "auto": 11,
+    "tele": 28,
+    "end": 12,
     "rp": [
-     43,
+     53,
      0,
-     0
+     35
     ]
    },
    "rank": 378,
@@ -9120,13 +9120,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 24,
-    "end": 6,
+    "auto": 12,
+    "tele": 32,
+    "end": 8,
     "rp": [
-     46,
+     56,
      0,
-     0
+     26
     ]
    },
    "rank": 379,
@@ -9144,13 +9144,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 23,
-    "end": 7,
+    "auto": 12,
+    "tele": 30,
+    "end": 9,
     "rp": [
-     22,
-     2,
-     0
+     32,
+     5,
+     29
     ]
    },
    "rank": 380,
@@ -9168,13 +9168,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 4,
-    "tele": 21,
-    "end": 13,
+    "auto": 5,
+    "tele": 28,
+    "end": 17,
     "rp": [
-     32,
+     43,
      0,
-     0
+     47
     ]
    },
    "rank": 381,
@@ -9192,13 +9192,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 12,
-    "tele": 14,
-    "end": 12,
+    "auto": 16,
+    "tele": 19,
+    "end": 16,
     "rp": [
-     21,
+     31,
      0,
-     0
+     44
     ]
    },
    "rank": 382,
@@ -9216,13 +9216,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 23,
-    "end": 9,
+    "auto": 8,
+    "tele": 31,
+    "end": 12,
     "rp": [
-     5,
-     6,
-     0
+     11,
+     11,
+     35
     ]
    },
    "rank": 383,
@@ -9240,13 +9240,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 21,
-    "end": 11,
+    "auto": 9,
+    "tele": 28,
+    "end": 15,
     "rp": [
-     20,
+     30,
      0,
-     0
+     41
     ]
    },
    "rank": 384,
@@ -9264,13 +9264,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 20,
-    "end": 10,
+    "auto": 11,
+    "tele": 27,
+    "end": 13,
     "rp": [
-     33,
+     44,
      0,
-     0
+     38
     ]
    },
    "rank": 385,
@@ -9288,13 +9288,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 20,
-    "end": 12,
+    "auto": 9,
+    "tele": 26,
+    "end": 16,
     "rp": [
-     24,
-     6,
-     0
+     34,
+     12,
+     44
     ]
    },
    "rank": 386,
@@ -9312,13 +9312,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 19,
-    "end": 12,
+    "auto": 9,
+    "tele": 25,
+    "end": 16,
     "rp": [
-     25,
+     35,
      0,
-     0
+     44
     ]
    },
    "rank": 387,
@@ -9336,13 +9336,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 23,
-    "end": 6,
+    "auto": 11,
+    "tele": 31,
+    "end": 8,
     "rp": [
-     24,
-     12,
-     0
+     34,
+     20,
+     26
     ]
    },
    "rank": 388,
@@ -9360,13 +9360,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 17,
-    "end": 14,
+    "auto": 9,
+    "tele": 23,
+    "end": 19,
     "rp": [
-     34,
+     45,
      0,
-     0
+     49
     ]
    },
    "rank": 389,
@@ -9384,13 +9384,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 4,
-    "tele": 21,
-    "end": 13,
+    "auto": 5,
+    "tele": 28,
+    "end": 17,
     "rp": [
-     21,
+     31,
      0,
-     0
+     47
     ]
    },
    "rank": 390,
@@ -9408,13 +9408,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 21,
-    "end": 9,
+    "auto": 9,
+    "tele": 28,
+    "end": 12,
     "rp": [
-     36,
+     46,
      0,
-     0
+     35
     ]
    },
    "rank": 391,
@@ -9432,13 +9432,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 20,
-    "end": 8,
+    "auto": 13,
+    "tele": 27,
+    "end": 11,
     "rp": [
-     28,
+     38,
      0,
-     0
+     32
     ]
    },
    "rank": 392,
@@ -9456,13 +9456,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 20,
-    "end": 11,
+    "auto": 8,
+    "tele": 27,
+    "end": 15,
     "rp": [
-     30,
+     41,
      0,
-     0
+     41
     ]
    },
    "rank": 393,
@@ -9480,13 +9480,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 24,
-    "end": 7,
+    "auto": 8,
+    "tele": 32,
+    "end": 9,
     "rp": [
-     46,
+     56,
      0,
-     0
+     29
     ]
    },
    "rank": 394,
@@ -9501,16 +9501,16 @@
    "srank": 494,
    "loc": "LA, USA",
    "region": "Louisiana",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 17,
-    "end": 14,
+    "auto": 8,
+    "tele": 23,
+    "end": 19,
     "rp": [
-     25,
+     35,
      0,
-     0
+     49
     ]
    },
    "rank": 395,
@@ -9528,13 +9528,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 18,
-    "end": 11,
+    "auto": 9,
+    "tele": 24,
+    "end": 15,
     "rp": [
-     22,
+     32,
      0,
-     0
+     41
     ]
    },
    "rank": 396,
@@ -9552,13 +9552,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 21,
-    "end": 11,
+    "auto": 8,
+    "tele": 28,
+    "end": 15,
     "rp": [
-     31,
-     5,
-     0
+     42,
+     11,
+     41
     ]
    },
    "rank": 397,
@@ -9576,13 +9576,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 15,
-    "end": 14,
+    "auto": 9,
+    "tele": 20,
+    "end": 19,
     "rp": [
-     1,
+     3,
      0,
-     0
+     49
     ]
    },
    "rank": 398,
@@ -9600,13 +9600,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 11,
-    "tele": 20,
-    "end": 5,
+    "auto": 15,
+    "tele": 27,
+    "end": 7,
     "rp": [
-     26,
+     36,
      0,
-     0
+     23
     ]
    },
    "rank": 399,
@@ -9624,13 +9624,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 22,
-    "end": 7,
+    "auto": 11,
+    "tele": 30,
+    "end": 9,
     "rp": [
-     23,
+     33,
      0,
-     0
+     29
     ]
    },
    "rank": 400,
@@ -9648,13 +9648,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 19,
-    "end": 9,
+    "auto": 11,
+    "tele": 26,
+    "end": 12,
     "rp": [
-     37,
+     47,
      0,
-     0
+     35
     ]
    },
    "rank": 401,
@@ -9672,13 +9672,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 19,
-    "end": 8,
+    "auto": 13,
+    "tele": 25,
+    "end": 11,
     "rp": [
-     23,
+     33,
      0,
-     0
+     32
     ]
    },
    "rank": 402,
@@ -9696,13 +9696,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 19,
-    "end": 8,
+    "auto": 11,
+    "tele": 26,
+    "end": 11,
     "rp": [
-     27,
+     37,
      0,
-     0
+     32
     ]
    },
    "rank": 403,
@@ -9720,13 +9720,13 @@
    "photo": true,
    "avatar": false,
    "bt": {
-    "auto": 6,
-    "tele": 20,
-    "end": 10,
+    "auto": 8,
+    "tele": 27,
+    "end": 14,
     "rp": [
-     30,
+     41,
      0,
-     0
+     38
     ]
    },
    "rank": 404,
@@ -9744,13 +9744,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 19,
-    "end": 9,
+    "auto": 11,
+    "tele": 26,
+    "end": 12,
     "rp": [
-     33,
+     44,
      0,
-     0
+     35
     ]
    },
    "rank": 405,
@@ -9768,13 +9768,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 20,
-    "end": 6,
+    "auto": 12,
+    "tele": 27,
+    "end": 8,
     "rp": [
-     23,
+     33,
      0,
-     0
+     26
     ]
    },
    "rank": 406,
@@ -9792,13 +9792,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 14,
-    "end": 11,
+    "auto": 10,
+    "tele": 19,
+    "end": 15,
     "rp": [
-     32,
+     43,
      0,
-     0
+     41
     ]
    },
    "rank": 407,
@@ -9816,13 +9816,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 18,
-    "end": 10,
+    "auto": 8,
+    "tele": 25,
+    "end": 14,
     "rp": [
-     21,
+     31,
      0,
-     0
+     38
     ]
    },
    "rank": 408,
@@ -9840,13 +9840,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 3,
-    "tele": 21,
-    "end": 11,
+    "auto": 4,
+    "tele": 29,
+    "end": 15,
     "rp": [
-     19,
+     29,
      0,
-     0
+     41
     ]
    },
    "rank": 409,
@@ -9864,13 +9864,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 16,
-    "end": 8,
+    "auto": 14,
+    "tele": 22,
+    "end": 11,
     "rp": [
-     24,
+     34,
      0,
-     0
+     32
     ]
    },
    "rank": 410,
@@ -9888,13 +9888,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 20,
-    "end": 9,
+    "auto": 8,
+    "tele": 27,
+    "end": 12,
     "rp": [
-     6,
+     12,
      0,
-     0
+     35
     ]
    },
    "rank": 411,
@@ -9912,13 +9912,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 19,
-    "end": 9,
+    "auto": 8,
+    "tele": 26,
+    "end": 12,
     "rp": [
-     15,
+     24,
      0,
-     0
+     35
     ]
    },
    "rank": 412,
@@ -9936,13 +9936,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 20,
-    "end": 8,
+    "auto": 8,
+    "tele": 27,
+    "end": 11,
     "rp": [
-     23,
+     33,
      0,
-     0
+     32
     ]
    },
    "rank": 413,
@@ -9960,13 +9960,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 18,
-    "end": 10,
+    "auto": 8,
+    "tele": 25,
+    "end": 14,
     "rp": [
-     5,
+     11,
      0,
-     0
+     38
     ]
    },
    "rank": 414,
@@ -9984,13 +9984,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 15,
-    "end": 11,
+    "auto": 10,
+    "tele": 21,
+    "end": 15,
     "rp": [
-     29,
+     40,
      0,
-     0
+     41
     ]
    },
    "rank": 415,
@@ -10008,13 +10008,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 19,
-    "end": 9,
+    "auto": 7,
+    "tele": 26,
+    "end": 12,
     "rp": [
-     9,
+     16,
      0,
-     0
+     35
     ]
    },
    "rank": 416,
@@ -10032,13 +10032,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 20,
-    "end": 8,
+    "auto": 8,
+    "tele": 27,
+    "end": 11,
     "rp": [
-     12,
+     20,
      0,
-     0
+     32
     ]
    },
    "rank": 417,
@@ -10056,13 +10056,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 19,
-    "end": 8,
+    "auto": 10,
+    "tele": 26,
+    "end": 11,
     "rp": [
-     25,
+     35,
      0,
-     0
+     32
     ]
    },
    "rank": 418,
@@ -10080,13 +10080,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 20,
-    "end": 8,
+    "auto": 7,
+    "tele": 28,
+    "end": 11,
     "rp": [
-     33,
+     44,
      0,
-     0
+     32
     ]
    },
    "rank": 419,
@@ -10104,13 +10104,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 16,
-    "end": 10,
+    "auto": 10,
+    "tele": 22,
+    "end": 14,
     "rp": [
-     16,
+     25,
      0,
-     0
+     38
     ]
    },
    "rank": 420,
@@ -10128,13 +10128,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 18,
-    "end": 10,
+    "auto": 7,
+    "tele": 25,
+    "end": 14,
     "rp": [
-     3,
-     2,
-     0
+     7,
+     5,
+     38
     ]
    },
    "rank": 421,
@@ -10152,13 +10152,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 19,
-    "end": 8,
+    "auto": 8,
+    "tele": 26,
+    "end": 11,
     "rp": [
-     23,
+     33,
      0,
-     0
+     32
     ]
    },
    "rank": 422,
@@ -10176,13 +10176,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 18,
-    "end": 7,
+    "auto": 10,
+    "tele": 25,
+    "end": 10,
     "rp": [
-     27,
+     37,
      0,
-     0
+     29
     ]
    },
    "rank": 423,
@@ -10200,13 +10200,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 10,
-    "tele": 15,
-    "end": 7,
+    "auto": 14,
+    "tele": 21,
+    "end": 10,
     "rp": [
-     47,
+     57,
      0,
-     0
+     29
     ]
    },
    "rank": 424,
@@ -10224,13 +10224,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 16,
-    "end": 11,
+    "auto": 7,
+    "tele": 22,
+    "end": 15,
     "rp": [
-     40,
+     50,
      0,
-     0
+     41
     ]
    },
    "rank": 425,
@@ -10248,13 +10248,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 17,
-    "end": 11,
+    "auto": 7,
+    "tele": 23,
+    "end": 15,
     "rp": [
-     13,
+     22,
      0,
-     0
+     41
     ]
    },
    "rank": 426,
@@ -10272,13 +10272,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 16,
-    "end": 7,
+    "auto": 13,
+    "tele": 22,
+    "end": 10,
     "rp": [
-     22,
+     32,
      0,
-     0
+     29
     ]
    },
    "rank": 427,
@@ -10296,13 +10296,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 17,
-    "end": 10,
+    "auto": 7,
+    "tele": 24,
+    "end": 14,
     "rp": [
-     7,
+     14,
      0,
-     0
+     38
     ]
    },
    "rank": 428,
@@ -10320,13 +10320,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 16,
-    "end": 11,
+    "auto": 8,
+    "tele": 22,
+    "end": 15,
     "rp": [
-     19,
+     29,
      0,
-     0
+     41
     ]
    },
    "rank": 429,
@@ -10344,13 +10344,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 16,
-    "end": 10,
+    "auto": 7,
+    "tele": 22,
+    "end": 14,
     "rp": [
-     10,
+     18,
      0,
-     0
+     38
     ]
    },
    "rank": 430,
@@ -10368,13 +10368,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 4,
-    "tele": 16,
-    "end": 11,
+    "auto": 6,
+    "tele": 22,
+    "end": 15,
     "rp": [
-     12,
+     20,
      0,
-     0
+     41
     ]
    },
    "rank": 431,
@@ -10392,13 +10392,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 15,
-    "end": 12,
+    "auto": 7,
+    "tele": 21,
+    "end": 17,
     "rp": [
-     11,
+     19,
      0,
-     0
+     44
     ]
    },
    "rank": 432,
@@ -10416,13 +10416,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 16,
-    "end": 9,
+    "auto": 8,
+    "tele": 22,
+    "end": 13,
     "rp": [
-     11,
+     19,
      0,
-     0
+     35
     ]
    },
    "rank": 433,
@@ -10440,13 +10440,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 17,
-    "end": 10,
+    "auto": 7,
+    "tele": 24,
+    "end": 14,
     "rp": [
-     17,
+     26,
      0,
-     0
+     38
     ]
    },
    "rank": 434,
@@ -10464,13 +10464,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 13,
-    "end": 10,
+    "auto": 11,
+    "tele": 18,
+    "end": 14,
     "rp": [
-     19,
+     29,
      0,
-     0
+     38
     ]
    },
    "rank": 435,
@@ -10488,13 +10488,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 13,
-    "end": 9,
+    "auto": 13,
+    "tele": 18,
+    "end": 13,
     "rp": [
-     19,
+     29,
      0,
-     0
+     35
     ]
    },
    "rank": 436,
@@ -10512,13 +10512,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 16,
-    "end": 8,
+    "auto": 8,
+    "tele": 23,
+    "end": 11,
     "rp": [
-     21,
+     31,
      0,
-     0
+     32
     ]
    },
    "rank": 437,
@@ -10536,13 +10536,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 17,
-    "end": 6,
+    "auto": 11,
+    "tele": 24,
+    "end": 8,
     "rp": [
-     19,
+     29,
      0,
-     0
+     26
     ]
    },
    "rank": 438,
@@ -10560,13 +10560,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 15,
-    "end": 11,
+    "auto": 7,
+    "tele": 21,
+    "end": 15,
     "rp": [
-     14,
+     23,
      0,
-     0
+     41
     ]
    },
    "rank": 439,
@@ -10584,13 +10584,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 19,
-    "end": 6,
+    "auto": 7,
+    "tele": 27,
+    "end": 8,
     "rp": [
-     42,
+     52,
      0,
-     0
+     26
     ]
    },
    "rank": 440,
@@ -10608,13 +10608,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 15,
-    "end": 9,
+    "auto": 10,
+    "tele": 21,
+    "end": 13,
     "rp": [
-     25,
+     35,
      0,
-     0
+     35
     ]
    },
    "rank": 441,
@@ -10632,13 +10632,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 17,
-    "end": 9,
+    "auto": 7,
+    "tele": 24,
+    "end": 13,
     "rp": [
-     18,
+     28,
      0,
-     0
+     35
     ]
    },
    "rank": 442,
@@ -10656,13 +10656,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 16,
-    "end": 8,
+    "auto": 10,
+    "tele": 22,
+    "end": 11,
     "rp": [
-     40,
+     50,
      0,
-     0
+     32
     ]
    },
    "rank": 443,
@@ -10680,13 +10680,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 15,
-    "end": 8,
+    "auto": 10,
+    "tele": 21,
+    "end": 11,
     "rp": [
-     25,
+     35,
      0,
-     0
+     32
     ]
    },
    "rank": 444,
@@ -10704,13 +10704,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 9,
-    "tele": 14,
-    "end": 7,
+    "auto": 13,
+    "tele": 20,
+    "end": 10,
     "rp": [
-     13,
+     22,
      0,
-     0
+     29
     ]
    },
    "rank": 445,
@@ -10728,13 +10728,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 19,
-    "end": 6,
+    "auto": 7,
+    "tele": 27,
+    "end": 8,
     "rp": [
-     16,
+     25,
      0,
-     0
+     26
     ]
    },
    "rank": 446,
@@ -10752,13 +10752,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 18,
-    "end": 6,
+    "auto": 7,
+    "tele": 26,
+    "end": 9,
     "rp": [
-     20,
+     30,
      0,
-     0
+     26
     ]
    },
    "rank": 447,
@@ -10776,13 +10776,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 13,
-    "end": 9,
+    "auto": 11,
+    "tele": 18,
+    "end": 13,
     "rp": [
-     44,
+     54,
      0,
-     0
+     35
     ]
    },
    "rank": 448,
@@ -10800,13 +10800,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 17,
-    "end": 7,
+    "auto": 10,
+    "tele": 24,
+    "end": 10,
     "rp": [
-     21,
+     31,
      0,
-     0
+     29
     ]
    },
    "rank": 449,
@@ -10824,13 +10824,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 16,
-    "end": 6,
+    "auto": 10,
+    "tele": 23,
+    "end": 9,
     "rp": [
      0,
      0,
-     0
+     26
     ]
    },
    "rank": 450,
@@ -10848,13 +10848,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 2,
-    "tele": 17,
-    "end": 10,
+    "auto": 3,
+    "tele": 24,
+    "end": 14,
     "rp": [
-     10,
+     18,
      0,
-     0
+     38
     ]
    },
    "rank": 451,
@@ -10872,13 +10872,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 3,
-    "tele": 17,
-    "end": 9,
+    "auto": 4,
+    "tele": 24,
+    "end": 13,
     "rp": [
-     24,
+     34,
      0,
-     0
+     35
     ]
    },
    "rank": 452,
@@ -10896,13 +10896,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 15,
-    "end": 7,
+    "auto": 10,
+    "tele": 21,
+    "end": 10,
     "rp": [
-     17,
+     26,
      0,
-     0
+     29
     ]
    },
    "rank": 453,
@@ -10920,13 +10920,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 3,
-    "tele": 15,
-    "end": 9,
+    "auto": 4,
+    "tele": 22,
+    "end": 13,
     "rp": [
-     2,
+     5,
      0,
-     0
+     35
     ]
    },
    "rank": 454,
@@ -10944,13 +10944,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 12,
-    "end": 9,
+    "auto": 9,
+    "tele": 17,
+    "end": 13,
     "rp": [
-     4,
-     12,
-     0
+     9,
+     9,
+     35
     ]
    },
    "rank": 455,
@@ -10968,13 +10968,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 14,
-    "end": 8,
+    "auto": 9,
+    "tele": 20,
+    "end": 12,
     "rp": [
-     10,
+     18,
      0,
-     0
+     32
     ]
    },
    "rank": 456,
@@ -10992,13 +10992,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 4,
-    "tele": 17,
-    "end": 6,
+    "auto": 6,
+    "tele": 25,
+    "end": 9,
     "rp": [
-     18,
+     28,
      0,
-     0
+     26
     ]
    },
    "rank": 457,
@@ -11016,13 +11016,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 16,
-    "end": 6,
+    "auto": 7,
+    "tele": 23,
+    "end": 9,
     "rp": [
-     17,
+     26,
      0,
-     0
+     26
     ]
    },
    "rank": 458,
@@ -11040,13 +11040,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 15,
-    "end": 6,
+    "auto": 9,
+    "tele": 22,
+    "end": 9,
     "rp": [
-     20,
+     30,
      0,
-     0
+     26
     ]
    },
    "rank": 459,
@@ -11061,16 +11061,16 @@
    "srank": 720,
    "loc": "TX, USA",
    "region": "Texas",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 14,
-    "end": 6,
+    "auto": 9,
+    "tele": 21,
+    "end": 9,
     "rp": [
      0,
      0,
-     0
+     26
     ]
    },
    "rank": 460,
@@ -11088,13 +11088,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 4,
-    "tele": 16,
-    "end": 7,
+    "auto": 6,
+    "tele": 23,
+    "end": 10,
     "rp": [
-     19,
+     29,
      0,
-     0
+     29
     ]
    },
    "rank": 461,
@@ -11112,13 +11112,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 14,
-    "end": 6,
+    "auto": 12,
+    "tele": 20,
+    "end": 9,
     "rp": [
-     13,
+     22,
      0,
-     0
+     26
     ]
    },
    "rank": 462,
@@ -11136,13 +11136,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 14,
-    "end": 7,
+    "auto": 9,
+    "tele": 20,
+    "end": 10,
     "rp": [
-     37,
+     47,
      0,
-     0
+     29
     ]
    },
    "rank": 463,
@@ -11160,13 +11160,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 15,
-    "end": 7,
+    "auto": 7,
+    "tele": 22,
+    "end": 10,
     "rp": [
-     28,
+     38,
      0,
-     0
+     29
     ]
    },
    "rank": 464,
@@ -11184,13 +11184,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 14,
-    "end": 6,
+    "auto": 9,
+    "tele": 21,
+    "end": 9,
     "rp": [
-     26,
+     36,
      0,
-     0
+     26
     ]
    },
    "rank": 465,
@@ -11208,13 +11208,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 12,
-    "end": 8,
+    "auto": 9,
+    "tele": 18,
+    "end": 12,
     "rp": [
-     13,
-     7,
-     0
+     22,
+     14,
+     32
     ]
    },
    "rank": 466,
@@ -11232,13 +11232,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 15,
-    "end": 6,
+    "auto": 9,
+    "tele": 22,
+    "end": 9,
     "rp": [
-     10,
+     18,
      0,
-     0
+     26
     ]
    },
    "rank": 467,
@@ -11256,13 +11256,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 14,
-    "end": 7,
+    "auto": 7,
+    "tele": 21,
+    "end": 10,
     "rp": [
      0,
      0,
-     0
+     29
     ]
    },
    "rank": 468,
@@ -11280,13 +11280,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 14,
-    "end": 6,
+    "auto": 10,
+    "tele": 20,
+    "end": 9,
     "rp": [
-     12,
+     20,
      0,
-     0
+     26
     ]
    },
    "rank": 469,
@@ -11304,13 +11304,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 13,
-    "end": 5,
+    "auto": 10,
+    "tele": 19,
+    "end": 7,
     "rp": [
-     12,
+     20,
      0,
-     0
+     23
     ]
    },
    "rank": 470,
@@ -11328,13 +11328,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 13,
-    "end": 7,
+    "auto": 9,
+    "tele": 19,
+    "end": 10,
     "rp": [
      0,
      0,
-     0
+     29
     ]
    },
    "rank": 471,
@@ -11352,13 +11352,13 @@
    "photo": true,
    "avatar": false,
    "bt": {
-    "auto": 4,
-    "tele": 17,
-    "end": 5,
+    "auto": 6,
+    "tele": 25,
+    "end": 7,
     "rp": [
-     5,
+     11,
      0,
-     0
+     23
     ]
    },
    "rank": 472,
@@ -11376,13 +11376,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 11,
-    "end": 7,
+    "auto": 12,
+    "tele": 16,
+    "end": 10,
     "rp": [
-     17,
+     26,
      0,
-     0
+     29
     ]
    },
    "rank": 473,
@@ -11400,13 +11400,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 3,
-    "tele": 14,
-    "end": 8,
+    "auto": 4,
+    "tele": 21,
+    "end": 12,
     "rp": [
-     14,
+     23,
      0,
-     0
+     32
     ]
    },
    "rank": 474,
@@ -11424,13 +11424,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 14,
-    "end": 6,
+    "auto": 9,
+    "tele": 21,
+    "end": 9,
     "rp": [
-     17,
+     26,
      0,
-     0
+     26
     ]
    },
    "rank": 475,
@@ -11448,13 +11448,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 4,
-    "tele": 14,
-    "end": 8,
+    "auto": 6,
+    "tele": 21,
+    "end": 12,
     "rp": [
      0,
      0,
-     0
+     32
     ]
    },
    "rank": 476,
@@ -11472,13 +11472,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 18,
-    "end": 3,
+    "auto": 7,
+    "tele": 26,
+    "end": 4,
     "rp": [
      0,
      0,
-     0
+     16
     ]
    },
    "rank": 477,
@@ -11496,13 +11496,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 4,
-    "tele": 15,
-    "end": 6,
+    "auto": 6,
+    "tele": 22,
+    "end": 9,
     "rp": [
      0,
      0,
-     0
+     26
     ]
    },
    "rank": 478,
@@ -11520,13 +11520,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 13,
-    "end": 6,
+    "auto": 7,
+    "tele": 19,
+    "end": 9,
     "rp": [
-     26,
+     36,
      0,
-     0
+     26
     ]
    },
    "rank": 479,
@@ -11544,13 +11544,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 13,
-    "end": 6,
+    "auto": 9,
+    "tele": 19,
+    "end": 9,
     "rp": [
-     18,
+     28,
      0,
-     0
+     26
     ]
    },
    "rank": 480,
@@ -11568,13 +11568,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 3,
-    "tele": 15,
-    "end": 7,
+    "auto": 4,
+    "tele": 22,
+    "end": 10,
     "rp": [
-     27,
+     37,
      0,
-     0
+     29
     ]
    },
    "rank": 481,
@@ -11592,13 +11592,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 11,
-    "end": 6,
+    "auto": 10,
+    "tele": 16,
+    "end": 9,
     "rp": [
      0,
      0,
-     0
+     26
     ]
    },
    "rank": 482,
@@ -11616,13 +11616,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 4,
-    "tele": 13,
-    "end": 8,
+    "auto": 6,
+    "tele": 19,
+    "end": 12,
     "rp": [
-     8,
+     15,
      0,
-     0
+     32
     ]
    },
    "rank": 483,
@@ -11637,16 +11637,16 @@
    "srank": 813,
    "loc": "NY, USA",
    "region": "New York",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 11,
-    "end": 7,
+    "auto": 10,
+    "tele": 16,
+    "end": 10,
     "rp": [
-     16,
+     25,
      0,
-     0
+     29
     ]
    },
    "rank": 484,
@@ -11661,16 +11661,16 @@
    "srank": 814,
    "loc": "WI, USA",
    "region": "Wisconsin",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 13,
-    "end": 6,
+    "auto": 9,
+    "tele": 19,
+    "end": 9,
     "rp": [
-     2,
+     5,
      0,
-     0
+     26
     ]
    },
    "rank": 485,
@@ -11688,13 +11688,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 11,
-    "end": 6,
+    "auto": 10,
+    "tele": 16,
+    "end": 9,
     "rp": [
      0,
      0,
-     0
+     26
     ]
    },
    "rank": 486,
@@ -11712,13 +11712,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 3,
-    "tele": 14,
-    "end": 8,
+    "auto": 4,
+    "tele": 21,
+    "end": 12,
     "rp": [
-     29,
+     40,
      0,
-     0
+     32
     ]
    },
    "rank": 487,
@@ -11736,13 +11736,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 12,
-    "end": 7,
+    "auto": 7,
+    "tele": 18,
+    "end": 10,
     "rp": [
      0,
      0,
-     0
+     29
     ]
    },
    "rank": 488,
@@ -11757,16 +11757,16 @@
    "srank": 829,
    "loc": "IL, USA",
    "region": "Illinois",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 3,
-    "tele": 16,
-    "end": 5,
+    "auto": 4,
+    "tele": 24,
+    "end": 7,
     "rp": [
-     23,
+     33,
      0,
-     0
+     23
     ]
    },
    "rank": 489,
@@ -11784,13 +11784,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 12,
-    "end": 6,
+    "auto": 8,
+    "tele": 18,
+    "end": 9,
     "rp": [
-     6,
+     12,
      0,
-     0
+     26
     ]
    },
    "rank": 490,
@@ -11808,13 +11808,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 9,
-    "end": 7,
+    "auto": 9,
+    "tele": 14,
+    "end": 11,
     "rp": [
-     10,
+     18,
      0,
-     0
+     29
     ]
    },
    "rank": 491,
@@ -11832,13 +11832,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 12,
-    "end": 7,
+    "auto": 7,
+    "tele": 18,
+    "end": 10,
     "rp": [
-     1,
+     3,
      0,
-     0
+     29
     ]
    },
    "rank": 492,
@@ -11853,16 +11853,16 @@
    "srank": 854,
    "loc": "SC, USA",
    "region": "South Carolina",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 12,
-    "end": 5,
+    "auto": 9,
+    "tele": 18,
+    "end": 8,
     "rp": [
-     13,
+     22,
      0,
-     0
+     23
     ]
    },
    "rank": 493,
@@ -11880,13 +11880,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 3,
-    "tele": 12,
-    "end": 8,
+    "auto": 5,
+    "tele": 18,
+    "end": 12,
     "rp": [
-     24,
+     34,
      0,
-     0
+     32
     ]
    },
    "rank": 494,
@@ -11904,13 +11904,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 12,
-    "end": 5,
+    "auto": 9,
+    "tele": 18,
+    "end": 8,
     "rp": [
-     11,
+     19,
      0,
-     0
+     23
     ]
    },
    "rank": 495,
@@ -11928,13 +11928,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 9,
-    "end": 7,
+    "auto": 11,
+    "tele": 14,
+    "end": 11,
     "rp": [
      0,
      0,
-     0
+     29
     ]
    },
    "rank": 496,
@@ -11952,13 +11952,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 11,
-    "end": 6,
+    "auto": 8,
+    "tele": 17,
+    "end": 9,
     "rp": [
-     47,
+     57,
      0,
-     0
+     26
     ]
    },
    "rank": 497,
@@ -11976,13 +11976,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 4,
-    "tele": 12,
-    "end": 6,
+    "auto": 6,
+    "tele": 18,
+    "end": 9,
     "rp": [
      0,
      0,
-     0
+     26
     ]
    },
    "rank": 498,
@@ -12000,13 +12000,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 4,
-    "tele": 11,
-    "end": 6,
+    "auto": 6,
+    "tele": 17,
+    "end": 9,
     "rp": [
-     6,
+     12,
      0,
-     0
+     26
     ]
    },
    "rank": 499,
@@ -12024,13 +12024,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 11,
-    "end": 4,
+    "auto": 8,
+    "tele": 17,
+    "end": 6,
     "rp": [
      0,
      0,
-     0
+     19
     ]
    },
    "rank": 500,
@@ -12048,13 +12048,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 11,
-    "end": 5,
+    "auto": 8,
+    "tele": 17,
+    "end": 8,
     "rp": [
      0,
      0,
-     0
+     23
     ]
    },
    "rank": 501,
@@ -12072,13 +12072,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 12,
-    "end": 3,
+    "auto": 8,
+    "tele": 19,
+    "end": 5,
     "rp": [
-     19,
+     29,
      0,
-     0
+     16
     ]
    },
    "rank": 502,
@@ -12096,13 +12096,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 8,
-    "tele": 9,
-    "end": 3,
+    "auto": 13,
+    "tele": 14,
+    "end": 5,
     "rp": [
-     14,
+     23,
      0,
-     0
+     16
     ]
    },
    "rank": 503,
@@ -12120,13 +12120,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 4,
-    "tele": 12,
-    "end": 4,
+    "auto": 6,
+    "tele": 19,
+    "end": 6,
     "rp": [
-     16,
+     25,
      0,
-     0
+     19
     ]
    },
    "rank": 504,
@@ -12144,13 +12144,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 4,
-    "tele": 13,
-    "end": 3,
+    "auto": 6,
+    "tele": 20,
+    "end": 5,
     "rp": [
      0,
      0,
-     0
+     16
     ]
    },
    "rank": 505,
@@ -12168,13 +12168,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 9,
-    "end": 5,
+    "auto": 9,
+    "tele": 14,
+    "end": 8,
     "rp": [
      0,
      0,
-     0
+     23
     ]
    },
    "rank": 506,
@@ -12192,13 +12192,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 7,
-    "tele": 8,
-    "end": 5,
+    "auto": 11,
+    "tele": 13,
+    "end": 8,
     "rp": [
      0,
      0,
-     0
+     23
     ]
    },
    "rank": 507,
@@ -12216,13 +12216,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 10,
-    "end": 5,
+    "auto": 8,
+    "tele": 16,
+    "end": 8,
     "rp": [
-     19,
+     29,
      0,
-     0
+     23
     ]
    },
    "rank": 508,
@@ -12240,13 +12240,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 8,
-    "end": 6,
+    "auto": 8,
+    "tele": 13,
+    "end": 10,
     "rp": [
      0,
      0,
-     0
+     26
     ]
    },
    "rank": 509,
@@ -12264,13 +12264,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 8,
-    "end": 7,
+    "auto": 8,
+    "tele": 13,
+    "end": 11,
     "rp": [
-     1,
+     3,
      0,
-     0
+     29
     ]
    },
    "rank": 510,
@@ -12288,13 +12288,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 3,
-    "tele": 11,
-    "end": 6,
+    "auto": 5,
+    "tele": 17,
+    "end": 9,
     "rp": [
-     2,
+     5,
      0,
-     0
+     26
     ]
    },
    "rank": 511,
@@ -12312,13 +12312,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 8,
-    "end": 5,
+    "auto": 10,
+    "tele": 13,
+    "end": 8,
     "rp": [
-     30,
+     41,
      0,
-     0
+     23
     ]
    },
    "rank": 512,
@@ -12336,13 +12336,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 3,
-    "tele": 12,
-    "end": 3,
+    "auto": 5,
+    "tele": 19,
+    "end": 5,
     "rp": [
-     9,
+     16,
      0,
-     0
+     16
     ]
    },
    "rank": 513,
@@ -12357,16 +12357,16 @@
    "srank": 1051,
    "loc": "TX, USA",
    "region": "Texas",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 9,
-    "end": 4,
+    "auto": 10,
+    "tele": 14,
+    "end": 6,
     "rp": [
      0,
      0,
-     0
+     19
     ]
    },
    "rank": 514,
@@ -12384,13 +12384,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 2,
-    "tele": 10,
-    "end": 5,
+    "auto": 3,
+    "tele": 16,
+    "end": 8,
     "rp": [
      0,
      0,
-     0
+     23
     ]
    },
    "rank": 515,
@@ -12408,13 +12408,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 2,
-    "tele": 9,
-    "end": 6,
+    "auto": 3,
+    "tele": 15,
+    "end": 10,
     "rp": [
      0,
      0,
-     0
+     26
     ]
    },
    "rank": 516,
@@ -12432,13 +12432,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 4,
-    "tele": 10,
-    "end": 3,
+    "auto": 7,
+    "tele": 16,
+    "end": 5,
     "rp": [
      0,
      0,
-     0
+     16
     ]
    },
    "rank": 517,
@@ -12456,13 +12456,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 2,
-    "tele": 10,
-    "end": 5,
+    "auto": 3,
+    "tele": 16,
+    "end": 8,
     "rp": [
-     8,
+     15,
      0,
-     0
+     23
     ]
    },
    "rank": 518,
@@ -12480,13 +12480,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 4,
-    "tele": 11,
-    "end": 2,
+    "auto": 7,
+    "tele": 18,
+    "end": 3,
     "rp": [
-     10,
+     18,
      0,
-     0
+     11
     ]
    },
    "rank": 519,
@@ -12504,13 +12504,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 8,
-    "end": 4,
+    "auto": 8,
+    "tele": 13,
+    "end": 7,
     "rp": [
-     10,
+     18,
      0,
-     0
+     19
     ]
    },
    "rank": 520,
@@ -12528,13 +12528,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 7,
-    "end": 5,
+    "auto": 8,
+    "tele": 11,
+    "end": 8,
     "rp": [
-     18,
+     28,
      0,
-     0
+     23
     ]
    },
    "rank": 521,
@@ -12552,13 +12552,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 4,
-    "tele": 8,
-    "end": 4,
+    "auto": 7,
+    "tele": 13,
+    "end": 7,
     "rp": [
      0,
      0,
-     0
+     19
     ]
    },
    "rank": 522,
@@ -12576,13 +12576,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 3,
-    "tele": 6,
-    "end": 6,
+    "auto": 5,
+    "tele": 10,
+    "end": 10,
     "rp": [
      0,
      0,
-     0
+     26
     ]
    },
    "rank": 523,
@@ -12600,13 +12600,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 4,
-    "tele": 8,
-    "end": 4,
+    "auto": 7,
+    "tele": 13,
+    "end": 7,
     "rp": [
      0,
      0,
-     0
+     19
     ]
    },
    "rank": 524,
@@ -12624,13 +12624,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 4,
-    "tele": 8,
-    "end": 3,
+    "auto": 7,
+    "tele": 13,
+    "end": 5,
     "rp": [
      0,
      0,
-     0
+     16
     ]
    },
    "rank": 525,
@@ -12648,13 +12648,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 2,
-    "tele": 8,
-    "end": 5,
+    "auto": 3,
+    "tele": 13,
+    "end": 8,
     "rp": [
      0,
      0,
-     0
+     23
     ]
    },
    "rank": 526,
@@ -12672,13 +12672,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 2,
-    "tele": 9,
-    "end": 4,
+    "auto": 3,
+    "tele": 15,
+    "end": 7,
     "rp": [
-     10,
+     18,
      0,
-     0
+     19
     ]
    },
    "rank": 527,
@@ -12696,13 +12696,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 4,
-    "tele": 6,
-    "end": 5,
+    "auto": 7,
+    "tele": 10,
+    "end": 8,
     "rp": [
      0,
      0,
-     0
+     23
     ]
    },
    "rank": 528,
@@ -12720,13 +12720,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 4,
-    "tele": 8,
-    "end": 2,
+    "auto": 7,
+    "tele": 14,
+    "end": 3,
     "rp": [
-     9,
+     16,
      0,
-     0
+     11
     ]
    },
    "rank": 529,
@@ -12744,13 +12744,13 @@
    "photo": false,
    "avatar": false,
    "bt": {
-    "auto": 3,
-    "tele": 8,
-    "end": 4,
+    "auto": 5,
+    "tele": 13,
+    "end": 7,
     "rp": [
      0,
      0,
-     0
+     19
     ]
    },
    "rank": 530,
@@ -12768,13 +12768,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 4,
-    "tele": 6,
-    "end": 4,
+    "auto": 7,
+    "tele": 10,
+    "end": 7,
     "rp": [
      0,
      0,
-     0
+     19
     ]
    },
    "rank": 531,
@@ -12792,13 +12792,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 4,
-    "end": 4,
+    "auto": 9,
+    "tele": 7,
+    "end": 7,
     "rp": [
-     6,
+     12,
      0,
-     0
+     19
     ]
    },
    "rank": 532,
@@ -12816,13 +12816,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 5,
-    "end": 4,
+    "auto": 9,
+    "tele": 9,
+    "end": 7,
     "rp": [
      0,
      0,
-     0
+     19
     ]
    },
    "rank": 533,
@@ -12840,13 +12840,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 4,
-    "tele": 7,
-    "end": 2,
+    "auto": 7,
+    "tele": 12,
+    "end": 3,
     "rp": [
-     9,
+     16,
      0,
-     0
+     11
     ]
    },
    "rank": 534,
@@ -12864,13 +12864,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 4,
-    "tele": 7,
-    "end": 2,
+    "auto": 7,
+    "tele": 12,
+    "end": 3,
     "rp": [
      0,
      0,
-     0
+     11
     ]
    },
    "rank": 535,
@@ -12888,13 +12888,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 4,
-    "tele": 8,
-    "end": 1,
+    "auto": 7,
+    "tele": 14,
+    "end": 2,
     "rp": [
      0,
      0,
-     0
+     7
     ]
    },
    "rank": 536,
@@ -12912,13 +12912,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 4,
-    "tele": 8,
-    "end": 1,
+    "auto": 7,
+    "tele": 14,
+    "end": 2,
     "rp": [
      0,
      0,
-     0
+     7
     ]
    },
    "rank": 537,
@@ -12936,13 +12936,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 6,
-    "tele": 4,
-    "end": 3,
+    "auto": 10,
+    "tele": 7,
+    "end": 5,
     "rp": [
      0,
      0,
-     0
+     16
     ]
    },
    "rank": 538,
@@ -12960,13 +12960,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 3,
-    "tele": 7,
-    "end": 3,
+    "auto": 5,
+    "tele": 12,
+    "end": 5,
     "rp": [
      0,
      0,
-     0
+     16
     ]
    },
    "rank": 539,
@@ -12984,13 +12984,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 4,
-    "tele": 4,
-    "end": 5,
+    "auto": 7,
+    "tele": 7,
+    "end": 9,
     "rp": [
      0,
      0,
-     0
+     23
     ]
    },
    "rank": 540,
@@ -13008,13 +13008,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 2,
-    "tele": 6,
-    "end": 4,
+    "auto": 4,
+    "tele": 11,
+    "end": 7,
     "rp": [
      0,
      0,
-     0
+     19
     ]
    },
    "rank": 541,
@@ -13032,13 +13032,13 @@
    "photo": false,
    "avatar": false,
    "bt": {
-    "auto": 3,
-    "tele": 6,
-    "end": 3,
+    "auto": 5,
+    "tele": 11,
+    "end": 5,
     "rp": [
      0,
      0,
-     0
+     16
     ]
    },
    "rank": 542,
@@ -13056,13 +13056,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 4,
-    "tele": 5,
-    "end": 4,
+    "auto": 7,
+    "tele": 9,
+    "end": 7,
     "rp": [
-     1,
+     3,
      0,
-     0
+     19
     ]
    },
    "rank": 543,
@@ -13080,13 +13080,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 3,
-    "tele": 4,
-    "end": 5,
+    "auto": 5,
+    "tele": 7,
+    "end": 9,
     "rp": [
      0,
      0,
-     0
+     23
     ]
    },
    "rank": 544,
@@ -13104,13 +13104,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 5,
-    "tele": 5,
-    "end": 2,
+    "auto": 9,
+    "tele": 9,
+    "end": 4,
     "rp": [
      0,
      0,
-     0
+     11
     ]
    },
    "rank": 545,
@@ -13128,13 +13128,13 @@
    "photo": false,
    "avatar": false,
    "bt": {
-    "auto": 3,
-    "tele": 6,
-    "end": 3,
+    "auto": 5,
+    "tele": 11,
+    "end": 5,
     "rp": [
      0,
      0,
-     0
+     16
     ]
    },
    "rank": 546,
@@ -13152,13 +13152,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 4,
-    "tele": 3,
-    "end": 5,
+    "auto": 7,
+    "tele": 5,
+    "end": 9,
     "rp": [
      0,
      0,
-     0
+     23
     ]
    },
    "rank": 547,
@@ -13176,13 +13176,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 2,
-    "tele": 7,
-    "end": 2,
+    "auto": 4,
+    "tele": 13,
+    "end": 4,
     "rp": [
      0,
      0,
-     0
+     11
     ]
    },
    "rank": 548,
@@ -13200,13 +13200,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 2,
-    "tele": 6,
-    "end": 3,
+    "auto": 4,
+    "tele": 11,
+    "end": 5,
     "rp": [
-     7,
+     14,
      0,
-     0
+     16
     ]
    },
    "rank": 549,
@@ -13224,13 +13224,13 @@
    "photo": false,
    "avatar": false,
    "bt": {
-    "auto": 2,
-    "tele": 7,
-    "end": 3,
+    "auto": 4,
+    "tele": 12,
+    "end": 5,
     "rp": [
-     10,
+     18,
      0,
-     0
+     16
     ]
    },
    "rank": 550,
@@ -13248,13 +13248,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 2,
-    "tele": 7,
-    "end": 2,
+    "auto": 4,
+    "tele": 13,
+    "end": 4,
     "rp": [
      0,
      0,
-     0
+     11
     ]
    },
    "rank": 551,
@@ -13272,13 +13272,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 4,
-    "tele": 4,
-    "end": 2,
+    "auto": 7,
+    "tele": 7,
+    "end": 4,
     "rp": [
      0,
      0,
-     0
+     11
     ]
    },
    "rank": 552,
@@ -13296,13 +13296,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 3,
-    "tele": 5,
-    "end": 2,
+    "auto": 6,
+    "tele": 9,
+    "end": 4,
     "rp": [
      0,
      0,
-     0
+     11
     ]
    },
    "rank": 553,
@@ -13320,13 +13320,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 4,
-    "tele": 5,
-    "end": 1,
+    "auto": 7,
+    "tele": 9,
+    "end": 2,
     "rp": [
      0,
      0,
-     0
+     7
     ]
    },
    "rank": 554,
@@ -13344,13 +13344,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 3,
-    "tele": 6,
-    "end": 1,
+    "auto": 6,
+    "tele": 11,
+    "end": 2,
     "rp": [
      0,
      0,
-     0
+     7
     ]
    },
    "rank": 555,
@@ -13368,13 +13368,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 2,
-    "tele": 6,
-    "end": 1,
+    "auto": 4,
+    "tele": 11,
+    "end": 2,
     "rp": [
      0,
      0,
-     0
+     7
     ]
    },
    "rank": 556,
@@ -13392,13 +13392,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 2,
-    "tele": 5,
-    "end": 2,
+    "auto": 4,
+    "tele": 10,
+    "end": 4,
     "rp": [
      0,
      0,
-     0
+     11
     ]
    },
    "rank": 557,
@@ -13416,13 +13416,13 @@
    "photo": false,
    "avatar": false,
    "bt": {
-    "auto": 1,
-    "tele": 5,
-    "end": 3,
+    "auto": 2,
+    "tele": 10,
+    "end": 6,
     "rp": [
      0,
      0,
-     0
+     16
     ]
    },
    "rank": 558,
@@ -13437,16 +13437,16 @@
    "srank": 1652,
    "loc": "Türkiye",
    "region": "Türkiye",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 1,
-    "tele": 4,
-    "end": 4,
+    "auto": 2,
+    "tele": 8,
+    "end": 8,
     "rp": [
      0,
      0,
-     0
+     19
     ]
    },
    "rank": 559,
@@ -13464,13 +13464,13 @@
    "photo": true,
    "avatar": false,
    "bt": {
-    "auto": 4,
-    "tele": 2,
-    "end": 3,
+    "auto": 8,
+    "tele": 4,
+    "end": 6,
     "rp": [
      0,
      0,
-     0
+     16
     ]
    },
    "rank": 560,
@@ -13488,13 +13488,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 2,
-    "tele": 4,
-    "end": 3,
+    "auto": 4,
+    "tele": 8,
+    "end": 6,
     "rp": [
      0,
      0,
-     0
+     16
     ]
    },
    "rank": 561,
@@ -13512,13 +13512,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 2,
-    "tele": 5,
-    "end": 2,
+    "auto": 4,
+    "tele": 10,
+    "end": 4,
     "rp": [
      0,
      0,
-     0
+     11
     ]
    },
    "rank": 562,
@@ -13536,13 +13536,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 4,
-    "tele": 3,
-    "end": 2,
+    "auto": 8,
+    "tele": 6,
+    "end": 4,
     "rp": [
      0,
      0,
-     0
+     11
     ]
    },
    "rank": 563,
@@ -13560,13 +13560,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 2,
-    "tele": 4,
-    "end": 2,
+    "auto": 4,
+    "tele": 8,
+    "end": 4,
     "rp": [
      0,
      0,
-     0
+     11
     ]
    },
    "rank": 564,
@@ -13584,13 +13584,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 2,
-    "tele": 5,
-    "end": 1,
+    "auto": 4,
+    "tele": 10,
+    "end": 2,
     "rp": [
      0,
      0,
-     0
+     7
     ]
    },
    "rank": 565,
@@ -13608,13 +13608,13 @@
    "photo": false,
    "avatar": false,
    "bt": {
-    "auto": 3,
-    "tele": 3,
-    "end": 2,
+    "auto": 6,
+    "tele": 6,
+    "end": 4,
     "rp": [
      0,
      0,
-     0
+     11
     ]
    },
    "rank": 566,
@@ -13632,13 +13632,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 2,
-    "tele": 4,
-    "end": 1,
+    "auto": 4,
+    "tele": 8,
+    "end": 2,
     "rp": [
      0,
      0,
-     0
+     7
     ]
    },
    "rank": 567,
@@ -13656,13 +13656,13 @@
    "photo": false,
    "avatar": false,
    "bt": {
-    "auto": 2,
-    "tele": 3,
-    "end": 2,
+    "auto": 4,
+    "tele": 6,
+    "end": 4,
     "rp": [
      0,
      0,
-     0
+     11
     ]
    },
    "rank": 568,
@@ -13680,13 +13680,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 2,
-    "tele": 4,
-    "end": 1,
+    "auto": 4,
+    "tele": 8,
+    "end": 2,
     "rp": [
      0,
      0,
-     0
+     7
     ]
    },
    "rank": 569,
@@ -13704,13 +13704,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 1,
-    "tele": 4,
-    "end": 2,
+    "auto": 2,
+    "tele": 8,
+    "end": 4,
     "rp": [
      0,
      0,
-     0
+     11
     ]
    },
    "rank": 570,
@@ -13728,13 +13728,13 @@
    "photo": false,
    "avatar": false,
    "bt": {
-    "auto": 2,
-    "tele": 3,
-    "end": 2,
+    "auto": 4,
+    "tele": 6,
+    "end": 4,
     "rp": [
      0,
      0,
-     0
+     11
     ]
    },
    "rank": 571,
@@ -13752,13 +13752,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 1,
-    "tele": 4,
-    "end": 1,
+    "auto": 2,
+    "tele": 8,
+    "end": 2,
     "rp": [
      0,
      0,
-     0
+     7
     ]
    },
    "rank": 572,
@@ -13776,13 +13776,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 1,
-    "tele": 3,
-    "end": 2,
+    "auto": 2,
+    "tele": 6,
+    "end": 4,
     "rp": [
      0,
      0,
-     0
+     11
     ]
    },
    "rank": 573,
@@ -13800,13 +13800,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 1,
-    "tele": 2,
-    "end": 2,
+    "auto": 2,
+    "tele": 4,
+    "end": 4,
     "rp": [
      0,
      0,
-     0
+     11
     ]
    },
    "rank": 574,
@@ -13824,13 +13824,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 1,
-    "tele": 3,
-    "end": 1,
+    "auto": 2,
+    "tele": 7,
+    "end": 2,
     "rp": [
      0,
      0,
-     0
+     7
     ]
    },
    "rank": 575,
@@ -13848,13 +13848,13 @@
    "photo": true,
    "avatar": true,
    "bt": {
-    "auto": 2,
-    "tele": 2,
-    "end": 1,
+    "auto": 4,
+    "tele": 4,
+    "end": 2,
     "rp": [
      0,
      0,
-     0
+     7
     ]
    },
    "rank": 576,
@@ -13872,13 +13872,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 1,
-    "tele": 2,
-    "end": 1,
+    "auto": 2,
+    "tele": 5,
+    "end": 2,
     "rp": [
      0,
      0,
-     0
+     7
     ]
    },
    "rank": 577,
@@ -13896,13 +13896,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 1,
-    "tele": 2,
-    "end": 2,
+    "auto": 2,
+    "tele": 4,
+    "end": 4,
     "rp": [
-     2,
+     5,
      0,
-     0
+     11
     ]
    },
    "rank": 578,
@@ -13920,13 +13920,13 @@
    "photo": false,
    "avatar": false,
    "bt": {
-    "auto": 1,
-    "tele": 1,
-    "end": 1,
+    "auto": 3,
+    "tele": 3,
+    "end": 3,
     "rp": [
      0,
      0,
-     0
+     7
     ]
    },
    "rank": 579,
@@ -13944,13 +13944,13 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 1,
-    "tele": 1,
-    "end": 1,
+    "auto": 3,
+    "tele": 3,
+    "end": 3,
     "rp": [
      0,
      0,
-     0
+     7
     ]
    },
    "rank": 580,
@@ -13968,8 +13968,8 @@
    "photo": false,
    "avatar": true,
    "bt": {
-    "auto": 1,
-    "tele": 1,
+    "auto": 3,
+    "tele": 3,
     "end": 0,
     "rp": [
      0,
