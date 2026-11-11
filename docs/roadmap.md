@@ -6,6 +6,16 @@ every ~2 days in between, and hotfixes whenever something big breaks. Every rele
 
 ## Planned
 
+### 0.14.2: packs
+
+- Division pack art with the official division emblems (the maintainer is sending them). The Shop already uses
+  `data/photos/divisions/<Division>.png` when it exists, with a drawn shield until then.
+- Rework how packs are shown and opened: bought division packs are saved on the account but the app has no place to
+  open them later, and a stack per kind (Standard, Boosted, 8 divisions) is too many. Design TBD.
+- Rewrite the 0.14.0 in-app notes the CONTRIBUTING way: no title, and balance lines with old -> new numbers.
+- Refresh every team's Statbotics numbers once the API is back (it returned 500s on Nov 11), then check 7028's auto,
+  which players say is third best (behind 1114 and 2056) when offseason events are counted.
+
 ### 0.14: the shop, one Trade tab and a new Packs screen (#78)
 
 A Shop tab of its own: Standard and Boosted packs always, plus three cards (one Rare or better, rarely a Mythic) and a

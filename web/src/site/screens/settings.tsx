@@ -139,7 +139,7 @@ function Settings() {
         <Line title={`Version ${VERSION}`} note={ver === "checking" ? "Checking…" : ver === "latest" ? "You have the latest version." : ver === "update" ? "A newer version is ready." : ver === "error" ? "Couldn't check. Try again." : undefined}>
           <button type="button" class="s-chipbtn" disabled={ver === "checking"} onClick={checkVersion}>{ver === "update" ? "Update" : "Check"}</button>
         </Line>
-        <Line title="Patch notes" note={NOTES[0].title}><button type="button" class="s-chipbtn" onClick={openNotes}>Read</button></Line>
+        <Line title="Patch notes" note={NOTES[0].title || NOTES[0].v}><button type="button" class="s-chipbtn" onClick={openNotes}>Read</button></Line>
       </section>
 
       {(a.admin || s.devTools) && (
@@ -208,7 +208,7 @@ function FeedbackForm() {
 export function Release({ r }: { r: (typeof NOTES)[number] }) {
   return (
     <section class="pn-rel">
-      <h2><b>{r.title}</b><small>{r.v} · {new Date(r.date + "T12:00").toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}</small></h2>
+      <h2><b>{r.title || r.v}</b><small>{r.title ? `${r.v} · ` : ""}{new Date(r.date + "T12:00").toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}</small></h2>
       <ul>{r.items.map((x) => <li>{x}</li>)}</ul>
     </section>
   );

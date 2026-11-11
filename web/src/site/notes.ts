@@ -2,11 +2,25 @@
 // players should hear about: everyone who's played before sees the newest one once (screens/notes.tsx), and Settings
 // shows the version and every release. 0.x while in beta: the middle number for a weekly release, the last for the
 // feedback updates and fixes in between. How to bump and how the notes should read: CONTRIBUTING.md.
-export const VERSION = "0.14.0";
+export const VERSION = "0.14.1";
 
 export interface Release { v: string; date: string; title: string; items: string[] }
 
 export const NOTES: Release[] = [
+  {
+    v: "0.14.1",
+    date: "2026-11-12",
+    title: "",
+    items: [
+      "RP3 is back to Statbotics' Traversal RP, which is 0% for almost every 2026 robot",
+      "Removed the \"You own N copies\" line on cards. The Copies tab shows it",
+      "The shop's refresh bar shrinks as the 4 hours run out",
+      "Binder rarity filters, Big pulls on profiles and special editions wrap instead of scrolling sideways",
+      "Fixed Uncommon and Rare cards in the shop spilling into the next slot",
+      "Fixed Trade buttons getting cut off in the player list",
+      "Fixed some screens scrolling sideways",
+    ],
+  },
   {
     v: "0.14.0",
     date: "2026-11-11",

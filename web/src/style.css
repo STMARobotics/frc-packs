@@ -17,6 +17,7 @@
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html, body { min-height: 100%; }
+html { overflow-x: hidden; overflow-x: clip; }
 body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; overflow-x: hidden; overflow-x: clip; }
 button { font: inherit; color: inherit; }
 /* Phones flash a blue box on whatever you tap and offer to select text or save images on a long press; the packs and cards are things you play with, not text. */

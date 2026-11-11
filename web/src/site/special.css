@@ -32,9 +32,9 @@
 .se-glare { position: absolute; inset: -50%; z-index: 5; pointer-events: none; background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, .16), transparent 18%);
   transform: translate(calc((var(--mx) - 50) * .5%), calc((var(--my) - 50) * .5%)); }
 
-.se-row { display: flex; gap: 12px; overflow-x: auto; margin: -8px -16px 0; padding: 8px 16px 12px; scrollbar-width: none; }
+.se-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; padding: 8px 0 12px; } /* wraps: nothing scrolls sideways */
 .se-thumb .se { box-shadow: 0 6px 12px rgba(0, 0, 0, .45), 0 0 8px rgba(255, 211, 107, .35); }
-.se-thumb { flex: none; width: 120px; padding: 0; border: 0; border-radius: 8px; background: none; cursor: pointer; }
+.se-thumb { width: 100%; padding: 0; border: 0; border-radius: 8px; background: none; cursor: pointer; }
 .se-thumb:active .se-tilt { transform: scale(.97); }
 .se-thumb.on { outline: 3px solid var(--gold); outline-offset: 3px; }
 .se-view { min-height: 100%; max-width: 520px; margin: 0 auto; display: grid; grid-template-rows: auto 1fr auto; justify-items: center; gap: 12px; padding: calc(10px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom)); }
