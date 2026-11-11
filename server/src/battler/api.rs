@@ -760,7 +760,6 @@ async fn join_into(db: &Db, uid: Uuid, id: &str, code: Option<&str>, stale: Opti
     Ok(Json(view_json(g.view(Some(1)))))
 }
 
-
 /// Quick Play. Joins whoever in the queue has waited longest, or starts a game and waits in the queue. The waiting player
 /// asks again every few seconds: if two people queued at the same moment and both started a game, the newer one gives
 /// theirs up and joins the older, so they end up playing each other. Already in another game: that game.

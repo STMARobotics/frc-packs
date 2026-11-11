@@ -47,7 +47,8 @@ async fn prefs(State(s): State<Shared>, user: User, Json(req): Json<PrefsReq>) -
     if req.off.iter().any(|k| !KINDS.contains(&k.as_str())) {
         return Err(ApiError::new(StatusCode::BAD_REQUEST, "bad_request"));
     }
-    let mut off: Vec<String> = KINDS.iter().filter(|k| req.off.iter().any(|o| o == *k)).map(|k| k.to_string()).collect();
+    let mut off: Vec<String> =
+        KINDS.iter().filter(|k| req.off.iter().any(|o| o == *k)).map(|k| k.to_string()).collect();
     off.dedup();
     let db = &s.db;
     retry!(async {

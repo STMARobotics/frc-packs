@@ -918,7 +918,13 @@ struct OpenOut {
 /// again) if there is one (taken by deleting its item, so two packs can't both take it), else the team's next new
 /// number (the counter moves only if nobody else moved it first). `live`: the cards enter the game now (an opening);
 /// otherwise they're minted for a pack in hand and enter the game's count when it's opened.
-pub(crate) async fn take_serials(db: &Db, tx: &mut Tx, pack: &str, nums: &[i32], live: bool) -> ApiResult<HashMap<usize, i32>> {
+pub(crate) async fn take_serials(
+    db: &Db,
+    tx: &mut Tx,
+    pack: &str,
+    nums: &[i32],
+    live: bool,
+) -> ApiResult<HashMap<usize, i32>> {
     let mut out = HashMap::new();
     let mut teams: Vec<i32> = nums.to_vec();
     teams.sort_unstable();
@@ -1552,7 +1558,6 @@ async fn scrap_extras(
     scrapped(&s, user.id, &pack, r, &key, "scrap_extras").await
 }
 
-
 /// Spends parts on a boosted pack of the free pack (the shop's Boosted pack: same price, same daily limit).
 async fn craft(State(s): State<Shared>, user: User, key: IdemKey) -> ApiResult<Response> {
     crate::shop::buy_pack(&s, user.id, &key, true).await
@@ -1725,8 +1730,7 @@ mod tests {
 
     #[test]
     fn timers_bank_up_and_each_gives_its_packs() {
-        let r =
-            Rules { claim_packs: 3, start_packs: 0, ..Rules::default() };
+        let r = Rules { claim_packs: 3, start_packs: 0, ..Rules::default() };
         let next = now_ms();
         let min = 60_000;
         assert_eq!(r.timers_ready(next - min, next), 0, "not yet");

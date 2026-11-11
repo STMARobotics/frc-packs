@@ -436,7 +436,11 @@ async fn buy(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Json<
         p.parts -= i64::from(price);
         model::save_user(&mut tx, &mut p, parts, "shop");
         match tx.commit(db).await {
-            Ok(()) => Ok(Some((bought, sets, if let Stock::Division { division } = item { Some(division.clone()) } else { None }))),
+            Ok(()) => Ok(Some((
+                bought,
+                sets,
+                if let Stock::Division { division } = item { Some(division.clone()) } else { None },
+            ))),
             Err(DbError::Conflict("sold")) => Err(err(StatusCode::CONFLICT, "sold_out")),
             Err(DbError::Conflict("req")) => Ok(None),
             Err(e) => Err(ApiError::from(e)),
@@ -446,7 +450,8 @@ async fn buy(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Json<
     if let Some(c) = &card {
         crate::profiles::unwish(db, user.id, pack.id(), [c.num]).await;
     }
-    let out = BuyOut { state: api::load_state(&s, user.id).await?, shop: shop_out(&s, user.id).await?, card, division, sets };
+    let out =
+        BuyOut { state: api::load_state(&s, user.id).await?, shop: shop_out(&s, user.id).await?, card, division, sets };
     idem_end(db, user.id, &key, "shop", &out).await?;
     Ok(Json(out).into_response())
 }

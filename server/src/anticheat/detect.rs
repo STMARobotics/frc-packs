@@ -268,8 +268,12 @@ pub fn run(all: &[Item], pack: &Pack, rules: &Rules, dev_tools: bool, now: i64) 
         history.iter().map(|(_, r)| i64::from(f(&r.shop))).chain([i64::from(f(&rules.shop))]).min().unwrap_or(1).max(1)
     };
     let min_std = min_price(&|s| s.std);
-    let max_per_day =
-        history.iter().map(|(_, r)| i64::from(r.shop.packs_per_day)).chain([i64::from(rules.shop.packs_per_day)]).max().unwrap_or(10);
+    let max_per_day = history
+        .iter()
+        .map(|(_, r)| i64::from(r.shop.packs_per_day))
+        .chain([i64::from(rules.shop.packs_per_day)])
+        .max()
+        .unwrap_or(10);
 
     // ---------- supply: each source against the most its rule can pay ----------
     let history_from = history.first().map(|(at, _)| *at);
@@ -418,10 +422,13 @@ pub fn run(all: &[Item], pack: &Pack, rules: &Rules, dev_tools: bool, now: i64) 
         if let Some(seed) = &shop_seed {
             for (slot, window, num, tier, _) in pl.shop.iter().filter(|b| b.2 != 0) {
                 // A team whose rarity changed since can't be checked against today's lists.
-                if tier.is_some() && pack.team_tier.get(num) == tier.as_ref()
+                if tier.is_some()
+                    && pack.team_tier.get(num) == tier.as_ref()
                     && !crate::shop::could_hold(pack, seed, p.id, *window, slot, *num)
                 {
-                    ev.push(format!("bought {num} from the shop, but it was never in their shop ({slot}, window {window})"));
+                    ev.push(format!(
+                        "bought {num} from the shop, but it was never in their shop ({slot}, window {window})"
+                    ));
                 }
             }
         }
