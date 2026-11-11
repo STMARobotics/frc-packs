@@ -8,18 +8,18 @@
 .au-p.r { transform: translateX(62px) rotate(14deg) scale(.86); }
 .au-p.c { z-index: 1; width: 104px; margin-left: -52px; }
 .au-brand { display: inline-flex; align-items: center; font-size: 38px; }
-.au-card { width: 100%; display: grid; gap: 12px; padding: 14px; border-radius: 18px; background: var(--s1); box-shadow: inset 0 0 0 1px var(--ln); }
+.au-card { width: 100%; display: grid; gap: 12px; padding: 14px; border-radius: 9px; background: var(--s1); box-shadow: inset 0 0 0 1px var(--ln); }
 .au-form { display: grid; gap: 10px; }
 .au-form .s-btn { margin-top: 4px; }
 .au-code { text-transform: uppercase; letter-spacing: .08em; }
 .au-code::placeholder { text-transform: none; letter-spacing: normal; }
-.au-terms > b { font: 400 22px var(--display); }
+.au-terms > b { font: 400 22px var(--display); text-transform: uppercase; }
 .au-terms p { margin: 0; color: var(--dim); }
 .au-terms ul, .au-sheet ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; line-height: 1.4; }
 
 /* A small dialog over the tabs. */
 .s-layer.k-sheet { display: grid; place-items: center; padding: 20px 16px; background: rgba(5, 7, 13, .82); }
-.au-sheet { width: min(100%, 400px); display: grid; gap: 12px; padding: 20px; border-radius: 18px; background: var(--s1); box-shadow: inset 0 0 0 1px var(--ln), 0 20px 50px rgba(0, 0, 0, .5); line-height: 1.45; }
+.au-sheet { width: min(100%, 400px); display: grid; gap: 12px; padding: 20px; border-radius: 9px; background: var(--s1); box-shadow: inset 0 0 0 1px var(--ln), 0 20px 50px rgba(0, 0, 0, .5); line-height: 1.45; }
 .au-sheet h2 { font-size: 24px; }
 .au-sheet p { margin: 0; }
 .au-sheet .s-row2 { margin-top: 4px; }
@@ -29,4 +29,4 @@
 body.nt-on #app { padding-top: calc(36px + env(safe-area-inset-top)); }
 body.nt-on .s-top { top: calc(36px + env(safe-area-inset-top)); }
 .nt-over { position: fixed; inset: 0; z-index: 500; display: grid; place-items: center; padding: 20px 16px; background: rgba(5, 7, 13, .92); }
-.nt-time { color: #ff8a95; font: 400 20px var(--display); }
+.nt-time { color: #ff8a95; font: 400 20px var(--display); text-transform: uppercase; }

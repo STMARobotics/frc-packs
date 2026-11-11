@@ -83,9 +83,9 @@ export function BugIntro() {
     c.querySelector(".bi-in")?.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, fill: "forwards" });
     b?.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 420, easing: "ease-out", fill: "forwards" });
     c.animate([
-      { transform: "none", borderRadius: "24px", opacity: 1 },
-      { transform: `translate(${dx * 0.55}px, ${dy * 0.55}px) scale(${0.35 + s * 0.65})`, borderRadius: "40px", opacity: 1, offset: 0.6 },
-      { transform: `translate(${dx}px, ${dy}px) scale(${s})`, borderRadius: `${from.width / 2}px`, opacity: 0.25 },
+      { transform: "none", borderRadius: "12px", opacity: 1 },
+      { transform: `translate(${dx * 0.55}px, ${dy * 0.55}px) scale(${0.35 + s * 0.65})`, borderRadius: "20px", opacity: 1, offset: 0.6 },
+      { transform: `translate(${dx}px, ${dy}px) scale(${s})`, borderRadius: `${Math.min(from.width, from.height) / 4}px`, opacity: 0.25 },
     ], { duration: 460, easing: ease, fill: "forwards" }).finished.then(done, done);
   }
 

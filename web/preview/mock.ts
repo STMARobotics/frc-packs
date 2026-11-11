@@ -3,7 +3,8 @@
 // photos ship with the preview), and a bar on the Open tab picks the best card of the next pack.
 import raw from "../../data/packs/cmp26.json";
 import focus from "../../data/photos/focus.json";
-import type { Card, Opening, Recipe, State, Tier } from "../src/api";
+import extraSeedTeams from "./extra-seed-teams.json";
+import type { Card, Opening, Recipe, Shop, State, Tier } from "../src/api";
 
 /** How many teams of each rarity are in play: the first ones with a photo, in the recipe's order. The build tool picks
     the same teams' photos. */
@@ -12,7 +13,7 @@ const recipe = structuredClone(raw) as unknown as Recipe;
 const pool: Record<Tier, number[]> = { common: [], uncommon: [], rare: [], legendary: [], mythic: [] };
 for (const t of recipe.teams) {
   if (t.photo && pool[t.tier].length < CAST[t.tier]) pool[t.tier].push(t.num);
-  else t.photo = false;
+  else if (!extraSeedTeams.includes(t.num)) t.photo = false;
 }
 
 type Best = "auto" | "rare" | "legendary" | "mythic";
@@ -21,8 +22,14 @@ let best: Best = "auto";
 try { best = (localStorage.getItem(KEY) as Best) || "auto"; } catch { /* a fresh choice each visit */ }
 
 const owned = new Map<number, number[]>();
-// ?seed: start with a binder already filled (every team in play, a few with copies), for looking at the binder.
-if (new URLSearchParams(location.search).has("seed")) for (const t of Object.values(pool).flat()) owned.set(t, Array.from({ length: 1 + (t % 3) }, (_, i) => 1 + ((t * 7 + i * 13) % 90)));
+// ?seed: start with a binder containing the teams in play and cards that show specific layouts.
+const seededTeams = new Set([...Object.values(pool).flat(), ...extraSeedTeams]);
+if (new URLSearchParams(location.search).has("seed")) {
+  for (const t of seededTeams) {
+    const copies = extraSeedTeams.includes(t) ? 1 : 1 + (t % 3);
+    owned.set(t, Array.from({ length: copies }, (_, i) => 1 + ((t * 7 + i * 13) % 90)));
+  }
+}
 let opened = 0, nextId = 1, pending: Opening | null = null;
 const pick = <T,>(xs: T[]) => xs[Math.floor(Math.random() * xs.length)];
 const weighted = (w: [Tier, number][]): Tier => { let r = Math.random() * w.reduce((a, [, x]) => a + x, 0); for (const [t, x] of w) if ((r -= x) < 0) return t; return w[0][0]; };
@@ -58,10 +65,14 @@ const json = (body: unknown, status = 200) => new Response(JSON.stringify(body),
 
 function answer(method: string, path: string, body: Record<string, unknown>): Response {
   if (path.startsWith("/packs/")) return json(recipe);
-  if (path === "/photos/focus.json") return json(Object.fromEntries(Object.entries(focus).filter(([n]) => Object.values(pool).some((p) => p.includes(+n)))));
+  if (path === "/photos/focus.json") return json(Object.fromEntries(Object.entries(focus).filter(([n]) => seededTeams.has(+n))));
   if (path === "/notice.json") return json(null, 404);
   if (path === "/api/session" || path === "/api/state") return json(state());
   if (path.startsWith("/api/collection/")) return json({ pack: recipe.id, cards: [...owned].map(([num, serials]) => ({ num, serials })), sets: [] });
+  if (path === "/api/shop") {
+    const shop: Shop = { on: false, window: 0, endsAt: Date.now() + 14_400_000, items: [], stdPrice: 0, boostedPrice: 0 };
+    return json(shop);
+  }
   if (path === "/api/trades") return json({ incoming: [], outgoing: [], recent: [] });
   if (path === "/api/specials" || path === "/api/feedback/mine") return json([]);
   // One named effect (7028's, on whichever Mythic is in play) and one unnamed, to see both on cards.
@@ -106,7 +117,7 @@ function bar() {
     b.type = "button"; b.id = `pv-${v}`; b.textContent = label;
     b.setAttribute("aria-pressed", String(v === best));
     b.onclick = () => {
-      best = v; held = null;
+      best = v;
       try { localStorage.setItem(KEY, v); } catch { /* fine */ }
       for (const x of group.children) x.setAttribute("aria-pressed", String(x === b));
     };
