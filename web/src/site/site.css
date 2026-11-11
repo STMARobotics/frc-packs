@@ -303,7 +303,7 @@ body.s-page.pad :focus { outline: 3px solid var(--ac); outline-offset: 3px; }
 .pp-match:active { transform: scale(.98); }
 .pp-stats div { padding: 8px 2px; }
 .pp section { display: grid; gap: 8px; }
-.pp-pulls { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+.pp-pulls { display: flex; flex-wrap: wrap; gap: 10px; padding-bottom: 4px; } /* wraps: nothing scrolls sideways */
 .pp-pull { display: grid; justify-items: center; gap: 4px; flex: none; padding: 0; border: 0; background: none; color: var(--dim); font: 500 11px var(--body); cursor: pointer; }
 .pp-tiers { display: grid; gap: 6px; }
 .pp-tiers div { display: grid; grid-template-columns: 84px 1fr 64px; align-items: center; gap: 10px; font-size: 13px; }
@@ -351,7 +351,7 @@ body.s-page.pad :focus { outline: 3px solid var(--ac); outline-offset: 3px; }
 .sh-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
 .sh-head h1 { margin: 0; font: 400 30px var(--display); }
 .sh-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.sh-item { display: grid; gap: 6px; padding: 6px; border-radius: 14px; background: var(--s1); align-content: start; }
+.sh-item { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; padding: 6px; border-radius: 14px; background: var(--s1); align-content: start; }
 .sh-item.t-legendary { box-shadow: inset 0 0 0 1.5px #b478ff; }
 .sh-item.t-mythic { box-shadow: inset 0 0 0 2px #3cffdc, 0 0 24px rgba(60, 255, 220, .25); }
 .sh-item.sold .sh-what { opacity: .4; }
@@ -383,20 +383,27 @@ button.st-meter { border: 0; color: inherit; text-align: left; font: inherit; cu
 .st-why { grid-column: 1 / -1; margin: 0; padding: 10px 14px; border-radius: 14px; background: var(--s1); color: var(--dim); font-size: 13.5px; line-height: 1.45; }
 
 /* The Binder's filters: rarity chips, then division, sort, Missing and compact on one row. */
-.bn-tiers { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+.bn-tiers { flex-wrap: wrap; }
 .bn-tiers .s-chip { flex: none; }
 .bn-tiers .s-chip b { color: var(--tc, inherit); font-weight: 700; }
 .bn-row { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) auto auto; gap: 6px; }
 .bn-row .s-select { min-width: 0; }
 .bn-compact { width: 42px; padding: 0; justify-content: center; font-size: 18px; }
 
-/* The Shop's refresh countdown: a bold angled bar with a big ticking clock. */
+/* The Shop's refresh countdown: a bar whose red part is the time left until new stock (it shrinks over the 4 hours),
+   with a big ticking clock. */
 .sh-refresh { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 18px; overflow: hidden;
-  background: linear-gradient(100deg, #ff4655 0%, #c2263a 55%, #1a2133 55.2%, #1a2133 100%); clip-path: polygon(0 0, 100% 0, 100% 70%, 96% 100%, 0 100%);
-  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .25); }
-.sh-refresh small { font: 800 12px var(--body); letter-spacing: .16em; text-transform: uppercase; color: #fff; }
-.sh-refresh b { font: 400 30px/1 var(--display); font-variant-numeric: tabular-nums; letter-spacing: .06em; color: #fff; text-shadow: 0 0 14px rgba(255, 70, 85, .7); }
+  background: #1a2133; clip-path: polygon(0 0, 100% 0, 100% 70%, 96% 100%, 0 100%); box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .25); }
+.sh-refresh::before { content: ""; position: absolute; inset: 0 auto 0 0; width: calc(var(--left, 1) * 100%); background: linear-gradient(100deg, #ff4655, #c2263a);
+  transition: width 1s linear; }
+.sh-refresh > * { position: relative; }
+.sh-refresh small { font: 800 12px var(--body); letter-spacing: .14em; text-transform: uppercase; color: #fff; white-space: nowrap; }
+.sh-refresh b { font: 400 30px/1 var(--display); font-variant-numeric: tabular-nums; letter-spacing: .06em; color: #fff; text-shadow: 0 0 14px rgba(255, 70, 85, .7); white-space: nowrap; }
 /* A division's logo, on its pack in the Shop. */
 .dv-logo { position: absolute; left: 50%; top: 38%; width: 42%; aspect-ratio: 1; transform: translate(-50%, -50%); filter: drop-shadow(0 3px 6px rgba(0, 0, 0, .5)); pointer-events: none; }
 .dv-logo img, .dv-logo svg { width: 100%; height: 100%; object-fit: contain; display: block; }
 .sh-pack { position: relative; }
+
+/* Slots and rows never get wider than their column (a long name or a Legendary frame pushed them past the screen). */
+.sh-grid > * { min-width: 0; }
+.sh-item .s-btn { min-width: 0; width: 100%; }

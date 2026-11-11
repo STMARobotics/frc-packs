@@ -41,7 +41,7 @@ TOLERANCE = 0.05  # warn when A + P + E is more than 5% away from T
 NORM_ZERO, NORM_SCALE = 1450.0, 0.22
 HEADER = (f"# Battler stats, {SEASON} season. Source: Statbotics API v3 team_year, normalized EPA mapped onto the card\n"
           f"# scale as (norm - {NORM_ZERO:g}) * {NORM_SCALE:g}, split by each team's Auto / Teleop / Endgame EPA,\n"
-          "# then balanced: rarities closer together, and RP3 from each team's climb (tools/battler_stats.py).\n"
+          "# then balanced: rarities closer together (tools/battler_stats.py).\n"
           "# team|auto|tele|end|rp1 %|rp2 %|rp3 %\n")
 
 def get(url):
@@ -97,25 +97,22 @@ def stats(team, ty):
 #   where it was (total' = top * (total / top) ^ CURVE), and its three phases keep their shares. In 2026 an average
 #   Mythic was 4.6x an average Common; after this it's about 3.3x, and every robot keeps its order.
 # - RP chances get the same curve, so a weak robot's small chance isn't next to nothing (RP2 still never above RP1).
-# - RP3 is the climb. In 2026 almost nobody earned the Traversal RP, so Statbotics' rp_3 is 0 for nearly every team and
-#   station 3 never scored a bonus RP. RP3 comes from each robot's endgame (climb) points instead, up to RP3_TOP for
-#   the best climber at Champs.
+# - RP3 (the climb) is Statbotics' rp_3 like the others. In 2026 almost nobody earned the Traversal RP, so it's 0 for
+#   nearly every team: that's the real number. (0.14.0 made it from endgame points instead; 0.14.1 went back.)
 CURVE = 0.75
-RP3_TOP = 85
 
 
 def balance(rows):
-    """Balances every team's [auto, tele, end, rp1, rp2, rp3] at once (it needs the best total and climb at Champs)."""
+    """Balances every team's [auto, tele, end, rp1, rp2, rp3] at once (it needs the best total at Champs)."""
     top = max(sum(r[:3]) for r in rows.values()) or 1
-    climb = max(max(r[2], 0) for r in rows.values()) or 1
     out = {}
-    for team, (a, t, e, r1, r2, _r3) in rows.items():
+    for team, (a, t, e, r1, r2, r3) in rows.items():
         total = a + t + e
         k = (top * (total / top) ** CURVE) / total if total > 0 else 1
         lift = lambda x: max(0, min(100, jsround(100 * (x / 100) ** CURVE)))
         rp1 = lift(r1)
         rp2 = min(rp1, lift(r2))
-        rp3 = jsround(RP3_TOP * (max(e, 0) / climb) ** CURVE)
+        rp3 = lift(r3)
         out[team] = [jsround(a * k), jsround(t * k), jsround(e * k), rp1, rp2, rp3]
     return out
 
@@ -154,10 +151,10 @@ if __name__ == "__main__":
         # The spec's worked example: N=120 on the card scale, T=60, A=15, P=36, E=9 gives 30/72/18.
         ex = {"epa": {"norm": NORM_ZERO + 120 / NORM_SCALE, "total_points": 60, "breakdown": {"auto_points": 15, "teleop_points": 36, "endgame_points": 9, "rp_1": .42, "rp_2": 1.3, "rp_3": -.1}}}
         assert stats(0, ex) == ([30, 72, 18, 42, 42, 0], None), stats(0, ex)  # RP2 capped at RP1 (2026)
-        # The best robot keeps its total; a weaker one is lifted; RP3 follows the climb.
+        # The best robot keeps its total; a weaker one is lifted; RP3 stays Statbotics' own.
         b2 = balance({1: [30, 72, 18, 42, 42, 0], 2: [5, 10, 5, 9, 0, 0]})
-        assert sum(b2[1][:3]) == 120 and b2[1][5] == RP3_TOP, b2
-        assert sum(b2[2][:3]) > 20 and b2[2][3] > 9 and 0 < b2[2][5] < RP3_TOP, b2
+        assert sum(b2[1][:3]) == 120 and b2[1][5] == 0, b2
+        assert sum(b2[2][:3]) > 20 and b2[2][3] > 9 and b2[2][5] == 0, b2
         assert jsround(2.5) == 3 and jsround(-2.5) == -2
         assert stats(0, {"epa": {"norm": 1800, "total_points": 0, "breakdown": {}}})[0] is None
         # 2026's best (norm 1997) is about 120 on the card scale; an average team (1500) about 11.

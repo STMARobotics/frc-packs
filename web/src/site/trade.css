@@ -161,3 +161,6 @@
 .td-pwho { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
 .td-prow > small { flex: none; white-space: nowrap; }
 .td-sort { margin: 2px 0; }
+.td-prow { min-width: 0; overflow: hidden; }
+.td-pwho .so-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.td-prow > .s-chipbtn { flex: none; }

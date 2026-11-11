@@ -173,8 +173,9 @@ export function ShopTab({ active }: { active: boolean }) {
     <div class="s-screen sh-shop">
       <header class="sh-head"><h1>Shop</h1></header>
       {/* The refresh, front and centre: when the cards and the division pack change. */}
-      <div class="sh-refresh" role="timer" aria-label={`New stock in ${left(sh.endsAt - now)}`}>
-        <small>Offers refresh in</small>
+      <div class="sh-refresh" role="timer" aria-label={`New stock in ${left(sh.endsAt - now)}`}
+        style={{ "--left": Math.max(0, Math.min(1, (sh.endsAt - now) / (4 * 3600_000))).toFixed(4) }}>
+        <small>Refreshes in</small>
         <b>{clock(sh.endsAt - now)}</b>
       </div>
       <div class="sh-grid">

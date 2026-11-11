@@ -111,7 +111,7 @@ function CardView({ num, o }: { num: number; o: CardOpts }) {
         ) : <TiltCard num={num} serial={serial} w="min(310px, 80vw, calc((100svh - 250px) / 1.4))" />}
       </div>
       {b.length > 0 && view === "card" && <div class="cw-badges">{b.map(([k, l]) => <span class={`s-bdg ${k}`}>{l}</span>)}</div>}
-      {view !== "copies" && <p class="cw-note">{o.from ? `${o.from} ` : ""}{owned ? `You own ${mine.length === 1 ? "1 copy" : `${mine.length} copies`}.` : "You don't have this one yet."}</p>}
+      {view !== "copies" && (o.from || !owned) && <p class="cw-note">{o.from ? `${o.from} ` : ""}{owned ? "" : "You don't have this one yet."}</p>}
       <div class="cw-bottom">
         <div class="s-row2">
           {o.action ? <button type="button" class="s-btn" onClick={() => closeAll(o.action!.run)}>{o.action.label}</button>
