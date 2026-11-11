@@ -59,6 +59,9 @@ pub struct Profile {
     pub invite_code: Option<String>,
     pub created_at: i64,
     pub pack_ping_at: Option<i64>,
+    /// Kinds of push notification this player turned off (see push::KINDS).
+    #[serde(default)]
+    pub notify_off: Vec<String>,
     /// The opening still being revealed, if any.
     pub pending_open: Option<i64>,
     /// The rarity version this player's cards are up to (see `retier`).

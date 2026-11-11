@@ -242,6 +242,8 @@ pub struct StateOut {
     showcase: Vec<i32>,
     /// Teams that are never scrapped.
     favorites: Vec<i32>,
+    /// Kinds of notification turned off.
+    notify_off: Vec<String>,
     /// A note to show once (then the site calls /notice/seen).
     notice: Option<String>,
     /// Teams whose rarity differs from the pack recipe file the site loaded (the admin changed them), by team number.
@@ -441,6 +443,7 @@ pub async fn load_state(s: &Shared, user: Uuid) -> ApiResult<StateOut> {
         level,
         wishlist,
         favorites,
+        notify_off: p.notify_off.clone(),
         showcase: p.showcase.clone(),
         notice: p.notice.clone(),
         tiers: overrides.iter().map(|(k, v)| (k.to_string(), *v)).collect(),

@@ -341,3 +341,7 @@ body.s-page.pad :focus { outline: 3px solid var(--ac); outline-offset: 3px; }
 .ed-tile em { position: absolute; top: 4px; right: 4px; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--ac); color: #001018; font: 700 12px var(--body); font-style: normal; }
 
 .ws-keep { align-items: center; }
+
+/* A notification kind, under the Notifications switch (Settings). */
+.sg-line.sg-sub { padding-left: 18px; }
+.sg-line.sg-sub b { font-weight: 600; font-size: 14px; }

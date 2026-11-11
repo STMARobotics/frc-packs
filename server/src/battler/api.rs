@@ -717,7 +717,7 @@ async fn join_game(
 
 async fn join_into(db: &Db, uid: Uuid, id: &str, code: Option<&str>, stale: Option<String>) -> ApiResult<Json<Value>> {
     let seat = seat_for(db, uid).await?;
-    retry!(async {
+    let g = retry!(async {
         let (mut g, ver) = load(db, id).await?.ok_or_else(not_found)?;
         if !code_ok(&g, code) {
             return Err(ApiError::new(StatusCode::FORBIDDEN, "private_game"));
@@ -728,9 +728,24 @@ async fn join_into(db: &Db, uid: Uuid, id: &str, code: Option<&str>, stale: Opti
         let mut tx = Tx::new();
         claim_active(&mut tx, uid, id, stale.clone());
         save(db, &mut g, ver, was, tx).await?;
-        Ok::<_, ApiError>(Json(view_json(g.view(Some(1)))))
-    })
+        Ok::<_, ApiError>(g)
+    })?;
+    // The player who was waiting hears about it, in case they left the page.
+    crate::push::notify(
+        db,
+        g.seat(0).uid,
+        crate::push::Note {
+            title: "Opponent found".into(),
+            body: format!("{} joined your game. Your match is starting.", g.seat(1).name),
+            url: format!("/battle.html#game/{}", g.id),
+            tag: format!("match-{}", g.id),
+            kind: "match",
+        },
+    )
+    .await;
+    Ok(Json(view_json(g.view(Some(1)))))
 }
+
 
 /// Quick Play. Joins whoever in the queue has waited longest, or starts a game and waits in the queue. The waiting player
 /// asks again every few seconds: if two people queued at the same moment and both started a game, the newer one gives

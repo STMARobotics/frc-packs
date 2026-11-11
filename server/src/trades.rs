@@ -452,6 +452,7 @@ async fn offer(State(s): State<Shared>, user: User, key: IdemKey, Json(req): Jso
             ),
             url: "/#trade".into(),
             tag: format!("trade-{me}"),
+            kind: "offer",
         },
     )
     .await;
@@ -862,6 +863,7 @@ async fn accept(State(s): State<Shared>, user: User, Path(id): Path<i64>) -> Api
             },
             url: "/#binder".into(),
             tag: format!("trade-done-{id}"),
+            kind: "accepted",
         },
     )
     .await;
@@ -925,6 +927,21 @@ async fn decide(s: &Shared, user: User, id: i64, by_maker: bool) -> ApiResult<Js
     }
     if !close(&s.db, id, if by_maker { "cancelled" } else { "declined" }).await? {
         return Err(err(StatusCode::NOT_FOUND, "trade_gone"));
+    }
+    if !by_maker {
+        let who = api::me(&s.db, user.id).await?.username.unwrap_or_else(|| "Someone".into());
+        push::notify(
+            &s.db,
+            t.from_user,
+            push::Note {
+                title: format!("{who} declined your trade"),
+                body: "Your cards, packs and parts are free to offer again.".into(),
+                url: "/#trade".into(),
+                tag: format!("declined-{id}"),
+                kind: "declined",
+            },
+        )
+        .await;
     }
     Ok(Json(list_in(&s.db, user.id).await?))
 }

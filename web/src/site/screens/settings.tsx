@@ -15,9 +15,19 @@ export function openSettings() {
   push(() => <Settings />, "page");
 }
 
-function Line({ title, note, children }: { title: string; note?: ComponentChildren; children?: ComponentChildren }) {
-  return <div class="sg-line"><span><b>{title}</b>{note && <small>{note}</small>}</span>{children}</div>;
+function Line({ title, note, children, sub }: { title: string; note?: ComponentChildren; children?: ComponentChildren; sub?: boolean }) {
+  return <div class={cx("sg-line", sub && "sg-sub")}><span><b>{title}</b>{note && <small>{note}</small>}</span>{children}</div>;
 }
+/** The kinds of notification, as the server names them. */
+const KINDS: [string, string][] = [
+  ["pack", "Free pack ready"],
+  ["offer", "Trade offers and counter-offers"],
+  ["accepted", "Your trade was accepted"],
+  ["declined", "Your trade was declined"],
+  ["match", "Opponent found in Battle"],
+  ["news", "Accepted feedback and rarity changes"],
+];
+
 const Toggle = ({ on, onClick, disabled }: { on: boolean; onClick: () => void; disabled?: boolean }) => (
   <button type="button" class={cx("s-toggle", on && "on")} role="switch" aria-checked={on} disabled={disabled} onClick={onClick}><i /></button>
 );
@@ -107,9 +117,19 @@ function Settings() {
       </section>
 
       <section class="sg-group"><h2 class="s-h2">Game</h2>
-        <Line title="Notifications" note={ps === "ios-home" ? "Add FRC Packs to your home screen first (Share, Add to Home Screen)." : ps === "blocked" ? "Blocked in your browser's site settings." : ps === "unsupported" ? "This browser can't show them." : "Free pack ready, trade offers, accepted trades."}>
+        <Line title="Notifications" note={ps === "ios-home" ? "Add FRC Packs to your home screen first (Share, Add to Home Screen)." : ps === "blocked" ? "Blocked in your browser's site settings." : ps === "unsupported" ? "This browser can't show them." : ps === "on" ? "On for this device. Pick which ones below." : "Turn on to pick which ones."}>
           <Toggle on={ps === "on"} disabled={!(ps === "on" || ps === "off") || busy === "push"} onClick={() => run("push", togglePush)} />
         </Line>
+        {/* Which kinds (#119): saved on your account, so they apply on every device. */}
+        {ps === "on" && KINDS.map(([k, title]) => {
+          const off = s.notifyOff ?? [];
+          const on = !off.includes(k);
+          const flip = () => run(`n-${k}`, async () => {
+            const next = on ? [...off, k] : off.filter((x) => x !== k);
+            st.set({ ...st.get()!, notifyOff: await api.notifyPrefs(next) });
+          });
+          return <Line title={title} sub><Toggle on={on} disabled={busy === `n-${k}`} onClick={flip} /></Line>;
+        })}
         <Line title="Sound"><Toggle on={!p.muted} onClick={() => setPrefs((x) => { x.muted = !x.muted; })} /></Line>
       </section>
 

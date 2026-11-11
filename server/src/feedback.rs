@@ -234,6 +234,7 @@ async fn set_status(
                             body: "Thanks! A free pack is waiting for you.".into(),
                             url: "/#open".into(),
                             tag: format!("feedback-{id}"),
+                            kind: "news",
                         },
                     )
                     .await;

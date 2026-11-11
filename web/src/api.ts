@@ -103,6 +103,8 @@ export interface State {
   /** A note to show once; call api.noticeSeen() after showing it. */
   notice?: string | null;
   favorites?: number[];
+  /** Kinds of notification turned off (pack, offer, accepted, declined, match, news). */
+  notifyOff?: string[];
   /** Collector level: one per `per` different teams; `claimed` levels have paid out. */
   level?: { teams: number; level: number; claimed: number; per: number; reward: number };
   /** Server time in ms, so timers don't depend on the device clock. */
@@ -448,6 +450,7 @@ export const api = {
   cancelTrade: (id: number) => call<Trades>("POST", `/api/trades/${id}/cancel`),
   /** The server's push key (null when push isn't set up), and turning notifications on or off for this browser. */
   pushKey: () => call<{ key: string | null }>("GET", "/api/push/key"),
+  notifyPrefs: (off: string[]) => call<string[]>("POST", "/api/push/prefs", { off }),
   pushSubscribe: (sub: { endpoint: string; keys: { p256dh: string; auth: string } }) => call<void>("POST", "/api/push/subscribe", sub),
   pushUnsubscribe: (endpoint: string) => call<void>("POST", "/api/push/unsubscribe", { endpoint }),
   /** A player's profile: showcase, stats, rarest cards, wishlist. */
