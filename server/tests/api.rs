@@ -3136,3 +3136,146 @@ async fn teams_you_get_leave_your_wishlist() {
     let st = call(&app, "GET", "/api/state", Some(&ca), None).await.body;
     assert_eq!(st["wishlist"], json!([]), "a team got in a trade leaves the list too");
 }
+
+// ---------- the shop (0.14) ----------
+
+fn shop_item<'a>(shop: &'a Value, slot: &str) -> &'a Value {
+    shop["items"].as_array().unwrap().iter().find(|i| i["slot"] == slot).unwrap()
+}
+
+async fn buy_slot(app: &Router, c: &str, item: &Value) -> Res {
+    let body = json!({ "slot": item["slot"], "window": item["window"], "price": item["price"] });
+    call_key(app, "POST", "/api/shop/buy", Some(c), Some(body), Some(&Uuid::new_v4().to_string())).await
+}
+
+/// A card from the shop: bought once per window, paid at the price shown, a fresh serial like a pull; a stale window or
+/// price buys nothing. Ten buys of one slot at once: one card, paid once.
+#[tokio::test]
+async fn the_shop_sells_each_card_once() {
+    let (app, db) = need_db!(setup(true));
+    let (c, _) = player(&app, &db).await;
+    let id = user_id(&db, &c).await;
+    kit::set_parts(&db, id, 1_000_000).await;
+    let shop = call(&app, "GET", "/api/shop", Some(&c), None).await;
+    assert_eq!(shop.status, StatusCode::OK, "{}", shop.body);
+    assert_eq!(shop.body["items"].as_array().unwrap().len(), 4);
+    let c1 = shop_item(&shop.body, "c1").clone();
+    assert_eq!(c1["kind"], "card");
+    let price = c1["price"].as_i64().unwrap();
+
+    let stale = json!({ "slot": "c1", "window": c1["window"].as_i64().unwrap() - 1, "price": price });
+    let r = call_key(&app, "POST", "/api/shop/buy", Some(&c), Some(stale), Some(&Uuid::new_v4().to_string())).await;
+    assert_eq!(r.body["error"], "shop_changed");
+    let cheap = json!({ "slot": "c1", "window": c1["window"], "price": price - 1 });
+    let r = call_key(&app, "POST", "/api/shop/buy", Some(&c), Some(cheap), Some(&Uuid::new_v4().to_string())).await;
+    assert_eq!(r.body["error"], "price_changed");
+    assert_eq!(kit::parts(&db, id).await, 1_000_000, "nothing spent");
+
+    let r = buy_slot(&app, &c, &c1).await;
+    assert_eq!(r.status, StatusCode::OK, "{}", r.body);
+    assert_eq!(r.body["card"]["num"], c1["num"]);
+    assert_eq!(r.body["state"]["parts"], 1_000_000 - price);
+    assert_eq!(shop_item(&r.body["shop"], "c1")["sold"], true);
+    let r = buy_slot(&app, &c, &c1).await;
+    assert_eq!(r.body["error"], "sold_out");
+
+    let c2 = shop_item(&shop.body, "c2").clone();
+    let jobs: Vec<_> = (0..10)
+        .map(|_| {
+            let (app, c, c2) = (app.clone(), c.clone(), c2.clone());
+            async move { buy_slot(&app, &c, &c2).await }
+        })
+        .collect();
+    let rs = futures_join(jobs).await;
+    assert_eq!(rs.iter().filter(|r| r.status == StatusCode::OK).count(), 1, "one card");
+    assert!(rs.iter().all(|r| r.status.as_u16() < 500));
+    assert_eq!(kit::parts(&db, id).await, 1_000_000 - price - c2["price"].as_i64().unwrap(), "paid once");
+}
+
+/// A frozen slot keeps its stock; only what's in the shop now can be frozen, one slot at a time.
+#[tokio::test]
+async fn a_shop_slot_can_be_frozen() {
+    let (app, db) = need_db!(setup(true));
+    let (c, _) = player(&app, &db).await;
+    let shop = call(&app, "GET", "/api/shop", Some(&c), None).await.body;
+    let w = shop_item(&shop, "c3")["window"].as_i64().unwrap();
+    let r = call(&app, "POST", "/api/shop/freeze", Some(&c), Some(json!({ "slot": "c3", "window": w - 1 }))).await;
+    assert_eq!(r.body["error"], "shop_changed");
+    let r = call(&app, "POST", "/api/shop/freeze", Some(&c), Some(json!({ "slot": "c3", "window": w }))).await;
+    assert_eq!(r.status, StatusCode::OK, "{}", r.body);
+    assert_eq!(shop_item(&r.body, "c3")["frozen"], true);
+    let r = call(&app, "POST", "/api/shop/freeze", Some(&c), Some(json!({ "slot": "c1", "window": w }))).await;
+    assert_eq!(shop_item(&r.body, "c1")["frozen"], true);
+    assert_eq!(shop_item(&r.body, "c3")["frozen"], false, "one at a time");
+    let r = call(&app, "POST", "/api/shop/freeze", Some(&c), Some(json!({ "slot": null }))).await;
+    assert!(r.body["items"].as_array().unwrap().iter().all(|i| i["frozen"] == false));
+}
+
+/// A division pack: bought, then opened at once with the usual opening, every card from its division, no sealed pack
+/// used; it can't be opened twice.
+#[tokio::test]
+async fn a_division_pack_opens_from_its_division() {
+    let (app, db) = need_db!(setup(true));
+    let (c, st) = player(&app, &db).await;
+    let id = user_id(&db, &c).await;
+    kit::set_parts(&db, id, 10_000).await;
+    let shop = call(&app, "GET", "/api/shop", Some(&c), None).await.body;
+    let div = shop_item(&shop, "div").clone();
+    let d = div["division"].as_str().unwrap().to_string();
+    let r = buy_slot(&app, &c, &div).await;
+    assert_eq!(r.status, StatusCode::OK, "{}", r.body);
+    assert_eq!(r.body["division"], d.as_str());
+    let o = call(&app, "POST", "/api/open", Some(&c), Some(json!({ "pack": PACK, "division": d }))).await;
+    assert_eq!(o.status, StatusCode::OK, "{}", o.body);
+    let teams = recipe();
+    for card in o.body["opening"]["cards"].as_array().unwrap() {
+        let t = teams["teams"].as_array().unwrap().iter().find(|t| t["num"] == card["num"]).unwrap();
+        assert_eq!(t["div"], d.as_str(), "every card from {d}");
+    }
+    assert_eq!(sealed(&o.body["state"]), sealed(&st), "no sealed pack used");
+    let again = call(&app, "POST", "/api/open", Some(&c), Some(json!({ "pack": PACK, "division": d }))).await;
+    assert_eq!(again.body["error"], "no_packs");
+}
+
+/// Packs for parts: Standard and Boosted (crafting) count toward one daily limit.
+#[tokio::test]
+async fn bought_packs_have_a_daily_limit() {
+    let (app, db) = need_db!(setup(true));
+    let (c, st) = player(&app, &db).await;
+    let id = user_id(&db, &c).await;
+    kit::set_parts(&db, id, 100_000).await;
+    for k in 0..10 {
+        let kind = if k % 2 == 0 { "std" } else { "boosted" };
+        let key = Uuid::new_v4().to_string();
+        let r = call_key(&app, "POST", "/api/shop/pack", Some(&c), Some(json!({ "kind": kind })), Some(&key)).await;
+        assert_eq!(r.status, StatusCode::OK, "pack {k}: {}", r.body);
+    }
+    let key = Uuid::new_v4().to_string();
+    let r = call_key(&app, "POST", "/api/shop/pack", Some(&c), Some(json!({ "kind": "std" })), Some(&key)).await;
+    assert_eq!(r.body["error"], "pack_limit");
+    let r = call(&app, "POST", "/api/craft", Some(&c), Some(json!({}))).await;
+    assert_eq!(r.body["error"], "pack_limit", "crafting counts too");
+    let now = call(&app, "GET", "/api/state", Some(&c), None).await.body;
+    assert_eq!(packs_of(&now), (packs_of(&st).0 + 10, packs_of(&st).1 + 5));
+    assert_eq!(now["parts"], 100_000 - 5 * 120 - 5 * st["boostCost"].as_i64().unwrap());
+}
+
+/// Any one copy can be scrapped when the player picks it: their only copy, or a Mythic. Scrapping all extras still
+/// keeps one of each.
+#[tokio::test]
+async fn a_picked_copy_can_be_scrapped_even_the_last() {
+    let (app, db) = need_db!(setup(true));
+    let (c, _) = player(&app, &db).await;
+    let id = user_id(&db, &c).await;
+    let mythic = team_of("mythic", 3);
+    let serial = give_card(&db, id, mythic, "mythic").await;
+    let body = json!({ "pack": PACK, "num": mythic, "count": 1, "serial": serial });
+    let r = call_key(&app, "POST", "/api/scrap", Some(&c), Some(body), Some(&Uuid::new_v4().to_string())).await;
+    assert_eq!(r.status, StatusCode::OK, "{}", r.body);
+    assert_eq!(r.body["gained"], 600);
+    assert!(r.body["collection"]["cards"].as_array().unwrap().iter().all(|x| x["num"] != mythic), "gone");
+    let common = team_of("common", 7);
+    give_card(&db, id, common, "common").await;
+    let r = call(&app, "POST", "/api/scrap/extras", Some(&c), Some(json!({ "pack": PACK, "tiers": ["common"] }))).await;
+    assert_eq!(r.body["scrapped"], 0);
+}

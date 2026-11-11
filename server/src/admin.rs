@@ -335,14 +335,15 @@ async fn save_settings(State(s): State<Shared>, _admin: Admin, Json(r): Json<Rul
         return Err(err(StatusCode::BAD_REQUEST, "bad_request"));
     }
     let set = Cond::new(
-        "SET claim_minutes = :a, claim_packs = :b, bank = :c, start_packs = :d, boost_cost = :e, donate_url = :f",
+        "SET claim_minutes = :a, claim_packs = :b, bank = :c, start_packs = :d, boost_cost = :e, donate_url = :f,          shop = :g",
     )
     .val(":a", n(r.claim_minutes))
     .val(":b", n(r.claim_packs))
     .val(":c", n(r.bank))
     .val(":d", n(r.start_packs))
     .val(":e", n(r.boost_cost))
-    .val(":f", sv(r.donate_url.clone().unwrap_or_default()));
+    .val(":f", sv(r.donate_url.clone().unwrap_or_default()))
+    .val(":g", sv(serde_json::to_string(&r.shop).unwrap_or_default()));
     let mut tx = Tx::new();
     tx.update("", "SETTINGS", "SETTINGS", set, None);
     // Every version of the rules, kept so the anticheat's supply check knows what the timer paid at any moment.

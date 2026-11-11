@@ -133,6 +133,15 @@ mod leaderboard_tests {
     use super::*;
 
     #[test]
+    fn full_games_pay_parts_up_to_the_daily_limits() {
+        assert_eq!(battle_reward(0, 0, false), 50);
+        assert_eq!(battle_reward(0, 0, true), 75, "a win pays more");
+        assert_eq!(battle_reward(4, 1, true), 75, "the fifth game of the day, the second against them");
+        assert_eq!(battle_reward(5, 0, true), 0, "five paid games a day");
+        assert_eq!(battle_reward(1, 2, false), 0, "two paid games a day against the same player");
+    }
+
+    #[test]
     fn orders_by_elo_shares_tied_ranks_and_excludes_unplayed_accounts() {
         let row = |name: &str, elo, games| LeaderboardPlayer {
             rank: 0,
@@ -539,6 +548,15 @@ pub const BATTLE_WIN_PARTS: i64 = 25;
 pub const BATTLES_PAID_PER_DAY: i64 = 5;
 pub const PAID_PER_OPPONENT: i64 = 2;
 
+/// Parts for one full game, given how many paid games the player has had today, and against this opponent.
+pub fn battle_reward(paid_today: i64, paid_vs: i64, won: bool) -> i64 {
+    if paid_today >= BATTLES_PAID_PER_DAY || paid_vs >= PAID_PER_OPPONENT {
+        0
+    } else {
+        BATTLE_PARTS + if won { BATTLE_WIN_PARTS } else { 0 }
+    }
+}
+
 /// What a player got for a finished game, once: `BTPAID#<game>` is written in the same write, so this is safe to call
 /// again (it's also tried whenever a finished game is looked at). Returns the parts paid to each side.
 async fn pay_battle(db: &Db, g: &Game) -> ApiResult<[i64; 2]> {
@@ -561,11 +579,7 @@ async fn pay_battle(db: &Db, g: &Game) -> ApiResult<[i64; 2]> {
             let vs = format!("battle_vs_{opp}");
             let paid_today = day.counts.get("battle_paid").copied().unwrap_or(0);
             let paid_vs = day.counts.get(&vs).copied().unwrap_or(0);
-            let parts = if paid_today >= BATTLES_PAID_PER_DAY || paid_vs >= PAID_PER_OPPONENT {
-                0
-            } else {
-                BATTLE_PARTS + if won { BATTLE_WIN_PARTS } else { 0 }
-            };
+            let parts = battle_reward(paid_today, paid_vs, won);
             let mut tx = Tx::new();
             let mut m = crate::db::key(upk(uid), mark.clone());
             m.insert("parts".into(), n(parts));

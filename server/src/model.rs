@@ -161,6 +161,12 @@ pub struct PackRow {
     pub pity_m: i32,
     #[serde(default)]
     pub pity_l: i32,
+    /// Division packs bought in the shop and not opened yet, by division (they open right away; never traded).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub division: Vec<String>,
+    /// How many of `opened` were division packs (for the anticheat's count of bonus packs).
+    #[serde(default)]
+    pub div_opened: i32,
 }
 
 impl PackRow {
@@ -195,6 +201,10 @@ pub fn save_pack(tx: &mut Tx, p: &mut Profile, before: &PackRow, after: &PackRow
     }
     if after.boosted != before.boosted {
         ledger(tx, user, "boosted", i64::from(after.boosted - before.boosted), Some(after.pack.clone()), reason);
+    }
+    if after.division.len() != before.division.len() {
+        let d = after.division.len() as i64 - before.division.len() as i64;
+        ledger(tx, user, "division", d, Some(after.pack.clone()), reason);
     }
 }
 
@@ -281,6 +291,9 @@ pub struct Opening {
     /// How many Mythics it held, with the rarities as they were when it was opened (rarities can change later).
     #[serde(default)]
     pub mythics: Option<i32>,
+    /// A division pack from the shop: its five cards all came from this division.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub division: Option<String>,
 }
 
 pub fn open_sk(id: i64) -> String {
@@ -400,6 +413,37 @@ pub async fn settings_item(db: &Db) -> DbResult<Item> {
 
 pub fn tz() -> chrono_tz::Tz {
     std::env::var("GAME_TZ").ok().and_then(|t| t.parse().ok()).unwrap_or(chrono_tz::America::Chicago)
+}
+
+/// The shop's stock changes every this many hours, on the clock in the game's time zone (12am, 4am, 8am...).
+pub const SHOP_HOURS: u32 = 4;
+
+/// Which shop window a moment (ms) is in: 6 a day, numbered from 2020-01-01 in the game's time zone.
+pub fn shop_window(ms: i64) -> i64 {
+    use chrono::{TimeZone, Timelike};
+    let t = Utc.timestamp_millis_opt(ms).single().unwrap_or_else(Utc::now).with_timezone(&tz());
+    day_of(t.date_naive()) * i64::from(24 / SHOP_HOURS) + i64::from(t.hour() / SHOP_HOURS)
+}
+
+/// When the shop window `ms` is in ends (ms): the next 4-hour mark on the game's clock.
+pub fn shop_window_end(ms: i64) -> i64 {
+    use chrono::{TimeZone, Timelike};
+    let z = tz();
+    let t = Utc.timestamp_millis_opt(ms).single().unwrap_or_else(Utc::now).with_timezone(&z);
+    let start = t.date_naive().and_hms_opt((t.hour() / SHOP_HOURS) * SHOP_HOURS, 0, 0).expect("a real hour");
+    let next = start + chrono::Duration::hours(i64::from(SHOP_HOURS));
+    // Daylight saving moves 2am, never a 4-hour mark; if it ever did, the earliest reading of it.
+    z.from_local_datetime(&next).earliest().map_or(ms + i64::from(SHOP_HOURS) * 3_600_000, |d| d.timestamp_millis())
+}
+
+fn day_of(d: chrono::NaiveDate) -> i64 {
+    i64::from(d.num_days_from_ce() - chrono::NaiveDate::from_ymd_opt(2020, 1, 1).unwrap().num_days_from_ce())
+}
+
+/// The day (as `day_number` counts) a moment (ms) falls on in the game's time zone.
+pub fn day_at(ms: i64) -> i64 {
+    use chrono::TimeZone;
+    day_of(Utc.timestamp_millis_opt(ms).single().unwrap_or_else(Utc::now).with_timezone(&tz()).date_naive())
 }
 
 /// Today in the game's time zone, as a day number since 2020-01-01 (missions and the streak use it).
