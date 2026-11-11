@@ -276,7 +276,7 @@ pub fn run(all: &[Item], pack: &Pack, rules: &Rules, dev_tools: bool, now: i64) 
                         r,
                         "claim" | "new account" | "craft" | "open" | "open, streak" | "feedback reward" | "admin gift"
                     ),
-                    "parts" => matches!(r, "scrap" | "level" | "mission" | "rarity change"),
+                    "parts" => matches!(r, "scrap" | "level" | "mission" | "rarity change" | "battle"),
                     "card" => matches!(r, "open" | "open, streak"),
                     _ => true,
                 };
@@ -332,6 +332,13 @@ pub fn run(all: &[Item], pack: &Pack, rules: &Rules, dev_tools: bool, now: i64) 
         let missions = sum(&|r| r == "mission", &["parts"], true);
         if missions > days * max_mission_day {
             ev.push(format!("{missions} parts from missions in {days} days (at most {max_mission_day} a day)"));
+        }
+        let battle = sum(&|r| r == "battle", &["parts"], true);
+        let battle_max = days
+            * crate::battler::api::BATTLES_PAID_PER_DAY
+            * (crate::battler::api::BATTLE_PARTS + crate::battler::api::BATTLE_WIN_PARTS);
+        if battle > battle_max {
+            ev.push(format!("{battle} parts from battles in {days} days (at most {battle_max})"));
         }
         let scrapped = -sum(&|r| r == "scrap", &["card"], false);
         let scrap_parts = sum(&|r| r == "scrap", &["parts"], true);

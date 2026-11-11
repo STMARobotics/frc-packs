@@ -40,7 +40,7 @@ export function Card({ r, w, cls, children }: { r: RobotCard; w: string; cls?: s
               <div class="stat"><small>END</small><b>{s.end}</b></div>
             </div>
             <div class="rprow">{s.rp.map((p, i) => <div class="rp"><i>RP{i + 1}</i><b>{p}%</b></div>)}</div>
-            <div class="effect"><small>UNIQUE EFFECT</small>{r.effect_text ? <p>{r.effect_text}</p> : <p class="tbd">No effect yet</p>}</div>
+            <div class="effect">{r.effect_text ? <p>{r.effect_text}</p> : <p class="tbd">No effect yet</p>}</div>
           </div>
           <div class="ftb">
             <span class="rar" aria-label={`${STARS[r.tier] ?? 1} of 5 stars`}>{[0, 1, 2, 3, 4].map((i) => <i class={i < (STARS[r.tier] ?? 1) ? "on" : undefined}>★</i>)}</span>

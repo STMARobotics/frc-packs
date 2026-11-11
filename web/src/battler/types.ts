@@ -59,6 +59,8 @@ export interface GameView {
   mode: "open" | "quick" | "private"; code?: string;
   /** A private match's wager: none, stakes on the table, or locked in escrow; `stakes` has the details. */
   wager: "none" | "open" | "locked";
+  /** Parts you got for this finished game (none for a forfeit, or past the day's limits). */
+  parts_won?: number;
   stakes?: { stakes: [Stake, Stake]; accepted: [boolean, boolean]; status: "open" | "locked" | "settled" | "returned"; winner: number | null; held: [StakeHeld, StakeHeld] };
 }
 export interface Stake { parts: number; packs: number; boosted: number; teams: number[]; specials: number[]; pink: boolean }

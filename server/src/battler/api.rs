@@ -525,7 +525,69 @@ async fn save(db: &Db, g: &mut Game, ver: i64, was_over: bool, mut tx: Tx) -> Ap
     if g.status.over() && g.wager == game::Wager::Locked {
         settle_wager(db, g).await?;
     }
+    if g.status == Status::Final && !was_over {
+        pay_battle(db, g).await?;
+    }
     Ok(())
+}
+
+/// Parts for playing a full game (#108): every finished game pays, a win more. Forfeits and timeouts don't, and a
+/// player is paid for at most `BATTLES_PAID_PER_DAY` games a day and `PAID_PER_OPPONENT` against any one opponent, so
+/// two accounts can't farm each other.
+pub const BATTLE_PARTS: i64 = 50;
+pub const BATTLE_WIN_PARTS: i64 = 25;
+pub const BATTLES_PAID_PER_DAY: i64 = 5;
+pub const PAID_PER_OPPONENT: i64 = 2;
+
+/// What a player got for a finished game, once: `BTPAID#<game>` is written in the same write, so this is safe to call
+/// again (it's also tried whenever a finished game is looked at). Returns the parts paid to each side.
+async fn pay_battle(db: &Db, g: &Game) -> ApiResult<[i64; 2]> {
+    let mut out = [0; 2];
+    let Some(o) = &g.outcome else { return Ok(out) };
+    if g.status != Status::Final || o.reason != "complete" || g.seats.iter().flatten().count() < 2 {
+        return Ok(out);
+    }
+    for side in 0..2 {
+        let (uid, opp) = (g.seat(side).uid, g.seat(1 - side).uid);
+        let mark = format!("BTPAID#{}", g.id);
+        if let Some(it) = db.get(&upk(uid), &mark).await? {
+            out[side] = get_n(&it, "parts").unwrap_or(0);
+            continue;
+        }
+        let won = o.winner == Some(side);
+        out[side] = retry!(async {
+            let mut p = crate::api::me(db, uid).await?;
+            let mut day = model::today(db, uid).await?;
+            let vs = format!("battle_vs_{opp}");
+            let paid_today = day.counts.get("battle_paid").copied().unwrap_or(0);
+            let paid_vs = day.counts.get(&vs).copied().unwrap_or(0);
+            let parts = if paid_today >= BATTLES_PAID_PER_DAY || paid_vs >= PAID_PER_OPPONENT {
+                0
+            } else {
+                BATTLE_PARTS + if won { BATTLE_WIN_PARTS } else { 0 }
+            };
+            let mut tx = Tx::new();
+            let mut m = crate::db::key(upk(uid), mark.clone());
+            m.insert("parts".into(), n(parts));
+            m.insert("expires_at".into(), n(chrono::Utc::now().timestamp() + 40 * 86_400));
+            tx.put_if("paid", m, Some(Cond::absent()));
+            if parts > 0 {
+                *day.counts.entry("battle_paid".into()).or_default() += 1;
+                *day.counts.entry(vs).or_default() += 1;
+                model::save_day(&mut tx, uid, &mut day);
+                let before = p.parts;
+                p.parts += parts;
+                model::save_user(&mut tx, &mut p, before, "battle");
+            }
+            match tx.commit(db).await {
+                Ok(()) => Ok(parts),
+                // Paid already, by another request that got there first.
+                Err(crate::db::DbError::Conflict("paid")) => Ok(0),
+                Err(e) => Err(ApiError::from(e)),
+            }
+        })?;
+    }
+    Ok(out)
 }
 
 /// Pays out a finished game's wager: the winner gets both stakes; a draw or a game called off gives each theirs back.
@@ -740,6 +802,13 @@ async fn game_json(db: &Db, g: &Game, side: Option<usize>) -> ApiResult<Json<Val
         v["stakes"] = json!({ "stakes": w.stakes, "accepted": w.accepted, "status": w.status, "winner": w.winner,
             "held": [held(&w.held[0]), held(&w.held[1])] });
     }
+    // The parts this player got for the game (none for a forfeit, or past the day's limit).
+    if g.status == Status::Final
+        && let Some(side) = side
+        && let Some(it) = db.get(&upk(g.seat(side).uid), &format!("BTPAID#{}", g.id)).await?
+    {
+        v["parts_won"] = json!(get_n(&it, "parts").unwrap_or(0));
+    }
     Ok(Json(v))
 }
 
@@ -802,6 +871,9 @@ async fn view_game(
         }
         if g.status.over() && g.wager == game::Wager::Locked {
             settle_wager(db, &g).await?;
+        }
+        if g.status == Status::Final && side.is_some() {
+            pay_battle(db, &g).await?;
         }
         game_json(db, &g, side).await
     })

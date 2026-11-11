@@ -36,6 +36,7 @@ export function Final({ g }: { g: GameView }) {
       </div>
       <p class="b-dim b-small">Points {o.points[side]}–{o.points[op]}{o.rp[0] === o.rp[1] ? " (RP tied, so points decide)" : ""}</p>
       <div class={cx("b-elochange", d >= 0 ? "up" : "down")}>{o.elo_before[side]} → <b>{o.elo_after[side]}</b> Elo <span>{d >= 0 ? "+" : ""}{d}</span></div>
+      {g.parts_won != null && <p class="b-dim b-parts-won">{g.parts_won > 0 ? <>+{g.parts_won} parts for playing{o.winner === side ? ", with the win bonus" : ""}</> : "No parts for this one: you've had today's 5 paid battles, or 2 against this player."}</p>}
       {g.rounds.length > 0 && (
         <table class="b-rounds">
           <thead><tr><th>Round</th><th>You</th><th>{them.name}</th><th>RP</th></tr></thead>

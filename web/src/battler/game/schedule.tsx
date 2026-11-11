@@ -27,7 +27,7 @@ export function Schedule({ g, review = false }: { g: GameView; review?: boolean 
       </header>
       <p class="b-dim b-small">Your captain plays every match. Your other robots are paired at random, each playing once.</p>
       <div class="b-schedule-players">
-        {[0, 1].map((s) => <div class={s === 0 ? "red" : "blue"} key={s}><small>{s === 0 ? "Red" : "Blue"} alliance</small><b>{g.seats[s]?.name}{s === side ? " (you)" : ""}</b></div>)}
+        {[0, 1].map((s) => <div class={s === 0 ? "red" : "blue"} key={s}><small>{s === 0 ? "Red" : "Blue"} alliance</small><b>{g.seats[s]?.name}{s === side ? " (you)" : ""}</b><span class="b-deckrating" title="Every robot's Auto, Tele and End added up">Deck rating <b>{deckRating(g, s)}</b></span></div>)}
       </div>
       <ol class="b-schedule-list">
         {g.schedule.map((match) => <Match key={match.round} g={g} match={match} />)}
@@ -45,6 +45,11 @@ export function Schedule({ g, review = false }: { g: GameView; review?: boolean 
       )}
     </section>
   );
+}
+
+/** A deck's rating (#107): every robot in it, Auto + Tele + End, added up. Base stats only, like the win estimates. */
+function deckRating(g: GameView, side: number) {
+  return g.robots.filter((r) => r.from === side).reduce((a, r) => a + r.stats.auto + r.stats.tele + r.stats.end, 0);
 }
 
 function Match({ g, match: m }: { g: GameView; match: ScheduledMatch }) {

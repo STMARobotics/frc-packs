@@ -71,15 +71,16 @@ function autoTicks(total: number, seed: string): number[] {
 export function useReveal(g: GameView, log: RoundLog | null): [Reveal | null, () => void] {
   const side = g.me!.side;
   const key = log ? `${g.id}:${log.round}` : "";
-  const reduce = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const [rv, setRv] = useState<Reveal | null>(() => (log ? (animated.has(key) || reduce ? finished(log, side) : blank(log)) : null));
+  // The round still plays out step by step with reduced motion on (school computers often have Windows animations
+  // off, which asks for it, and the whole reveal used to be skipped): the CSS keeps the movement short instead.
+  const [rv, setRv] = useState<Reveal | null>(() => (log ? (animated.has(key) ? finished(log, side) : blank(log)) : null));
   const token = useRef(0);
 
   const skip = () => { token.current++; if (log) { animated.add(key); setRv(finished(log, side)); } };
 
   useEffect(() => {
     if (!log) { setRv(null); return; }
-    if (animated.has(key) || reduce) { setRv(finished(log, side)); return; }
+    if (animated.has(key)) { setRv(finished(log, side)); return; }
     animated.add(key);
     const my = ++token.current;
     const alive = () => my === token.current;
