@@ -29,7 +29,7 @@
 
 /* small cards */
 .s-mini { --t: #aab8c4; position: relative; display: grid; grid-template-rows: 1fr auto auto; width: 100%; aspect-ratio: 5 / 7; overflow: hidden; border-radius: 4px; background: #0d1626; box-shadow: inset 0 0 0 2px var(--t); text-align: center; }
-.s-mini.t-uncommon { --t: #7fe0d2; } .s-mini.t-rare { --t: #ffc850; } .s-mini.t-legendary { --t: #b478ff; } .s-mini.t-mythic { --t: #3cffdc; }
+.s-mini.t-uncommon { --t: var(--tier-uncommon); } .s-mini.t-rare { --t: #ffc850; } .s-mini.t-legendary { --t: #b478ff; } .s-mini.t-mythic { --t: #3cffdc; }
 .s-mini img, .s-mini .mi-noph { width: 100%; height: 100%; min-height: 0; object-fit: cover; display: grid; place-items: center; font: 400 14px var(--display); text-transform: uppercase; color: var(--dim); }
 .mi-num { font: 400 13px/1.1 var(--display); text-transform: uppercase; color: var(--t); padding-top: 2px; }
 .mi-name { padding: 0 4px; font-size: 9.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

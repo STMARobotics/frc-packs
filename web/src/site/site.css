@@ -112,7 +112,7 @@
 .s-card .card[data-tier="mythic"] .front::before { animation: none; }
 .s-nophoto { position: absolute; inset: 0; display: grid; place-items: center; font: 400 calc(var(--cw) * .14) var(--display); text-transform: uppercase; color: rgba(255, 255, 255, .45); background: radial-gradient(circle at 50% 40%, #1e2a44, #0b111d); }
 .s-ghost { --t: var(--tier-common, #aab8c4); position: relative; width: var(--cw); aspect-ratio: 5 / 7; display: grid; align-content: center; justify-items: center; gap: 4px; padding: 10px; border-radius: calc(var(--cw) * 0.0275); background: repeating-linear-gradient(45deg, rgba(255, 255, 255, .03) 0 8px, transparent 8px 16px), var(--s1); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--t) 45%, transparent); color: var(--dim); text-align: center; }
-.s-ghost.t-uncommon { --t: #7fe0d2; } .s-ghost.t-rare { --t: #ffc850; } .s-ghost.t-legendary { --t: #b478ff; } .s-ghost.t-mythic { --t: #3cffdc; }
+.s-ghost.t-uncommon { --t: var(--tier-uncommon); } .s-ghost.t-rare { --t: #ffc850; } .s-ghost.t-legendary { --t: #b478ff; } .s-ghost.t-mythic { --t: #3cffdc; }
 .s-ghost b { font: 400 calc(var(--cw) * .16) var(--display); text-transform: uppercase; color: var(--t); opacity: .8; }
 .s-ghost span { font-size: 12px; font-weight: 600; color: var(--tx); opacity: .7; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .s-ghost small { font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; }

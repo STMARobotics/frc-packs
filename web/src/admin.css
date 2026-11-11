@@ -96,7 +96,7 @@ a.cta { text-decoration: none; display: inline-block; }
 .tier-tools .input:first-child { flex: 1 1 240px; max-width: 360px; }
 #tierCounts { display: flex; gap: 6px; flex-wrap: wrap; }
 .tcount { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; border: 1px solid var(--line); border-radius: calc(.25lh + 2px); padding: 3px 8px; }
-.t-mythic { color: #3cffdc; } .t-legendary { color: #c79bff; } .t-rare { color: #ffcf5a; } .t-uncommon { color: #7fd1ff; } .t-common { color: var(--ink-dim); }
+.t-mythic { color: #3cffdc; } .t-legendary { color: #c79bff; } .t-rare { color: #ffcf5a; } .t-uncommon { color: var(--tier-uncommon); } .t-common { color: var(--ink-dim); }
 .tier-list { max-height: 460px; overflow-y: auto; padding-right: 4px; }
 .trow { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto auto auto 130px; gap: 4px 10px; align-items: center; padding: 6px 10px; border: 1px solid var(--line); border-radius: 5px; background: var(--bg); }
 .trow.changed { border-color: var(--tide); }

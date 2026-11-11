@@ -7,7 +7,7 @@
 .b-page {
   --bg: #0b0e17; --s1: #131826; --s2: #1a2133; --s3: #222b40; --ln: #2a3450; --tx: #eef1f8; --dim: #8b94ab;
   --me: #4fd8ff; --op: #ff7a6b; --gold: #ffd36b; --good: #5ee8a8; --bad: #ff7a6b; --part: #5fb4ff; --lore: #e07cff;
-  --tier-common: #aab8c4; --tier-uncommon: #7fe0d2; --tier-rare: #ffc850; --tier-legendary: #b478ff; --tier-mythic: #3cffdc;
+  --tier-common: #aab8c4; --tier-rare: #ffc850; --tier-legendary: #b478ff; --tier-mythic: #3cffdc;
   --r: 7px; --ease: cubic-bezier(.2, .9, .3, 1);
   background: radial-gradient(120% 60% at 50% -10%, #18203a, var(--bg) 60%) fixed, var(--bg);
   color: var(--tx); min-height: 100svh;
