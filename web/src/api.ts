@@ -634,7 +634,6 @@ export function explain(e: unknown): string {
     mission_not_ready: "That mission isn't finished yet.",
     wishlist_full: "Your wishlist is full (50). Take something off first.",
     username_not_allowed: "That username isn't allowed. Pick something else.",
-    too_much_feedback: "You've sent a lot of feedback today. Thank you! Try again tomorrow.",
     admin_only: "The beta isn't open to everyone yet.",
     too_many_reports: "You've sent a lot of reports today. The admin will look at them.",
   };

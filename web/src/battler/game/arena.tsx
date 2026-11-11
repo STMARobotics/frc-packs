@@ -169,7 +169,7 @@ export function Arena({ g, log, onNext }: { g: GameView; log: RoundLog | null; o
         {[0, 1, 2].map((k) => <div key={`lane${k}`} class="b-lane" data-lane={live ? k : undefined} style={{ gridColumn: k + 1 }} onClick={() => setSel(null)} />)}
         {[0, 1, 2].map((k) => (
           <div key={`st${k}`} class="b-station" style={{ gridColumn: k + 1 }}>
-            {rv && log ? <LaneScore log={log} rv={rv} lane={k} side={side} /> : <><b>{k + 1}</b><small>{CAT.rp_names[k]}</small></>}
+            {rv && log ? <LaneScore log={log} rv={rv} lane={k} side={side} /> : <><b>{k + 1}</b><small>RP{k + 1}</small></>}
           </div>
         ))}
         {[0, 1, 2].map((k) => {

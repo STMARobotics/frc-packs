@@ -4,7 +4,7 @@
 import { useEffect, useState } from "preact/hooks";
 import { api, type Copy, type Owner } from "../../api";
 import { useStore } from "../../lib/store";
-import { BY_NUM, PACK, RECIPE, RP_NAMES, TIERS } from "../data";
+import { BY_NUM, PACK, TIERS } from "../data";
 import { ago, fail, heldCopies, inv, st, toast } from "../state";
 import { Avatar, back, closeAll, cx, push, Spinner, Tabs, TiltCard } from "../ui";
 import { sfx } from "../sfx";
@@ -49,7 +49,6 @@ function CardView({ num, o }: { num: number; o: CardOpts }) {
   const owned = mine.length > 0;
   const serial = o.serial ?? (o.from ? undefined : pick != null && mine.includes(pick) ? pick : mine[0]);
   const fav = (s.favorites ?? []).includes(num), wish = (s.wishlist ?? []).includes(num), pin = (s.showcase ?? []).includes(num);
-  const names = RP_NAMES[RECIPE.season] ?? ["RP1", "RP2", "RP3"];
 
   const toggle = async (what: "fav" | "wish" | "pin") => {
     setBusy(what);
@@ -108,7 +107,6 @@ function CardView({ num, o }: { num: number; o: CardOpts }) {
               : o.serial ? <><dt>Serial</dt><dd>No. {o.serial}</dd></> : null}
             <dt>Battler</dt><dd>{t.bt ? `AUTO ${t.bt.auto} · TELE ${t.bt.tele} · END ${t.bt.end}` : "Stats coming soon"}</dd>
             {t.bt?.effect && <><dt>Effect</dt><dd>{t.bt.effect}</dd></>}
-            <dt>RP slots</dt><dd>{names.map((n, i) => `RP${i + 1} ${n}`).join(" · ")}</dd>
           </dl>
         ) : <TiltCard num={num} serial={serial} w="min(310px, 80vw, calc((100svh - 250px) / 1.4))" />}
       </div>

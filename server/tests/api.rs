@@ -2727,8 +2727,8 @@ async fn beta_testers_send_feedback_and_the_admin_sorts_it() {
         (mine[0]["status"].as_str(), mine[0]["note"].as_str()),
         (Some("done"), Some("Fixed in the next update"))
     );
-    // Ten a day.
-    for i in 0..9 {
+    // No daily limit: as many as a player wants to send.
+    for i in 0..12 {
         let r = call(
             &app,
             "POST",
@@ -2739,10 +2739,6 @@ async fn beta_testers_send_feedback_and_the_admin_sorts_it() {
         .await;
         assert_eq!(r.status, StatusCode::NO_CONTENT, "{i}");
     }
-    tokio::time::sleep(std::time::Duration::from_millis(300)).await;
-    let r =
-        call(&app, "POST", "/api/feedback", Some(&ca), Some(json!({ "kind": "other", "title": "one too many" }))).await;
-    assert_eq!((r.status, r.body["error"].as_str()), (StatusCode::TOO_MANY_REQUESTS, Some("too_much_feedback")));
     drop_table(&db).await;
 }
 

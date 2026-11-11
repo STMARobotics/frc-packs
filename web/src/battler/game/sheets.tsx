@@ -56,7 +56,7 @@ function MyRobot({ inst }: { inst: number }) {
       {live && at >= 0 && (
         <div class="b-moves">
           <span class="b-dim b-small">Station</span>
-          {[0, 1, 2].map((k) => <button type="button" class={cx("b-st", k === at && "on")} disabled={k === at} onClick={() => move(k)}>{k + 1}<small>{CAT.rp_names[k]}</small></button>)}
+          {[0, 1, 2].map((k) => <button type="button" class={cx("b-st", k === at && "on")} disabled={k === at} onClick={() => move(k)}>{k + 1}<small>RP{k + 1}</small></button>)}
         </div>
       )}
       {live && !captain && !g.schedule.length && <button type="button" class="b-btn wide" onClick={() => openBench(inst)}>Swap from bench</button>}
