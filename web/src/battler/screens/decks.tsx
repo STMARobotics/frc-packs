@@ -124,6 +124,7 @@ export function DeckEditor({ id }: { id: string }) {
   };
 
   const parts = d.support.filter((s) => SUPPORT.get(s)?.kind === "PART").length;
+  const full = !!d.captain && d.robots.length >= rules.deck_robots && d.support.length >= rules.support_cards;
   return (
     <div class="b-screen b-editor">
       <Head title={<input autoComplete="off" data-1p-ignore data-lpignore="true" data-form-type="other" class="b-input b-deckname" maxLength={30} value={d.name} aria-label="Deck name" onInput={(e) => { const v = e.currentTarget.value; change((x) => { x.name = v; }); }} />} back="#decks">
@@ -134,9 +135,10 @@ export function DeckEditor({ id }: { id: string }) {
         <span class={cx(d.robots.length === rules.deck_robots && "ok")}>Robots {d.robots.length}/{rules.deck_robots}</span>
         <span class={cx(d.support.length === rules.support_cards && "ok")}>Support {d.support.length}/{rules.support_cards}</span>
       </div>
-      {problems.length > 0 && saving === "saved" && (
+      {/* Auto-fill stays while the deck isn't full, saved or not (it used to vanish until a removal was saved, #128). */}
+      {((problems.length > 0 && saving === "saved") || !full) && (
         <div class="b-problems">
-          <span>{problems[0]}{problems.length > 1 ? ` (+${problems.length - 1} more)` : ""}</span>
+          <span>{problems.length > 0 && saving === "saved" ? <>{problems[0]}{problems.length > 1 ? ` (+${problems.length - 1} more)` : ""}</> : "This deck isn't full yet."}</span>
           <button type="button" class="b-btn small" onClick={fill}>Auto-fill</button>
         </div>
       )}

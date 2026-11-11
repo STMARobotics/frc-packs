@@ -72,7 +72,7 @@ function Rules() {
       <ol>
         <li><b>Deck:</b> 1 Captain, {r.deck_robots} robots, {r.support_cards} Part and Lore cards.</li>
         <li><b>Schedule:</b> your {r.deck_robots} robots are shuffled into {r.rounds} pairs. Your captain joins each pair. Review both alliances and their estimated win chances, then ready up.</li>
-        <li><b>Matches ({r.rounds}):</b> play with your scheduled partners. Choose stations, play Parts on robots and up to one Lore, then lock in.</li>
+        <li><b>Matches ({r.rounds}):</b> play with your scheduled partners. Choose stations, play Parts on robots and up to one Lore, then go to queue.</li>
         <li><b>Score:</b> Auto, Tele and End add up. Winning a round is 3 RP. Each robot rolls for +1 RP.</li>
       </ol>
       <p class="b-dim b-small">Cards are only used up for the game. Nothing leaves your collection.</p>

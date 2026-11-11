@@ -293,7 +293,7 @@ function PickCard({ slot, chosen, onDone }: { slot: Slot; chosen: number[]; onDo
           const t = BY_NUM.get(n)!, i = sel.indexOf(n);
           return (
             <button type="button" class={cx("ed-tile", i >= 0 && "on")} style={{ "--tc": TIERS[t.tier].color }} onClick={() => tap(n)} aria-pressed={i >= 0} aria-label={`${n} ${t.name}`}>
-              {t.photo ? <img alt="" loading="lazy" decoding="async" src={`/photos/${n}.webp`} /> : <span>#{n}</span>}
+              {t.photo ? <img alt="" decoding="async" src={`/photos/${n}.webp`} /> : <span>#{n}</span>}
               <b>{n}</b>
               {many && i >= 0 && <em>{i + 1}</em>}
             </button>

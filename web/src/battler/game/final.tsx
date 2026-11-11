@@ -24,7 +24,9 @@ export function Final({ g }: { g: GameView }) {
   const d = o.elo_after[side] - o.elo_before[side];
   useEffect(() => { (res === "win" ? sfx.win : res === "loss" ? sfx.lose : () => sfx.tick(3))(); }, []);
   const why = o.reason === "forfeit" ? (res === "win" ? `${them.name} forfeited.` : "You forfeited.")
-    : o.reason === "timeout" ? (res === "win" ? `${them.name} ran out the timer.` : "You ran out the timer.") : "";
+    : o.reason === "timeout" ? (res === "win" ? `${them.name} ran out the timer.` : "You ran out the timer.")
+    // Decided early (#131): the side behind couldn't catch up in the matches left.
+    : g.rounds.length < g.rounds_total ? `Decided after ${g.rounds.length} of ${g.rounds_total} matches: ${res === "win" ? `${them.name} couldn't catch up` : "there weren't enough matches left to catch up"}.` : "";
   return (
     <div class={cx("b-final", res)}>
       <h1>{res === "win" ? "Victory" : res === "loss" ? "Defeat" : "Draw"}</h1>

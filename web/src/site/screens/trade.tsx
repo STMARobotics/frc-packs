@@ -4,7 +4,7 @@
 // your newest copy, so you keep your earliest serial longest. An offer for you can be accepted, declined or answered
 // with a counter-offer. Offers for you, sent offers and history each have a tab.
 import { useEffect, useState } from "preact/hooks";
-import { api, type CardRef, type Collection, type Special, type Trade, type TradeMatch } from "../../api";
+import { api, type CardRef, type Collection, type Special, type State, type Trade, type TradeMatch } from "../../api";
 import { store, useStore } from "../../lib/store";
 import { BY_NUM, byRarity, ORDER, PACK, TEAMS as TEAM_LIST, TIERS, type T } from "../data";
 import { ago, applyCollection, applyState, fail, inv, loadSocial, packOf, setPrefs, social, specials as mySpecials, st, toast, trades } from "../state";
@@ -170,16 +170,56 @@ const collectionCards = (collection: Collection) => {
   return cards;
 };
 
+/** What one side of a trade is worth in parts, the way the fairness bar counts it. */
+function sideWorth(s: State, cards: { num: number }[], goods: Goods, specials: number) {
+  return cards.reduce((sum, card) => sum + (BY_NUM.get(card.num) ? s.scrapParts[BY_NUM.get(card.num)!.tier] ?? 0 : 0), 0)
+    + specials * SPECIAL_WORTH + goods.packs * PACK_WORTH + goods.boosted * s.boostCost + goods.parts;
+}
+
+/** The most parts a trade can move in a day (the server's limit). */
+const PARTS_A_DAY = 2000;
+
+/** Make it fair (#129): evens the table out with parts on whichever side is short, as far as that player has them
+    and the day's limit allows. Returns what it added, for the toast. */
+function makeFair(s: State): string {
+  const d = draft.get();
+  const give = sideWorth(s, d.give, d.giveGoods, d.giveSpecials.length) - d.giveGoods.parts;
+  const get = sideWorth(s, d.get, d.getGoods, d.getSpecials.length) - d.getGoods.parts;
+  const diff = Math.round((get - give) / 10) * 10;
+  if (diff > 0) {
+    const n = Math.min(diff, s.parts, PARTS_A_DAY);
+    edit((x) => { x.giveGoods.parts = n; x.getGoods.parts = 0; });
+    return n < diff ? `Added ${n} of your parts (all you can give)` : `Added ${n} of your parts`;
+  }
+  const n = Math.min(-diff, d.theirGoods?.parts ?? 0, PARTS_A_DAY);
+  edit((x) => { x.getGoods.parts = n; x.giveGoods.parts = 0; });
+  return n < -diff ? `Asked for ${n} of their parts (all they can give)` : `Asked for ${n} of their parts`;
+}
+
+/** The fairness bar with its Make it fair button: on the trade table and in the card picker, so it moves as you pick
+    (#130). */
+function FairRow() {
+  const d = useStore(draft);
+  const s = useStore(st)!;
+  const lean = (() => {
+    const g = sideWorth(s, d.give, d.giveGoods, d.giveSpecials.length), w = sideWorth(s, d.get, d.getGoods, d.getSpecials.length);
+    return g + w ? (w - g) / (w + g) : 0;
+  })();
+  return (
+    <div class="td-fairrow">
+      <Fairness giveCards={d.give} giveGoods={d.giveGoods} giveSpecials={d.giveSpecials.length} getCards={d.get} getGoods={d.getGoods} getSpecials={d.getSpecials.length} />
+      {Math.abs(lean) >= 0.2 && <button type="button" class="s-chipbtn" onClick={() => { toast(makeFair(s)); sfx.tick(); }}>Make it fair</button>}
+    </div>
+  );
+}
+
 function Fairness({ giveCards, giveGoods, giveSpecials, getCards, getGoods, getSpecials }: {
   giveCards: { num: number }[]; giveGoods: Goods; giveSpecials: number;
   getCards: { num: number }[]; getGoods: Goods; getSpecials: number;
 }) {
   const s = useStore(st)!;
-  const sideWorth = (cards: { num: number }[], goods: Goods, specials: number) =>
-    cards.reduce((sum, card) => sum + (BY_NUM.get(card.num) ? s.scrapParts[BY_NUM.get(card.num)!.tier] ?? 0 : 0), 0)
-    + specials * SPECIAL_WORTH + goods.packs * PACK_WORTH + goods.boosted * s.boostCost + goods.parts;
-  const give = sideWorth(giveCards, giveGoods, giveSpecials);
-  const get = sideWorth(getCards, getGoods, getSpecials);
+  const give = sideWorth(s, giveCards, giveGoods, giveSpecials);
+  const get = sideWorth(s, getCards, getGoods, getSpecials);
   if (!give && !get) return null;
   const lean = (get - give) / (get + give);
   const summary = Math.abs(lean) < 0.2 ? "Looks even" : lean > 0 ? (lean > 0.6 ? "A big ask" : "You get more") : lean < -0.6 ? "Very generous" : "You give more";
@@ -233,7 +273,7 @@ function NewTrade() {
         <Side label="You give" picks={d.give} goods={d.giveGoods} specials={mySpecials.get().filter((x) => d.giveSpecials.includes(x.id))} side="give" recipient={d.name} recipientCards={d.theirs ?? undefined} ownerCards={mine} />
         <Side label="You get" picks={d.get} goods={d.getGoods} specials={d.theirSpecials.filter((x) => d.getSpecials.includes(x.id))} side="get" recipient="you" recipientCards={mine} ownerCards={d.theirs ?? undefined} />
       </div>
-      <Fairness giveCards={d.give} giveGoods={d.giveGoods} giveSpecials={d.giveSpecials.length} getCards={d.get} getGoods={d.getGoods} getSpecials={d.getSpecials.length} />
+      <FairRow />
       <button type="button" class="s-btn wide" disabled={!giving || !getting || busy} onClick={send}>
         {busy ? <Spinner small /> : !giving && !getting ? "Put something on the table" : !giving ? "Add something you give" : !getting ? "Add something you want" : d.counter ? `Send counter-offer to ${d.name}` : `Send offer to ${d.name}`}
       </button>
@@ -369,7 +409,7 @@ export function Mini({ num, foot, tile }: { num: number; foot?: string; tile?: b
   );
   return (
     <span class={cx("s-mini", `t-${t.tier}`)}>
-      {t.photo ? <img alt="" src={`/photos/${num}.webp`} decoding="async" loading="lazy" draggable={false} /> : <span class="mi-noph">{num}</span>}
+      {t.photo ? <img alt="" src={`/photos/${num}.webp`} decoding="async" draggable={false} /> : <span class="mi-noph">{num}</span>}
       <span class="mi-num">{num}</span>
       <span class="mi-name">{t.name}</span>
       {foot && <span class="mi-foot">{foot}</span>}
@@ -472,6 +512,7 @@ function Picker({ side, start, focus }: { side: "give" | "get"; start: "cards" |
   return (
     <div class="s-page-in td-picker">
       <header class="s-head"><h1>{mine ? "You give" : `From ${d.name}`}</h1><span class="cw-gap" /><button type="button" class="s-btn small" onClick={back}>Done</button></header>
+      <div class="td-pickfair"><FairRow /></div>
       <Tabs value={kind} onChange={setKind} options={[["cards", `Cards ${picks.length}/${MAX}`], ["goods", "Packs and parts"]]} />
       {kind === "goods" ? (
         !max ? <Spinner /> : (

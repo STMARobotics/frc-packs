@@ -147,7 +147,7 @@ export function Arena({ g, log, onNext }: { g: GameView; log: RoundLog | null; o
       {/* them */}
       <div class={cx("b-pbar op", pit && them.locked && "ready")}>
         <span class="b-ava op">{initial(them.name)}</span>
-        <div class="b-who"><b>{them.name}</b><small>{pit ? (them.locked ? <em class="ok">Locked in</em> : "Choosing…") : `${them.elo} Elo`}</small></div>
+        <div class="b-who"><b>{them.name}</b><small>{pit ? (them.locked ? <em class="ok">In queue</em> : "In the pit…") : `${them.elo} Elo`}</small></div>
         <div class="b-theirs" aria-label={plural(them.hand_count, "card")}>
           <span class="b-backs">{Array.from({ length: Math.min(them.hand_count, 7) }, (_, i) => <i key={i} />)}</span>
           {pit && (them.parts_down > 0 || them.lore_down) && <span class="b-down">{Array.from({ length: them.parts_down }, (_, i) => <i key={`p${i}`} class="part" />)}{them.lore_down && <i class="lore" />}</span>}
@@ -163,7 +163,7 @@ export function Arena({ g, log, onNext }: { g: GameView; log: RoundLog | null; o
         <Clock g={g} />
       </div>
 
-      {pit && theirBots.every((i) => i !== 0) && <p class="b-lineup-note">Opponent’s robots · station order revealed when both players lock in</p>}
+      {pit && theirBots.every((i) => i !== 0) && <p class="b-lineup-note">Opponent’s robots · station order revealed when both players go to queue</p>}
       {/* the board */}
       <div class="b-board" ref={board} onClick={(e) => { if (e.target === e.currentTarget) setSel(null); }}>
         {[0, 1, 2].map((k) => <div key={`lane${k}`} class="b-lane" data-lane={live ? k : undefined} style={{ gridColumn: k + 1 }} onClick={() => setSel(null)} />)}
@@ -225,7 +225,7 @@ export function Arena({ g, log, onNext }: { g: GameView; log: RoundLog | null; o
         <button type="button" class="b-chipbtn" onClick={() => openBench()} aria-label={g.schedule.length ? "Your robots" : "Bench"}>{g.schedule.length ? "Robots" : "Bench"}</button>
         {pit
           ? live
-            ? <button key="lock" type="button" class="b-go" onClick={() => { if (Date.now() - opened.current < 700) return; sfx.lock(); setSel(null); lock(); }}>Lock in</button>
+            ? <button key="lock" type="button" class="b-go" onClick={() => { if (Date.now() - opened.current < 700) return; sfx.lock(); setSel(null); lock(); }}>Go to Queue</button>
             : <div class="b-waiting">{them.locked ? "Revealing…" : `Waiting for ${them.name}`}</div>
           : rv?.done
             ? <button key="next" type="button" class="b-go" disabled={g.status === "RESULTS" && me.acked} onClick={onNext}>{g.status === "RESULTS" && me.acked ? (them.acked ? "…" : `Waiting for ${them.name}`) : lastRound ? "Final result" : "Next round"}</button>
@@ -286,7 +286,7 @@ function Bot({ r, lane, row, mine, captain, parts, score, rv, live, target, lift
       <div class={cx("b-bot-info", open === 0 && "none")}>
         <div class="b-ph3">
           {[0, 1, 2].map((k) => <span class={grade(k)}><small>{"ATE"[k]}</small><b>{shown(k)}</b></span>)}
-          <span class="rpc" title={unknownStation ? "Station choice is revealed when both players lock in" : undefined}><small>{unknownStation ? "RP" : `RP${lane + 1}`}</small><b>{unknownStation ? "?" : `${score ? score.rp_chance : s.rp[lane]}%`}</b></span>
+          <span class="rpc" title={unknownStation ? "Station choice is revealed when both players go to queue" : undefined}><small>{unknownStation ? "RP" : `RP${lane + 1}`}</small><b>{unknownStation ? "?" : `${score ? score.rp_chance : s.rp[lane]}%`}</b></span>
         </div>
       </div>
     </div>

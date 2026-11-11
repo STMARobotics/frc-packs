@@ -171,7 +171,9 @@ async function main() {
 
   const report = [];
   for (let round = 1; round <= 5; round++) {
-    await a.waitForSelector('.b-arena.pit .b-go', { timeout: 30000 });
+    // A game ends as soon as one side can't catch up (#131), so it may be over before match 5.
+    await a.waitForSelector('.b-arena.pit .b-go, .b-final', { timeout: 30000 });
+    if (await a.$('.b-final')) { log('decided after', round - 1, 'matches'); break; }
     await b.waitForSelector('.b-arena.pit .b-go', { timeout: 30000 });
     for (const p of [a, b]) {
       assert(await p.locator('.b-bot.theirs.open .b-card').count() === 3, 'both players see all three opponent robots during card play');

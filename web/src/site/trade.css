@@ -150,3 +150,8 @@
 .td-mcards i { width: 9px; height: 13px; border-radius: 2px; background: var(--tc); opacity: .9; }
 .td-acts3 { grid-template-columns: 1.2fr 1fr 1fr !important; }
 .td-acts3 .s-btn { padding-inline: 6px; }
+/* The fairness bar and Make it fair (#129, #130): on the table, and pinned at the top of the card picker. */
+.td-fairrow { display: flex; align-items: center; gap: 10px; }
+.td-fairrow .td-fair { flex: 1; }
+.td-pickfair { position: sticky; top: 0; z-index: 5; padding: 6px 0; background: var(--bg); }
+.td-pickfair:empty, .td-pickfair .td-fairrow:empty { display: none; }
