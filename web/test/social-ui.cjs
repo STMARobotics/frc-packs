@@ -134,7 +134,7 @@ async function main() {
   await p.waitForSelector('.td-table');
   await p.waitForFunction(() => document.querySelectorAll('.td-table .s-mini').length >= 2);
   await shot('suggested-trade');
-  const onTable = await p.$$eval('.td-table .s-mini .mi-num', (e) => e.map((x) => x.textContent));
+  const onTable = await p.$$eval('.td-table .s-mini', (e) => e.map((x) => x.dataset.num));
   assert(onTable.length >= 2 && onTable.length % 2 === 0, `a fair offer, as many cards each way (${onTable.join(', ')})`);
   await p.click('.td-table ~ button.s-btn.wide, .s-trade button.s-btn.wide');
   await p.waitForSelector('.s-toast.show');

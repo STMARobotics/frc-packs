@@ -397,7 +397,7 @@ async function main() {
   await shot('trade-table');
   await p.click('.s-trade .s-btn.wide');
   await p.waitForSelector('.s-toast.show');
-  await p.click('.s-trade .s-tabs >> text=Sent');
+  await p.click('.td-panes >> text=Sent');
   await p.waitForSelector('.td-offer');
   await shot('trade-sent');
   const ctxB = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
@@ -413,11 +413,11 @@ async function main() {
   await b.click('.td-offer >> text=Counter');
   await b.waitForSelector('.td-table');
   assert(await b.$('.s-trade .td-fairbar'), 'counter-offer draft retains the fairness meter');
-  await b.click('.s-trade .s-tabs >> text=For you');
+  await b.click('.td-panes >> text=For you');
   await b.screenshot({ path: path.join(OUT, `${String(++n).padStart(2, '0')}-trade-incoming-b.png`) });
   await b.click('.td-offer >> text=Accept');
   await b.waitForSelector('.s-toast.show');
-  await b.click('.s-trade .s-tabs >> text=History');
+  await b.click('.td-panes >> text=History');
   await b.waitForSelector('.hi-item.accepted');
   await b.screenshot({ path: path.join(OUT, `${String(++n).padStart(2, '0')}-trade-history-b.png`) });
 

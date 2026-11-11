@@ -70,6 +70,7 @@ async function choose(name: string, wants: Pick[] = [], gives: Pick[] = []) {
 /** From anywhere: the trading post with this player, and a card of theirs you want (or one of yours) on the table. */
 export function tradeFor(name: string, want?: number, give?: number) {
   pane.set("new");
+  section.set("offers");
   location.hash = "#trade";
   choose(name, want ? [{ num: want, serial: 0 }] : [], give ? [{ num: give, serial: 0 }] : []);
 }
@@ -94,6 +95,7 @@ export function suggest(theyHave: number[], youHave: number[]): { get: number[];
 export function tradeSuggested(name: string, theyHave: number[], youHave: number[]) {
   const { get, give } = suggest(theyHave, youHave);
   pane.set("new");
+  section.set("offers");
   location.hash = "#trade";
   draft.set(empty());
   choose(name, get.map((num) => ({ num, serial: 0 })), give.map((num) => ({ num, serial: 0 })));
@@ -112,6 +114,7 @@ function counterOffer(t: Trade) {
     counter: t.id,
   });
   pane.set("new");
+  section.set("offers");
   choose(t.with, t.youGet.map((c) => ({ num: c.num, serial: c.serial })));
 }
 /** From your binder: that card on your side; then pick who to trade with. */
@@ -359,7 +362,7 @@ export function Mini({ num, foot, tile }: { num: number; foot?: string; tile?: b
   const t = BY_NUM.get(num);
   if (!t) return null;
   if (!tile) return (
-    <span class={cx("s-mini real", `t-${t.tier}`)}>
+    <span class={cx("s-mini real", `t-${t.tier}`)} data-num={num}>
       <span class="mi-card"><Card num={num} w="100cqw" /></span>
       {foot && <span class="mi-foot">{foot}</span>}
     </span>
