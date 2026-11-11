@@ -232,8 +232,8 @@ export function createPackGL(canvas: HTMLCanvasElement, host: HTMLElement): Pack
     fragmentShader: `uniform float fade; uniform float pw; uniform float ph; varying vec2 vUv;
       void main() {
         vec2 p = (vUv - 0.5) * vec2(pw + 100.0, ph + 100.0);
-        vec2 q = abs(p) - vec2(pw, ph * ${(1 - SEAM).toFixed(3)}) * 0.5 + 10.0;
-        float d = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - 10.0;
+        vec2 q = abs(p) - vec2(pw, ph * ${(1 - SEAM).toFixed(3)}) * 0.5 + 5.0;
+        float d = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - 5.0;
         gl_FragColor = vec4(0.0, 0.0, 0.0, 0.55 * fade * (1.0 - smoothstep(-25.0, 25.0, d)));
       }`,
   }));
@@ -253,7 +253,7 @@ export function createPackGL(canvas: HTMLCanvasElement, host: HTMLElement): Pack
     const T = PW * PTH, HB = PH * (1 - SEAM), seamY = PH / 2 - PH * SEAM;
     body.scale.set(PW, HB, 1); body.position.set(0, -PH / 2 + HB / 2, T);
     back.scale.set(PW, PH, 1); back.position.set(0, 0, -T);
-    const cr = PW * 0.035, ex = PW / 2 - 0.5, ey = PH / 2 - 0.5, sh = new Shape();
+    const cr = PW * 0.0175, ex = PW / 2 - 0.5, ey = PH / 2 - 0.5, sh = new Shape();
     sh.moveTo(-ex + cr, -ey); sh.lineTo(ex - cr, -ey); sh.quadraticCurveTo(ex, -ey, ex, -ey + cr); sh.lineTo(ex, ey - cr); sh.quadraticCurveTo(ex, ey, ex - cr, ey);
     sh.lineTo(-ex + cr, ey); sh.quadraticCurveTo(-ex, ey, -ex, ey - cr); sh.lineTo(-ex, -ey + cr); sh.quadraticCurveTo(-ex, -ey, -ex + cr, -ey);
     walls.geometry.dispose();
@@ -268,7 +268,7 @@ export function createPackGL(canvas: HTMLCanvasElement, host: HTMLElement): Pack
     c.setTransform(dpr, 0, 0, dpr, 0, 0);
     c.clearRect(0, 0, hw, hh);
     c.strokeStyle = "rgba(255,255,255,.6)"; c.lineWidth = 2; c.setLineDash([6, 4]);
-    c.beginPath(); c.roundRect(13, 13, hw - 26, hh - 26, 10); c.stroke();
+    c.beginPath(); c.roundRect(13, 13, hw - 26, hh - 26, 5); c.stroke();
     c.setLineDash([]);
     c.font = "18px system-ui, sans-serif"; c.textAlign = "center"; c.textBaseline = "middle"; c.fillStyle = "#fff";
     c.shadowColor = "rgba(0,0,0,.7)"; c.shadowBlur = 4; c.shadowOffsetY = 1;

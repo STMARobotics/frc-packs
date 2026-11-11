@@ -23,17 +23,15 @@ function center(img: HTMLImageElement, num: number) {
   img.style.objectPosition = `${pos(f[0], visW)}% ${pos(f[1], visH)}%`;
 }
 
-const nameScale = (n: string) => { const l = n.length; return l <= 12 ? 1 : l <= 15 ? 0.85 : l <= 19 ? 0.7 : l <= 24 ? 0.58 : 0.5; };
-
-/** The card face: the team's ring and name, the robot photo, the strip with number, place and season, the Battler
-    stats (dashes until they're imported), and the star scale and serial along the bottom. */
-export function Face({ t, tier, serial }: { t: T; tier: Tier; serial?: number | string }) {
+/** The card face: the team's ring and name, the robot photo, the strip with number, place and division, the Battler
+    stats (dashes until they're imported), and the stars, year and serial along the bottom. */
+export function Face({ t, tier, serial, copies = 1 }: { t: T; tier: Tier; serial?: number | string; copies?: number }) {
   const bt = t.bt;
   const sn = serial ? +serial : 0;
   const stat = (v?: number) => (bt ? <b>{v}</b> : <b class="na">–</b>);
   return (
     <div class="face front btf">
-      <div class="inner v2 bt b2" style={{ "--nl": nameScale(t.name) }}>
+      <div class="inner v2 bt b2">
         <div class="head">{t.avatar ? <span class="avatar"><img alt="" draggable={false} decoding="async" src={`/photos/avatars/${t.num}.png`} /></span> : <span class="avatar none">{t.num}</span>}<span class="tname">{t.name}</span></div>
         <div class="fwrap">
           <div class="fphoto">
@@ -41,14 +39,16 @@ export function Face({ t, tier, serial }: { t: T; tier: Tier; serial?: number | 
               ? <span class="phw"><img class="ph" alt="" draggable={false} decoding="async" src={`/photos/${t.num}.webp`} onLoad={(e) => center(e.currentTarget, t.num)} /></span>
               : <span class="s-nophoto">#{t.num}</span>}
           </div>
-          <div class="idbar"><span class="num">#{t.num}</span><span class="loc">{t.region || t.loc || t.div}</span><span class="yr">{RECIPE?.season ?? 2026}</span></div>
+          {copies > 1 && <span class="s-count">×{copies}</span>}
+          <div class="idbar"><span class="num">#{t.num}</span><span class="loc">{t.region || t.loc}</span><span class="division">{t.div}</span></div>
         </div>
         <div class="statrow"><div class="stat"><small>AUTO</small>{stat(bt?.auto)}</div><div class="stat"><small>TELE</small>{stat(bt?.tele)}</div><div class="stat"><small>END</small>{stat(bt?.end)}</div></div>
         <div class="rprow">{[0, 1, 2].map((i) => <div class="rp"><i>RP{i + 1}</i>{bt ? <b>{bt.rp[i]}%</b> : <b class="na">–</b>}</div>)}</div>
-        <div class="effect"><small>UNIQUE EFFECT</small>{bt?.effect ? (bt.effectName ? <p class="fx-named"><b>{bt.effectName}</b><span>{bt.effect}</span></p> : <p class="fx-long">{bt.effect}</p>) : <p class="tbd">{bt ? "Effect coming soon" : "Stats and effect coming soon"}</p>}</div>
+        <div class="effect">{bt?.effect ? (bt.effectName ? <p class="fx-named"><b>{bt.effectName}</b><span>{bt.effect}</span></p> : <p class="fx-long">{bt.effect}</p>) : <p class="tbd">No effect</p>}</div>
       </div>
       <div class="ftb">
         <span class="rar" aria-label={`${STARS[tier]} of 5 stars`}>{[0, 1, 2, 3, 4].map((i) => <i class={i < STARS[tier] ? "on" : undefined}>★</i>)}</span>
+        <span class="yr">{RECIPE?.season ?? 2026}</span>
         <span class={cx("sn", sn > 0 && sn <= 10 && "low", sn === t.num && "match")}>No. {serial || "------"}</span>
       </div>
     </div>
@@ -56,12 +56,12 @@ export function Face({ t, tier, serial }: { t: T; tier: Tier; serial?: number | 
 }
 
 /** A card lying flat: grids and rows. Cheap to draw many of. */
-export function Card({ num, serial, w, children, cls }: { num: number; serial?: number | string; w: string; children?: ComponentChildren; cls?: string }) {
+export function Card({ num, serial, w, copies, children, cls }: { num: number; serial?: number | string; w: string; copies?: number; children?: ComponentChildren; cls?: string }) {
   const t = BY_NUM.get(num);
   if (!t) return null;
   return (
     <div class={cx("s-card", cls)} style={{ "--cw": w, "--tc": TIERS[t.tier].color }}>
-      <div class="card" data-tier={t.tier}><Face t={t} tier={t.tier} serial={serial} /></div>
+      <div class="card" data-tier={t.tier}><Face t={t} tier={t.tier} serial={serial} copies={copies} /></div>
       {children}
     </div>
   );

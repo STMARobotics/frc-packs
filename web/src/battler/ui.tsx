@@ -11,8 +11,6 @@ export const total = (s: RobotCard["stats"]) => s.auto + s.tele + s.end;
 export const plural = (n: number, one: string, many = one + "s") => `${n} ${n === 1 ? one : many}`;
 export const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(" ");
 
-const nameScale = (n: string) => { const l = n.length; return l <= 12 ? 1 : l <= 15 ? 0.85 : l <= 19 ? 0.7 : l <= 24 ? 0.58 : 0.5; };
-
 export function Photo({ team, has, cls }: { team: number; has: boolean; cls?: string }) {
   return has ? <img class={cls} alt="" draggable={false} decoding="async" src={`/photos/${team}.webp`} /> : <span class={cx(cls, "b-nophoto")}>{team}</span>;
 }
@@ -25,7 +23,7 @@ export function Card({ r, w, cls, children }: { r: RobotCard; w: string; cls?: s
     <div class={cx("b-card", cls)} style={{ "--cw": w }}>
       <div class="card" data-tier={r.tier}>
         <div class="face front btf">
-          <div class="inner v2 bt b2" style={{ "--nl": nameScale(r.name) }}>
+          <div class="inner v2 bt b2">
             <div class="head"><span class="avatar none">{r.team}</span><span class="tname">{r.name}</span></div>
             <div class="fwrap">
               <div class="fphoto">
@@ -40,7 +38,7 @@ export function Card({ r, w, cls, children }: { r: RobotCard; w: string; cls?: s
               <div class="stat"><small>END</small><b>{s.end}</b></div>
             </div>
             <div class="rprow">{s.rp.map((p, i) => <div class="rp"><i>RP{i + 1}</i><b>{p}%</b></div>)}</div>
-            <div class="effect"><small>UNIQUE EFFECT</small>{r.effect_text ? <p>{r.effect_text}</p> : <p class="tbd">No effect yet</p>}</div>
+            <div class="effect">{r.effect_text ? <p>{r.effect_text}</p> : <p class="tbd">No effect</p>}</div>
           </div>
           <div class="ftb">
             <span class="rar" aria-label={`${STARS[r.tier] ?? 1} of 5 stars`}>{[0, 1, 2, 3, 4].map((i) => <i class={i < (STARS[r.tier] ?? 1) ? "on" : undefined}>★</i>)}</span>

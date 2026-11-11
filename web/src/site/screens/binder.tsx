@@ -115,8 +115,7 @@ export function Binder({ active }: { active: boolean }) {
                 const nav = list.slice(0, shown).map((x) => x.num);
                 return serials?.length ? (
                   <button key={t.num} type="button" class="s-cell" onClick={() => openCard(t.num, nav)} aria-label={`${t.name}, team ${t.num}, ${TIERS[t.tier].label}`}>
-                    <Card num={t.num} serial={serials[0]} w="var(--gw)">
-                      {serials.length > 1 && <span class="s-count">×{serials.length}</span>}
+                    <Card num={t.num} serial={serials[0]} w="var(--gw)" copies={serials.length}>
                       {p.unseen[t.num] && <span class="s-new">NEW</span>}
                       {(s.favorites ?? []).includes(t.num) && <span class="s-fav" aria-label="Kept">♥</span>}
                     </Card>

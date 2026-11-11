@@ -1,6 +1,6 @@
 /* The bottom tab bar, the same on the site and the Battler page (both load this). */
 .s-tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; display: flex; justify-content: center; gap: 2px; padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); background: rgba(14, 18, 30, .96); box-shadow: 0 -1px 0 var(--ln); }
-.s-tabbar > * { position: relative; flex: 1; max-width: 120px; display: grid; justify-items: center; gap: 2px; padding: 6px 0; border: 0; border-radius: 12px; background: none; color: var(--dim); font: 700 11px var(--body); text-decoration: none; cursor: pointer; transition: color .15s; }
+.s-tabbar > * { position: relative; flex: 1; max-width: 120px; display: grid; justify-items: center; gap: 2px; padding: 6px 0; border: 0; border-radius: 6px; background: none; color: var(--dim); font: 700 11px var(--body); text-decoration: none; cursor: pointer; transition: color .15s; }
 .s-tabbar .on, .s-page .s-tabbar > a.on, .b-page .s-tabbar > a.on { color: var(--tx); }
 /* Battle is a link to its own page; `.s-page a` (inherit) mustn't light it up like the tab you're on. */
 .s-page .s-tabbar > a:not(.on), .b-page .s-tabbar > a:not(.on) { color: var(--dim); }
@@ -10,4 +10,4 @@
 .ic-trade { --m: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 8h14l-3-3M20 16H6l3 3'/%3E%3C/svg%3E"); }
 .ic-social { --m: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='9' cy='8' r='3.5'/%3E%3Cpath d='M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5M16 4.8a3.4 3.4 0 0 1 0 6.4M18.5 14.8c1.6.8 2.6 2.5 3 5.2'/%3E%3C/svg%3E"); }
 .ic-battle { --m: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M5 19 15 9M15 9l1.5-4.5L21 3l-1.5 4.5L15 9zM19 19 9 9M9 9 7.5 4.5 3 3l1.5 4.5L9 9zM4 20l2-2M20 20l-2-2'/%3E%3C/svg%3E"); }
-.s-dot { position: absolute; top: 0; left: calc(50% + 6px); min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: var(--bad); color: #fff; font: 700 10px/18px var(--body); font-style: normal; text-align: center; }
+.s-dot { position: absolute; top: 0; left: calc(50% + 6px); min-width: 18px; height: 18px; padding: 0 5px; border-radius: 4.5px; background: var(--bad); color: #fff; font: 700 10px/18px var(--body); font-style: normal; text-align: center; }

@@ -1,11 +1,12 @@
 // Pictures of the real DOM cards, for the WebGL opening to draw: each card's own face (the same component and CSS as
 // the binder, so foil, serials and frames match exactly), its back and its ribbon, photographed with html-to-image
-// (the element and its styles drawn through an SVG image onto a canvas). The two fonts (Lilita One for headings, Mona
-// Sans for everything else, one variable file for every weight) come with the app so the
-// pictures never wait on, or miss, the font service. A browser that won't let a page read such a canvas back throws
+// (the element and its styles drawn through an SVG image onto a canvas). The display, stat and body fonts
+// are bundled with the app. A browser that won't let a page read such a canvas back throws
 // here, and the opening keeps its DOM cards.
 import { toCanvas } from "html-to-image";
-import lilita from "@fontsource/lilita-one/files/lilita-one-latin-400-normal.woff2?url";
+import figtree from "@fontsource/figtree/files/figtree-latin-800-italic.woff2?url";
+import figtreeExtended from "@fontsource/figtree/files/figtree-latin-ext-800-italic.woff2?url";
+import figtreeBlack from "@fontsource/figtree/files/figtree-latin-900-normal.woff2?url";
 import mona from "@fontsource-variable/mona-sans/files/mona-sans-latin-wght-normal.woff2?url";
 
 const asData = (url: string) => fetch(url).then((r) => { if (!r.ok) throw new Error(`${url}: ${r.status}`); return r.blob(); }).then((b) => new Promise<string>((res, rej) => {
@@ -15,9 +16,12 @@ const asData = (url: string) => fetch(url).then((r) => { if (!r.ok) throw new Er
   f.readAsDataURL(b);
 }));
 let fontCss: Promise<string> | null = null;
-const fonts = () => (fontCss ??= Promise.all([lilita, mona].map(asData)).then(([l, m]) =>
-  `@font-face{font-family:"Lilita One";font-weight:400;src:url(${l}) format("woff2")}` +
-  `@font-face{font-family:"Mona Sans";font-weight:200 900;src:url(${m}) format("woff2")}`));
+const fonts = () => (fontCss ??= Promise.all([mona, figtreeBlack, figtreeExtended, figtree].map(asData)).then(([m, stats, ...displayFonts]) =>
+  `@font-face{font-family:"Mona Sans Variable";font-weight:200 900;src:url(${m}) format("woff2")}` +
+  `@font-face{font-family:"Figtree Black";font-weight:900;font-style:normal;src:url(${stats}) format("woff2")}` +
+  displayFonts.flatMap((src) => ["normal", "italic"].map((style) =>
+    `@font-face{font-family:"Figtree";font-weight:100 900;font-style:${style};src:url(${src}) format("woff2")}`
+  )).join("")));
 
 /** A box-shadow without its outer shadows: those fall outside the element, and in a picture of just the element they'd
     only darken the corners outside its rounded edge. WebGL draws the shadow itself. */

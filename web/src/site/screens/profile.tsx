@@ -197,7 +197,7 @@ function Collection({ p, have, youNeed, onLook }: { p: Profile; have: Record<num
         ))}
       </div>
       {list.length ? <div class="pr-grid">{list.map((n) => (
-        <button type="button" class="s-cell" onClick={() => onLook(n, low(have[n]), sorted(have[n]))}><Card num={n} serial={p.me ? undefined : low(have[n])} w="var(--pw)">{have[n].length > 1 && <span class="s-count">×{have[n].length}</span>}</Card></button>
+        <button type="button" class="s-cell" onClick={() => onLook(n, low(have[n]), sorted(have[n]))}><Card num={n} serial={p.me ? undefined : low(have[n])} w="var(--pw)" copies={have[n].length} /></button>
       ))}</div> : <p class="s-dim">{f === "need" ? `${p.username} has no spares you're missing.` : "None yet."}</p>}
       <p class="s-dim pp-of">{all.length} of {TEAMS.length} teams</p>
     </>
