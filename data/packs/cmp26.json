@@ -1293,7 +1293,7 @@
    "srank": 56,
    "loc": "TX, USA",
    "region": "Texas",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
     "auto": 14,
@@ -1605,7 +1605,7 @@
    "srank": 67,
    "loc": "Türkiye",
    "region": "Türkiye",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
     "auto": 11,
@@ -2373,7 +2373,7 @@
    "srank": 103,
    "loc": "TX, USA",
    "region": "Texas",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
     "auto": 12,
@@ -2469,7 +2469,7 @@
    "srank": 107,
    "loc": "TX, USA",
    "region": "Texas",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
     "auto": 14,
@@ -3357,7 +3357,7 @@
    "srank": 147,
    "loc": "MN, USA",
    "region": "Minnesota",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
     "auto": 12,
@@ -3837,7 +3837,7 @@
    "srank": 167,
    "loc": "TN, USA",
    "region": "Tennessee",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
     "auto": 13,
@@ -7125,7 +7125,7 @@
    "srank": 332,
    "loc": "Israel",
    "region": "Israel",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
     "auto": 10,
@@ -7629,7 +7629,7 @@
    "srank": 361,
    "loc": "NY, USA",
    "region": "New York",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
     "auto": 9,
@@ -7989,7 +7989,7 @@
    "srank": 385,
    "loc": "TX, USA",
    "region": "Texas",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
     "auto": 6,
@@ -8013,7 +8013,7 @@
    "srank": 386,
    "loc": "India",
    "region": "India",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
     "auto": 6,
@@ -8997,7 +8997,7 @@
    "srank": 447,
    "loc": "HI, USA",
    "region": "Hawaii",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
     "auto": 6,
@@ -9501,7 +9501,7 @@
    "srank": 494,
    "loc": "LA, USA",
    "region": "Louisiana",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
     "auto": 6,
@@ -11061,7 +11061,7 @@
    "srank": 720,
    "loc": "TX, USA",
    "region": "Texas",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
     "auto": 6,
@@ -11637,7 +11637,7 @@
    "srank": 813,
    "loc": "NY, USA",
    "region": "New York",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
     "auto": 7,
@@ -11661,7 +11661,7 @@
    "srank": 814,
    "loc": "WI, USA",
    "region": "Wisconsin",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
     "auto": 6,
@@ -11757,7 +11757,7 @@
    "srank": 829,
    "loc": "IL, USA",
    "region": "Illinois",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
     "auto": 3,
@@ -11853,7 +11853,7 @@
    "srank": 854,
    "loc": "SC, USA",
    "region": "South Carolina",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
     "auto": 6,
@@ -12357,7 +12357,7 @@
    "srank": 1051,
    "loc": "TX, USA",
    "region": "Texas",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
     "auto": 6,
@@ -13437,7 +13437,7 @@
    "srank": 1652,
    "loc": "Türkiye",
    "region": "Türkiye",
-   "photo": false,
+   "photo": true,
    "avatar": true,
    "bt": {
     "auto": 1,

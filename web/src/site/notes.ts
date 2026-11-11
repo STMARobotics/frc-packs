@@ -39,6 +39,7 @@ export const NOTES: Release[] = [
       "Fixed battles skipping the match animations on some computers",
       "Fixed the deck's Auto-fill button disappearing after you removed a robot",
       "Fixed some robot photos not loading in trades on iPhone",
+      "19 more teams have their 2026 robot photo, including ones posted on Instagram",
     ],
   },
   {
