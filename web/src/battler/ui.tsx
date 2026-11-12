@@ -2,8 +2,9 @@
 // the screen header.
 import type { ComponentChildren, JSX } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
-import { CAT, closeSheet, sheet, toastMsg, useStore } from "./store";
+import { CAT, closeSheet, ROBOT, sheet, toastMsg, useStore } from "./store";
 import type { RobotCard, Support, SupportInst } from "./types";
+import { CardRatings, formatRating } from "../card-stats";
 
 export const TIER_ORDER = ["mythic", "legendary", "rare", "uncommon", "common"];
 export const STARS: Record<string, number> = { common: 1, uncommon: 2, rare: 3, legendary: 4, mythic: 5 };
@@ -19,12 +20,17 @@ export function Photo({ team, has, cls }: { team: number; has: boolean; cls?: st
     `w` is any CSS length. */
 export function Card({ r, w, cls, children }: { r: RobotCard; w: string; cls?: string; children?: ComponentChildren }) {
   const s = r.stats;
+  const hasAvatar = ROBOT.get(r.team)?.avatar;
   return (
     <div class={cx("b-card", cls)} style={{ "--cw": w }}>
       <div class="card" data-tier={r.tier}>
         <div class="face front btf">
           <div class="inner v2 bt b2">
-            <div class="head"><span class="avatar none">{r.team}</span><span class="tname">{r.name}</span></div>
+            <div class="head">
+              {hasAvatar ? <span class="avatar"><img alt="" draggable={false} decoding="async" src={`/photos/avatars/${r.team}.png`} /></span>
+                : <span class="avatar none">{r.team}</span>}
+              <span class="tname">{r.name}</span>
+            </div>
             <div class="fwrap">
               <div class="fphoto">
                 {r.photo ? <span class="phw"><img class="ph" alt="" draggable={false} decoding="async" src={`/photos/${r.team}.webp`} /></span> : <span class="b-nophoto big">#{r.team}</span>}
@@ -32,12 +38,7 @@ export function Card({ r, w, cls, children }: { r: RobotCard; w: string; cls?: s
               </div>
               <div class="idbar"><span class="num">#{r.team}</span><span class="loc">{r.region}</span><span class="yr">{CAT?.season ?? 2026}</span></div>
             </div>
-            <div class="statrow">
-              <div class="stat"><small>AUTO</small><b>{s.auto}</b></div>
-              <div class="stat"><small>TELE</small><b>{s.tele}</b></div>
-              <div class="stat"><small>END</small><b>{s.end}</b></div>
-            </div>
-            <div class="rprow">{s.rp.map((p, i) => <div class="rp"><i>RP{i + 1}</i><b>{p}%</b></div>)}</div>
+            <CardRatings stats={s} />
             <div class="effect">{r.effect_text ? <p>{r.effect_text}</p> : <p class="tbd">No effect</p>}</div>
           </div>
           <div class="ftb">
@@ -62,7 +63,7 @@ export function Tile({ r, sel, off, onClick, children }: { r: RobotCard; sel?: b
       <Photo team={r.team} has={r.photo} cls="b-tile-pic" />
       <div class="b-tile-m">
         <div class="b-tile-name"><b>{r.team}</b> {r.name}</div>
-        <div class="b-tile-stats"><span>A <b>{s.auto}</b></span><span>T <b>{s.tele}</b></span><span>E <b>{s.end}</b></span></div>
+        <div class="b-tile-stats"><span>A <b>{formatRating(s.auto)}</b></span><span>T <b>{formatRating(s.tele)}</b></span><span>E <b>{formatRating(s.end)}</b></span><span>D <b>{formatRating(s.def)}</b></span></div>
       </div>
       {children && <div class="b-tile-r">{children}</div>}
     </div>

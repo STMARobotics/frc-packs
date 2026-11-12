@@ -5,30 +5,16 @@ import { store, useStore } from "../lib/store";
 import { BY_NUM, RECIPE, STARS, TIERS, type T } from "./data";
 import { social, st, toastMsg } from "./state";
 import type { Tier } from "../api";
+import { CardRatings } from "../card-stats";
 
 export const cx = (...c: (string | false | null | undefined | 0)[]) => c.filter(Boolean).join(" ");
 export const plural = (n: number, one: string, many = one + "s") => `${n} ${n === 1 ? one : many}`;
-
-// ---------- photos ----------
-
-/** Where each photo's robot is (data/photos/focus.json): the photo fills its window and the part cropped off is the part
-    least likely to be the robot. */
-let FOCUS: Record<string, [number, number]> = {};
-fetch("/photos/focus.json").then((r) => (r.ok ? r.json() : {})).then((f) => { FOCUS = f || {}; }).catch(() => {});
-function center(img: HTMLImageElement, num: number) {
-  const f = FOCUS[num], w = img.naturalWidth, h = img.naturalHeight, box = img.parentElement?.getBoundingClientRect();
-  if (!f || !w || !box?.width) return;
-  const scale = Math.max(box.width / w, box.height / h), visW = box.width / (w * scale), visH = box.height / (h * scale);
-  const pos = (c: number, vis: number) => (vis >= 1 ? 50 : Math.min(100, Math.max(0, ((c - vis / 2) / (1 - vis)) * 100)));
-  img.style.objectPosition = `${pos(f[0], visW)}% ${pos(f[1], visH)}%`;
-}
 
 /** The card face: the team's ring and name, the robot photo, the strip with number, place and division, the Battler
     stats (dashes until they're imported), and the stars, year and serial along the bottom. */
 export function Face({ t, tier, serial, copies = 1 }: { t: T; tier: Tier; serial?: number | string; copies?: number }) {
   const bt = t.bt;
   const sn = serial ? +serial : 0;
-  const stat = (v?: number) => (bt ? <b>{v}</b> : <b class="na">–</b>);
   return (
     <div class="face front btf">
       <div class="inner v2 bt b2">
@@ -36,14 +22,13 @@ export function Face({ t, tier, serial, copies = 1 }: { t: T; tier: Tier; serial
         <div class="fwrap">
           <div class="fphoto">
             {t.photo
-              ? <span class="phw"><img class="ph" alt="" draggable={false} decoding="async" src={`/photos/${t.num}.webp`} onLoad={(e) => center(e.currentTarget, t.num)} /></span>
+              ? <span class="phw"><img class="ph" alt="" draggable={false} decoding="async" src={`/photos/${t.num}.webp`} /></span>
               : <span class="s-nophoto">#{t.num}</span>}
           </div>
           {copies > 1 && <span class="s-count">×{copies}</span>}
           <div class="idbar"><span class="num">#{t.num}</span><span class="loc">{t.region || t.loc}</span><span class="division">{t.div}</span></div>
         </div>
-        <div class="statrow"><div class="stat"><small>AUTO</small>{stat(bt?.auto)}</div><div class="stat"><small>TELE</small>{stat(bt?.tele)}</div><div class="stat"><small>END</small>{stat(bt?.end)}</div></div>
-        <div class="rprow">{[0, 1, 2].map((i) => <div class="rp"><i>RP{i + 1}</i>{bt ? <b>{bt.rp[i]}%</b> : <b class="na">–</b>}</div>)}</div>
+        <CardRatings stats={bt} />
         <div class="effect">{bt?.effect ? <p class="fx-long">{bt.effect}</p> : <p class="tbd">No effect</p>}</div>
       </div>
       <div class="ftb">

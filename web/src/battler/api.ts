@@ -27,7 +27,7 @@ const MESSAGES: Record<string, string> = {
   own_game: "That's your own game.",
   deck_not_ready: "That deck isn't ready.",
   not_in_hand: "That card isn't in your hand.",
-  not_your_robot: "Parts go on your own robots.",
+  not_your_robot: "Choose one of your robots on the field.",
   bad_stations: "Each robot needs its own station.",
   locked: "You've already locked in.",
   too_many_decks: "Deck limit reached. Delete one first.",

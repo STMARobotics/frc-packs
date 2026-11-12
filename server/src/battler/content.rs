@@ -1,5 +1,4 @@
-//! The Battler's cards: robots from the pack recipe (with their imported stats, or clearly marked test stats until
-//! Statbotics comes back), and the Part and Lore cards from data/battler/support-<season>.json.
+//! The Battler's cards: robot ratings from the frozen pack recipe and Part/Lore cards from the season's support file.
 
 use std::collections::HashMap;
 use std::path::Path;
@@ -29,8 +28,10 @@ pub struct Robot {
     pub region: String,
     pub tier: String,
     pub photo: bool,
+    #[serde(default)]
+    pub avatar: bool,
     pub stats: Stats,
-    /// The stats are placeholders (made from Champs EPA) until the Statbotics import runs.
+    /// An older recipe did not contain imported ratings for this robot.
     pub test_stats: bool,
 }
 
@@ -64,7 +65,6 @@ pub struct Support {
 struct RecipeTeam {
     num: i32,
     name: String,
-    epa: Option<f64>,
     #[serde(default)]
     region: String,
     #[serde(default)]
@@ -72,15 +72,9 @@ struct RecipeTeam {
     tier: String,
     #[serde(default)]
     photo: bool,
-    bt: Option<Bt>,
-}
-
-#[derive(Deserialize)]
-struct Bt {
-    auto: i32,
-    tele: i32,
-    end: i32,
-    rp: [i32; 3],
+    #[serde(default)]
+    avatar: bool,
+    bt: Option<Stats>,
 }
 
 #[derive(Deserialize)]
@@ -122,7 +116,7 @@ fn wobble(team: i32, salt: i32) -> f64 {
     f64::from(x % 1000) / 1000.0 - 0.5
 }
 
-/// Placeholder stats from Champs EPA, on the same scale as the spec's example (a top robot about 30 / 72 / 18).
+/// Synthetic stats for admin effect simulations and tests.
 pub fn test_stats(team: i32, epa: Option<f64>) -> Stats {
     let epa = epa.filter(|e| e.is_finite() && *e > 0.0).unwrap_or(60.0);
     let n = epa / 3.0;
@@ -130,11 +124,12 @@ pub fn test_stats(team: i32, epa: Option<f64>) -> Stats {
     let end = 0.16 + 0.08 * wobble(team, 2);
     let tele = 1.0 - auto - end;
     let strength = (epa / 370.0).clamp(0.0, 1.0);
-    let rp = |salt| ((12.0 + 60.0 * strength + 30.0 * wobble(team, salt)).round() as i32).clamp(3, 92);
+    let rp = |salt| (12.0 + 60.0 * strength + 30.0 * wobble(team, salt)).round().clamp(3.0, 92.0);
     Stats {
-        auto: (n * auto).round() as i32,
-        tele: (n * tele).round() as i32,
-        end: (n * end).round() as i32,
+        auto: (n * auto).round(),
+        tele: (n * tele).round(),
+        end: (n * end).round(),
+        def: None,
         rp: [rp(3), rp(4), rp(5)],
     }
 }
@@ -149,10 +144,8 @@ impl Content {
             .teams
             .into_iter()
             .map(|t| {
-                let (stats, test) = match t.bt {
-                    Some(b) => (Stats { auto: b.auto, tele: b.tele, end: b.end, rp: b.rp }, false),
-                    None => (test_stats(t.num, t.epa), true),
-                };
+                let test = t.bt.is_none();
+                let stats = t.bt.unwrap_or_default();
                 Robot {
                     id: format!("R-{SEASON}-{}", t.num),
                     team: t.num,
@@ -161,6 +154,7 @@ impl Content {
                     region: if t.region.is_empty() { t.loc } else { t.region },
                     tier: t.tier,
                     photo: t.photo,
+                    avatar: t.avatar,
                     stats,
                     test_stats: test,
                 }
@@ -223,6 +217,7 @@ mod tests {
         let dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../data");
         let c = Content::load(&dir).expect("cards load");
         assert!(c.robots.len() > 500);
+        assert!(c.robot(4414).unwrap().avatar);
         let parts = c.support.iter().filter(|s| s.kind == Kind::Part).count();
         let lore = c.support.iter().filter(|s| s.kind == Kind::Lore).count();
         assert!(parts >= 15 && lore >= 5, "{parts} parts, {lore} lore");
@@ -232,9 +227,9 @@ mod tests {
     #[test]
     fn test_stats_are_on_the_spec_scale() {
         let top = test_stats(4414, Some(368.0));
-        assert!((90..=150).contains(&(top.auto + top.tele + top.end)), "{top:?}");
+        assert!((90.0..=150.0).contains(&(top.auto + top.tele + top.end)), "{top:?}");
         assert!(top.tele > top.auto && top.tele > top.end);
         assert_eq!(test_stats(4414, Some(368.0)), top, "stable");
-        assert!(top.rp.iter().all(|r| (3..=92).contains(r)));
+        assert!(top.rp.iter().all(|r| (3.0..=92.0).contains(r)));
     }
 }

@@ -7,6 +7,8 @@ import { sfx } from "../sfx";
 import type { GameView, RoundLog } from "../types";
 import { robotOf } from "./state";
 
+const rollLabel = (roll: number) => String(Math.floor(roll * 100) / 100);
+
 export interface Reveal {
   /** Their robot in each lane: 0 face down, 1 turning over now, 2 face up. */
   open: [number, number, number];
@@ -44,7 +46,7 @@ export function finished(log: RoundLog, side: number): Reveal {
   for (const sc of r.robots) {
     v.pts[sc.inst] = [...sc.points];
     v.graded[sc.inst] = [true, true, true];
-    v.dice[sc.inst] = sc.rp_hit ? { s: "hit", t: "+1" } : { s: "miss", t: String(sc.rp_roll) };
+    v.dice[sc.inst] = sc.rp_hit ? { s: "hit", t: "+1" } : { s: "miss", t: rollLabel(sc.rp_roll) };
   }
   v.totals = [r.totals[side], r.totals[op]];
   v.rp = [r.match_rp[side] + r.bonus_rp[side], r.match_rp[op] + r.bonus_rp[op]];
@@ -168,7 +170,7 @@ export function useReveal(g: GameView, log: RoundLog | null): [Reveal | null, ()
           const sc = r.robots.find((x) => x.inst === inst)!;
           for (let i = 0; i < 5; i++) { upd((x) => { x.dice[inst] = { s: "roll", t: String(Math.floor(Math.random() * 100)) }; }); sfx.dice(); await wait(55); }
           upd((x) => {
-            x.dice[inst] = sc.rp_hit ? { s: "hit", t: "+1" } : { s: "miss", t: String(sc.rp_roll) };
+            x.dice[inst] = sc.rp_hit ? { s: "hit", t: "+1" } : { s: "miss", t: rollLabel(sc.rp_roll) };
             if (sc.rp_hit) x.rp = s === side ? [x.rp[0] + 1, x.rp[1]] : [x.rp[0], x.rp[1] + 1];
           });
           (sc.rp_hit ? sfx.hit : sfx.miss)();

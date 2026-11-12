@@ -7,6 +7,7 @@ and every team in it with that team's rarity. Adding a pack means adding an entr
 Run: python3 tools/build_packs.py
 """
 import json, math, pathlib, re
+from decimal import Decimal
 
 root = pathlib.Path(__file__).resolve().parent.parent
 data = root / "data"
@@ -35,16 +36,21 @@ def place(loc):
     return loc
 
 def battler_stats(path):
-    """team|auto|tele|end|rp1|rp2|rp3|event from tools/battler_stats.py: the 1v1 battler stats on each card."""
+    """Read the frozen Match13 snapshot. The recipe expresses RP chances in percentage points."""
+    if not path.exists():
+        raise FileNotFoundError(f"{path.name} is missing. Run tools/match13_stats.py once to cache it.")
+    snapshot = json.loads(path.read_text(encoding="utf-8"))
     out = {}
-    if path.exists():
-        for line in path.read_text(encoding="utf-8").splitlines():
-            p = line.strip().split("|")
-            if len(p) >= 7 and p[0].isdigit():
-                out[int(p[0])] = {"auto": int(p[1]), "tele": int(p[2]), "end": int(p[3]), "rp": [int(x) for x in p[4:7]]}
+    for team, row in snapshot["teams"].items():
+        if any(row[key] is None for key in ("xAuto", "xTele", "xEnd", "dpr", "xRp1", "xRp2", "xRp3")):
+            raise ValueError(f"Match13 snapshot has missing ratings for team {team}")
+        out[int(team)] = {
+            "auto": row["xAuto"], "tele": row["xTele"], "end": row["xEnd"], "def": row["dpr"],
+            "rp": [float(Decimal(str(row[f"xRp{i}"])) * 100) for i in (1, 2, 3)],
+        }
     return out
 
-BATTLER = battler_stats(data / "battler-2026.txt")
+BATTLER = battler_stats(data / "match13-2026.json")
 
 def previous_tiers(path):
     """Each team's rarity in the pack as it was built last time: a team already in the pack keeps it."""
@@ -83,8 +89,9 @@ def champs_teams(path):
             # Their TBA avatar at /photos/avatars/<num>.png (tools/tba_media.py), in the ring by the name.
             "avatar": (data / "photos" / "avatars" / f"{num}.png").exists(),
         })
-        if num in BATTLER:
-            teams[-1]["bt"] = BATTLER[num]
+        if num not in BATTLER:
+            raise ValueError(f"Match13 snapshot has no ratings for team {num}")
+        teams[-1]["bt"] = BATTLER[num]
     # Rarity: the season's top 50 who came were Mythic at launch; everyone else is ranked by EPA at the event. Since
     # October 2026 only the teams in MYTHICS are Mythic: other former Mythics are Legendary, and the rest keep their tier.
     teams.sort(key=lambda t: (-(t["epa"] if t["epa"] is not None else -1), t["num"]))

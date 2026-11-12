@@ -1354,7 +1354,7 @@ body.has-notice .app > .top { top: calc(36px + env(safe-area-inset-top)); }
 .inner.v2 .fwrap { position: relative; flex: 1 1 0; min-height: 0; display: flex; margin: calc(var(--cw) * .05) calc(var(--cw) * .04) 0; }
 .inner.v2 .fphoto { flex: 1; margin: 0; aspect-ratio: auto; height: auto; box-sizing: border-box; border: calc(var(--cw) * .014) solid var(--ring); border-radius: calc(var(--cw) * 0.015); overflow: hidden; background: var(--pane);
   box-shadow: 0 0 calc(var(--cw) * .06) var(--glow), 0 calc(var(--cw) * .03) calc(var(--cw) * .06) rgba(0,0,0,.6); }
-.inner.v2 .fphoto .ph { object-fit: cover; object-position: 50% 100%; }
+.inner.v2 .fphoto .ph { object-fit: cover; object-position: 50% 50%; }
 .inner.v2 .fphoto .ph-bg { display: none; }
 .inner.v2 .ph-fallback { position: absolute; inset: 0; width: 100%; height: 100%; }
 .card[data-tier="mythic"] .fphoto { border-color: transparent; background: var(--dam) 40% 20% / 260px border-box; }
@@ -1448,18 +1448,23 @@ body.has-notice .app > .top { top: calc(36px + env(safe-area-inset-top)); }
 .inner.b2 .idbar:has(> .yr) .num { text-align: left; color: var(--acc2); font-family: var(--display); text-transform: uppercase; font-weight: 400; font-size: calc(var(--cw) * .045); }
 .inner.b2 .idbar .loc { border-radius: 0; text-align: center; position: static; display: block; box-shadow: none; background: none; height: auto; padding: 0 calc(var(--cw) * .03); }
 .inner.b2 .idbar .yr { text-align: right; color: var(--acc); font-family: var(--display); text-transform: uppercase; font-weight: 400; font-size: calc(var(--cw) * .045); }
-.inner.b2 .statrow { margin-top: calc(var(--cw) * .03); }
-.inner.b2 .effect { height: calc(var(--cw) * .165); }
-.inner.b2 .rp { align-items: center; padding-block: calc(var(--cw) * .018); }
+.inner.b2 .statrow { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: calc(var(--cw) * .024); }
+.inner.b2 .stat { padding-block: calc(var(--cw) * .009); }
+.inner.b2 .stat small { font-size: calc(var(--cw) * .025); }
+.inner.b2 .stat b { font-size: calc(var(--cw) * .054); line-height: calc(var(--cw) * .072); white-space: nowrap; }
+.inner.b2 .rprow { margin-top: calc(var(--cw) * .016); }
+.inner.b2 .rp { padding-block: calc(var(--cw) * .014); }
 .inner.b2 .rp i { font-size: calc(var(--cw) * .036); }
-.inner.b2 .rp b { font-size: calc(var(--cw) * .055); }
+.inner.b2 .rp b { font-size: calc(var(--cw) * .046); white-space: nowrap; }
+.inner.b2 .effect { height: calc(var(--cw) * .21); overflow: hidden; }
 .ftb .rar i { font-style: normal; opacity: .22; }
 .ftb .rar i.on { opacity: 1; }
 .inner.b2 .avatar.none { display: grid; place-items: center; font: 400 calc(var(--cw) * .034) / 1 var(--display); text-transform: uppercase; color: var(--acc2); }
-/* The card shows up to three lines of the effect. Details shows the full rules. */
-.inner.bt .effect p.fx-long { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; font-size: calc(var(--cw) * .032); }
+/* The card shows up to four lines of the effect. Details shows the full rules. */
+.inner.bt .effect p.fx-long { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; font-size: calc(var(--cw) * .032); }
 .inner.bt .effect p.tbd { color: rgba(255,255,255,.55); font-style: italic; font-weight: 500; }
 .inner.bt b.na { opacity: .4; }
+
 
 /* The card sits in the middle of the space between the top buttons and the bottom row (it used to ride high), and the
    bottom row stays put. */

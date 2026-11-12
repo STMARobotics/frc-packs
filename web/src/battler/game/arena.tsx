@@ -7,13 +7,14 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
 import { CAT, openSheet } from "../store";
 import { sfx } from "../sfx";
-import type { GameView, RobotInst, RobotScore, RoundLog, SupportInst } from "../types";
+import type { GameView, RobotInst, RobotMode, RobotScore, RoundLog, SupportInst } from "../types";
 import { Card, CardBack, cx, plural, RobotSheet } from "../ui";
 import { Clock, Ring } from "./clock";
 import { initial } from "./final";
 import { type Reveal, useReveal } from "./reveal";
 import { openBench, openMenu, openMyRobot, openPool } from "./sheets";
-import { attach, cardOf, detach, lock, playLore, robotOf, setStations } from "./state";
+import { attach, cardOf, detach, lock, playLore, robotOf, setRobotMode, setStations } from "./state";
+import { formatRating, formatRp } from "../../card-stats";
 import { openSchedule } from "./schedule";
 
 export function Arena({ g, log, onNext }: { g: GameView; log: RoundLog | null; onNext: () => void }) {
@@ -163,7 +164,7 @@ export function Arena({ g, log, onNext }: { g: GameView; log: RoundLog | null; o
         <Clock g={g} />
       </div>
 
-      {pit && theirBots.every((i) => i !== 0) && <p class="b-lineup-note">Their stations show once you're both in queue</p>}
+      {pit && theirBots.every((i) => i !== 0) && <p class="b-lineup-note">Their stations and modes show once you're both in queue</p>}
       {/* the board */}
       <div class="b-board" ref={board} onClick={(e) => { if (e.target === e.currentTarget) setSel(null); }}>
         {[0, 1, 2].map((k) => <div key={`lane${k}`} class="b-lane" data-lane={live ? k : undefined} style={{ gridColumn: k + 1 }} onClick={() => setSel(null)} />)}
@@ -181,9 +182,11 @@ export function Arena({ g, log, onNext }: { g: GameView; log: RoundLog | null; o
         {[0, 1, 2].map((k) => {
           const r = robotOf(g, myBots[k]);
           if (!r) return null;
+          const mode: RobotMode = plan.defending?.includes(r.inst) ? "defending" : "scoring";
           return (
             <Bot key={r.inst} g={g} r={r} lane={k} row={3} mine captain={r.inst === captains[side]} parts={partsOn(side, r.inst)} score={score(r.inst)} rv={rv}
               live={live} target={selCard?.kind === "PART"} lifted={lifted === r.inst}
+              plannedMode={pit ? mode : undefined} onModeChange={live ? () => setRobotMode(r.inst, mode === "defending" ? "scoring" : "defending") : undefined}
               onTap={() => tapBot(r.inst, true)} onDetach={live ? (p) => { sfx.pick(); detach(p); } : undefined}
               onDown={live ? (e) => startDrag(e, "bot", r.inst) : undefined} />
           );
@@ -191,6 +194,7 @@ export function Arena({ g, log, onNext }: { g: GameView; log: RoundLog | null; o
         {rv?.banner && <b key={rv.banner.n} class="b-banner">{rv.banner.text}</b>}
         {rv && rv.auto > 0 && <div class="b-autoclock"><b>AUTO</b><span>0:0{rv.auto}</span></div>}
       </div>
+      {pit && <p class="b-lineup-note">Defend to trade your TELE for a DEF penalty on the opposite robot.</p>}
 
       {/* Lore and the tug of war */}
       <div class="b-mid">
@@ -241,10 +245,11 @@ export function Arena({ g, log, onNext }: { g: GameView; log: RoundLog | null; o
 
 interface BotProps {
   g: GameView; r: RobotInst; lane: number; row: number; mine: boolean; captain: boolean; parts: SupportInst[]; score?: RobotScore; rv: Reveal | null;
+  plannedMode?: RobotMode; onModeChange?: () => void;
   live?: boolean; target?: boolean; lifted?: boolean; onTap: () => void; onDetach?: (part: number) => void; onDown?: (e: PointerEvent) => void;
 }
 
-function Bot({ r, lane, row, mine, captain, parts, score, rv, live, target, lifted, onTap, onDetach, onDown }: BotProps) {
+function Bot({ r, lane, row, mine, captain, parts, score, rv, plannedMode, onModeChange, live, target, lifted, onTap, onDetach, onDown }: BotProps) {
   const el = useRef<HTMLDivElement>(null);
   const last = useRef<number | null>(null);
   // Changing station slides the robot to its new column instead of jumping there.
@@ -259,14 +264,18 @@ function Bot({ r, lane, row, mine, captain, parts, score, rv, live, target, lift
   const open = mine || !rv ? 2 : rv.open[lane];
   const unknownStation = !mine && !rv;
   const s = r.stats;
-  const base = [s.auto, s.tele, s.end];
+  const defending = (plannedMode ?? score?.mode) === "defending";
+  const modeLabel = defending ? "Defending" : "Scoring";
+  const modeClass = cx("b-robot-mode", defending && "defending");
+  const base = [s.auto, defending ? 0 : s.tele, s.end];
   const shown = (k: number): string => {
     if (rv) { const p = rv.pts[r.inst]?.[k]; return p === null || p === undefined ? "–" : String(p); }
-    return String(base[k]);
+    return formatRating(base[k]);
   };
   const grade = (k: number) => {
     if (!rv || !score || !rv.graded[r.inst]?.[k]) return rv?.pts[r.inst]?.[k] != null ? "lit" : "";
-    return score.points[k] > score.base[k] ? "lit up" : score.points[k] < score.base[k] ? "lit down" : "lit";
+    const expected = defending && k === 1 ? 0 : Math.max(0, Math.round(score.base[k]));
+    return score.points[k] > expected ? "lit up" : score.points[k] < expected ? "lit down" : "lit";
   };
   const die = rv?.dice[r.inst];
   return (
@@ -286,8 +295,14 @@ function Bot({ r, lane, row, mine, captain, parts, score, rv, live, target, lift
       <div class={cx("b-bot-info", open === 0 && "none")}>
         <div class="b-ph3">
           {[0, 1, 2].map((k) => <span class={grade(k)}><small>{"ATE"[k]}</small><b>{shown(k)}</b></span>)}
-          <span class="rpc" title={unknownStation ? "Station choice is revealed when both players go to queue" : undefined}><small>{unknownStation ? "RP" : `RP${lane + 1}`}</small><b>{unknownStation ? "?" : `${score ? score.rp_chance : s.rp[lane]}%`}</b></span>
+          <span class="rpc" title={unknownStation ? "Station choice is revealed when both players go to queue" : undefined}><small>{unknownStation ? "RP" : `RP${lane + 1}`}</small><b>{unknownStation ? "?" : formatRp(score ? score.rp_chance : s.rp[lane])}</b></span>
         </div>
+        {plannedMode ? (
+          <button type="button" class={modeClass} aria-label={`Defending mode for ${r.team} ${r.name}`} aria-pressed={defending}
+            disabled={!onModeChange} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onModeChange?.(); }}>
+            {modeLabel}
+          </button>
+        ) : score && <span class={modeClass}>{modeLabel}</span>}
       </div>
     </div>
   );

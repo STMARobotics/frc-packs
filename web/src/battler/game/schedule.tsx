@@ -1,3 +1,4 @@
+import { formatRating } from "../../card-stats";
 import { openSheet, useStore } from "../store";
 import type { GameView, ScheduledMatch } from "../types";
 import { cx, RobotSheet } from "../ui";
@@ -48,7 +49,8 @@ export function Schedule({ g, review = false }: { g: GameView; review?: boolean 
 
 /** A deck's rating (#107): every robot in it, Auto + Tele + End, added up. Base stats only, like the win estimates. */
 function deckRating(g: GameView, side: number) {
-  return g.robots.filter((r) => r.from === side).reduce((a, r) => a + r.stats.auto + r.stats.tele + r.stats.end, 0);
+  const total = g.robots.filter((r) => r.from === side).reduce((a, r) => a + r.stats.auto + r.stats.tele + r.stats.end, 0);
+  return formatRating(total);
 }
 
 function Match({ g, match: m }: { g: GameView; match: ScheduledMatch }) {

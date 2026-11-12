@@ -3,6 +3,7 @@
 // from, what it's doing) to look at, trade or scrap one in particular; Details has the team's facts.
 import { useEffect, useState } from "preact/hooks";
 import { api, type Copy, type Owner } from "../../api";
+import { formatRating } from "../../card-stats";
 import { useStore } from "../../lib/store";
 import { BY_NUM, PACK, TIERS } from "../data";
 import { ago, fail, heldCopies, inv, st, toast } from "../state";
@@ -100,12 +101,12 @@ function CardView({ num, o }: { num: number; o: CardOpts }) {
             <dt>Rarity</dt><dd style={{ color: TIERS[t.tier].color }}>{TIERS[t.tier].label}</dd>
             <dt>Division</dt><dd>{t.div}</dd>
             {t.loc && <><dt>From</dt><dd>{t.loc}</dd></>}
-            <dt>EPA</dt><dd>{t.epa == null ? "–" : Math.round(t.epa)} · #{t.rank} at Champs</dd>
+            <dt>Champs rank</dt><dd>#{t.rank}</dd>
             <dt>Record</dt><dd>{t.wl}</dd>
             {owned && !o.from && <><dt>Serials</dt><dd>{mine.map((x) => `No. ${x}`).join(" · ")}</dd></>}
             {o.serials && o.serials.length > 1 ? <><dt>Serials</dt><dd>{o.serials.map((x) => `No. ${x}`).join(" · ")}</dd></>
               : o.serial ? <><dt>Serial</dt><dd>No. {o.serial}</dd></> : null}
-            <dt>Battler</dt><dd>{t.bt ? `AUTO ${t.bt.auto} · TELE ${t.bt.tele} · END ${t.bt.end}` : "Stats coming soon"}</dd>
+            <dt>Battler</dt><dd>{t.bt ? `AUTO ${formatRating(t.bt.auto)} · TELE ${formatRating(t.bt.tele)} · END ${formatRating(t.bt.end)} · DEF ${formatRating(t.bt.def)}` : "Stats unavailable"}</dd>
             {t.bt?.effect && <><dt>Effect</dt><dd>{t.bt.effect}</dd></>}
           </dl>
         ) : <TiltCard num={num} serial={serial} w="min(310px, 80vw, calc((100svh - 250px) / 1.4))" />}

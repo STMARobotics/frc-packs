@@ -3,7 +3,7 @@
 // refuses, the screen goes back to what the server says. Taps are sent one at a time, in order.
 import { ApiError, call, explain } from "../api";
 import { store, toast } from "../store";
-import type { GameView, Plan, RobotInst, SupportInst } from "../types";
+import type { GameView, Plan, RobotInst, RobotMode, SupportInst } from "../types";
 
 export const game = store<GameView | null>(null);
 
@@ -106,12 +106,19 @@ export const detach = (part: number) => act({ kind: "detach", part }, (g) => { c
 export const playLore = (card: number | null) =>
   act({ kind: "lore", card }, (g) => { const p = plan(g); p.lore = card; if (card !== null) p.attach = p.attach.filter(([x]) => x !== card); });
 export const setStations = (robots: [number, number, number]) => act({ kind: "stations", robots }, (g) => { plan(g).stations = robots; });
+export const setRobotMode = (robot: number, mode: RobotMode) =>
+  act({ kind: "robot_mode", robot, mode }, (g) => {
+    const p = plan(g);
+    p.defending = (p.defending ?? []).filter((inst) => inst !== robot);
+    if (mode === "defending") p.defending.push(robot);
+  });
 export const setPartners = (robots: [number, number]) =>
   act({ kind: "partners", robots }, (g) => {
     const side = g.me!.side, cap = g.alliances[side][0], p = plan(g);
     p.partners = robots;
     p.stations = [cap, robots[0], robots[1]];
     p.attach = p.attach.filter(([, r]) => r === cap || robots.includes(r));
+    p.defending = p.defending?.filter((r) => r === cap || robots.includes(r));
     g.alliances[side] = [cap, robots[0], robots[1]];
   });
 export const lock = () => act({ kind: "lock" }, (g) => { g.seats[g.me!.side]!.locked = true; });
