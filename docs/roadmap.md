@@ -6,7 +6,7 @@ every ~2 days in between, and hotfixes whenever something big breaks. Every rele
 
 ## Planned
 
-### 0.14.2: packs
+### 0.14.3: packs
 
 - Division pack art with the official division emblems (the maintainer is sending them). The Shop already uses
   `data/photos/divisions/<Division>.png` when it exists, with a drawn shield until then.
