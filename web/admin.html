@@ -64,6 +64,17 @@
         <label class="field">Missed timers kept<small>1 to 10, so nobody loses packs overnight</small><input class="input" name="bank" type="number" inputmode="numeric" min="1" max="10"></label>
         <label class="field">New accounts start with<small>0 to 50 packs</small><input class="input" name="startPacks" type="number" inputmode="numeric" min="0" max="50"></label>
         <label class="field">Boosted pack costs<small>Parts. Scrapping an extra copy gives 5 (Common) to 600 (Mythic)</small><input class="input" name="boostCost" type="number" inputmode="numeric" min="1" max="100000"></label>
+        <fieldset class="shop-f">
+          <legend>Shop prices<small>Parts. Takes effect straight away for anyone not mid-purchase</small></legend>
+          <label class="field shop-on"><input name="shopOn" type="checkbox"> Shop open</label>
+          <label class="field">Standard pack<small>1 to 100000</small><input class="input" name="shopStd" type="number" inputmode="numeric" min="1" max="100000"></label>
+          <label class="field">Division pack<small>1 to 100000</small><input class="input" name="shopDivision" type="number" inputmode="numeric" min="1" max="100000"></label>
+          <label class="field">Common card<small>1 to 100000</small><input class="input" name="shopCommon" type="number" inputmode="numeric" min="1" max="100000"></label>
+          <label class="field">Uncommon card<small>1 to 100000</small><input class="input" name="shopUncommon" type="number" inputmode="numeric" min="1" max="100000"></label>
+          <label class="field">Rare card<small>1 to 100000</small><input class="input" name="shopRare" type="number" inputmode="numeric" min="1" max="100000"></label>
+          <label class="field">Legendary card<small>1 to 100000</small><input class="input" name="shopLegendary" type="number" inputmode="numeric" min="1" max="100000"></label>
+          <label class="field">Mythic card<small>1 to 1000000</small><input class="input" name="shopMythic" type="number" inputmode="numeric" min="1" max="1000000"></label>
+        </fieldset>
         <label class="field donate-f" hidden>Donation link<small>Optional. An https link; the game shows "Support FRC Packs"</small><input class="input" name="donateUrl" type="url" inputmode="url" placeholder="https://…" maxlength="300"></label>
         <button class="cta small" type="submit">Save</button>
       </form>

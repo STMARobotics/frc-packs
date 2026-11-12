@@ -143,3 +143,10 @@ a.cta { text-decoration: none; display: inline-block; }
 .tw-setting input { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--tide); }
 .tw-setting span { display: grid; gap: 3px; }
 .tw-setting small { color: var(--ink-dim); font-size: 12px; line-height: 1.45; }
+
+/* Shop prices in the settings form. */
+.shop-f { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 4px 0; padding: 12px; border: 1px solid var(--line); border-radius: 12px; }
+.shop-f legend { padding: 0 6px; font-weight: 700; }
+.shop-f legend small { display: block; font-weight: 400; opacity: .7; }
+.shop-f .shop-on { display: flex; flex-direction: row; align-items: center; justify-content: flex-start; gap: 8px; grid-column: 1 / -1; }
+.shop-f .shop-on input { width: auto; margin: 0; }

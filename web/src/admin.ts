@@ -104,9 +104,22 @@ function readRules(): Rules | null {
     startPacks: Number(field("startPacks").value),
     boostCost: Number(field("boostCost").value),
     donateUrl: field("donateUrl").value.trim() || null,
+    shop: {
+      on: field("shopOn").checked,
+      std: Number(field("shopStd").value),
+      division: Number(field("shopDivision").value),
+      common: Number(field("shopCommon").value),
+      uncommon: Number(field("shopUncommon").value),
+      rare: Number(field("shopRare").value),
+      legendary: Number(field("shopLegendary").value),
+      mythic: Number(field("shopMythic").value),
+    },
   };
+  const sh = r.shop;
+  const shopOk = [sh.std, sh.division, sh.common, sh.uncommon, sh.rare, sh.legendary].every((n) => Number.isInteger(n) && n >= 1 && n <= 100000)
+    && Number.isInteger(sh.mythic) && sh.mythic >= 1 && sh.mythic <= 1000000;
   const int = (n: number, lo: number, hi: number) => Number.isInteger(n) && n >= lo && n <= hi;
-  const ok = int(r.claimMinutes, 5, 10080) && int(r.claimPacks, 1, 20) && int(r.bank, 1, 10) && int(r.startPacks, 0, 50) && int(r.boostCost, 1, 100000) &&
+  const ok = shopOk && int(r.claimMinutes, 5, 10080) && int(r.claimPacks, 1, 20) && int(r.bank, 1, 10) && int(r.startPacks, 0, 50) && int(r.boostCost, 1, 100000) &&
     (!r.donateUrl || (/^https:\/\/\S+$/.test(r.donateUrl) && r.donateUrl.length <= 300));
   return ok ? r : null;
 }
@@ -129,6 +142,14 @@ function showRules(r: Rules) {
   field("startPacks").value = String(r.startPacks);
   field("boostCost").value = String(r.boostCost);
   field("donateUrl").value = r.donateUrl ?? "";
+  field("shopOn").checked = r.shop.on;
+  field("shopStd").value = String(r.shop.std);
+  field("shopDivision").value = String(r.shop.division);
+  field("shopCommon").value = String(r.shop.common);
+  field("shopUncommon").value = String(r.shop.uncommon);
+  field("shopRare").value = String(r.shop.rare);
+  field("shopLegendary").value = String(r.shop.legendary);
+  field("shopMythic").value = String(r.shop.mythic);
   paintRulesSum();
 }
 
@@ -138,7 +159,7 @@ rulesForm.addEventListener("submit", async (e) => {
   const msg = $("#rulesMsg");
   const r = readRules();
   if (!r) {
-    msg.textContent = "Hours between can be 0.1 to 168, packs each time 1 to 20, missed timers 1 to 10, starting packs 0 to 50, a boosted pack 1 to 100000 parts, and the donation link must start with https://.";
+    msg.textContent = "Hours between can be 0.1 to 168, packs each time 1 to 20, missed timers 1 to 10, starting packs 0 to 50, a boosted pack 1 to 100000 parts, shop prices 1 to 100000 (a Mythic up to 1000000), and the donation link must start with https://.";
     msg.hidden = false;
     return;
   }
@@ -147,7 +168,7 @@ rulesForm.addEventListener("submit", async (e) => {
   btn.disabled = true;
   try {
     showRules(await api.admin.saveSettings(r));
-    say("Saved. Everyone's timer uses the new rules.");
+    say("Saved. Everyone's timer and the shop use the new settings.");
   } catch (err) {
     fail(err);
   } finally {

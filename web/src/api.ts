@@ -274,6 +274,19 @@ export interface Rules {
   boostCost: number;
   /** A donation page (https), or null for none. */
   donateUrl: string | null;
+  /** The shop's prices, in parts, and whether it's open. */
+  shop: ShopRules;
+}
+
+export interface ShopRules {
+  on: boolean;
+  std: number;
+  division: number;
+  common: number;
+  uncommon: number;
+  rare: number;
+  legendary: number;
+  mythic: number;
 }
 
 export interface AdminUser {
