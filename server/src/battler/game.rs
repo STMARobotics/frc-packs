@@ -1123,9 +1123,9 @@ impl Game {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::battler::content::test_stats;
 
     fn robot(team: i32) -> RobotPick {
+        let variation = f64::from(team.rem_euclid(7));
         RobotPick {
             robot: Robot {
                 id: format!("R-2026-{team}"),
@@ -1136,7 +1136,13 @@ mod tests {
                 tier: "common".into(),
                 photo: false,
                 avatar: false,
-                stats: test_stats(team, Some(120.0)),
+                stats: Stats {
+                    auto: 9.0 + variation,
+                    tele: 24.0 + variation,
+                    end: 6.0,
+                    def: Some(8.0 + variation),
+                    rp: [25.0, 31.0, 22.0],
+                },
                 test_stats: true,
             },
             effects: vec![],
@@ -1454,6 +1460,9 @@ mod tests {
         let result = &g.rounds[0].result;
         let defender = result.robots.iter().find(|r| r.inst == a).unwrap();
         assert_eq!((defender.station, defender.mode, defender.points[1]), (1, RobotMode::Defending, 0));
+        let opposed = result.robots.iter().find(|r| r.inst == opponent).unwrap();
+        let def = g.robot(a).unwrap().stats.def.unwrap() as i32;
+        assert_eq!(opposed.points[1], g.robot(opponent).unwrap().stats.base_points()[1] - def);
         assert!(result.robots.iter().filter(|r| r.inst != a).all(|r| r.mode == RobotMode::Scoring));
         assert_eq!(g.set_robot_mode(1, opponent, RobotMode::Defending), Err("not_pit"));
         g.ack(0, 6).unwrap();

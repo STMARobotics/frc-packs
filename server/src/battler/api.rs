@@ -28,7 +28,7 @@ use uuid::Uuid;
 
 use super::content::{self, Kind, Robot};
 use super::effects::{self, Effect, Owner};
-use super::engine::{self, FieldRobot};
+use super::engine::{self, FieldRobot, Stats};
 use super::game::{self, DeckPick, Game, Mode, RobotPick, Seat, Status};
 use crate::Shared;
 use crate::auth::{Admin, User};
@@ -1116,7 +1116,7 @@ fn one() -> u8 {
 async fn admin_preview(State(st): State<Shared>, _admin: Admin, Json(req): Json<PreviewReq>) -> ApiResult<Json<Value>> {
     let r = st.battler.robot(req.team).ok_or(ApiError::new(StatusCode::NOT_FOUND, "no_robot"))?;
     let check = effects::validate(&req.effects, Owner::Robot);
-    let filler = content::test_stats(0, Some(135.0));
+    let filler = Stats { auto: 12.0, tele: 28.0, end: 6.0, def: None, rp: [25.0, 31.0, 22.0] };
     let station = req.station.clamp(1, 3);
     let others: Vec<u8> = (1..=3).filter(|s| *s != station).collect();
     let mut field = vec![FieldRobot {

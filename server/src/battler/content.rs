@@ -107,33 +107,6 @@ pub struct Content {
     pub test_effects: HashMap<i32, Vec<Effect>>,
 }
 
-/// Small, stable variation per team for test stats (so every robot isn't the same shape).
-fn wobble(team: i32, salt: i32) -> f64 {
-    let mut x = (team as u32).wrapping_mul(2_654_435_761).wrapping_add((salt as u32).wrapping_mul(40_503));
-    x ^= x >> 13;
-    x = x.wrapping_mul(1_274_126_177);
-    x ^= x >> 16;
-    f64::from(x % 1000) / 1000.0 - 0.5
-}
-
-/// Synthetic stats for admin effect simulations and tests.
-pub fn test_stats(team: i32, epa: Option<f64>) -> Stats {
-    let epa = epa.filter(|e| e.is_finite() && *e > 0.0).unwrap_or(60.0);
-    let n = epa / 3.0;
-    let auto = 0.22 + 0.08 * wobble(team, 1);
-    let end = 0.16 + 0.08 * wobble(team, 2);
-    let tele = 1.0 - auto - end;
-    let strength = (epa / 370.0).clamp(0.0, 1.0);
-    let rp = |salt| (12.0 + 60.0 * strength + 30.0 * wobble(team, salt)).round().clamp(3.0, 92.0);
-    Stats {
-        auto: (n * auto).round(),
-        tele: (n * tele).round(),
-        end: (n * end).round(),
-        def: None,
-        rp: [rp(3), rp(4), rp(5)],
-    }
-}
-
 impl Content {
     pub fn load(data_dir: &Path) -> anyhow::Result<Content> {
         let rpath = data_dir.join("packs").join(format!("{PACK}.json"));
@@ -222,14 +195,5 @@ mod tests {
         let lore = c.support.iter().filter(|s| s.kind == Kind::Lore).count();
         assert!(parts >= 15 && lore >= 5, "{parts} parts, {lore} lore");
         assert!(c.support.iter().all(|s| !s.text.is_empty()));
-    }
-
-    #[test]
-    fn test_stats_are_on_the_spec_scale() {
-        let top = test_stats(4414, Some(368.0));
-        assert!((90.0..=150.0).contains(&(top.auto + top.tele + top.end)), "{top:?}");
-        assert!(top.tele > top.auto && top.tele > top.end);
-        assert_eq!(test_stats(4414, Some(368.0)), top, "stable");
-        assert!(top.rp.iter().all(|r| (3.0..=92.0).contains(r)));
     }
 }
