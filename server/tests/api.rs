@@ -3275,3 +3275,158 @@ async fn a_picked_copy_can_be_scrapped_even_the_last() {
     let r = call(&app, "POST", "/api/scrap/extras", Some(&c), Some(json!({ "pack": PACK, "tiers": ["common"] }))).await;
     assert_eq!(r.body["scrapped"], 0);
 }
+
+/// An admin rolls any account back to a moment: parts, packs, cards (scrapped ones come back with their serials) and
+/// the Mythic meter are as they were then. Previewed first, logged, the ledger still balances, and Tripwire doesn't
+/// flag what the rollback gave back.
+#[tokio::test]
+async fn admin_rolls_an_account_back() {
+    let (app, db) = need_db!(own_setup(true));
+    let admin = make_admin(&app, &db).await;
+    let (c, _) = player(&app, &db).await;
+    let id = user_id(&db, &c).await;
+    age(&db, &[id]).await;
+    let common = team_of("common", 42);
+    let mut serials = Vec::new();
+    for _ in 0..3 {
+        serials.push(give_card(&db, id, common, "common").await);
+    }
+    kit::set_parts(&db, id, 1_000).await;
+    let then_state = call(&app, "GET", "/api/state", Some(&c), None).await.body;
+    let then_pack = kit::packs(&db, id, PACK).await;
+    tokio::time::sleep(std::time::Duration::from_millis(20)).await;
+    let to = frc_packs_server::model::now_ms();
+    tokio::time::sleep(std::time::Duration::from_millis(20)).await;
+
+    // Since then: two extra copies scrapped, a pack bought, three packs opened.
+    let r = call(&app, "POST", "/api/scrap/extras", Some(&c), Some(json!({ "pack": PACK, "tiers": ["common"] }))).await;
+    assert_eq!(r.body["scrapped"], 2, "{}", r.body);
+    let key = Uuid::new_v4().to_string();
+    let r = call_key(&app, "POST", "/api/shop/pack", Some(&c), Some(json!({ "kind": "std" })), Some(&key)).await;
+    assert_eq!(r.status, StatusCode::OK, "{}", r.body);
+    for _ in 0..3 {
+        let o = call(&app, "POST", "/api/open", Some(&c), Some(json!({ "pack": PACK }))).await;
+        assert_eq!(o.status, StatusCode::OK, "{}", o.body);
+    }
+    assert_ne!(kit::packs(&db, id, PACK).await.pity_m, then_pack.pity_m, "the meter moved");
+
+    let path = format!("/api/admin/anticheat/users/{id}/rollback");
+    let pv = call(&app, "POST", &path, Some(&admin), Some(json!({ "to": to }))).await;
+    assert_eq!(pv.status, StatusCode::OK, "{}", pv.body);
+    assert_eq!(pv.body["applied"], false);
+    assert_eq!(pv.body["parts"][1], 1_000, "{}", pv.body);
+    assert_eq!(pv.body["restore"].as_array().unwrap().len(), 2, "{}", pv.body);
+    assert_eq!(pv.body["remove"].as_array().unwrap().len(), 15, "{}", pv.body);
+    assert_eq!(pv.body["packs"][0]["meterM"][1], then_pack.pity_m, "{}", pv.body);
+    assert_ne!(kit::packs(&db, id, PACK).await.pity_m, then_pack.pity_m, "a preview changes nothing");
+
+    let ap = call(&app, "POST", &path, Some(&admin), Some(json!({ "to": to, "apply": true }))).await;
+    assert_eq!(ap.body["applied"], true, "{}", ap.body);
+    let now_state = call(&app, "GET", "/api/state", Some(&c), None).await.body;
+    assert_eq!(now_state["parts"], then_state["parts"]);
+    assert_eq!(packs_of(&now_state), packs_of(&then_state));
+    let now_pack = kit::packs(&db, id, PACK).await;
+    assert_eq!((now_pack.pity_m, now_pack.pity_l), (then_pack.pity_m, then_pack.pity_l));
+    let cards = frc_packs_server::model::cards(&db, id, PACK).await.unwrap();
+    let mut held: Vec<i32> = cards.iter().filter(|x| x.team == common).map(|x| x.serial).collect();
+    held.sort_unstable();
+    serials.sort_unstable();
+    assert_eq!(held, serials, "the scrapped copies are back, same serials");
+    assert_eq!(cards.len(), 3, "the cards from the packs are gone");
+
+    let again = call(&app, "POST", &path, Some(&admin), Some(json!({ "to": to }))).await.body;
+    assert_eq!(again["parts"][0], again["parts"][1], "nothing left to roll back: {again}");
+    let log = call(&app, "GET", "/api/admin/anticheat/log", Some(&admin), None).await.body;
+    assert_eq!(log[0]["action"], "rollback");
+    let audit = call(&app, "GET", "/api/admin/audit", Some(&admin), None).await.body;
+    assert_eq!(audit["mismatches"].as_array().unwrap().len(), 0, "the ledger still balances: {audit}");
+    assert_eq!(audit["badSerials"], 0, "{audit}");
+    let scan = call(&app, "GET", "/api/admin/anticheat/scan", Some(&admin), None).await.body;
+    let me = id.to_string();
+    let flagged = scan["suspects"].as_array().unwrap().iter().find(|s| s["id"] == me.as_str());
+    assert!(flagged.is_none(), "a rollback isn't cheating: {flagged:?}");
+    let p = frc_packs_server::model::profile(&db, id).await.unwrap().unwrap();
+    assert!(p.flagged.is_none(), "the intake alarm ignores a rollback: {:?}", p.flagged);
+    drop_table(&db).await;
+}
+
+/// The admin can give themselves one card of every team and a deck, none of it printed: no serial numbers, nothing in
+/// the game's count, the audit and Tripwire are fine with it, scrapping one leaves the count alone, and an admin can't
+/// trade (either side).
+#[tokio::test]
+async fn admin_gets_every_card_without_serials_and_cannot_trade() {
+    let (app, db) = need_db!(own_setup(false));
+    let admin = make_admin(&app, &db).await;
+    let admin_id = user_id(&db, &admin).await;
+    let (c, sc) = player(&app, &db).await;
+    let cid = user_id(&db, &c).await;
+    age(&db, &[admin_id, cid]).await;
+    let c_name = sc["account"]["username"].as_str().unwrap().to_string();
+    let first = call(&app, "POST", "/api/admin/everything", Some(&admin), Some(json!({}))).await;
+    assert_eq!(first.status, StatusCode::OK, "{}", first.body);
+    let teams = first.body["teams"].as_i64().unwrap();
+    assert_eq!(first.body["added"], teams, "they had none");
+    let again = call(&app, "POST", "/api/admin/everything", Some(&admin), Some(json!({}))).await;
+    assert_eq!((again.body["added"].as_i64(), again.body["teams"].as_i64()), (Some(0), Some(teams)), "{}", again.body);
+    assert_eq!(call(&app, "POST", "/api/admin/everything", Some(&c), Some(json!({}))).await.status, StatusCode::FORBIDDEN);
+
+    let cards = frc_packs_server::model::cards(&db, admin_id, PACK).await.unwrap();
+    assert_eq!(cards.len() as i64, teams);
+    assert!(cards.iter().all(|x| x.serial == 0 && x.obtained == "admin"), "no serials");
+    let nobody = team_of("common", 5);
+    assert_eq!(teams_live(&db, &[nobody]).await, 0, "nothing joins the game's count");
+    let st = frc_packs_server::model::stats(&db, admin_id, PACK).await.unwrap();
+    assert_eq!((st.teams, st.cards), (teams, teams));
+
+    let home = call(&app, "GET", "/api/battler/home", Some(&admin), None).await.body;
+    let deck = home["decks"].as_array().unwrap().iter().find(|d| d["deck"]["id"] == "unfair").unwrap().clone();
+    assert_eq!(deck["problems"], json!([]), "the deck is playable: {deck}");
+    assert_eq!(deck["deck"]["robots"].as_array().unwrap().len(), 10);
+    assert_eq!(deck["deck"]["support"].as_array().unwrap().len(), 15);
+
+    // Neither side of a trade can be an admin.
+    let mine = cards[0].team;
+    let give_c = team_of("common", 60);
+    give_card(&db, cid, give_c, "common").await;
+    let a_name = frc_packs_server::model::profile(&db, admin_id).await.unwrap().unwrap().username.unwrap();
+    let t = call(
+        &app,
+        "POST",
+        "/api/trades",
+        Some(&admin),
+        Some(json!({ "pack": PACK, "to": c_name, "give": [mine], "want": [give_c] })),
+    )
+    .await;
+    assert_eq!((t.status, t.body["error"].as_str()), (StatusCode::CONFLICT, Some("admin_no_trading")), "{}", t.body);
+    let t = call(
+        &app,
+        "POST",
+        "/api/trades",
+        Some(&c),
+        Some(json!({ "pack": PACK, "to": a_name, "give": [give_c], "want": [mine] })),
+    )
+    .await;
+    assert_eq!((t.status, t.body["error"].as_str()), (StatusCode::CONFLICT, Some("they_admin")), "{}", t.body);
+
+    // Scrapping one never touches the game's count.
+    let before = teams_live(&db, &[mine]).await;
+    let r = call(
+        &app,
+        "POST",
+        "/api/scrap",
+        Some(&admin),
+        Some(json!({ "pack": PACK, "num": mine, "count": 1, "serial": 0 })),
+    )
+    .await;
+    assert_eq!(r.status, StatusCode::OK, "{}", r.body);
+    assert_eq!(teams_live(&db, &[mine]).await, before);
+
+    let audit = call(&app, "GET", "/api/admin/audit", Some(&admin), None).await.body;
+    assert_eq!(audit["mismatches"].as_array().unwrap().len(), 0, "the ledger balances: {audit}");
+    assert_eq!(audit["badSerials"], 0, "{audit}");
+    let scan = call(&app, "GET", "/api/admin/anticheat/scan", Some(&admin), None).await.body;
+    let me = admin_id.to_string();
+    let flagged = scan["suspects"].as_array().unwrap().iter().find(|s| s["id"] == me.as_str());
+    assert!(flagged.is_none(), "Tripwire is fine with it: {flagged:?}");
+    drop_table(&db).await;
+}

@@ -1425,7 +1425,9 @@ async fn scrap_copies(
             let mut gained = 0i64;
             for c in &batch {
                 model::remove_card(&mut tx, user, c, "scrap");
-                *per_team.entry(c.team).or_default() += 1;
+                if model::printed(c) {
+                    *per_team.entry(c.team).or_default() += 1;
+                }
                 gained += i64::from(pack.team_tier.get(&c.team).map_or(0, |t| t.scrap_parts()));
             }
             for (team, k) in &per_team {

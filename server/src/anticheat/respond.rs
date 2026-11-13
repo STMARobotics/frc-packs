@@ -10,6 +10,8 @@
 //! - Clear: lifts a flag.
 //! - Reverse: takes back what came in during a time window (packs, parts and the cards still in their binder), as new
 //!   ledger lines. Previewed first; only applied when asked.
+//! - Rollback: any account, back to a moment. Every change to its parts, packs, cards and Mythic meter since is undone
+//!   (not trades or wagers: other players are in those), as new ledger lines. Previewed first too.
 
 use std::collections::HashMap;
 
@@ -36,6 +38,7 @@ pub fn routes() -> Router<Shared> {
         .route("/anticheat/users/{id}/flag", post(flag))
         .route("/anticheat/users/{id}/clear", post(clear))
         .route("/anticheat/users/{id}/reverse", post(reverse))
+        .route("/anticheat/users/{id}/rollback", post(rollback))
 }
 
 /// The ledger reason for everything Tripwire takes back.
@@ -422,7 +425,9 @@ async fn reverse(
                 let mut left = model::cards(db, id, pack).await?;
                 for c in cards {
                     model::remove_card(&mut tx, id, c, REVERSAL);
-                    model::count_in_game(&mut tx, pack, c.team, -1);
+                    if model::printed(c) {
+                        model::count_in_game(&mut tx, pack, c.team, -1);
+                    }
                     left.retain(|x| x.id != c.id);
                     st.cards -= 1;
                     if !left.iter().any(|x| x.team == c.team) {
@@ -433,6 +438,308 @@ async fn reverse(
             }
             let parts = p.parts;
             model::save_user(&mut tx, &mut p, parts, REVERSAL);
+            tx.commit(db).await.map_err(ApiError::from)
+        })?;
+    }
+    out.applied = true;
+    Ok(Json(out))
+}
+
+/// The ledger reason for everything a rollback changes.
+pub const ROLLBACK: &str = "rollback";
+
+/// Cards per rollback transaction (each is three writes; the player and their stats are saved too).
+const ROLLBACK_BATCH: usize = 25;
+
+#[derive(Deserialize)]
+struct RollbackReq {
+    /// Roll back to this moment, in ms since 1970: everything since is undone.
+    to: i64,
+    /// False (the default) only shows what would change.
+    #[serde(default)]
+    apply: bool,
+}
+
+#[derive(Serialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct RollbackPack {
+    pack: String,
+    /// Now, and after the rollback.
+    standard: [i64; 2],
+    boosted: [i64; 2],
+    division: [i64; 2],
+    /// The Mythic meter (packs since the last Mythic) and the Legendary one, now and after. Unchanged when no pack was
+    /// opened since.
+    meter_m: [i64; 2],
+    meter_l: [i64; 2],
+}
+
+#[derive(Serialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct RollbackOut {
+    /// Now, and after the rollback.
+    parts: [i64; 2],
+    packs: Vec<RollbackPack>,
+    /// Cards they got since, still in their binder: taken away.
+    remove: Vec<String>,
+    /// Cards they lost since (scrapped, for example): given back, with the same serial numbers.
+    restore: Vec<String>,
+    /// Cards they got since that aren't in their binder any more (traded or staked): nothing to take.
+    gone: Vec<String>,
+    /// Ledger lines from trades and wagers since: left alone, because other players are in them.
+    skipped: i64,
+    applied: bool,
+}
+
+/// Packs gained since, per pack: standard, boosted and division, and the meter as it was then.
+struct PackUndo {
+    pack: String,
+    standard: i64,
+    boosted: i64,
+    division: i64,
+    meter: Option<(i32, i32)>,
+}
+
+/// What a rollback changes.
+struct RollbackPlan {
+    out: RollbackOut,
+    parts_net: i64,
+    packs: Vec<PackUndo>,
+    remove: Vec<model::CardRow>,
+    /// Pack, team, tier and serial of each card to give back.
+    restore: Vec<(String, i32, String, i32)>,
+}
+
+async fn plan_rollback(s: &Shared, id: Uuid, to: i64) -> ApiResult<RollbackPlan> {
+    let db = &s.db;
+    let p = model::profile(db, id).await?.ok_or_else(not_found)?;
+    let lines: Vec<LedgerLine> = db
+        .query(&upk(id), "LED#")
+        .await?
+        .into_iter()
+        .filter_map(|it| from_item::<LedgerLine>(it).ok())
+        .filter(|l| l.at >= to)
+        .collect();
+    let mut out = RollbackOut::default();
+    let mut parts_net = 0;
+    // Pack -> (standard, boosted, division) gained since.
+    let mut by_pack: HashMap<String, (i64, i64, i64)> = HashMap::new();
+    // (team, serial) -> copies gained since (negative: lost).
+    let mut cards: HashMap<(i32, i32), i64> = HashMap::new();
+    for l in &lines {
+        if l.reason.starts_with("trade ") || l.reason.starts_with("wager ") {
+            out.skipped += 1;
+            continue;
+        }
+        let detail = l.detail.clone().unwrap_or_default();
+        match l.item.as_str() {
+            "parts" => parts_net += l.delta,
+            "packs" => by_pack.entry(detail).or_default().0 += l.delta,
+            "boosted" => by_pack.entry(detail).or_default().1 += l.delta,
+            "division" => by_pack.entry(detail).or_default().2 += l.delta,
+            "card" => {
+                let mut it = detail.split(" #");
+                if let (Some(t), Some(sn)) =
+                    (it.next().and_then(|x| x.trim().parse().ok()), it.next().and_then(|x| x.trim().parse().ok()))
+                {
+                    *cards.entry((t, sn)).or_default() += l.delta;
+                }
+            }
+            _ => {}
+        }
+    }
+    out.parts = [p.parts, (p.parts - parts_net).max(0)];
+
+    // The meter as it was: what the first pack opened since was rolled with.
+    let mut first_open: HashMap<String, model::Opening> = HashMap::new();
+    for o in db.query(&upk(id), "OPEN#").await?.into_iter().filter_map(|it| from_item::<model::Opening>(it).ok()) {
+        if o.opened_at < to {
+            continue;
+        }
+        match first_open.get(&o.pack) {
+            Some(e) if e.opened_at <= o.opened_at => {}
+            _ => {
+                first_open.insert(o.pack.clone(), o);
+            }
+        }
+    }
+    let catalog = s.catalog().await;
+    let mut packs = Vec::new();
+    for pack in &catalog.packs {
+        let (std_in, boosted_in, div_in) = by_pack.get(pack.id()).copied().unwrap_or_default();
+        let meter = first_open.get(pack.id()).and_then(|o| Some((o.pity_m?, o.pity_l?)));
+        if std_in == 0 && boosted_in == 0 && div_in == 0 && meter.is_none() {
+            continue;
+        }
+        let row = model::pack_row(db, id, pack.id()).await?;
+        let (std_now, b_now, d_now) = (i64::from(row.standard()), i64::from(row.boosted), row.division.len() as i64);
+        let (m, l) = meter.unwrap_or((row.pity_m, row.pity_l));
+        // A division pack opened since was bought before: there's no telling which division it was, so it isn't
+        // given back.
+        let div_in = div_in.max(0);
+        out.packs.push(RollbackPack {
+            pack: pack.id().to_string(),
+            standard: [std_now, (std_now - std_in).max(0)],
+            boosted: [b_now, (b_now - boosted_in).max(0)],
+            division: [d_now, (d_now - div_in).max(0)],
+            meter_m: [i64::from(row.pity_m), i64::from(m)],
+            meter_l: [i64::from(row.pity_l), i64::from(l)],
+        });
+        packs.push(PackUndo {
+            pack: pack.id().to_string(),
+            standard: std_in,
+            boosted: boosted_in,
+            division: div_in,
+            meter,
+        });
+    }
+
+    // Cards: what they hold now, to find the ones to take, and to never give back one they still have.
+    let mut held: HashMap<(i32, i32), model::CardRow> = HashMap::new();
+    for pack in &catalog.packs {
+        for c in model::cards(db, id, pack.id()).await? {
+            held.insert((c.team, c.serial), c);
+        }
+    }
+    let mut remove = Vec::new();
+    let mut restore = Vec::new();
+    let mut changed: Vec<((i32, i32), i64)> = cards.into_iter().filter(|(_, d)| *d != 0).collect();
+    changed.sort_unstable();
+    for ((team, serial), d) in changed {
+        let name = format!("{team} #{serial}");
+        if d > 0 {
+            match held.get(&(team, serial)) {
+                Some(c) => {
+                    out.remove.push(name);
+                    remove.push(c.clone());
+                }
+                None => out.gone.push(name),
+            }
+        } else if !held.contains_key(&(team, serial))
+            && let Some(pack) = catalog.packs.iter().find(|p| p.team_tier.contains_key(&team))
+        {
+            out.restore.push(name);
+            restore.push((pack.id().to_string(), team, pack.team_tier[&team].as_str().to_string(), serial));
+        }
+    }
+    Ok(RollbackPlan { out, parts_net, packs, remove, restore })
+}
+
+/// Rolls a player's account back to a moment: undoes every change to their parts, packs, cards and Mythic meter since,
+/// except trades and wagers (other players are in those). Cards they scrapped come back with the same serial numbers.
+/// Previews unless `apply`.
+async fn rollback(
+    State(s): State<Shared>,
+    admin: Admin,
+    Path(id): Path<Uuid>,
+    Json(req): Json<RollbackReq>,
+) -> ApiResult<Json<RollbackOut>> {
+    if req.to > now_ms() {
+        return Err(ApiError::new(StatusCode::BAD_REQUEST, "bad_request"));
+    }
+    let RollbackPlan { mut out, parts_net, packs, remove, restore } = plan_rollback(&s, id, req.to).await?;
+    if !req.apply {
+        return Ok(Json(out));
+    }
+    let db = &s.db;
+    // Their open offers go first (they may promise cards that are about to go), then parts, packs and the meter, then
+    // the cards.
+    crate::trades::cancel_all(db, id).await?;
+    let summary = format!(
+        "to {}: parts {} -> {}, {} cards taken, {} given back",
+        req.to,
+        out.parts[0],
+        out.parts[1],
+        out.remove.len(),
+        out.restore.len()
+    );
+    retry!(async {
+        let mut p = model::profile(db, id).await?.ok_or_else(not_found)?;
+        let parts = p.parts;
+        let mut tx = Tx::new();
+        for u in &packs {
+            let before = model::pack_row(db, id, &u.pack).await?;
+            let mut after = before.clone();
+            let boosted = (i64::from(before.boosted) - u.boosted).max(0) as i32;
+            let standard = (i64::from(before.standard()) - u.standard).max(0) as i32;
+            after.boosted = boosted;
+            after.sealed = standard + boosted;
+            let keep = after.division.len().saturating_sub(u.division as usize);
+            after.division.truncate(keep);
+            if let Some((m, l)) = u.meter {
+                after.pity_m = m;
+                after.pity_l = l;
+            }
+            if after != before {
+                model::save_pack(&mut tx, &mut p, &before, &after, ROLLBACK);
+            }
+        }
+        p.parts = (p.parts - parts_net).max(0);
+        note(&mut tx, admin.id, id, "rollback", &summary);
+        model::save_user(&mut tx, &mut p, parts, ROLLBACK);
+        tx.commit(db).await.map_err(ApiError::from)
+    })?;
+
+    // Cards, a batch at a time.
+    let first = if restore.is_empty() { 0 } else { db.ids("card", restore.len() as i64).await? };
+    let now = now_ms();
+    let restore: Vec<model::CardRow> = restore
+        .into_iter()
+        .enumerate()
+        .map(|(i, (pack, team, tier, serial))| model::CardRow {
+            id: first + i as i64,
+            pack,
+            team,
+            tier,
+            serial,
+            opening_id: None,
+            slot: None,
+            obtained: "pack".into(),
+            created_at: now,
+        })
+        .collect();
+    let changes: Vec<(bool, &model::CardRow)> =
+        remove.iter().map(|c| (false, c)).chain(restore.iter().map(|c| (true, c))).collect();
+    for chunk in changes.chunks(ROLLBACK_BATCH) {
+        retry!(async {
+            let mut p = model::profile(db, id).await?.ok_or_else(not_found)?;
+            let mut tx = Tx::new();
+            let mut by_pack: HashMap<&str, Vec<(bool, &model::CardRow)>> = HashMap::new();
+            for (add, c) in chunk {
+                by_pack.entry(c.pack.as_str()).or_default().push((*add, *c));
+            }
+            for (pack, cards) in &by_pack {
+                let mut st = model::stats(db, id, pack).await?;
+                let mut left = model::cards(db, id, pack).await?;
+                // The game's count per team, once each (a transaction can't write one item twice).
+                let mut counts: HashMap<i32, i64> = HashMap::new();
+                for (add, c) in cards {
+                    if model::printed(c) {
+                        *counts.entry(c.team).or_default() += if *add { 1 } else { -1 };
+                    }
+                    if *add {
+                        if !left.iter().any(|x| x.team == c.team) {
+                            model::stats_team_gained(&mut st, &c.tier);
+                        }
+                        model::add_card(&mut tx, id, c, ROLLBACK);
+                        left.push((*c).clone());
+                        st.cards += 1;
+                    } else {
+                        model::remove_card(&mut tx, id, c, ROLLBACK);
+                        left.retain(|x| x.id != c.id);
+                        st.cards -= 1;
+                        if !left.iter().any(|x| x.team == c.team) {
+                            model::stats_team_lost(&mut st, &c.tier);
+                        }
+                    }
+                }
+                for (team, by) in counts.into_iter().filter(|(_, by)| *by != 0) {
+                    model::count_in_game(&mut tx, pack, team, by);
+                }
+                model::save_stats(&mut tx, id, pack, &st);
+            }
+            let parts = p.parts;
+            model::save_user(&mut tx, &mut p, parts, ROLLBACK);
             tx.commit(db).await.map_err(ApiError::from)
         })?;
     }

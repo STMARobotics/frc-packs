@@ -416,6 +416,32 @@ async fn write_deck(st: &Shared, uid: Uuid, id: String, req: DeckReq) -> ApiResu
     Ok(Json(json!({ "deck": d, "problems": deck_problems(st, &owned, &d) })))
 }
 
+/// The cards of the admin's troll deck: three copies of five cards that are hard to play against.
+const UNFAIR_SUPPORT: [&str; 5] = ["P-2026-018", "P-2026-024", "P-2026-007", "L-2026-006", "L-2026-005"];
+
+/// Saves the admin's deck "Unfair": the strongest robots there are (the best as Captain) with the strongest support
+/// cards, as a deck of their own that gets rewritten each time. Only checked against what they own, like any deck.
+pub async fn unfair_deck(st: &Shared, uid: Uuid) -> ApiResult<()> {
+    let owned = owned_teams(&st.db, uid).await?;
+    let mut robots: Vec<&Robot> = st.battler.robots.iter().filter(|r| owned.contains(&r.team)).collect();
+    let total = |r: &Robot| r.stats.auto + r.stats.tele + r.stats.end;
+    robots.sort_by(|a, b| total(b).total_cmp(&total(a)).then(a.team.cmp(&b.team)));
+    let mut teams = robots.iter().map(|r| r.team);
+    let captain = teams.next();
+    let req = DeckReq {
+        name: "Unfair".into(),
+        captain,
+        robots: teams.take(game::DECK_ROBOTS).collect(),
+        support: UNFAIR_SUPPORT
+            .iter()
+            .filter(|id| st.battler.support(id).is_some())
+            .flat_map(|id| std::iter::repeat_n((*id).to_string(), game::MAX_COPIES))
+            .collect(),
+    };
+    let _ = write_deck(st, uid, "unfair".into(), req).await?;
+    Ok(())
+}
+
 async fn create_deck(State(st): State<Shared>, user: User, Json(req): Json<DeckReq>) -> ApiResult<Json<Value>> {
     if decks(&st.db, user.id).await?.len() >= MAX_DECKS {
         return Err(refused("too_many_decks"));

@@ -294,6 +294,7 @@ The **Tripwire suite** is a tab of the admin panel (computers only), with its ow
 | **Clear** | Lifts the flag and forgets the hour's intake |
 | **Disable** | The existing ban: signed out everywhere, open trades called off |
 | **Reverse** | Takes back what came in during a time window (packs, boosted packs, parts, and the cards from then still in the binder; never a new account's starting packs), as new ledger lines with the reason `anticheat reversal`. Always previewed first; cards already traded away are listed so they can be followed |
+| **Rollback** | Any account, from its panel under Accounts: back to a moment. Every change to its parts, packs, cards and Mythic meter since is undone (scrapped cards come back with their serial numbers), except trades and wagers, which other players are in. New ledger lines with the reason `rollback`, which Tripwire counts as a known source and the intake alarm ignores. Previewed first, logged in Actions |
 
 A flag set by hand can pick its mode; a flag without one (including the intake alarm's) follows the Settings tab. Every
 action is logged under `AC#LOG`, and every change to what a player owns goes through the ledger, so the audit still

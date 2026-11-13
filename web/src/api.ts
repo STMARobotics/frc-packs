@@ -570,6 +570,7 @@ export const api = {
     ledger: (id: string) => call<LedgerEntry[]>("GET", `/api/admin/users/${id}/ledger`),
     audit: () => call<Audit>("GET", "/api/admin/audit"),
     retier: () => call<{ players: number; compensated: number }>("POST", "/api/admin/retier", {}),
+    everything: () => call<{ added: number; teams: number }>("POST", "/api/admin/everything", {}),
     tripwireOverview: () => call<TripwireOverview>("GET", "/api/admin/anticheat/overview"),
     tripwireConfig: (c: TripwireConfig) => call<TripwireConfig>("POST", "/api/admin/anticheat/config", c),
     tripwireScan: () => call<TripwireReport>("GET", "/api/admin/anticheat/scan"),
@@ -578,6 +579,8 @@ export const api = {
     tripwireClear: (id: string, reason: string) => call<void>("POST", `/api/admin/anticheat/users/${id}/clear`, { reason }),
     tripwireReverse: (id: string, from: number, to: number, apply: boolean) =>
       call<TripwireReversal>("POST", `/api/admin/anticheat/users/${id}/reverse`, { from, to, apply }),
+    rollback: (id: string, to: number, apply: boolean) =>
+      call<Rollback>("POST", `/api/admin/anticheat/users/${id}/rollback`, { to, apply }),
     tiers: () => call<TierOverview>("GET", "/api/admin/tiers"),
     previewTiers: (w: { tiers: Record<string, TierName> }) => call<TierPreview>("POST", "/api/admin/tiers/preview", w),
     applyTiers: (w: { tiers: Record<string, TierName>; parts: number; note: string }) => call<TierOverview>("POST", "/api/admin/tiers/apply", w),
@@ -594,6 +597,13 @@ export interface TripwireCanary { at: number; path: string; username: string | n
 export interface TripwireOverview { name: string; config: TripwireConfig; players: number; watchlist: TripwireWatched[]; canaries: TripwireCanary[] }
 export interface TripwireReport { at: number; players: number; suspects: TripwireSuspect[]; notes: string[] }
 export interface TripwireAction { at: number; admin: string; user: string; action: string; detail: string }
+/** Rolling an account back to a moment: each pair is [now, after]. */
+export interface Rollback {
+  parts: [number, number];
+  packs: { pack: string; standard: [number, number]; boosted: [number, number]; division: [number, number]; meterM: [number, number]; meterL: [number, number] }[];
+  remove: string[]; restore: string[]; gone: string[]; skipped: number; applied: boolean;
+}
+
 export interface TripwireReversal {
   packs: number; boosted: number; parts: number; cards: string[];
   tookPacks: number; tookBoosted: number; tookParts: number; tookCards: string[]; gone: string[]; applied: boolean;
@@ -643,6 +653,8 @@ export function explain(e: unknown): string {
     they_too_new: "They joined today. New accounts can give cards, packs and parts after their first day.",
     under_review: "Trading is paused on your account while we take a look. Packs still open as usual.",
     they_under_review: "They can't trade right now.",
+    admin_no_trading: "Admins can't trade.",
+    they_admin: "They can't trade right now.",
     trade_limit: "You can take in up to 10 packs and 2,000 parts a day through trades. Try a smaller trade, or tomorrow.",
     their_trade_limit: "They've taken in as many packs or parts as they can today through trades. Try a smaller trade, or tomorrow.",
     in_progress: "Still working on that. Give it a moment.",

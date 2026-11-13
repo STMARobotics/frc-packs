@@ -45,8 +45,8 @@ const HOUR_MS: i64 = 3_600_000;
 /// Ledger reasons that aren't players taking packs in: a new account's starting packs, and test or dev-tools changes.
 fn counts(reason: &str) -> bool {
     // Packs bought with parts (in the shop, or crafting) don't count: their parts are checked instead, and there's no
-    // limit on buying.
-    !matches!(reason, "new account" | "dev tools" | "test" | "shop pack" | "craft")
+    // limit on buying. Nor do packs an admin's rollback gives back.
+    !matches!(reason, "new account" | "dev tools" | "test" | "shop pack" | "craft" | "rollback")
 }
 
 /// The intake alarm: records `gained` packs taken in now, forgets ones older than an hour, and flags the player if
@@ -123,9 +123,13 @@ pub fn mode(p: &Profile, c: &Config) -> Option<&'static str> {
     })
 }
 
-/// The check before a trade or wager. An unflagged player passes. A shadow-flagged one passes too, and what they're
+/// The check before a trade or wager. An admin is refused (their cards aren't printed). An unflagged player passes. A shadow-flagged one passes too, and what they're
 /// doing goes on their watch log. A paused one is refused (`you`: the one asking, else the other side).
 pub async fn gate(db: &Db, p: &Profile, you: bool, what: &str) -> ApiResult<()> {
+    // Admins hold cards that were never printed (no serial), so nothing of theirs can change hands.
+    if p.is_admin {
+        return Err(ApiError::new(StatusCode::CONFLICT, if you { "admin_no_trading" } else { "they_admin" }));
+    }
     if p.flagged.is_none() {
         return Ok(());
     }

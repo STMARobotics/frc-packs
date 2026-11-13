@@ -258,6 +258,15 @@ pub fn count_in_game(tx: &mut Tx, pack: &str, team: i32, by: i64) {
     tx.update("", &format!("PRINT#{pack}#{team}"), "PRINT", Cond::new("ADD live :d").val(":d", n(by)), None);
 }
 
+/// The serial of cards an admin was given (not printed): they're no copy of anything, so they never join the game's
+/// count, a serial is never freed for them, and nobody can trade them.
+pub const UNPRINTED: i32 = 0;
+
+/// Whether a card is one of the game's printed copies (so it's in the game's count, and its serial can be freed).
+pub fn printed(c: &CardRow) -> bool {
+    c.serial != UNPRINTED
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct Printing {
     #[serde(default)]

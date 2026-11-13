@@ -156,7 +156,7 @@ function WhoHas({ num }: { num: number }) {
   );
 }
 
-const FROM: Record<string, string> = { pack: "From a pack", trade: "From a trade", wager: "Won in a wager" };
+const FROM: Record<string, string> = { pack: "From a pack", trade: "From a trade", wager: "Won in a wager", admin: "Given to you" };
 type Sort = "serial" | "new" | "old";
 
 /** Every copy you have of a team: its serial and badges, where and when you got it, and whether it's free. Tap one to
@@ -191,8 +191,8 @@ function Copies({ num, pick, onPick }: { num: number; pick: number | null; onPic
         const why = kept ? "Kept: never scrapped" : c.held ? "In a trade offer or a pack being opened" : "";
         return (
           <div class={cx("cw-copy", pick === c.serial && "on", c.held && "held")}>
-            <button type="button" class="cw-copy-main" onClick={() => onPick(c.serial)} aria-label={`No. ${c.serial}, show it on the card`}>
-              <b>No. {c.serial}</b>
+            <button type="button" class="cw-copy-main" onClick={() => onPick(c.serial)} aria-label={`${c.serial ? `No. ${c.serial}` : "No serial"}, show it on the card`}>
+              <b>{c.serial ? `No. ${c.serial}` : "No serial"}</b>
               <span>{FROM[c.obtained] ?? "Yours"} · {ago(c.at)}</span>
               {(bd.length > 0 || c.first) && <span class="cw-copy-bdg">{c.first && <i class="s-bdg">First copy</i>}{bd.map(([k, l]) => <i class={`s-bdg ${k}`}>{l}</i>)}</span>}
               {why && <small class="s-dim">{why}</small>}

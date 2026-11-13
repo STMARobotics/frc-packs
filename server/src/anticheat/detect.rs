@@ -290,8 +290,11 @@ pub fn run(all: &[Item], pack: &Pack, rules: &Rules, dev_tools: bool, now: i64) 
             let r = l.reason.as_str();
             let trade_like = r.starts_with("trade ") || r.starts_with("wager ");
             let setup = matches!(r, "test" | "dev tools") && dev_tools;
+            // An admin's rollback gives back what was taken since a moment (parts spent, packs opened, cards scrapped).
+            let rolled_back = r == super::respond::ROLLBACK;
             let known = setup
                 || trade_like
+                || rolled_back
                 || match l.item.as_str() {
                     "packs" | "boosted" => matches!(
                         r,
@@ -307,7 +310,7 @@ pub fn run(all: &[Item], pack: &Pack, rules: &Rules, dev_tools: bool, now: i64) 
                     ),
                     "division" => r == "shop division",
                     "parts" => matches!(r, "scrap" | "level" | "mission" | "rarity change" | "battle"),
-                    "card" => matches!(r, "open" | "open, streak" | "shop"),
+                    "card" => matches!(r, "open" | "open, streak" | "shop" | "admin cards"),
                     _ => true,
                 };
             if !known {

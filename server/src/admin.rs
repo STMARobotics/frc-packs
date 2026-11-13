@@ -38,6 +38,7 @@ pub fn routes() -> Router<Shared> {
         .route("/test-pack", post(test_pack))
         .route("/audit", get(audit))
         .route("/retier", post(retier_all))
+        .route("/everything", post(give_everything))
 }
 
 fn err(status: StatusCode, code: &'static str) -> ApiError {
@@ -129,6 +130,9 @@ async fn audit_all(db: &Db) -> ApiResult<AuditOut> {
     // (player pk, item) -> (have, booked in the ledger)
     let mut sums: HashMap<(String, String), (i64, i64)> = HashMap::new();
     let mut serials: HashMap<(String, i64, i64), i64> = HashMap::new();
+    // Cards with no serial are only fine in an admin's binder: (owner, pack, team).
+    let mut unprinted: Vec<(String, String, i64)> = Vec::new();
+    let mut admins: HashSet<String> = HashSet::new();
     let mut minted: HashMap<(String, i64), i64> = HashMap::new();
     let mut card_ids: HashSet<(String, i64)> = HashSet::new();
     let mut trades: Vec<crate::trades::Trade> = Vec::new();
@@ -138,6 +142,9 @@ async fn audit_all(db: &Db) -> ApiResult<AuditOut> {
         if sk == "PROFILE" {
             if let Ok(p) = from_item::<Profile>(it.clone()) {
                 names.insert(pk.clone(), (p.id, p.username.clone()));
+                if p.is_admin {
+                    admins.insert(pk.clone());
+                }
                 sums.entry((pk.clone(), "parts".into())).or_default().0 += p.parts;
             }
         } else if sk.starts_with("PACK#") {
@@ -148,7 +155,11 @@ async fn audit_all(db: &Db) -> ApiResult<AuditOut> {
         } else if sk.starts_with("CARD#") {
             if let Ok(c) = from_item::<CardRow>(it.clone()) {
                 sums.entry((pk.clone(), "card".into())).or_default().0 += 1;
-                *serials.entry((c.pack.clone(), i64::from(c.team), i64::from(c.serial))).or_default() += 1;
+                if model::printed(&c) {
+                    *serials.entry((c.pack.clone(), i64::from(c.team), i64::from(c.serial))).or_default() += 1;
+                } else if !unprinted.iter().any(|(o, p, t)| *o == pk && *p == c.pack && *t == i64::from(c.team)) {
+                    unprinted.push((pk.clone(), c.pack.clone(), i64::from(c.team)));
+                }
                 card_ids.insert((pk.clone(), c.id));
             }
         } else if sk.starts_with("LED#") {
@@ -181,7 +192,8 @@ async fn audit_all(db: &Db) -> ApiResult<AuditOut> {
         .filter(|((pack, team, serial), count)| {
             **count > 1 || *serial < 1 || minted.get(&(pack.clone(), *team)).is_none_or(|m| serial > m)
         })
-        .count() as i64;
+        .count() as i64
+        + unprinted.iter().filter(|(owner, _, _)| !admins.contains(owner)).count() as i64;
     let stale_offers = trades
         .iter()
         .filter(|t| t.status == "open" && t.give.iter().any(|c| !card_ids.contains(&(upk(t.from_user), c.id))))
@@ -592,6 +604,9 @@ async fn delete_user(
         let mut per_team: HashMap<(String, i32), i64> = HashMap::new();
         for c in batch {
             tx.delete_if("", &pk, &model::card_sk(&c.pack, c.team, c.id), None);
+            if !model::printed(c) {
+                continue;
+            }
             let mut free = key(format!("FREE#{}#{}", c.pack, c.team), pad(i64::from(c.serial), 8));
             free.insert("serial".into(), n(c.serial));
             tx.put(free);
@@ -671,4 +686,69 @@ pub async fn reset_password_by_name(db: &Db, username: &str) -> anyhow::Result<S
     .map_err(|e| anyhow::anyhow!("{}", e.code))?;
     accounts::end_sessions(db, p.id, None).await?;
     Ok(password)
+}
+
+#[derive(Serialize)]
+struct EverythingOut {
+    /// Cards added (the teams they didn't have yet).
+    added: i64,
+    /// Teams they have now, in all.
+    teams: i64,
+}
+
+/// Cards per transaction (each is a card and a ledger line; their stats are saved too).
+const EVERYTHING_BATCH: usize = 25;
+
+/// Gives the calling admin one card of every team they don't have, and saves their deck "Unfair". These cards have no
+/// serial number (they were never printed): they don't count in the game, can't be traded or staked (admins can't do
+/// either), and the audit knows them by their owner. Safe to run again: it only adds what's missing.
+async fn give_everything(State(s): State<Shared>, admin: Admin) -> ApiResult<Json<EverythingOut>> {
+    let db = &s.db;
+    let catalog = s.catalog().await;
+    let mut added = 0;
+    let mut teams = 0;
+    for pack in &catalog.packs {
+        let have: HashSet<i32> = model::cards(db, admin.id, pack.id()).await?.iter().map(|c| c.team).collect();
+        let mut missing: Vec<(i32, &str)> = pack
+            .team_tier
+            .iter()
+            .filter(|(team, _)| !have.contains(team))
+            .map(|(team, tier)| (*team, tier.as_str()))
+            .collect();
+        missing.sort_unstable();
+        teams += (have.len() + missing.len()) as i64;
+        for chunk in missing.chunks(EVERYTHING_BATCH) {
+            let first = db.ids("card", chunk.len() as i64).await?;
+            let now = now_ms();
+            retry!(async {
+                let mut p =
+                    model::profile(db, admin.id).await?.ok_or_else(|| err(StatusCode::NOT_FOUND, "not_found"))?;
+                let mut st = model::stats(db, admin.id, pack.id()).await?;
+                let mut tx = Tx::new();
+                for (i, (team, tier)) in chunk.iter().enumerate() {
+                    let c = CardRow {
+                        id: first + i as i64,
+                        pack: pack.id().to_string(),
+                        team: *team,
+                        tier: (*tier).to_string(),
+                        serial: model::UNPRINTED,
+                        opening_id: None,
+                        slot: None,
+                        obtained: "admin".into(),
+                        created_at: now,
+                    };
+                    model::add_card(&mut tx, admin.id, &c, "admin cards");
+                    model::stats_team_gained(&mut st, tier);
+                    st.cards += 1;
+                }
+                model::save_stats(&mut tx, admin.id, pack.id(), &st);
+                let parts = p.parts;
+                model::save_user(&mut tx, &mut p, parts, "admin cards");
+                tx.commit(db).await.map_err(ApiError::from)
+            })?;
+            added += chunk.len() as i64;
+        }
+    }
+    crate::battler::api::unfair_deck(&s, admin.id).await?;
+    Ok(Json(EverythingOut { added, teams }))
 }

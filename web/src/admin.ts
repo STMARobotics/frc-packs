@@ -283,9 +283,22 @@ function manage(u: AdminUser): HTMLElement {
   const panel = h("div", { class: "manage" });
   const result = h("div", { class: "result", hidden: true });
 
-  panel.append(history(u));
+  panel.append(history(u), rollback(u));
   if (self) {
-    panel.append(h("p", { class: "meta" }, "This is your account. Change your password in Settings on the main page."));
+    panel.append(
+      h("p", { class: "meta" }, "This is your account. Change your password in Settings on the main page."),
+      h("div", { class: "mrow wrap" },
+        confirmButton("Every card and an Unfair deck", "Tap again to add them", async () => {
+          try {
+            const r = await api.admin.everything();
+            say(r.added ? `Added ${plural(r.added, "card")}: you have all ${r.teams} teams, and your Unfair deck is saved. They have no serial numbers and can't be traded.` : "You already have every team. Your Unfair deck is saved again.");
+            await loadUsers();
+          } catch (e) {
+            fail(e);
+          }
+        }),
+      ),
+    );
     return panel;
   }
 
@@ -419,6 +432,64 @@ function manage(u: AdminUser): HTMLElement {
     h("p", { class: "meta" }, "Turning an account off keeps its cards. Deleting removes the account for good, and its cards go back into circulation: their serial numbers can be pulled again by others."),
   );
   return panel;
+}
+
+/* Roll an account back to a moment: previewed first, applied on a second tap. */
+const localTime = (ms: number) => new Date(ms - new Date(ms).getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
+function rollback(u: AdminUser): HTMLElement {
+  const name = u.username ?? "this guest";
+  const box = h("details", { class: "ledger rollback" });
+  const at = h("input", { class: "input", type: "datetime-local", value: localTime(Date.now() - 86_400_000), "aria-label": "Roll back to" });
+  const out = h("div", { class: "result", hidden: true });
+  const time = () => new Date(at.value).getTime();
+  const pair = (label: string, [a, b]: [number, number]) => (a === b ? null : h("li", {}, `${label}: ${a.toLocaleString()} → ${b.toLocaleString()}`));
+  const apply = confirmButton("Roll back", "Tap again to roll back", async () => {
+    try {
+      await api.admin.rollback(u.id, time(), true);
+      say(`Rolled ${name} back to ${when(time())}.`);
+      out.hidden = true;
+      apply.disabled = true;
+      await loadUsers();
+    } catch (e) {
+      fail(e);
+    }
+  }, "chip bad");
+  apply.disabled = true;
+  at.addEventListener("input", () => { apply.disabled = true; out.hidden = true; });
+  const preview = button("Preview", async (b) => {
+    if (!Number.isFinite(time())) return say("Pick a date and time.", true);
+    b.disabled = true;
+    try {
+      const r = await api.admin.rollback(u.id, time(), false);
+      const lines = [
+        pair("Parts", r.parts),
+        ...r.packs.flatMap((p) => [
+          pair("Packs", p.standard), pair("Boosted packs", p.boosted), pair("Division packs", p.division),
+          pair("Mythic meter", p.meterM), pair("Legendary meter", p.meterL),
+        ]),
+        r.remove.length ? h("li", {}, `Takes ${plural(r.remove.length, "card")}: ${r.remove.join(", ")}`) : null,
+        r.restore.length ? h("li", {}, `Gives back ${plural(r.restore.length, "card")}: ${r.restore.join(", ")}`) : null,
+      ].filter((x): x is HTMLLIElement => !!x);
+      out.replaceChildren(
+        lines.length ? h("ul", {}, ...lines) : h("p", { class: "meta" }, "Nothing changed since then."),
+        ...(r.gone.length ? [h("small", {}, `Got since, but already traded or staked: ${r.gone.join(", ")}`)] : []),
+        ...(r.skipped ? [h("small", {}, `Trades and wagers stay as they are (${plural(r.skipped, "change")}). Their open offers are called off.`)] : []),
+      );
+      out.hidden = false;
+      apply.disabled = !lines.length;
+    } catch (e) {
+      fail(e);
+    } finally {
+      b.disabled = false;
+    }
+  }, "chip");
+  box.append(
+    h("summary", {}, "Roll back"),
+    h("p", { class: "meta" }, "Undo everything since a moment: parts, packs, cards and the Mythic meter. Scrapped cards come back with their serial numbers. Trades and wagers stay."),
+    h("div", { class: "mrow wrap" }, at, preview, apply),
+    out,
+  );
+  return box;
 }
 
 /* An account's history: every change to their packs, parts and cards, newest first, from the ledger. */
