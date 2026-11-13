@@ -3457,3 +3457,79 @@ async fn admins_are_not_on_the_leaderboard() {
     assert_eq!(names, vec![sc["account"]["username"].as_str().unwrap()], "{rows}");
     drop_table(&db).await;
 }
+
+/// A match against an admin is a ghost: nobody's rating moves (the screen shows no change either) and neither side
+/// gets a history line or a record.
+#[tokio::test]
+async fn a_match_against_an_admin_is_a_ghost() {
+    let (app, db) = need_db!(own_setup(false));
+    let admin = make_admin(&app, &db).await;
+    let (c, _) = player(&app, &db).await;
+    let cid = user_id(&db, &c).await;
+    let aid = user_id(&db, &admin).await;
+    assert_eq!(call(&app, "POST", "/api/admin/everything", Some(&admin), Some(json!({}))).await.status, StatusCode::OK);
+    for t in (60..76).map(|n| team_of("common", n)) {
+        give_card(&db, cid, t, "common").await;
+    }
+    let cat = call(&app, "GET", "/api/battler/catalog", Some(&c), None).await.body;
+    let home = call(&app, "GET", "/api/battler/home", Some(&c), None).await.body;
+    let owned: Vec<i64> = home["owned_teams"].as_array().unwrap().iter().map(|v| v.as_i64().unwrap()).collect();
+    let mut support = Vec::new();
+    for s in cat["support"].as_array().unwrap() {
+        let id = s["id"].as_str().unwrap();
+        for _ in 0..home["support_owned"][id].as_u64().unwrap_or(0).min(3) {
+            if support.len() < 15 {
+                support.push(id.to_string());
+            }
+        }
+    }
+    let d = call(
+        &app,
+        "POST",
+        "/api/battler/decks",
+        Some(&c),
+        Some(json!({ "name": "Deck", "captain": owned[0], "robots": owned[1..11], "support": support })),
+    )
+    .await;
+    assert_eq!(d.status, StatusCode::OK, "{}", d.body);
+    let deck_c = d.body["deck"]["id"].as_str().unwrap().to_string();
+    let ahome = call(&app, "GET", "/api/battler/home", Some(&admin), None).await.body;
+    assert!(ahome["decks"].as_array().unwrap().iter().any(|d| d["deck"]["id"] == "unfair"));
+
+    let act = |who: String, gid: String, action: Value| {
+        let app = app.clone();
+        async move {
+            let g = call(&app, "GET", &format!("/api/battler/games/{gid}"), Some(&who), None).await;
+            call(
+                &app,
+                "POST",
+                &format!("/api/battler/games/{gid}/act"),
+                Some(&who),
+                Some(json!({ "rev": g.body["rev"], "action": action })),
+            )
+            .await
+        }
+    };
+    let g = call(&app, "POST", "/api/battler/games", Some(&c), Some(json!({}))).await;
+    assert_eq!(g.status, StatusCode::OK, "{}", g.body);
+    let gid = g.body["id"].as_str().unwrap().to_string();
+    let code = g.body["code"].as_str().unwrap_or_default().to_string();
+    let j = call(&app, "POST", &format!("/api/battler/games/{gid}/join?code={code}"), Some(&admin), Some(json!({}))).await;
+    assert_eq!(j.status, StatusCode::OK, "{}", j.body);
+    act(c.clone(), gid.clone(), json!({ "kind": "pick_deck", "deck": deck_c })).await;
+    act(admin.clone(), gid.clone(), json!({ "kind": "pick_deck", "deck": "unfair" })).await;
+    act(c.clone(), gid.clone(), json!({ "kind": "ack" })).await;
+    act(admin.clone(), gid.clone(), json!({ "kind": "ack" })).await;
+    let f = act(c.clone(), gid.clone(), json!({ "kind": "forfeit" })).await;
+    assert_eq!(f.status, StatusCode::OK, "{}", f.body);
+    let end = call(&app, "GET", &format!("/api/battler/games/{gid}"), Some(&c), None).await.body;
+    assert_eq!(end["outcome"]["elo_before"], end["outcome"]["elo_after"], "no rating change shown: {end}");
+    for (who, id) in [(&c, cid), (&admin, aid)] {
+        let h = call(&app, "GET", "/api/battler/history", Some(who), None).await.body;
+        assert_eq!(h.to_string().matches(&gid).count(), 0, "no history line: {h}");
+        let rec = db.get(&frc_packs_server::model::upk(id), "BTPROF").await.unwrap();
+        let games = rec.and_then(|it| frc_packs_server::db::get_n(&it, "games")).unwrap_or(0);
+        assert_eq!(games, 0, "no game on the record");
+    }
+    drop_table(&db).await;
+}

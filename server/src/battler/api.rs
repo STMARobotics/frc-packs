@@ -513,10 +513,19 @@ async fn save(db: &Db, g: &mut Game, ver: i64, was_over: bool, mut tx: Tx) -> Ap
         }
         if g.status == Status::Final && uids.len() == 2 {
             let profs = [bt_profile(db, uids[0]).await?, bt_profile(db, uids[1]).await?];
-            let after = g.rate([profs[0].elo, profs[1].elo]);
+            // A match against an admin is a ghost match: no rating moves, and it leaves no record.
+            let mut ghost = false;
+            for uid in &uids {
+                ghost |= model::profile(db, *uid).await?.is_some_and(|p| p.is_admin);
+            }
+            let mut after = g.rate([profs[0].elo, profs[1].elo]);
+            if ghost {
+                after = [profs[0].elo, profs[1].elo];
+                g.outcome.as_mut().expect("finished").elo_after = after;
+            }
             let o = g.outcome.clone().expect("finished");
             let finalized_at = now_ms();
-            for side in 0..2 {
+            for side in (0..2).filter(|_| !ghost) {
                 let mut p = profs[side].clone();
                 let games_before = p.games;
                 p.elo = after[side];
