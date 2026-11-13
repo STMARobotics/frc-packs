@@ -4,7 +4,8 @@
 //! Pipeline: collect every active effect (robot effects, then parts, then lore, each in instance order), roll any
 //! chances, then per robot and phase: base + flat points, times (100% + percent bonuses), times (100% + multiplier
 //! bonuses), rounded half up and floored at zero; sum by alliance. Then one RP roll per robot at its station's chance
-//! (plus RP bonuses, clamped to 0..100).
+//! (plus RP bonuses, clamped to 0..100). A defender gives up Tele and subtracts its DEF from the opposing
+//! station's base Tele before effects.
 
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
@@ -12,26 +13,41 @@ use serde::{Deserialize, Serialize};
 
 use super::effects::{Cond, Effect, Of, Op, Phase, RpSlot, Scope};
 
-pub const ENGINE_VERSION: u32 = 2;
+pub const ENGINE_VERSION: u32 = 4;
 
 pub const PHASES: [Phase; 3] = [Phase::Auto, Phase::Tele, Phase::End];
 
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, Default)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum RobotMode {
+    #[default]
+    Scoring,
+    Defending,
+}
+
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Default)]
 pub struct Stats {
-    pub auto: i32,
-    pub tele: i32,
-    pub end: i32,
-    pub rp: [i32; 3],
+    pub auto: f64,
+    pub tele: f64,
+    pub end: f64,
+    /// DPR subtracted from the opposing station's Tele when this robot defends.
+    #[serde(default)]
+    pub def: Option<f64>,
+    pub rp: [f64; 3],
 }
 
 impl Stats {
-    pub fn phase(&self, p: Phase) -> i32 {
+    pub fn phase(&self, p: Phase) -> f64 {
         match p {
             Phase::Auto => self.auto,
             Phase::Tele => self.tele,
             Phase::End => self.end,
             Phase::All => self.auto + self.tele + self.end,
         }
+    }
+
+    pub fn base_points(&self) -> [i32; 3] {
+        PHASES.map(|phase| half_up(self.phase(phase)))
     }
 }
 
@@ -55,6 +71,7 @@ pub struct FieldRobot {
     pub side: usize,
     pub captain: bool,
     pub station: u8,
+    pub mode: RobotMode,
     pub stats: Stats,
     pub effects: Vec<Effect>,
     pub parts: Vec<FieldPart>,
@@ -89,12 +106,14 @@ pub struct RobotScore {
     pub inst: u32,
     pub side: usize,
     pub station: u8,
-    /// Base and final points for Auto, Tele, End.
-    pub base: [i32; 3],
+    #[serde(default)]
+    pub mode: RobotMode,
+    /// Raw ratings and final points for Auto, Tele, End.
+    pub base: [f64; 3],
     pub points: [i32; 3],
     /// The RP chance it rolled at, the roll (0..99) and whether it earned the RP.
-    pub rp_chance: i32,
-    pub rp_roll: i32,
+    pub rp_chance: f64,
+    pub rp_roll: f64,
     pub rp_hit: bool,
 }
 
@@ -144,10 +163,8 @@ fn cond_ok(c: &Cond, target: &FieldRobot, source: Option<&FieldRobot>, lore_acti
     }
 }
 
-fn half_up(num: i64, den: i64) -> i32 {
-    // Rounds num/den half up (toward +infinity on .5), like Math.round.
-    let q = (2 * num + den).div_euclid(2 * den);
-    q as i32
+fn half_up(value: f64) -> i32 {
+    (value + 0.5).floor() as i32
 }
 
 /// Resolves a round. `seed` decides every chance roll; the same inputs and seed give the same result.
@@ -265,23 +282,42 @@ pub fn resolve(robots: &[FieldRobot], lores: &[FieldLore], seed: u64) -> RoundRe
     let mut phase_totals = [[0i32; 3]; 2];
     for &i in &order {
         let r = &robots[i];
-        let mut base = [0; 3];
+        let base = PHASES.map(|phase| r.stats.phase(phase));
+        let defending = r.mode == RobotMode::Defending;
+        let mut reduction = 0.0;
+        if !defending
+            && let Some(opponent) = robots.iter().find(|opponent| {
+                opponent.side != r.side && opponent.station == r.station && opponent.mode == RobotMode::Defending
+            })
+            && let Some(def) = opponent.stats.def.filter(|def| *def != 0.0)
+        {
+            reduction = def;
+            events.push(Event {
+                source: opponent.name.clone(),
+                target: r.inst,
+                text: format!("{} {:+} base TELE (defense)", r.name, -def),
+            });
+        }
         let mut points = [0; 3];
-        for (k, p) in PHASES.iter().enumerate() {
+        for (k, phase) in PHASES.iter().enumerate() {
             let a = acc[i][k];
-            base[k] = r.stats.phase(*p);
-            let v = i64::from(base[k] + a.flat) * i64::from((100 + a.pct).max(0)) * i64::from(100 + a.mult);
-            points[k] = if a.off { 0 } else { half_up(v, 10_000).max(0) };
+            if a.off || (*phase == Phase::Tele && defending) {
+                continue;
+            }
+            let rating = base[k] - if *phase == Phase::Tele { reduction } else { 0.0 };
+            let v = (rating + f64::from(a.flat)) * f64::from((100 + a.pct).max(0)) * f64::from(100 + a.mult);
+            points[k] = half_up(v / 10_000.0).max(0);
             phase_totals[r.side][k] += points[k];
         }
         scores.push(RobotScore {
             inst: r.inst,
             side: r.side,
             station: r.station,
+            mode: r.mode,
             base,
             points,
-            rp_chance: 0,
-            rp_roll: 0,
+            rp_chance: 0.0,
+            rp_roll: 0.0,
             rp_hit: false,
         });
     }
@@ -305,8 +341,9 @@ pub fn resolve(robots: &[FieldRobot], lores: &[FieldLore], seed: u64) -> RoundRe
         let i = order[k];
         let r = &robots[i];
         let slot = usize::from(r.station.clamp(1, 3) - 1);
-        let chance = (r.stats.rp[slot] + rp_pp[i][slot] + rp_pp[i][3]).clamp(0, 100);
-        let roll: i32 = rng.random_range(0..100);
+        let chance = (r.stats.rp[slot] + f64::from(rp_pp[i][slot] + rp_pp[i][3])).clamp(0.0, 100.0);
+        let roll =
+            if chance.fract() == 0.0 { f64::from(rng.random_range(0..100)) } else { rng.random_range(0.0..100.0) };
         let hit = roll < chance;
         if hit {
             bonus_rp[r.side] += 1;
@@ -346,6 +383,7 @@ mod tests {
             side,
             captain: inst.is_multiple_of(3),
             station,
+            mode: RobotMode::Scoring,
             stats,
             effects: vec![],
             parts: vec![],
@@ -353,7 +391,7 @@ mod tests {
     }
 
     fn st(auto: i32, tele: i32, end: i32, rp: [i32; 3]) -> Stats {
-        Stats { auto, tele, end, rp }
+        Stats { auto: f64::from(auto), tele: f64::from(tele), end: f64::from(end), def: None, rp: rp.map(f64::from) }
     }
 
     fn field() -> Vec<FieldRobot> {
@@ -386,6 +424,36 @@ mod tests {
     }
 
     #[test]
+    fn defending_trades_tele_for_a_reduction_to_the_opposing_stations_base() {
+        let mut f = field();
+        f[0].mode = RobotMode::Defending;
+        f[0].stats.def = Some(25.4);
+        f[0].effects = fx(r#"[{"op":"ADD_PHASE_FLAT","phase":"TELE","value":10,"scope":"SELF"}]"#);
+        f[3].effects = fx(r#"[{"op":"ADD_PHASE_PCT","phase":"TELE","value":100,"scope":"SELF"}]"#);
+        let r = resolve(&f, &[], 1);
+        assert_eq!(r.robots[0].points, [30, 0, 18]);
+        assert_eq!(r.robots[3].points, [20, 49, 10]);
+        assert_eq!(r.robots[3].base[1], 50.0);
+        assert!(r.robots[3].rp_hit);
+        assert_eq!((r.robots[4].points[1], r.robots[5].points[1]), (20, 20));
+        assert_eq!(r.phase_totals, [[50, 40, 28], [40, 89, 20]]);
+        assert!(r.events.iter().any(|e| e.source == "R0" && e.target == 3 && e.text.contains("defense")));
+    }
+
+    #[test]
+    fn opposing_defenders_both_score_zero_tele_and_defense_cannot_make_tele_negative() {
+        let mut f = field();
+        f[0].mode = RobotMode::Defending;
+        f[0].stats.def = Some(100.0);
+        assert_eq!(resolve(&f, &[], 1).robots[3].points[1], 0);
+        f[3].mode = RobotMode::Defending;
+        f[3].stats.def = Some(25.0);
+        let r = resolve(&f, &[], 1);
+        assert_eq!(r.robots[0].points, [30, 0, 18]);
+        assert_eq!(r.robots[3].points, [20, 0, 10]);
+    }
+
+    #[test]
     fn a_disabled_phase_scores_nothing_whatever_else_applies() {
         let mut f = field();
         f[4].team = 6800;
@@ -414,8 +482,22 @@ mod tests {
         f[3].station = 2; // RP1 100%, RP2 0%: in station 2 it rolls 0%
         let r = resolve(&f, &[], 7);
         let s = r.robots.iter().find(|s| s.inst == 3).unwrap();
-        assert_eq!(s.rp_chance, 0);
+        assert_eq!(s.rp_chance, 0.0);
         assert!(!s.rp_hit);
+    }
+
+    #[test]
+    fn match13_ratings_keep_precision_until_scoring() {
+        let mut f = field();
+        f[0].stats.auto = 10.49;
+        f[0].stats.def = Some(192.1234);
+        f[0].stats.rp[0] = 92.86;
+        f[0].effects = fx(r#"[{"op":"ADD_PHASE_PCT","phase":"AUTO","value":100,"scope":"SELF"}]"#);
+        let score = &resolve(&f, &[], 1).robots[0];
+        assert_eq!(score.base, [10.49, 72.0, 18.0]);
+        assert_eq!(score.points, [21, 72, 18]);
+        assert_eq!(score.rp_chance, 92.86);
+        assert_eq!(score.rp_hit, score.rp_roll < 92.86);
     }
 
     #[test]
@@ -474,7 +556,7 @@ mod tests {
         assert_eq!(rolls, 6, "one roll per robot on the field");
         for s in &a.robots {
             let base = s.base[1];
-            assert!(s.points[1] == base || s.points[1] == base * 2);
+            assert!(s.points[1] == half_up(base) || s.points[1] == half_up(base * 2.0));
         }
     }
 
@@ -492,7 +574,7 @@ mod tests {
         assert_eq!(r.robots[0].points[0], 40);
         assert_eq!(r.robots[1].points[0], 20);
         assert_eq!(r.robots[3].points[0], 20, "the other alliance isn't reached");
-        assert_eq!(r.robots[4].rp_chance, 0);
+        assert_eq!(r.robots[4].rp_chance, 0.0);
     }
 
     #[test]
@@ -511,7 +593,7 @@ mod tests {
             for score in &r.robots {
                 let stats = f.iter().find(|r| r.inst == score.inst).unwrap().stats;
                 assert_eq!(score.base, [stats.auto, stats.tele, stats.end]);
-                assert_eq!(score.points, score.base);
+                assert_eq!(score.points, stats.base_points());
             }
         }
     }
@@ -526,8 +608,8 @@ mod tests {
 
     #[test]
     fn rounding_is_half_up() {
-        assert_eq!(half_up(5, 10), 1);
-        assert_eq!(half_up(15, 10), 2);
-        assert_eq!(half_up(14, 10), 1);
+        assert_eq!(half_up(0.5), 1);
+        assert_eq!(half_up(1.5), 2);
+        assert_eq!(half_up(1.4), 1);
     }
 }

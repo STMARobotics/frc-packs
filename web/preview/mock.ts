@@ -2,7 +2,6 @@
 // makes is answered here, in the page. Packs never run out, a few dozen teams of each rarity are in play (only their
 // photos ship with the preview), and a bar on the Open tab picks the best card of the next pack.
 import raw from "../../data/packs/cmp26.json";
-import focus from "../../data/photos/focus.json";
 import extraSeedTeams from "./extra-seed-teams.json";
 import type { Card, Opening, Recipe, Shop, State, Tier } from "../src/api";
 
@@ -10,6 +9,7 @@ import type { Card, Opening, Recipe, Shop, State, Tier } from "../src/api";
     the same teams' photos. */
 export const CAST: Record<Tier, number> = { common: 14, uncommon: 10, rare: 8, legendary: 6, mythic: 5 };
 const recipe = structuredClone(raw) as unknown as Recipe;
+const params = new URLSearchParams(location.search);
 const pool: Record<Tier, number[]> = { common: [], uncommon: [], rare: [], legendary: [], mythic: [] };
 for (const t of recipe.teams) {
   if (t.photo && pool[t.tier].length < CAST[t.tier]) pool[t.tier].push(t.num);
@@ -24,7 +24,7 @@ try { best = (localStorage.getItem(KEY) as Best) || "auto"; } catch { /* a fresh
 const owned = new Map<number, number[]>();
 // ?seed: start with a binder containing the teams in play and cards that show specific layouts.
 const seededTeams = new Set([...Object.values(pool).flat(), ...extraSeedTeams]);
-if (new URLSearchParams(location.search).has("seed")) {
+if (params.has("seed")) {
   for (const t of seededTeams) {
     const copies = extraSeedTeams.includes(t) ? 1 : 1 + (t % 3);
     owned.set(t, Array.from({ length: copies }, (_, i) => 1 + ((t * 7 + i * 13) % 90)));
@@ -65,7 +65,6 @@ const json = (body: unknown, status = 200) => new Response(JSON.stringify(body),
 
 function answer(method: string, path: string, body: Record<string, unknown>): Response {
   if (path.startsWith("/packs/")) return json(recipe);
-  if (path === "/photos/focus.json") return json(Object.fromEntries(Object.entries(focus).filter(([n]) => seededTeams.has(+n))));
   if (path === "/notice.json") return json(null, 404);
   if (path === "/api/session" || path === "/api/state") return json(state());
   if (path.startsWith("/api/collection/")) return json({ pack: recipe.id, cards: [...owned].map(([num, serials]) => ({ num, serials })), sets: [] });

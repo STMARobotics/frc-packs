@@ -28,7 +28,7 @@ use uuid::Uuid;
 
 use super::content::{self, Kind, Robot};
 use super::effects::{self, Effect, Owner};
-use super::engine::{self, FieldRobot};
+use super::engine::{self, FieldRobot, Stats};
 use super::game::{self, DeckPick, Game, Mode, RobotPick, Seat, Status};
 use crate::Shared;
 use crate::auth::{Admin, User};
@@ -915,6 +915,7 @@ enum Action {
     Detach { part: u32 },
     Lore { card: Option<u32> },
     Stations { robots: [u32; 3] },
+    RobotMode { robot: u32, mode: engine::RobotMode },
     DraftPick { robot: u32 },
     Partners { robots: [u32; 2] },
     Lock,
@@ -986,6 +987,7 @@ async fn act(
             Action::Detach { part } => g.detach(side, *part),
             Action::Lore { card } => g.set_lore(side, *card),
             Action::Stations { robots } => g.set_stations(side, *robots),
+            Action::RobotMode { robot, mode } => g.set_robot_mode(side, *robot, *mode),
             Action::DraftPick { robot } => g.draft_pick(side, *robot, now),
             Action::Partners { robots } => g.set_partners(side, *robots),
             Action::Lock => g.lock(side, now),
@@ -1114,7 +1116,7 @@ fn one() -> u8 {
 async fn admin_preview(State(st): State<Shared>, _admin: Admin, Json(req): Json<PreviewReq>) -> ApiResult<Json<Value>> {
     let r = st.battler.robot(req.team).ok_or(ApiError::new(StatusCode::NOT_FOUND, "no_robot"))?;
     let check = effects::validate(&req.effects, Owner::Robot);
-    let filler = content::test_stats(0, Some(135.0));
+    let filler = Stats { auto: 12.0, tele: 28.0, end: 6.0, def: None, rp: [25.0, 31.0, 22.0] };
     let station = req.station.clamp(1, 3);
     let others: Vec<u8> = (1..=3).filter(|s| *s != station).collect();
     let mut field = vec![FieldRobot {
@@ -1124,6 +1126,7 @@ async fn admin_preview(State(st): State<Shared>, _admin: Admin, Json(req): Json<
         side: 0,
         captain: req.captain,
         station,
+        mode: engine::RobotMode::Scoring,
         stats: r.stats,
         effects: if check.is_ok() { req.effects.clone() } else { vec![] },
         parts: req
@@ -1148,6 +1151,7 @@ async fn admin_preview(State(st): State<Shared>, _admin: Admin, Json(req): Json<
             side: 0,
             captain: false,
             station: *st_,
+            mode: engine::RobotMode::Scoring,
             stats: filler,
             effects: vec![],
             parts: vec![],
@@ -1161,6 +1165,7 @@ async fn admin_preview(State(st): State<Shared>, _admin: Admin, Json(req): Json<
             side: 1,
             captain: k == 0,
             station: k + 1,
+            mode: engine::RobotMode::Scoring,
             stats: filler,
             effects: vec![],
             parts: vec![],

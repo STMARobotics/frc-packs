@@ -13,8 +13,6 @@ every ~2 days in between, and hotfixes whenever something big breaks. Every rele
 - Rework how packs are shown and opened: bought division packs are saved on the account but the app has no place to
   open them later, and a stack per kind (Standard, Boosted, 8 divisions) is too many. Design TBD.
 - Rewrite the 0.14.0 in-app notes the CONTRIBUTING way: no title, and balance lines with old -> new numbers.
-- Refresh every team's Statbotics numbers once the API is back (it returned 500s on Nov 11), then check 7028's auto,
-  which players say is third best (behind 1114 and 2056) when offseason events are counted.
 
 ### 0.14: the shop, one Trade tab and a new Packs screen (#78)
 
@@ -71,7 +69,7 @@ Packs screen gets a Buy button. The full plan is in [shop.md](shop.md).
 
 - Impact and Hall of Fame special editions from The Blue Alliance's award data.
 - Division or era packs as limited weekend events (see the pinned weekend-event idea).
-- Roles from Statbotics ("Auto specialist", "Endgame specialist") as card tags for the Battler.
+- Roles such as "Auto specialist" and "Endgame specialist" as card tags for the Battler.
 
 ## Done
 

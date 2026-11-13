@@ -1,4 +1,4 @@
-# 2026 FIRST Championship (Houston), 8 divisions. Source: Statbotics API v3 team_events (tools/champs_roster.py).
+# 2026 FIRST Championship (Houston), 8 divisions. Historical roster snapshot from Statbotics API v3 team_events.
 # team|name|champs EPA|champs qual W-L|division|2026 season EPA rank (- if not fetched yet)|location (- if unknown)
 27|Team RUSH|295.15|8-2|Archimedes|7|MI
 103|Cybersonics|176.70|7-2|Archimedes|152|PA

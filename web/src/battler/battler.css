@@ -141,7 +141,7 @@
 .b-nophoto.big { position: absolute; inset: 0; font-size: calc(var(--cw) * .14); color: rgba(255, 255, 255, .45); background: radial-gradient(circle at 50% 40%, #1e2a44, #0b111d); }
 .b-teststats { position: absolute; right: 5%; top: 5%; z-index: 3; padding: .3em .45em; border-radius: 2.5px; background: rgba(255, 180, 60, .92); color: #2a1500; font: 700 max(7px, calc(var(--cw) * .032)) / 1 var(--body); letter-spacing: .05em; text-transform: uppercase; }
 /* The whole effect, however long: its box grows and the photo above gives up the room. */
-.b-card .inner.bt .effect { height: auto; min-height: calc(var(--cw) * .165); }
+.b-card .inner.bt .effect { height: auto; min-height: calc(var(--cw) * .21); }
 .b-card .effect p { font-size: calc(var(--cw) * .036); text-wrap: pretty; }
 .b-back { width: 100%; height: 100%; display: grid; place-items: center; border-radius: calc(var(--lw, 50px) * 0.0275); background: repeating-linear-gradient(45deg, #1d2a4a 0 7px, #16203a 7px 14px); box-shadow: inset 0 0 0 3px #3b4f86, 0 4px 12px rgba(0, 0, 0, .45); }
 .b-back i { width: 38%; aspect-ratio: 1; border-radius: 25%; border: 3px solid #5b72b8; opacity: .6; }
@@ -161,7 +161,8 @@
 .b-tile-m { flex: 1; min-width: 0; display: grid; gap: 2px; }
 .b-tile-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
 .b-tile-name b { font: 400 16px var(--display); text-transform: uppercase; color: var(--t); margin-right: 3px; }
-.b-tile-stats { display: flex; gap: 10px; font-size: 12px; color: var(--dim); }
+.b-tile-stats { display: flex; flex-wrap: wrap; gap: 2px 10px; font-size: 12px; color: var(--dim); }
+.b-tile-stats span { white-space: nowrap; }
 .b-tile-stats b { color: var(--tx); font-size: 13.5px; }
 .b-tile-r { flex: none; display: flex; align-items: center; gap: 8px; font-size: 13px; }
 .b-icon-x { width: 34px; height: 34px; border: 0; border-radius: 5px; background: var(--s3); color: var(--dim); font-size: 20px; cursor: pointer; }
@@ -382,7 +383,7 @@ html:has(body.b-in-game), body.b-in-game { overflow-x: clip; overscroll-behavior
 /* ---------- the arena ---------- */
 /* Card width: a third of the screen, or less on short screens so the whole match fits without scrolling. */
 .b-arena { --lw: clamp(72px, min(calc((min(100vw, 520px) - 48px) / 3), calc((100svh - 512px) / 2.8)), 136px);
-  display: grid; gap: 8px; padding: calc(6px + env(safe-area-inset-top)) 0 0; min-height: calc(100svh - 24px); align-content: start; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: calc(6px + env(safe-area-inset-top)) 0 0; min-height: calc(100svh - 24px); align-content: start; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .b-pbar { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 8px; background: var(--s1); transition: box-shadow .25s; }
 .b-pbar.ready { box-shadow: inset 0 0 0 2px var(--good); }
 .b-pbar.me { position: sticky; bottom: calc(8px + env(safe-area-inset-bottom)); z-index: 12; box-shadow: 0 10px 30px rgba(0, 0, 0, .55); }
@@ -456,6 +457,10 @@ html:has(body.b-in-game), body.b-in-game { overflow-x: clip; overscroll-behavior
 .b-bot-info.none { visibility: hidden; }
 .b-bot.closed .b-bot-info { visibility: hidden; }
 .b-bot.theirs .b-bot-info { order: -1; }
+.b-robot-mode { display: grid; place-items: center; border: 1px solid var(--s3); border-radius: 5px; padding: 3px 2px; background: var(--s1); color: var(--tx); font: 700 11px/1.2 var(--body); }
+button.b-robot-mode { min-height: 32px; cursor: pointer; }
+button.b-robot-mode:disabled { cursor: default; }
+.b-robot-mode.defending { border-color: var(--part); color: var(--part); }
 .b-ph3 { display: grid; grid-template-columns: 1fr 1fr 1fr 1.3fr; gap: 2px; }
 .b-ph3 span { display: grid; justify-items: center; padding: 2px 0; border-radius: 3px; background: var(--bg); min-width: 0; transition: background .2s; }
 .b-ph3 small { font-size: 8px; font-weight: 700; color: var(--dim); }

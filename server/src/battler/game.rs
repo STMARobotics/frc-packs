@@ -13,7 +13,7 @@ use uuid::Uuid;
 
 use super::content::{Kind, Robot, Support};
 use super::effects::{Effect, Owner, describe};
-use super::engine::{self, FieldLore, FieldPart, FieldRobot, RoundResult, Stats};
+use super::engine::{self, FieldLore, FieldPart, FieldRobot, RobotMode, RoundResult, Stats};
 
 pub const ROUNDS: u8 = 5;
 pub const DECK_ROBOTS: usize = 10;
@@ -132,6 +132,9 @@ pub struct Plan {
     pub partners: [u32; 2],
     /// The robot in driver station 1, 2 and 3.
     pub stations: [u32; 3],
+    /// Robot instances defending this round, independent of their station order.
+    #[serde(default)]
+    pub defending: Vec<u32>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -214,12 +217,12 @@ pub struct ScheduledMatch {
 pub struct Prediction {
     /// Base robot points, before effects, support cards or station choices.
     pub scores: [i32; 2],
-    /// Complementary win estimates, in seat order (0..1). These are not live Statbotics probabilities.
+    /// Complementary win estimates, in seat order (0..1).
     pub win_chance: [f64; 2],
     pub test_stats: bool,
 }
 
-/// A Statbotics-style logistic score-margin estimate, adapted to the Battler's stat scale.
+/// A logistic score-margin estimate for the Battler.
 /// The spread is 20% of the mean alliance score; it is a game estimate, not a calibrated FRC model.
 fn predict(scores: [i32; 2], test_stats: bool) -> Prediction {
     let spread = ((f64::from(scores[0]) + f64::from(scores[1])) * 0.1).max(1.0);
@@ -538,7 +541,7 @@ impl Game {
                     a.iter()
                         .map(|i| {
                             let s = self.robot(*i).expect("scheduled robot").stats;
-                            s.auto.max(0) + s.tele.max(0) + s.end.max(0)
+                            s.base_points().into_iter().map(|points| points.max(0)).sum::<i32>()
                         })
                         .sum()
                 });
@@ -595,7 +598,7 @@ impl Game {
                     seat.hand.push(c);
                 }
             }
-            seat.plan = Plan { attach: vec![], lore: None, partners: [a, b], stations: [captain, a, b] };
+            seat.plan = Plan { partners: [a, b], stations: [captain, a, b], ..Plan::default() };
             seat.locked = false;
             seat.acked = false;
         }
@@ -677,6 +680,7 @@ impl Game {
         seat.plan.stations = [captain, partners[0], partners[1]];
         let field = [captain, partners[0], partners[1]];
         seat.plan.attach.retain(|(_, r)| field.contains(r));
+        seat.plan.defending.retain(|r| field.contains(r));
         self.alliances[side] = field;
         self.bump();
         Ok(())
@@ -693,6 +697,20 @@ impl Game {
             return Err("bad_stations");
         }
         self.seat_mut(side).plan.stations = stations;
+        self.bump();
+        Ok(())
+    }
+
+    pub fn set_robot_mode(&mut self, side: usize, robot: u32, mode: RobotMode) -> Result<(), Refusal> {
+        self.pit_check(side)?;
+        if !self.alliances[side].contains(&robot) {
+            return Err("not_your_robot");
+        }
+        let defending = &mut self.seat_mut(side).plan.defending;
+        defending.retain(|&inst| inst != robot);
+        if mode == RobotMode::Defending {
+            defending.push(robot);
+        }
         self.bump();
         Ok(())
     }
@@ -737,6 +755,7 @@ impl Game {
                     side,
                     captain,
                     station: k as u8 + 1,
+                    mode: if seat.plan.defending.contains(&inst) { RobotMode::Defending } else { RobotMode::Scoring },
                     stats: r.stats,
                     effects: r.effects.clone(),
                     parts,
@@ -1104,9 +1123,9 @@ impl Game {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::battler::content::test_stats;
 
     fn robot(team: i32) -> RobotPick {
+        let variation = f64::from(team.rem_euclid(7));
         RobotPick {
             robot: Robot {
                 id: format!("R-2026-{team}"),
@@ -1116,7 +1135,14 @@ mod tests {
                 region: "Minnesota".into(),
                 tier: "common".into(),
                 photo: false,
-                stats: test_stats(team, Some(120.0)),
+                avatar: false,
+                stats: Stats {
+                    auto: 9.0 + variation,
+                    tele: 24.0 + variation,
+                    end: 6.0,
+                    def: Some(8.0 + variation),
+                    rp: [25.0, 31.0, 22.0],
+                },
                 test_stats: true,
             },
             effects: vec![],
@@ -1299,7 +1325,7 @@ mod tests {
             for score in &g.rounds.last().unwrap().result.robots {
                 let stats = g.robot(score.inst).unwrap().stats;
                 assert_eq!(score.base, [stats.auto, stats.tele, stats.end]);
-                assert_eq!(score.points, score.base, "all phases score fully when no effects are played");
+                assert_eq!(score.points, stats.base_points(), "all phases score fully when no effects are played");
             }
             g.ack(0, 12).unwrap();
             g.ack(1, 13).unwrap();
@@ -1353,6 +1379,9 @@ mod tests {
         let (mut fresh, _, _) = in_pit();
         let mut stored = serde_json::to_value(&fresh).unwrap();
         stored["engine"] = 1.into();
+        for seat in stored["seats"].as_array_mut().unwrap() {
+            seat["plan"].as_object_mut().unwrap().remove("defending");
+        }
         for r in stored["robots"].as_array_mut().unwrap() {
             r["battery"] = 0.into();
             r["broken"] = 1.into();
@@ -1409,6 +1438,36 @@ mod tests {
         g.set_stations(0, [a[2], a[0], a[1]]).unwrap();
         g.lock(0, 5).unwrap();
         assert_eq!(g.set_stations(0, a), Err("locked"), "locked means frozen");
+    }
+
+    #[test]
+    fn modes_follow_robots_and_stay_private_until_both_players_lock() {
+        let (mut g, _, _) = in_pit();
+        let [captain, a, b] = g.alliances[0];
+        let [opponent, ..] = g.alliances[1];
+        assert_eq!(g.set_robot_mode(0, opponent, RobotMode::Defending), Err("not_your_robot"));
+        g.set_robot_mode(0, a, RobotMode::Defending).unwrap();
+        g.set_robot_mode(0, b, RobotMode::Defending).unwrap();
+        g.set_robot_mode(0, b, RobotMode::Scoring).unwrap();
+        g.set_stations(0, [a, captain, b]).unwrap();
+        assert_eq!(g.seat(0).plan.defending, [a]);
+        g.lock(0, 5).unwrap();
+        assert_eq!(g.set_robot_mode(0, a, RobotMode::Scoring), Err("locked"));
+        let their_view = serde_json::to_value(g.view(Some(1))).unwrap();
+        assert_eq!(their_view["me"]["plan"]["defending"], serde_json::json!([]));
+        assert_eq!(their_view["rounds"], serde_json::json!([]));
+        g.lock(1, 5).unwrap();
+        let result = &g.rounds[0].result;
+        let defender = result.robots.iter().find(|r| r.inst == a).unwrap();
+        assert_eq!((defender.station, defender.mode, defender.points[1]), (1, RobotMode::Defending, 0));
+        let opposed = result.robots.iter().find(|r| r.inst == opponent).unwrap();
+        let def = g.robot(a).unwrap().stats.def.unwrap() as i32;
+        assert_eq!(opposed.points[1], g.robot(opponent).unwrap().stats.base_points()[1] - def);
+        assert!(result.robots.iter().filter(|r| r.inst != a).all(|r| r.mode == RobotMode::Scoring));
+        assert_eq!(g.set_robot_mode(1, opponent, RobotMode::Defending), Err("not_pit"));
+        g.ack(0, 6).unwrap();
+        g.ack(1, 6).unwrap();
+        assert!(g.seat(0).plan.defending.is_empty());
     }
 
     #[test]

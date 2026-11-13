@@ -32,12 +32,15 @@ A 1v1, five-round card game played with the robots you own in FRC Packs, at `/ba
    player readies up, the game is called off and any wager is returned.
 5. **Each match (5).** Each player fields their scheduled Captain and two partners, and draws 3 support cards. Partners
    cannot be swapped. In the Pit they can attach Parts, play at most one Lore (it affects all six robots), and assign
-   driver stations 1-3, then lock. Scheduled robot identities are public; station order and support choices remain
-   private until both lock. During card play, both players see the opponent's robot cards face up in schedule order
-   and can tap them to inspect their stats and effects. The reveal shows actual stations and support cards, then scores
+   driver stations 1-3 and a Scoring or Defending mode for each robot, then lock. Each round starts in Scoring mode.
+   Scheduled robot identities are public. Stations, modes and support choices stay private until both lock.
+   During card play, both players see the opponent's robot cards face up in schedule order and can tap them to inspect
+   their stats and effects. The reveal shows actual stations, each robot's mode and played support cards, then scores
    the match.
 6. **Scoring.** Auto, Tele and End are summed per alliance (robot effects, then parts, then lore; flat
-   points, then percent, then multipliers, rounded half up, never below 0). Win = 3 RP, tie = 1 each. Each robot rolls
+   points, then percent, then multipliers, rounded half up, never below 0). A defender scores zero Tele, with Auto and
+   End scored as usual. Its raw DEF is subtracted from the opposite station's base Tele before effects. If both robots
+   in a station defend, both score zero Tele. Win = 3 RP, tie = 1 each. Each robot rolls
    once for +1 RP at its station's RP chance. The reveal plays Auto as five one-second ticks per robot (each about a
    fifth of the points, up to 10% off, always summing to the real total), then Tele and End.
 7. **End.** Most RP wins, then most points, else a draw. Elo (start 1000, K 32) changes once per game.
@@ -55,10 +58,10 @@ The list reads existing ratings, so players who played before the leaderboard wa
 | `server/src/battler/effects.rs` | Effects as data: operations, scopes, conditions, chances; validation; rules text generated from the data |
 | `server/src/battler/engine.rs` | Resolves one round from the six robots, their parts, the lore and a seed. Pure |
 | `server/src/battler/game.rs` | The game state machine (OPEN, DECKS, SCHEDULE, PIT, RESULTS, FINAL, CANCELLED), fixed schedule, predictions, timeouts, what each player may see |
-| `server/src/battler/content.rs` | Robot cards from the pack recipe (stats from `bt`, or test stats), Part/Lore cards from `data/battler/support-2026.json` |
+| `server/src/battler/content.rs` | Robot ratings from the pack recipe's `bt` fields, Part/Lore cards from `data/battler/support-2026.json` |
 | `server/src/battler/api.rs` | `/api/battler/*`: decks, lobby, games, history, admin effects. Storage layout is in `docs/dynamodb.md` |
 | `web/battle.html`, `web/src/battler/` | The page (Preact): `main.tsx` routes the screens in `screens/`; `game/` is a game from the lobby to the final (`state.ts` applies taps at once and sends them in order, `arena.tsx` the match, `reveal.ts` the reveal timeline); `battler.css` is the look |
-| `tools/battler_stats.py` | Imports robot stats from Statbotics (spec §4) |
+| `tools/match13_stats.py` | Creates the frozen Match13 snapshot used to build the pack recipe |
 
 ## Keeping it fair
 
@@ -66,8 +69,9 @@ The list reads existing ratings, so players who played before the leaderboard wa
   ratings only happen on the server.
 - **One change at a time.** Every action carries the game version the player saw and is written back on condition the
   game hasn't changed (`ver`), so double taps, two tabs or scripts can't apply anything twice or act on stale state.
-- **Hidden information stays hidden.** A player's view never contains the opponent's hand, draw pile, pending pit plan
-  or station choices until the round is revealed (`Game::view`, tested). Both scheduled alliances and deck robot pools are public.
+- **Hidden information stays hidden.** A player's view keeps the opponent's hand and draw pile private. Station and
+  mode choices and played support are shown in the round reveal (`Game::view`, tested). Both scheduled alliances and
+  deck robot pools are public.
 - **Provably fixed randomness.** Each game has one secret seed. Its SHA-256 is shown from the start; the seed is
   revealed when the game ends, so players can check nothing was re-rolled.
 - **Deadlines without a background worker.** Any request applies passed deadlines: 5 minutes to pick decks (else called
@@ -113,8 +117,10 @@ cd web && node test/wager.cjs                                # wagers: stakes, e
   only edits robot effects so far.
 - **Robot effects** are written and published by an admin on the page (`#admin`). Robots without one play with no
   effect. Four example effects in the support file are labelled "Test effect" in game.
-- **Robot stats** use clearly marked test stats (from Champs EPA) until `tools/battler_stats.py` can reach Statbotics;
-  rerun it and `tools/build_packs.py` to replace them.
+- **Robot ratings** come from the checked-in Match13 snapshot. The three scoring phases apply effects to the raw
+  values and round the final points as before. DEF uses DPR for the card rating and the defense calculation.
+  RP chances retain their fractional
+  percentage points through the roll.
 - **"Their lore"** (October 2026): the empty "Their lore" placeholder is gone; if the other player plays a Lore it
   appears face down as a count in their bar and flips at the reveal.
 - **Robot avatars** show the team number; there are no TBA avatars in the repo yet.
