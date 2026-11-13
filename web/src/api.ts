@@ -375,7 +375,7 @@ export class ApiError extends Error {
   }
 }
 
-async function call<T>(method: "GET" | "POST", path: string, body?: unknown, key?: string): Promise<T> {
+async function call<T>(method: "GET" | "POST", path: string, body?: unknown, key?: string, cache?: RequestCache): Promise<T> {
   let res: Response;
   try {
     const headers: Record<string, string> = {};
@@ -384,6 +384,7 @@ async function call<T>(method: "GET" | "POST", path: string, body?: unknown, key
     res = await fetch(path, {
       method,
       credentials: "same-origin",
+      cache,
       headers,
       body: method === "POST" ? JSON.stringify(body ?? {}) : undefined,
     });
@@ -532,10 +533,11 @@ export const api = {
   /** Spend parts on a boosted pack. */
   craft: () => act<State>("/api/craft"),
   /** Spend 10,000 parts on a Mythic pack (three Mythics). */
-  /** The pack recipe. `v` (the app version) makes each release fetch it fresh: the file is cached for hours. */
   /** Robots' Battler effects as their cards say them, by team (published or shipped with the game). */
   robotEffects: () => call<Record<string, { name: string | null; text: string }>>("GET", "/api/battler/effects"),
-  recipe: (pack: string, v = "") => call<Recipe>("GET", `/packs/${encodeURIComponent(pack)}.json${v ? `?v=${encodeURIComponent(v)}` : ""}`),
+  /** Revalidate the browser's copy on startup, including deployments with the same app version. */
+  recipe: (pack: string, v = "") =>
+    call<Recipe>("GET", `/packs/${encodeURIComponent(pack)}.json${v ? `?v=${encodeURIComponent(v)}` : ""}`, undefined, undefined, "no-cache"),
   dev: {
     demo: (on: boolean) => call<State>("POST", "/api/dev/demo", { on }),
     pack: (pack: string) => call<State>("POST", "/api/dev/pack", { pack }),
