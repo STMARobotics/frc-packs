@@ -3433,3 +3433,27 @@ async fn admin_gets_every_card_without_serials_and_cannot_trade() {
     assert!(flagged.is_none(), "Tripwire is fine with it: {flagged:?}");
     drop_table(&db).await;
 }
+
+/// Admins are left off the Battler leaderboard; everyone else is on it.
+#[tokio::test]
+async fn admins_are_not_on_the_leaderboard() {
+    let (app, db) = need_db!(own_setup(false));
+    let admin = make_admin(&app, &db).await;
+    let (c, sc) = player(&app, &db).await;
+    let rated = frc_packs_server::db::item(
+        frc_packs_server::model::upk(user_id(&db, &c).await),
+        "BTPROF",
+        &json!({ "elo": 1300, "games": 2, "wins": 2, "losses": 0, "draws": 0 }),
+    );
+    db.put(rated).await.unwrap();
+    let admin_rated = frc_packs_server::db::item(
+        frc_packs_server::model::upk(user_id(&db, &admin).await),
+        "BTPROF",
+        &json!({ "elo": 1900, "games": 9, "wins": 9, "losses": 0, "draws": 0 }),
+    );
+    db.put(admin_rated).await.unwrap();
+    let rows = call(&app, "GET", "/api/battler/leaderboard", Some(&c), None).await.body;
+    let names: Vec<&str> = rows.as_array().unwrap().iter().map(|r| r["name"].as_str().unwrap()).collect();
+    assert_eq!(names, vec![sc["account"]["username"].as_str().unwrap()], "{rows}");
+    drop_table(&db).await;
+}

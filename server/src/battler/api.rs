@@ -113,11 +113,15 @@ fn rank_leaderboard(mut players: Vec<LeaderboardPlayer>) -> Vec<LeaderboardPlaye
 }
 
 /// Read the existing account index and batch-load ratings, including players rated before the leaderboard existed.
-/// No table scan, new index or migration is needed. Only public names and Battler records leave this endpoint.
+/// Admins aren't on it. No table scan, new index or migration is needed. Only public names and Battler records leave
+/// this endpoint.
 async fn leaderboard(State(st): State<Shared>, user: User) -> ApiResult<Json<Vec<LeaderboardPlayer>>> {
     let players = crate::trades::all_players(&st.db).await?;
-    let mut names: HashMap<String, (String, bool)> =
-        players.into_iter().filter_map(|p| p.username.map(|name| (upk(p.id), (name, p.id == user.id)))).collect();
+    let mut names: HashMap<String, (String, bool)> = players
+        .into_iter()
+        .filter(|p| !p.is_admin)
+        .filter_map(|p| p.username.map(|name| (upk(p.id), (name, p.id == user.id))))
+        .collect();
     let keys = names.keys().map(|pk| crate::db::key(pk, "BTPROF")).collect();
     let mut rows = vec![];
     for it in st.db.batch_get(keys).await? {
