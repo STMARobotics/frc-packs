@@ -13,7 +13,8 @@ use serde::{Deserialize, Serialize};
 
 use super::effects::{Cond, Effect, Of, Op, Phase, RpSlot, Scope};
 
-pub const ENGINE_VERSION: u32 = 4;
+pub const ENGINE_VERSION: u32 = 5;
+const LIMELIGHT: &str = "P-2026-021";
 
 pub const PHASES: [Phase; 3] = [Phase::Auto, Phase::Tele, Phase::End];
 
@@ -55,6 +56,7 @@ impl Stats {
 #[derive(Clone, Debug)]
 pub struct FieldPart {
     pub inst: u32,
+    pub card: String,
     pub name: String,
     pub tags: Vec<String>,
     pub effects: Vec<Effect>,
@@ -81,6 +83,10 @@ impl FieldRobot {
     fn tag_count(&self, tag: &str) -> u8 {
         self.parts.iter().filter(|p| p.tags.iter().any(|t| t == tag)).count() as u8
     }
+
+    fn has_ability(&self, op: Op) -> bool {
+        self.effects.iter().any(|e| e.op == op)
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -99,6 +105,15 @@ pub struct Event {
     /// The robot it affected (instance).
     pub target: u32,
     pub text: String,
+}
+
+/// One visible robot ability activation, with its source and all successful targets.
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+pub struct Activation {
+    pub source: u32,
+    pub targets: Vec<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub phase: Option<Phase>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
@@ -129,6 +144,8 @@ pub struct RoundResult {
     pub match_rp: [i32; 2],
     pub bonus_rp: [i32; 2],
     pub events: Vec<Event>,
+    #[serde(default)]
+    pub activations: Vec<Activation>,
 }
 
 #[derive(Default, Clone, Copy)]
@@ -148,7 +165,15 @@ struct Source<'a> {
     effects: &'a [Effect],
 }
 
-fn cond_ok(c: &Cond, target: &FieldRobot, source: Option<&FieldRobot>, lore_active: bool) -> bool {
+fn cond_ok(
+    c: &Cond,
+    target: &FieldRobot,
+    src: &Source<'_>,
+    robots: &[FieldRobot],
+    lore_active: bool,
+    unfavored: [bool; 2],
+) -> bool {
+    let source = src.robot.map(|i| &robots[i]);
     let pick = |of: &Of| match of {
         Of::Target => Some(target),
         Of::Source => source,
@@ -159,6 +184,11 @@ fn cond_ok(c: &Cond, target: &FieldRobot, source: Option<&FieldRobot>, lore_acti
         Cond::Captain { is, of } => pick(of).is_some_and(|r| r.captain == *is),
         Cond::LoreActive => lore_active,
         Cond::Across => source.is_some_and(|s| s.side != target.side && s.station == target.station),
+        Cond::AlliedWith { team } => {
+            robots.iter().any(|r| r.side == target.side && r.inst != target.inst && r.team == *team)
+        }
+        Cond::Unfavored => unfavored[src.side],
+        Cond::HighestTele => robots.iter().all(|r| r.side != target.side || r.stats.tele <= target.stats.tele),
         Cond::Team { team, of } => pick(of).is_some_and(|r| r.team == *team),
     }
 }
@@ -169,16 +199,156 @@ fn half_up(value: f64) -> i32 {
 
 /// Resolves a round. `seed` decides every chance roll; the same inputs and seed give the same result.
 pub fn resolve(robots: &[FieldRobot], lores: &[FieldLore], seed: u64) -> RoundResult {
+    let mut scores = [0; 2];
+    for robot in robots {
+        scores[robot.side] += robot.stats.base_points().into_iter().map(|points| points.max(0)).sum::<i32>();
+    }
+    resolve_with_prediction(robots, lores, seed, [scores[0] < scores[1], scores[1] < scores[0]])
+}
+
+pub fn resolve_with_prediction(
+    field: &[FieldRobot],
+    lores: &[FieldLore],
+    seed: u64,
+    unfavored: [bool; 2],
+) -> RoundResult {
     let mut rng = StdRng::seed_from_u64(seed);
     let lore_active = !lores.is_empty();
-    let n = robots.len();
+    let n = field.len();
     let mut acc = vec![[Acc::default(); 3]; n];
     let mut rp_pp = vec![[0i32; 4]; n];
+    let mut rp_pct = vec![0; n];
     let mut events = Vec::new();
+    let mut activations = Vec::new();
 
     // Sources in a fixed order: robot effects, then parts, then lore, each by instance id.
     let mut order: Vec<usize> = (0..n).collect();
-    order.sort_by_key(|&i| robots[i].inst);
+    order.sort_by_key(|&i| field[i].inst);
+
+    // Copy only a part actually attached in the pit. The copy exists for this resolution, including tag checks.
+    let mut robots = field.to_vec();
+    let mut next_part = field.iter().flat_map(|r| &r.parts).map(|p| p.inst).max().unwrap_or_default();
+    for &i in &order {
+        let r = &field[i];
+        if !r.has_ability(Op::CopyPartnerLimelight) {
+            continue;
+        }
+        if let Some(part) = order
+            .iter()
+            .filter(|&&j| j != i && field[j].side == r.side)
+            .flat_map(|&j| &field[j].parts)
+            .filter(|p| p.card == LIMELIGHT)
+            .min_by_key(|p| p.inst)
+        {
+            next_part += 1;
+            robots[i].parts.push(FieldPart { inst: next_part, ..part.clone() });
+            activations.push(Activation { source: r.inst, targets: vec![r.inst], phase: None });
+            events.push(Event {
+                source: r.name.clone(),
+                target: r.inst,
+                text: "Gained a Limelight for this match.".into(),
+            });
+        }
+    }
+
+    let mut ratings: Vec<_> = robots.iter().map(|r| r.stats).collect();
+    let immune_to_enemy: Vec<_> = robots.iter().map(|r| r.has_ability(Op::ImmuneToEnemyEffects)).collect();
+    for &i in &order {
+        let r = &robots[i];
+        let src = Source { name: &r.name, robot: Some(i), side: r.side, effects: &r.effects };
+        for e in src.effects {
+            if let Op::BoostAllRatings { value } = e.op
+                && e.when.iter().all(|c| cond_ok(c, r, &src, &robots, lore_active, unfavored))
+            {
+                let s = &mut ratings[i];
+                let factor = 1.0 + f64::from(value) / 100.0;
+                s.auto *= factor;
+                s.tele *= factor;
+                s.end *= factor;
+                s.def = s.def.map(|def| def * factor);
+                s.rp = s.rp.map(|rp| rp * factor);
+                activations.push(Activation { source: r.inst, targets: vec![r.inst], phase: None });
+                events.push(Event {
+                    source: r.name.clone(),
+                    target: r.inst,
+                    text: format!("{value:+}% to all ratings"),
+                });
+            }
+        }
+    }
+    let mut immunity_shown = vec![false; n];
+    for &i in &order {
+        let r = &robots[i];
+        for e in &r.effects {
+            let text = match e.op {
+                Op::StealRandomRating => {
+                    let targets: Vec<_> = order.iter().copied().filter(|&j| robots[j].side != r.side).collect();
+                    if targets.is_empty() {
+                        continue;
+                    }
+                    let j = targets[rng.random_range(0..targets.len())];
+                    let stat = rng.random_range(0..4);
+                    if immune_to_enemy[j] {
+                        if !std::mem::replace(&mut immunity_shown[j], true) {
+                            activations.push(Activation {
+                                source: robots[j].inst,
+                                targets: vec![robots[j].inst],
+                                phase: None,
+                            });
+                        }
+                        events.push(Event {
+                            source: r.name.clone(),
+                            target: robots[j].inst,
+                            text: "Blocked the rating steal.".into(),
+                        });
+                        continue;
+                    }
+                    let (name, victim) = match stat {
+                        0 => ("AUTO", &mut ratings[j].auto),
+                        1 => ("TELE", &mut ratings[j].tele),
+                        2 => ("END", &mut ratings[j].end),
+                        _ => ("DEF", ratings[j].def.get_or_insert(0.0)),
+                    };
+                    let amount = victim.max(0.0) * 0.05;
+                    *victim -= amount;
+                    match stat {
+                        0 => ratings[i].auto += amount,
+                        1 => ratings[i].tele += amount,
+                        2 => ratings[i].end += amount,
+                        _ if amount != 0.0 => *ratings[i].def.get_or_insert(0.0) += amount,
+                        _ => {}
+                    }
+                    if amount > 0.0 {
+                        activations.push(Activation { source: r.inst, targets: vec![robots[j].inst], phase: None });
+                    }
+                    format!("Stole {amount:.2} {name} from {}.", robots[j].name)
+                }
+                Op::RandomAuto => {
+                    let pct = [50, -20, 0][rng.random_range(0..3)];
+                    acc[i][0].pct += pct;
+                    activations.push(Activation { source: r.inst, targets: vec![r.inst], phase: Some(Phase::Auto) });
+                    if pct == 0 { "Rolled no AUTO change.".into() } else { format!("Rolled {pct:+}% AUTO.") }
+                }
+                Op::ExtendHopper => {
+                    for (k, phase) in PHASES.iter().enumerate() {
+                        if rng.random_bool(0.5) {
+                            acc[i][k].mult += 10;
+                            activations.push(Activation { source: r.inst, targets: vec![r.inst], phase: Some(*phase) });
+                            events.push(Event {
+                                source: r.name.clone(),
+                                target: r.inst,
+                                text: format!("Extended the hopper for +10% {} scoring.", phase_word(*phase)),
+                            });
+                        }
+                    }
+                    continue;
+                }
+                _ => continue,
+            };
+            events.push(Event { source: r.name.clone(), target: r.inst, text });
+        }
+    }
+
     let mut sources: Vec<Source> = Vec::new();
     for &i in &order {
         sources.push(Source {
@@ -200,18 +370,33 @@ pub fn resolve(robots: &[FieldRobot], lores: &[FieldLore], seed: u64) -> RoundRe
         sources.push(Source { name: &l.name, robot: None, side: l.side, effects: &l.effects });
     }
 
-    for src in &sources {
-        let source_robot = src.robot.map(|i| &robots[i]);
+    for (source_index, src) in sources.iter().enumerate() {
         for e in src.effects {
+            if e.op.is_robot_ability() {
+                continue;
+            }
+            let mut ability_targets = Vec::new();
             for &t in &order {
                 let target = &robots[t];
                 let reached = match e.scope {
                     Scope::Itself => src.robot == Some(t),
                     Scope::Allies => target.side == src.side,
+                    Scope::Partners => target.side == src.side && src.robot != Some(t),
                     Scope::Enemies => target.side != src.side,
                     Scope::Field => true,
                 };
-                if !reached || !e.when.iter().all(|c| cond_ok(c, target, source_robot, lore_active)) {
+                if !reached || !e.when.iter().all(|c| cond_ok(c, target, src, &robots, lore_active, unfavored)) {
+                    continue;
+                }
+                if target.side != src.side && immune_to_enemy[t] {
+                    if !std::mem::replace(&mut immunity_shown[t], true) {
+                        activations.push(Activation { source: target.inst, targets: vec![target.inst], phase: None });
+                    }
+                    events.push(Event {
+                        source: src.name.to_string(),
+                        target: target.inst,
+                        text: format!("{} is immune to opposing effects.", target.name),
+                    });
                     continue;
                 }
                 if let Some(chance) = e.chance {
@@ -262,6 +447,10 @@ pub fn resolve(robots: &[FieldRobot], lores: &[FieldLore], seed: u64) -> RoundRe
                         rp_pp[t][k] += value;
                         format!("{} {:+} RP chance", target.name, value)
                     }
+                    Op::AddRpPct { value } => {
+                        rp_pct[t] += value;
+                        format!("{} {value:+}% to all RP chances", target.name)
+                    }
                     Op::PerPartTag { tag, phase, value } => {
                         let c = i32::from(target.tag_count(tag));
                         let v = value * c;
@@ -272,8 +461,19 @@ pub fn resolve(robots: &[FieldRobot], lores: &[FieldLore], seed: u64) -> RoundRe
                         apply(*phase, &|a| a.off = true);
                         format!("{} scores no {}", target.name, phase_word(*phase))
                     }
+                    _ => unreachable!("robot abilities resolve before ordinary effects"),
                 };
                 events.push(Event { source: src.name.to_string(), target: target.inst, text });
+                if source_index < n && !matches!(&e.op, Op::PerPartTag { tag, .. } if target.tag_count(tag) == 0) {
+                    ability_targets.push(target.inst);
+                }
+            }
+            if !ability_targets.is_empty() {
+                activations.push(Activation {
+                    source: robots[order[source_index]].inst,
+                    targets: ability_targets,
+                    phase: None,
+                });
             }
         }
     }
@@ -286,17 +486,26 @@ pub fn resolve(robots: &[FieldRobot], lores: &[FieldLore], seed: u64) -> RoundRe
         let defending = r.mode == RobotMode::Defending;
         let mut reduction = 0.0;
         if !defending
-            && let Some(opponent) = robots.iter().find(|opponent| {
+            && let Some((j, opponent)) = robots.iter().enumerate().find(|(_, opponent)| {
                 opponent.side != r.side && opponent.station == r.station && opponent.mode == RobotMode::Defending
             })
-            && let Some(def) = opponent.stats.def.filter(|def| *def != 0.0)
+            && let Some(def) = ratings[j].def.filter(|def| *def != 0.0)
         {
-            reduction = def;
-            events.push(Event {
-                source: opponent.name.clone(),
-                target: r.inst,
-                text: format!("{} {:+} base TELE (defense)", r.name, -def),
-            });
+            if r.has_ability(Op::ImmuneToDefense) {
+                activations.push(Activation { source: r.inst, targets: vec![r.inst], phase: Some(Phase::Tele) });
+                events.push(Event {
+                    source: r.name.clone(),
+                    target: r.inst,
+                    text: "Ignored the opposing defender.".into(),
+                });
+            } else {
+                reduction = def;
+                events.push(Event {
+                    source: opponent.name.clone(),
+                    target: r.inst,
+                    text: format!("{} {:+} base TELE (defense)", r.name, -def),
+                });
+            }
         }
         let mut points = [0; 3];
         for (k, phase) in PHASES.iter().enumerate() {
@@ -304,7 +513,7 @@ pub fn resolve(robots: &[FieldRobot], lores: &[FieldLore], seed: u64) -> RoundRe
             if a.off || (*phase == Phase::Tele && defending) {
                 continue;
             }
-            let rating = base[k] - if *phase == Phase::Tele { reduction } else { 0.0 };
+            let rating = ratings[i].phase(*phase) - if *phase == Phase::Tele { reduction } else { 0.0 };
             let v = (rating + f64::from(a.flat)) * f64::from((100 + a.pct).max(0)) * f64::from(100 + a.mult);
             points[k] = half_up(v / 10_000.0).max(0);
             phase_totals[r.side][k] += points[k];
@@ -341,7 +550,9 @@ pub fn resolve(robots: &[FieldRobot], lores: &[FieldLore], seed: u64) -> RoundRe
         let i = order[k];
         let r = &robots[i];
         let slot = usize::from(r.station.clamp(1, 3) - 1);
-        let chance = (r.stats.rp[slot] + f64::from(rp_pp[i][slot] + rp_pp[i][3])).clamp(0.0, 100.0);
+        let chance = (ratings[i].rp[slot] * (1.0 + f64::from(rp_pct[i]) / 100.0)
+            + f64::from(rp_pp[i][slot] + rp_pp[i][3]))
+        .clamp(0.0, 100.0);
         let roll =
             if chance.fract() == 0.0 { f64::from(rng.random_range(0..100)) } else { rng.random_range(0.0..100.0) };
         let hit = roll < chance;
@@ -353,7 +564,7 @@ pub fn resolve(robots: &[FieldRobot], lores: &[FieldLore], seed: u64) -> RoundRe
         s.rp_roll = roll;
         s.rp_hit = hit;
     }
-    RoundResult { robots: scores, phase_totals, totals, winner, match_rp, bonus_rp, events }
+    RoundResult { robots: scores, phase_totals, totals, winner, match_rp, bonus_rp, events, activations }
 }
 
 fn phase_word(p: Phase) -> &'static str {
@@ -403,6 +614,147 @@ mod tests {
             robot(4, 1, 2, st(10, 20, 5, [0, 100, 0])),
             robot(5, 1, 3, st(10, 20, 5, [0, 0, 100])),
         ]
+    }
+
+    fn with_shipped_abilities(teams: [i32; 6]) -> (Vec<FieldRobot>, super::super::content::Content) {
+        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../data");
+        let content = super::super::content::Content::load(&dir).unwrap();
+        let mut robots = field();
+        for (robot, team) in robots.iter_mut().zip(teams) {
+            robot.team = team;
+            robot.effects = content.shipped_effects.get(&team).cloned().unwrap_or_default();
+            robot.stats = Stats { auto: 100.0, tele: 200.0, end: 40.0, def: Some(40.0), rp: [40.0; 3] };
+        }
+        (robots, content)
+    }
+
+    #[test]
+    fn shipped_partner_bonuses_apply_to_the_correct_robots() {
+        let (mut f, _) = with_shipped_abilities([27, 4414, 2481, 1114, 2056, 0]);
+        f[5].mode = RobotMode::Defending;
+        let mut partner_hits = [false; 2];
+        let mut different_rolls = false;
+        for seed in 0..32 {
+            let r = resolve(&f, &[], seed);
+            assert_eq!(r.robots[0].points, [100, 200, 40]);
+            assert_eq!(r.robots[0].rp_chance, 44.0);
+            assert_eq!(r.robots[1].rp_chance, 40.0);
+            assert_eq!(r.robots[2].rp_chance, 44.0);
+            assert_eq!(r.robots[2].points[0], 110);
+            assert_eq!(r.robots[2].points[2], 44);
+            let hit = [r.robots[1].points[1] == 220, r.robots[2].points[1] == 194];
+            different_rolls |= hit[0] != hit[1];
+            for i in 0..2 {
+                partner_hits[i] |= hit[i];
+            }
+            for s in &r.robots[3..5] {
+                assert_eq!(s.points, [105, 210, 42]);
+                assert_eq!(s.rp_chance, 42.0);
+            }
+        }
+        assert_eq!(partner_hits, [true, true]);
+        assert!(different_rolls);
+        let r = resolve(&f, &[], 0);
+        let high_tide: Vec<_> = r.activations.iter().filter(|a| a.source == 1).collect();
+        assert_eq!(high_tide, [&Activation { source: 1, targets: vec![0, 2], phase: None }]);
+        f[0].stats.tele = 201.0;
+        f[4].mode = RobotMode::Defending;
+        let r = resolve(&f, &[], 0);
+        assert_eq!(r.robots[2].points[0], 100, "a stronger partner removes the bonus");
+        assert!([158, 174].contains(&r.robots[1].points[1]), "boosted DEF applies across the station");
+        f[4].team = 0;
+        assert_eq!(resolve(&f, &[], 0).robots[3].points, [100, 200, 40]);
+    }
+
+    #[test]
+    fn shipped_immunities_and_prediction_use_the_right_sources() {
+        let (mut f, _) = with_shipped_abilities([125, 4946, 1323, 0, 0, 0]);
+        f[3].mode = RobotMode::Defending;
+        f[3].effects = fx(r#"[{"op":"ADD_PHASE_FLAT","phase":"AUTO","value":-20,"scope":"ENEMIES"}]"#);
+        f[4].parts.push(FieldPart {
+            inst: 40,
+            card: "test".into(),
+            name: "Opposing part".into(),
+            tags: vec![],
+            effects: fx(r#"[{"op":"ADD_PHASE_FLAT","phase":"AUTO","value":-10,"scope":"ENEMIES"}]"#),
+        });
+        let lores = [
+            FieldLore {
+                inst: 50,
+                name: "Opposing Lore".into(),
+                side: 1,
+                effects: fx(r#"[{"op":"ADD_PHASE_FLAT","phase":"AUTO","value":-30,"scope":"FIELD"}]"#),
+            },
+            FieldLore {
+                inst: 51,
+                name: "Friendly Lore".into(),
+                side: 0,
+                effects: fx(r#"[{"op":"ADD_PHASE_FLAT","phase":"END","value":5,"scope":"ALLIES"}]"#),
+            },
+        ];
+        let favored = resolve_with_prediction(&f, &lores, 0, [false, true]);
+        let underdog = resolve_with_prediction(&f, &lores, 0, [true, false]);
+        assert_eq!(underdog.robots[0].points, [40, 200, 45]);
+        assert_eq!(underdog.robots[1].points, [100, 200, 45]);
+        assert_eq!(underdog.robots[5].points[0], 60);
+        assert_eq!(favored.robots[5].points[0], 70);
+        assert_eq!(underdog.robots[4].points, favored.robots[4].points);
+        assert!(underdog.activations.contains(&Activation { source: 0, targets: vec![0], phase: Some(Phase::Tele) }));
+        assert_eq!(underdog.activations.iter().filter(|a| a.source == 1).count(), 1);
+        assert!(underdog.activations.contains(&Activation { source: 2, targets: vec![5], phase: None }));
+        assert!(favored.activations.iter().all(|a| a.source != 2));
+    }
+
+    #[test]
+    fn orbit_copies_only_an_alliance_partners_limelight() {
+        let (mut f, content) = with_shipped_abilities([1690, 0, 0, 0, 0, 0]);
+        let light = content.support(LIMELIGHT).unwrap();
+        let part = FieldPart {
+            inst: 42,
+            card: light.id.clone(),
+            name: light.name.clone(),
+            tags: light.tags.clone(),
+            effects: light.effects.clone(),
+        };
+        f[3].parts.push(part.clone());
+        assert_eq!(resolve(&f, &[], 0).robots[0].points[0], 100);
+        f[1].parts.push(part.clone());
+        f[2].parts.push(FieldPart { inst: 43, ..part });
+        assert_eq!(resolve(&f, &[], 0).robots[0].points[0], 122);
+        assert!(f[0].parts.is_empty(), "the copy is temporary");
+    }
+
+    #[test]
+    fn shipped_random_abilities_are_seeded_and_cover_their_outcomes() {
+        let (mut f, _) = with_shipped_abilities([254, 1678, 2910, 0, 0, 0]);
+        f[0].mode = RobotMode::Defending;
+        let mut auto = std::collections::BTreeSet::new();
+        let mut hopper = std::collections::BTreeSet::new();
+        let mut stolen = std::collections::BTreeSet::new();
+        for seed in 0..100 {
+            let r = resolve(&f, &[], seed);
+            assert_eq!(r, resolve(&f, &[], seed));
+            auto.insert(r.robots[2].points[0]);
+            hopper.insert(r.robots[1].points);
+            let event = r.events.iter().find(|e| e.target == 0 && e.text.starts_with("Stole")).unwrap();
+            let stat = event.text.split_whitespace().nth(2).unwrap();
+            stolen.insert(stat.to_owned());
+            match stat {
+                "AUTO" => {
+                    assert_eq!(r.robots[0].points[0], 105);
+                    assert_eq!(r.robots[3..].iter().map(|s| s.points[0]).sum::<i32>(), 295);
+                }
+                "END" => {
+                    assert_eq!(r.robots[0].points[2], 42);
+                    assert_eq!(r.robots[3..].iter().map(|s| s.points[2]).sum::<i32>(), 118);
+                }
+                "DEF" => assert_eq!(r.robots[3].points[1], 158),
+                _ => assert!(r.robots[3..].iter().any(|s| s.points[1] == 190 || s.points[1] == 150)),
+            }
+        }
+        assert_eq!(auto.into_iter().collect::<Vec<_>>(), [80, 100, 150]);
+        assert_eq!(hopper.len(), 8);
+        assert_eq!(stolen.len(), 4);
     }
 
     fn fx(json: &str) -> Vec<Effect> {
@@ -513,6 +865,7 @@ mod tests {
     fn parts_flat_pct_and_per_tag_stack_in_order() {
         let mut f = field();
         f[1].parts.push(FieldPart {
+            card: "test-part".into(),
             inst: 100,
             name: "Gearbox".into(),
             tags: vec!["MECHANICAL".into(), "GEAR".into()],

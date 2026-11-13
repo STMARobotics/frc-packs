@@ -2815,7 +2815,8 @@ async fn robot_effects_reach_the_cards() {
     assert_eq!(r.status, StatusCode::OK, "{}", r.body);
     assert_eq!(r.body["7028"]["name"], "Bump n Dump");
     assert!(r.body["7028"]["text"].as_str().unwrap().contains("team 6800"), "{}", r.body);
-    assert!(r.body.get("4414").is_none(), "4414's effect is only a test example");
+    assert_eq!(r.body["4414"]["text"], "Alliance partners get +10% to all RP chances.");
+    assert_eq!(r.body["125"]["text"], "Immune to defenders.");
 }
 
 // ---------- Tripwire, the anticheat ----------
@@ -3514,7 +3515,8 @@ async fn a_match_against_an_admin_is_a_ghost() {
     assert_eq!(g.status, StatusCode::OK, "{}", g.body);
     let gid = g.body["id"].as_str().unwrap().to_string();
     let code = g.body["code"].as_str().unwrap_or_default().to_string();
-    let j = call(&app, "POST", &format!("/api/battler/games/{gid}/join?code={code}"), Some(&admin), Some(json!({}))).await;
+    let j =
+        call(&app, "POST", &format!("/api/battler/games/{gid}/join?code={code}"), Some(&admin), Some(json!({}))).await;
     assert_eq!(j.status, StatusCode::OK, "{}", j.body);
     act(c.clone(), gid.clone(), json!({ "kind": "pick_deck", "deck": deck_c })).await;
     act(admin.clone(), gid.clone(), json!({ "kind": "pick_deck", "deck": "unfair" })).await;

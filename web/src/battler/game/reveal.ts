@@ -4,7 +4,7 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import { preload } from "../store";
 import { sfx } from "../sfx";
-import type { GameView, RoundLog } from "../types";
+import type { AbilityActivation, GameView, RoundLog } from "../types";
 import { robotOf } from "./state";
 
 const rollLabel = (roll: number) => String(Math.floor(roll * 100) / 100);
@@ -22,6 +22,7 @@ export interface Reveal {
   dice: Record<number, { s: "roll" | "hit" | "miss"; t: string }>;
   banner: { text: string; n: number } | null;
   auto: number; // the Auto tick showing (1-5), or 0
+  ability: { activation: AbilityActivation; duration: number; id: number; finish: () => void } | null;
   verdict: boolean;
   rp: [number, number]; // RP this round shown so far [me, them]
   floats: { id: number; inst: number; text: string; who: "me" | "op" }[];
@@ -36,7 +37,7 @@ let floatN = 0;
 function blank(log: RoundLog): Reveal {
   const pts: Reveal["pts"] = {}, graded: Reveal["graded"] = {};
   for (const sc of log.result.robots) { pts[sc.inst] = [null, null, null]; graded[sc.inst] = [false, false, false]; }
-  return { open: [0, 0, 0], parts: false, lore: false, pts, graded, totals: [0, 0], dice: {}, banner: null, auto: 0, verdict: false, rp: [0, 0], floats: [], shake: 0, done: false };
+  return { open: [0, 0, 0], parts: false, lore: false, pts, graded, totals: [0, 0], dice: {}, banner: null, auto: 0, ability: null, verdict: false, rp: [0, 0], floats: [], shake: 0, done: false };
 }
 
 export function finished(log: RoundLog, side: number): Reveal {
@@ -96,6 +97,19 @@ export function useReveal(g: GameView, log: RoundLog | null): [Reveal | null, ()
     };
     let bn = 0;
     const banner = async (text: string, ms: number) => { upd((x) => { x.banner = { text, n: ++bn }; }); await wait(ms); };
+    const abilities = async (phase?: AbilityActivation["phase"]) => {
+      const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const queue = log.result.activations ?? [];
+      for (const [id, activation] of queue.entries()) {
+        if (!alive()) return;
+        if (activation.phase !== phase) continue;
+        const duration = reduced ? 380 : activation.targets.some((t) => t !== activation.source) ? 980 : 650;
+        await new Promise<void>((finish) => {
+          upd((x) => { x.banner = null; x.floats = []; x.ability = { activation, duration, id, finish }; });
+        });
+      }
+      upd((x) => { x.ability = null; });
+    };
 
     (async () => {
       const r = log.result, op = 1 - side;
@@ -112,10 +126,12 @@ export function useReveal(g: GameView, log: RoundLog | null): [Reveal | null, ()
       upd((x) => { x.parts = true; x.open = [2, 2, 2]; });
       if (log.lore[0] !== null || log.lore[1] !== null) { await banner("LORE", 420); upd((x) => { x.lore = true; }); sfx.flip(); await wait(450); }
       else upd((x) => { x.lore = true; });
+      await abilities();
 
       // Auto: five ticks.
       if (!alive()) return;
       await banner("AUTO", 450);
+      await abilities("AUTO");
       const ticks = new Map(r.robots.map((sc) => [sc.inst, autoTicks(sc.points[0], `${g.seed_hash}:${log.round}:${sc.inst}`)]));
       for (let t = 0; t < 5; t++) {
         if (!alive()) return;
@@ -138,6 +154,7 @@ export function useReveal(g: GameView, log: RoundLog | null): [Reveal | null, ()
       for (const k of [1, 2] as const) {
         if (!alive()) return;
         await banner(k === 1 ? "TELE" : "END", 420);
+        await abilities(k === 1 ? "TELE" : "END");
         for (let lane = 0; lane < 3; lane++) {
           for (const s of [op, side]) {
             if (!alive()) return;

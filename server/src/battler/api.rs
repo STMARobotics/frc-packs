@@ -1176,6 +1176,7 @@ async fn admin_preview(State(st): State<Shared>, _admin: Admin, Json(req): Json<
             .enumerate()
             .map(|(i, c)| engine::FieldPart {
                 inst: 100 + i as u32,
+                card: c.id.clone(),
                 name: c.name.clone(),
                 tags: c.tags.clone(),
                 effects: c.effects.clone(),

@@ -115,8 +115,9 @@ cd web && node test/wager.cjs                                # wagers: stakes, e
 - **Part and Lore cards** are a starter set of drafts (24 parts, 8 lore) in `data/battler/support-2026.json`, and every
   player gets 3 copies of each for free until they can be pulled from packs. They're edited in that file; the admin page
   only edits robot effects so far.
-- **Robot effects** are written and published by an admin on the page (`#admin`). Robots without one play with no
-  effect. Four example effects in the support file are labelled "Test effect" in game.
+- **Robot effects** ship in `data/battler/support-2026.json`. Publishing a robot effect in `#admin` overrides the
+  shipped effect for future games. The schedule's pre-pit prediction drives underdog abilities. Copied Limelights
+  apply their points and tags for the round and leave both players' hands and inventories alone.
 - **Robot ratings** come from the checked-in Match13 snapshot. The three scoring phases apply effects to the raw
   values and round the final points as before. DEF uses DPR for the card rating and the defense calculation.
   RP chances retain their fractional

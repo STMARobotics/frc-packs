@@ -101,11 +101,18 @@
   ],
   "robot_effect_names": { "7028": "Bump n Dump" },
   "robot_effects": {
+    "27": [{ "op": "ADD_PHASE_PCT", "phase": "TELE", "value": 10, "scope": "PARTNERS", "chance": 50 }],
+    "125": [{ "op": "IMMUNE_TO_DEFENSE", "scope": "SELF" }],
+    "254": [{ "op": "STEAL_RANDOM_RATING", "scope": "SELF" }],
+    "1114": [{ "op": "BOOST_ALL_RATINGS", "value": 5, "scope": "SELF", "when": [{ "if": "ALLIED_WITH", "team": 2056 }] }],
+    "1323": [{ "op": "ADD_PHASE_PCT", "phase": "AUTO", "value": -15, "scope": "ENEMIES", "when": [{ "if": "UNFAVORED" }, { "if": "ACROSS" }] }],
+    "1678": [{ "op": "EXTEND_HOPPER", "scope": "SELF" }],
+    "1690": [{ "op": "COPY_PARTNER_LIMELIGHT", "scope": "SELF" }],
+    "2481": [{ "op": "ADD_PHASE_MULTIPLIER", "phase": "ALL", "percent": 110, "scope": "SELF", "when": [{ "if": "HIGHEST_TELE" }] }],
+    "2056": [{ "op": "BOOST_ALL_RATINGS", "value": 5, "scope": "SELF", "when": [{ "if": "ALLIED_WITH", "team": 1114 }] }],
+    "2910": [{ "op": "RANDOM_AUTO", "scope": "SELF" }],
+    "4414": [{ "op": "ADD_RP_PCT", "value": 10, "scope": "PARTNERS" }],
+    "4946": [{ "op": "IMMUNE_TO_ENEMY_EFFECTS", "scope": "SELF" }],
     "7028": [{ "op": "ADD_PHASE_PCT", "phase": "AUTO", "value": -10, "scope": "ENEMIES", "chance": 95, "when": [{ "if": "ACROSS" }] }, { "op": "ADD_PHASE_PCT", "phase": "AUTO", "value": 15, "scope": "ALLIES", "when": [{ "if": "HAS_PART_TAG", "tag": "VISION", "of": "SOURCE" }] }, { "op": "ADD_PHASE_PCT", "phase": "AUTO", "value": 15, "scope": "ALLIES", "when": [{ "if": "HAS_PART_TAG", "tag": "SWERVE", "of": "SOURCE" }] }, { "op": "DISABLE_PHASE", "phase": "AUTO", "scope": "ENEMIES", "when": [{ "if": "TEAM", "team": 6800 }] }]
-  },
-  "test_robot_effects": {
-    "4414": [{ "op": "PER_PART_TAG", "tag": "MECHANICAL", "phase": "TELE", "value": 8, "scope": "SELF" }],
-    "254": [{ "op": "ADD_PHASE_FLAT", "phase": "AUTO", "value": 10, "scope": "SELF", "when": [{ "if": "HAS_PART_TAG", "tag": "VISION" }] }],
-    "1678": [{ "op": "ADD_PHASE_FLAT", "phase": "AUTO", "value": 5, "scope": "ALLIES", "when": [{ "if": "CAPTAIN", "of": "SOURCE" }] }]
   }
 }

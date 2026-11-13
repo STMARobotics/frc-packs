@@ -34,9 +34,10 @@ export interface RobotScore {
   points: [number, number, number]; rp_chance: number; rp_roll: number; rp_hit: boolean;
 }
 export interface GameEvent { source: string; target: number; text: string }
+export interface AbilityActivation { source: number; targets: number[]; phase?: Exclude<Phase, "ALL"> }
 export interface RoundResult {
   robots: RobotScore[]; phase_totals: [[number, number, number], [number, number, number]]; totals: [number, number]; winner: number | null;
-  match_rp: [number, number]; bonus_rp: [number, number]; events: GameEvent[];
+  match_rp: [number, number]; bonus_rp: [number, number]; events: GameEvent[]; activations?: AbilityActivation[];
 }
 export interface RoundLog {
   round: number; stations: [[number, number, number], [number, number, number]]; attach: [[number, number][], [number, number][]];

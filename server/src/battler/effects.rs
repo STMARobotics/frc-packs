@@ -62,6 +62,8 @@ pub enum Scope {
     Itself,
     /// Every robot on the source's alliance, itself included.
     Allies,
+    /// The two other robots on the source's alliance.
+    Partners,
     /// Every robot on the other alliance.
     Enemies,
     /// All six robots on the field.
@@ -73,17 +75,63 @@ pub enum Scope {
 #[serde(tag = "op", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum Op {
     /// +value points in a phase (negative takes points away).
-    AddPhaseFlat { phase: Phase, value: i32 },
+    AddPhaseFlat {
+        phase: Phase,
+        value: i32,
+    },
     /// +value percent in a phase. Percent bonuses add up, then apply once.
-    AddPhasePct { phase: Phase, value: i32 },
+    AddPhasePct {
+        phase: Phase,
+        value: i32,
+    },
     /// Multiplies a phase (200 = double). When several apply, their bonuses above 1x add: 2x and 2x make 3x.
-    AddPhaseMultiplier { phase: Phase, percent: i32 },
+    AddPhaseMultiplier {
+        phase: Phase,
+        percent: i32,
+    },
     /// +value percentage points to an RP chance.
-    AddRpPp { rp: RpSlot, value: i32 },
+    AddRpPp {
+        rp: RpSlot,
+        value: i32,
+    },
+    /// Relative boost to all three RP chances.
+    AddRpPct {
+        value: i32,
+    },
     /// +value points in a phase for each attached part carrying the tag.
-    PerPartTag { tag: String, phase: Phase, value: i32 },
+    PerPartTag {
+        tag: String,
+        phase: Phase,
+        value: i32,
+    },
     /// The phase scores nothing at all, whatever else applies.
-    DisablePhase { phase: Phase },
+    DisablePhase {
+        phase: Phase,
+    },
+    BoostAllRatings {
+        value: i32,
+    },
+    ImmuneToDefense,
+    ImmuneToEnemyEffects,
+    StealRandomRating,
+    CopyPartnerLimelight,
+    RandomAuto,
+    ExtendHopper,
+}
+
+impl Op {
+    pub fn is_robot_ability(&self) -> bool {
+        matches!(
+            self,
+            Self::BoostAllRatings { .. }
+                | Self::ImmuneToDefense
+                | Self::ImmuneToEnemyEffects
+                | Self::StealRandomRating
+                | Self::CopyPartnerLimelight
+                | Self::RandomAuto
+                | Self::ExtendHopper
+        )
+    }
 }
 
 /// A test on the robot an effect reaches (or, with `of: SOURCE`, on the source robot).
@@ -115,6 +163,11 @@ pub enum Cond {
     LoreActive,
     /// Is directly across from the source robot: the same driver station on the other alliance.
     Across,
+    AlliedWith {
+        team: i32,
+    },
+    Unfavored,
+    HighestTele,
     /// Is this team's robot.
     Team {
         team: i32,
@@ -171,6 +224,17 @@ pub fn validate(effects: &[Effect], owner: Owner) -> Result<(), String> {
         if owner == Owner::Lore && e.scope == Scope::Itself {
             return Err("lore isn't attached to a robot, so it can't target SELF".into());
         }
+        if owner == Owner::Lore && e.scope == Scope::Partners {
+            return Err("lore has no robot to exclude from its alliance".into());
+        }
+        if e.op.is_robot_ability()
+            && (owner != Owner::Robot
+                || e.scope != Scope::Itself
+                || e.chance.is_some()
+                || (!matches!(e.op, Op::BoostAllRatings { .. }) && !e.when.is_empty()))
+        {
+            return Err("this ability must be on a robot, target itself, and have no extra roll".into());
+        }
         if let Some(c) = e.chance
             && !(1..=99).contains(&c)
         {
@@ -180,7 +244,9 @@ pub fn validate(effects: &[Effect], owner: Owner) -> Result<(), String> {
             Op::AddPhaseFlat { value, .. } | Op::PerPartTag { value, .. } if !(-100..=100).contains(value) => {
                 return Err("points must be between -100 and 100".into());
             }
-            Op::AddPhasePct { value, .. } if !(-90..=300).contains(value) => {
+            Op::AddPhasePct { value, .. } | Op::BoostAllRatings { value } | Op::AddRpPct { value }
+                if !(-90..=300).contains(value) =>
+            {
                 return Err("a percent bonus must be between -90 and 300".into());
             }
             Op::AddPhaseMultiplier { percent, .. } if !(110..=400).contains(percent) => {
@@ -217,7 +283,9 @@ pub fn validate(effects: &[Effect], owner: Owner) -> Result<(), String> {
                 Cond::Station { station, .. } if !(1..=3).contains(station) => {
                     return Err("driver stations are 1, 2 and 3".into());
                 }
-                Cond::Team { team, .. } if *team <= 0 => return Err("a team number is a positive number".into()),
+                Cond::Team { team, .. } | Cond::AlliedWith { team } if *team <= 0 => {
+                    return Err("a team number is a positive number".into());
+                }
                 _ => {}
             }
         }
@@ -244,10 +312,11 @@ fn describe_one(e: &Effect, owner: Owner) -> String {
         (Scope::Itself, _) => "This robot",
         (Scope::Allies, Owner::Lore) => "Your robots",
         (Scope::Allies, _) => "Robots on this alliance",
+        (Scope::Partners, _) => "Alliance partners",
         (Scope::Enemies, _) => "Opposing robots",
         (Scope::Field, _) => "Every robot on the field",
     };
-    let plural = matches!(e.scope, Scope::Allies | Scope::Enemies);
+    let plural = matches!(e.scope, Scope::Allies | Scope::Partners | Scope::Enemies);
     let what = match &e.op {
         Op::AddPhaseFlat { phase, value } => format!("{} {}", signed(*value), phase.word()),
         Op::AddPhasePct { phase, value } => format!("{}% {}", signed(*value), phase.word()),
@@ -262,10 +331,20 @@ fn describe_one(e: &Effect, owner: Owner) -> String {
             RpSlot::Rp2 => format!("{} RP2 chance", signed(*value)),
             RpSlot::Rp3 => format!("{} RP3 chance", signed(*value)),
         },
+        Op::AddRpPct { value } => format!("{}% to all RP chances", signed(*value)),
         Op::PerPartTag { tag, phase, value } => {
             format!("{} {} for each {} part attached", signed(*value), phase.word(), tag_word(tag))
         }
         Op::DisablePhase { phase } => format!("no {} at all", phase.word()),
+        Op::BoostAllRatings { value } => format!("{}% to all ratings", signed(*value)),
+        Op::ImmuneToDefense => return "Immune to defenders.".into(),
+        Op::ImmuneToEnemyEffects => return "Immune to opposing robot abilities, Parts and Lore.".into(),
+        Op::StealRandomRating => {
+            return "Steals 5% of one random AUTO, TELE, END or DEF rating from a random opponent. Only positive ratings can be stolen.".into();
+        }
+        Op::CopyPartnerLimelight => return "Gains a Limelight if an alliance partner has one attached.".into(),
+        Op::RandomAuto => return "Randomly gets +50% AUTO, −20% AUTO or no change. Each is equally likely.".into(),
+        Op::ExtendHopper => return "Each phase, a 50% chance to extend the hopper for +10% scoring.".into(),
     };
     let mult = matches!(e.op, Op::AddPhaseMultiplier { .. });
     let mut s = match (e.chance, mult) {
@@ -319,6 +398,9 @@ fn describe_cond(c: &Cond, owner: Owner) -> String {
         }
         Cond::LoreActive => "a lore card is active".into(),
         Cond::Across => "it's directly across from this robot".into(),
+        Cond::AlliedWith { team } => format!("allied with {team}"),
+        Cond::Unfavored => "this robot's alliance is predicted to lose".into(),
+        Cond::HighestTele => "its base TELE is highest on the alliance (ties count)".into(),
         Cond::Team { team, of } => {
             let s = subj(of);
             if s == "it" { format!("it's team {team}") } else { format!("{s} is team {team}") }

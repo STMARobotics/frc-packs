@@ -16,6 +16,7 @@ import { openBench, openMenu, openMyRobot, openPool } from "./sheets";
 import { attach, cardOf, detach, lock, playLore, robotOf, setRobotMode, setStations } from "./state";
 import { formatRating, formatRp } from "../../card-stats";
 import { openSchedule } from "./schedule";
+import { AbilityAnimation } from "./ability-animation";
 
 export function Arena({ g, log, onNext }: { g: GameView; log: RoundLog | null; onNext: () => void }) {
   const side = g.me!.side, op = 1 - side;
@@ -192,6 +193,7 @@ export function Arena({ g, log, onNext }: { g: GameView; log: RoundLog | null; o
           );
         })}
         {rv?.banner && <b key={rv.banner.n} class="b-banner">{rv.banner.text}</b>}
+        {rv?.ability && <AbilityAnimation key={rv.ability.id} board={board} active={rv.ability} />}
         {rv && rv.auto > 0 && <div class="b-autoclock"><b>AUTO</b><span>0:0{rv.auto}</span></div>}
       </div>
       {pit && <p class="b-lineup-note">Defend to trade your TELE for a DEF penalty on the opposite robot.</p>}
@@ -280,7 +282,7 @@ function Bot({ r, lane, row, mine, captain, parts, score, rv, plannedMode, onMod
   const die = rv?.dice[r.inst];
   return (
     <div ref={el} class={cx("b-bot", mine ? "mine" : "theirs", open === 0 ? "closed" : open === 1 ? "opening" : "open", target && "target", lifted && "lifted")}
-      style={{ gridColumn: lane + 1, gridRow: row }} data-drop-bot={live && mine ? r.inst : undefined} data-lane={live ? lane : undefined}
+      style={{ gridColumn: lane + 1, gridRow: row }} data-robot={r.inst} data-drop-bot={live && mine ? r.inst : undefined} data-lane={live ? lane : undefined}
       onClick={onTap} onPointerDown={onDown as never}>
       <div class="b-bot-card">
         <Card r={r} w="var(--lw)" />

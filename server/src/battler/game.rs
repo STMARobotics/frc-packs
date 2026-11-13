@@ -742,6 +742,7 @@ impl Game {
                     .filter_map(|(p, _)| self.card(*p))
                     .map(|c| FieldPart {
                         inst: c.inst,
+                        card: c.card.clone(),
                         name: c.name.clone(),
                         tags: c.tags.clone(),
                         effects: c.effects.clone(),
@@ -765,7 +766,11 @@ impl Game {
                 lores.push(FieldLore { inst: l.inst, name: l.name.clone(), side, effects: l.effects.clone() });
             }
         }
-        let result = engine::resolve(&field, &lores, round_seed(self.seed, self.round));
+        let seed = round_seed(self.seed, self.round);
+        let result = match self.schedule.get(usize::from(self.round - 1)) {
+            Some(m) => engine::resolve_with_prediction(&field, &lores, seed, m.prediction.win_chance.map(|p| p < 0.5)),
+            None => engine::resolve(&field, &lores, seed),
+        };
         let log = RoundLog {
             round: self.round,
             stations: [self.seat(0).plan.stations, self.seat(1).plan.stations],
@@ -1287,6 +1292,26 @@ mod tests {
             assert!(p.win_chance.iter().all(|p| p.is_finite() && (0.0..=1.0).contains(p)));
             assert!((p.win_chance.iter().sum::<f64>() - 1.0).abs() < 1e-12);
         }
+    }
+
+    #[test]
+    fn underdog_ability_uses_the_scheduled_prediction_and_final_station() {
+        let (mut g, _, _) = in_pit();
+        let [captain, a, b] = g.alliances[0];
+        let opposed = g.alliances[1][2];
+        let robot = g.robots.iter_mut().find(|r| r.inst == captain).unwrap();
+        robot.effects = serde_json::from_str(
+            r#"[{"op":"ADD_PHASE_PCT","phase":"AUTO","value":-15,"scope":"ENEMIES","when":[{"if":"UNFAVORED"},{"if":"ACROSS"}]}]"#,
+        ).unwrap();
+        g.robots.iter_mut().find(|r| r.inst == opposed).unwrap().stats.auto = 100.0;
+        g.schedule[0].prediction.win_chance = [0.4, 0.6];
+        g.set_stations(0, [a, b, captain]).unwrap();
+        g.lock(0, 10).unwrap();
+        g.lock(1, 10).unwrap();
+        let result = &g.rounds[0].result;
+        assert_eq!(result.robots.iter().find(|r| r.inst == opposed).unwrap().points[0], 85);
+        assert_eq!(result.events.len(), 1);
+        assert_eq!(result.events[0].target, opposed);
     }
 
     #[test]

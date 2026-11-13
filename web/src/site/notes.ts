@@ -2,11 +2,22 @@
 // players should hear about: everyone who's played before sees the newest one once (screens/notes.tsx), and Settings
 // shows the version and every release. 0.x while in beta: the middle number for a weekly release, the last for the
 // feedback updates and fixes in between. How to bump and how the notes should read: CONTRIBUTING.md.
-export const VERSION = "0.14.2";
+export const VERSION = "0.14.3";
 
 export interface Release { v: string; date: string; title: string; items: string[] }
 
 export const NOTES: Release[] = [
+  {
+    v: "0.14.3",
+    date: "2026-11-13",
+    title: "",
+    items: [
+      "Added abilities for 12 robots, including HighTide, Citrus Circuits and Team RUSH.",
+      "Cards wiggle and their ability text glows when an ability triggers.",
+      "Beams show which robots an ability hits.",
+      "Scoring waits while abilities play one at a time.",
+    ],
+  },
   {
     v: "0.14.2",
     date: "2026-11-12",
