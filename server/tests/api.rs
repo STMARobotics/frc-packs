@@ -3368,7 +3368,10 @@ async fn admin_gets_every_card_without_serials_and_cannot_trade() {
     assert_eq!(first.body["added"], teams, "they had none");
     let again = call(&app, "POST", "/api/admin/everything", Some(&admin), Some(json!({}))).await;
     assert_eq!((again.body["added"].as_i64(), again.body["teams"].as_i64()), (Some(0), Some(teams)), "{}", again.body);
-    assert_eq!(call(&app, "POST", "/api/admin/everything", Some(&c), Some(json!({}))).await.status, StatusCode::FORBIDDEN);
+    assert_eq!(
+        call(&app, "POST", "/api/admin/everything", Some(&c), Some(json!({}))).await.status,
+        StatusCode::FORBIDDEN
+    );
 
     let cards = frc_packs_server::model::cards(&db, admin_id, PACK).await.unwrap();
     assert_eq!(cards.len() as i64, teams);
